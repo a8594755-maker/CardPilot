@@ -1,0 +1,1115 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-phase-held-reference-control-20260904",
+  "title": "Matched static versus phase-held current-reference continuation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-05T01:10:29+00:00",
+  "updated_at": "2026-09-05T07:32:42+00:00",
+  "started_at": "2026-09-05T01:28:11+00:00",
+  "ended_at": "2026-09-05T07:32:19+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "After the static4M plateau and negative external endpoint, a current-actor reference held256 updates per phase may support a more useful geometric strength slope than unchanged Standard10-static regularization without the rapid interval1 drift.",
+  "material_change": "One Seed1 exact-parent two-arm continuation, static Standard10 versus current4M-rebased moving reference refreshed every256 PPO calls. Qualified multi8 and inherited optimizer/replay/league;2M then4M additional physical hands/arm, untouched paired evaluations and explicit statistical continuation. Initial reference rebasing is part of treatment, not a cadence-only contrast.",
+  "baseline": "Original static-current-KL Seed1 4M SHA7ea4d74d; external20k-41.3116 CI[-63.3723,-19.2509]",
+  "source": "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/latest.pt",
+  "parent_id": "v6-static-seed1-4m-greedy-fresh20k-slumbot-20260904",
+  "command": "python research/experiments/v6-phase-held-reference-control-20260904/run_control.py --preflight-only",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-phase-held-reference-control-20260904/run_control.py --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:10:29+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/test_command_contract.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/command_contract_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:12:28+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-phase-held-reference-control-20260904/run_control.py --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:12:28+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/test_command_contract.py research/experiments/v6-phase-held-reference-control-20260904/test_controller_evidence.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/controller_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:27:58+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-phase-held-reference-control-20260904/run_control.py research/experiments/v6-phase-held-reference-control-20260904/control_evidence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:27:58+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-phase-held-reference-control-20260904/run_control.py --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:27:58+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe research/experiments/v6-phase-held-reference-control-20260904/run_control.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:28:11+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 6295128 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T01:28:14+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 6295128 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 256",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T02:21:22+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263411 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T03:19:34+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1 --states 20000 --seed 20263421 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T03:37:54+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263411 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T03:38:11+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1 --states 20000 --seed 20263421 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T03:46:58+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8392280 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 256",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T03:47:18+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8392280 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T05:30:24+00:00"
+    },
+    {
+      "command": "python -u research/experiments/v6-phase-held-reference-control-20260904/run_control.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:20:32+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\resume_control.py --audit-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:26:17+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/resume_control.py --audit-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:27:11+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/test_resume_control.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:27:11+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/test_resume_control.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/tests_final.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:27:11+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -File research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/launch.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:27:31+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\resume_control.py --run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:27:38+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8392280 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T06:27:48+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263412 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:00:37+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2 --states 20000 --seed 20263422 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:10:41+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263412 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:11:00+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2 --states 20000 --seed 20263422 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:19:41+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/post_analysis/test_geometric_summary.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/post_analysis/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:31:45+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-phase-held-reference-control-20260904/post_analysis/summarize_geometric_control.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:31:47+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-phase-held-reference-control-20260904/post_analysis/summarize_geometric_control.py --check-ready",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:31:50+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-phase-held-reference-control-20260904/post_analysis/review_stage1_resume.py --out research/experiments/v6-phase-held-reference-control-20260904/post_analysis/stage1_resume_review.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:31:53+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/test_final_analysis.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/final_analysis_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:31:55+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/final_analysis.py --check-ready",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:31:58+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/final_analysis.py --out research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/post_terminal_report.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:00+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_pair_protocol.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:03+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/finish_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:06+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_run_pair.py research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_pair_protocol.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/runner_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:08+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_run_pair.py research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_pair_protocol.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/runner_tests_v2.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:11+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_run_pair.py research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_pair_protocol.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/runner_tests_v3.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:13+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_run_pair.py research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/test_pair_protocol.py --junitxml=research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/external_preparation/runner_tests_final.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:16+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-05T01:00:00+00:00 --out-json research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/finish_log_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T07:32:42+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-phase-held-reference-control-20260904/protocol.md",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/source_policy_reference.py",
+      "research/experiments/v6-managed-trainer-resume-integration-20260904/run_gpu_resume_qualification.py",
+      "research/experiments/v6-static-current-kl-4m-scale-20260904/audit_pool_history_windows.py"
+    ],
+    "captured_at": "2026-09-05T01:10:29+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-phase-held-reference-control-20260904/code.patch",
+    "patch_sha256": "2eba69e5fd5e5c7ec4c121ae4a8992792276bd83d6cc67a46d65e94f2740b212",
+    "source_manifest": "research/experiments/v6-phase-held-reference-control-20260904/source_manifest.json",
+    "source_manifest_sha256": "11ed22043321ad8ca6a42efb3dd81e93072cca3c6134e80b06127abddd8f756a",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 8394971,
+    "lineage_training_hands": 8395752,
+    "offline_samples": 80000,
+    "evaluation_hands": 131072,
+    "wall_time_seconds": 21848.0,
+    "slumbot_hands": 0,
+    "planned_new_training_hands": 8388608,
+    "planned_internal_evaluation_hands": 131072,
+    "planned_offline_drift_states": 80000,
+    "new_transition_hands": 7311247,
+    "new_replay_rows_not_new_hands": 12804420,
+    "new_no_decision_hands": 1082438,
+    "retained_worker_tail_hands": 1286,
+    "unknown_crash_suffix_hands": null,
+    "actual_executed_training_hands_are_at_least_retained_count": true,
+    "shared_parent_physical_hands": 4197976,
+    "known_local_lineage_union_physical_hands": 12592947,
+    "per_arm_cumulative_physical_hands": {
+      "static": 8395752,
+      "moving256": 8395171
+    },
+    "largest_single_endpoint_local_lineage_hands": 8395752,
+    "training_seed_lineages": 1,
+    "statistically_matched_initialization_not_independent_seeds": true,
+    "statistical_not_bitwise_worker_continuation": true,
+    "unique_attempt_namespaces": [
+      "afbbeec42bfa425fba094af44de4d515",
+      "33c5ced5be054c01b108ef0eb08435df",
+      "37bb512628084d318e9b128eb37e1b2d",
+      "61d5723569e14fe498d6dd01a5abf27b",
+      "17faf3a5c9f74d9c816047218a4bdfec"
+    ],
+    "pretrained_standard10_environment_hands_not_inferred": true,
+    "completed_attempt_wall_seconds": 14680.96871889988,
+    "interrupted_attempt_wall_seconds": null,
+    "interrupted_attempt_wall_bounds_seconds": [
+      2414.653812,
+      3350.775205
+    ],
+    "all_training_attempt_wall_bounds_seconds": [
+      17095.62253089988,
+      18031.743923899878
+    ],
+    "retained_physical_hands_per_training_wall_second_bounds": [
+      465.56622783850787,
+      491.0596841282799
+    ],
+    "wall_bounds_method": "Last saved checkpoint timestamp to first absence in preserved audit; conservative upper bound includes possible post-exit idle time. Unknown crash work not credited."
+  },
+  "metrics": {
+    "training_started": true,
+    "command_contract_tests_passed": 5,
+    "mechanical_preconditions_passed": true,
+    "controller_implemented": true,
+    "controller_tests_passed": 28,
+    "controller_phase": "EVIDENCE_READY_FOR_RESEARCH_ANALYSIS",
+    "unknown_crash_suffix_hands": null,
+    "independent_final_report_passed": true,
+    "goal_achieved": false,
+    "external_preparation_tests_passed": 45,
+    "external_preparation_added_hands": 0,
+    "final_static_delta_bb100": -7.440185546875,
+    "final_moving_delta_bb100": 7.5068359375,
+    "final_moving_minus_static_bb100": 14.947021484375,
+    "final_moving_minus_static_ci95_low": -5.294534017515373,
+    "final_moving_minus_static_ci95_high": 35.188576986265375
+  },
+  "artifacts": [
+    "research/experiments/v6-phase-held-reference-control-20260904/protocol.md",
+    "research/experiments/v6-phase-held-reference-control-20260904/code.patch",
+    "research/experiments/v6-phase-held-reference-control-20260904/source_manifest.json",
+    "research/experiments/v6-phase-held-reference-control-20260904/run_control.py",
+    "research/experiments/v6-phase-held-reference-control-20260904/test_command_contract.py",
+    "research/experiments/v6-phase-held-reference-control-20260904/command_contract_tests.xml",
+    "research/experiments/v6-phase-held-reference-control-20260904/control_evidence.py",
+    "research/experiments/v6-phase-held-reference-control-20260904/test_controller_evidence.py",
+    "research/experiments/v6-phase-held-reference-control-20260904/controller_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\run_control.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\control_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\controller_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\stage1_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2\\initial_resumed_state.pt",
+    "research/experiments/v6-phase-held-reference-control-20260904/post_analysis/stage1_resume_review.json",
+    "research/experiments/v6-phase-held-reference-control-20260904/post_analysis/review_stage1_resume.py",
+    "research/experiments/v6-phase-held-reference-control-20260904/post_analysis/tests.xml",
+    "research/decision_notes/frozen-qualification-power-planning-20260905.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\interruption_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\resume_control.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\README.md",
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/tests.xml",
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/tests_final.xml",
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/test_resume_control.py",
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/resume_control.py",
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/launch.ps1",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\stage2_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\pipeline_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\decision_notes\\phase-held-external-readiness-20260905.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-17faf3a5c9f74d9c816047218a4bdfec.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-33c5ced5be054c01b108ef0eb08435df.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-37bb512628084d318e9b128eb37e1b2d.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-61d5723569e14fe498d6dd01a5abf27b.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-afbbeec42bfa425fba094af44de4d515.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\drift_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\drift_raw.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\drift_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\drift_raw.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\drift_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\drift_raw.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\drift_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\drift_raw.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\post_analysis\\README.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\post_analysis\\summarize_geometric_control.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\post_analysis\\test_geometric_summary.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\README.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\pair_protocol.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\run_pair.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests_final.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests_v2.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests_v3.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\test_pair_protocol.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\test_run_pair.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\final_analysis.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\final_analysis_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\finish_review.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\post_terminal_report.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\test_final_analysis.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\result_summary.md",
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/finish_log_audit.json"
+  ],
+  "notes": [
+    "Prospective plan only; controller implementation, source freeze and preflight qualification remain required before any workers start. Do not rerun completed GPU/4M/Slumbot work. No automatic whole-family rejection from small negative scores, no automatic8M mainline or final100k promotion.",
+    "Command builder and fixed source/process preconditions verified with5 tests and zero workers/hands. Non-preflight invocation refuses execution until one-owner stage controller, moving-reference state/window audits and geometric paired aggregation are implemented. Initial current4M reference rebasing is explicitly part of treatment; static comparator remains Standard10-bound.",
+    "Completed one-owner controller and 28 directed tests, including full synthetic stage aggregation, exact initial reference and resume, moving phase cadence, common-parent cancellation, corpus overlap, strict broad-collapse AND gate, prefix/tail live accounting and fail-closed hash/ownership. Production trainer unchanged. No new hands before actual controller launch.",
+    "One owner now owns this record and frozen sources. No retries or overwrites; statistical managed continuation, not bitwise worker replay. Initial rebasing is part of treatment.",
+    "static_stage1: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "static_stage1 completed target with preserved optimizer/replay and audited reference/pool history.",
+    "moving256_stage1: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "moving256_stage1 completed target with preserved optimizer/replay and audited reference/pool history.",
+    "Stage1 completed fixed common-deck comparisons, repeated-parent join and prior-corpus check. Broad-collapse gate=False; no final-benchmark claim.",
+    "moving256_stage2: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "moving256_stage2 completed target with preserved optimizer/replay and audited reference/pool history.",
+    "static_stage2: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "Authoritative process and handle checks confirm original controller PID47624 and static_stage2 trainer PID26136 are absent; no AlphaHoldem worker remains. Cause and exit code unknown, not a normal finished attempt. Read-only torch load validates last saved checkpoint iteration1525, physical7237515, transition6284575, SHA256c44a52bcbcc30e88c8e6a96a0d6d6c0eb1a869d5041585129e942d3a8a587974. Counters above are evidenced retained lower bounds; unknown crash suffix is not zero. Preserve original attempt and old status/ownership in place; recover only remaining1154765 physical hands under original configuration and fresh managed namespace after exact-state and assignment-prefix audit. No new experiment or algorithm change.",
+    "Interrupted static stage2 retained197 updates pass model/optimizer/replay, pool windows, metric counters and full1526-row assignment replay. Pending1526 is preserved, not trimmed. Unknown crash suffix remains unknown; no model/hands rerun by audit.",
+    "Recovery audit and12 focused tests pass, including actual harmless child observer exception draining with no retry. No new poker hands from these checks. Earlier ad-hoc replay equality false alarm used ordinary NaN equality; independent byte-aware review found28816 identical optional showdown-EV NaNs, not corrupted replay or nonfinite training losses. Corrected review retained and attached. Final-qualification power memo is planning only, not preregistration or final benchmark.",
+    "Launching only the qualified static remainder through the hidden, file-backed PowerShell launcher. This avoids relying on an observer PTY lifetime; it is not a guarantee against OS termination. Original recipe and all evidence remain frozen. Controller will update accounting itself and stop after the existing stage2 evaluation schedule.",
+    "Qualified remainder controller owns same experiment. File-backed hidden launch, original attempt immutable. Resume7237515 to original8392280 target; no reset, fresh managed namespace, exact pending assignment reuse; then both original stage2 evaluations.",
+    "Actual remainder initial checkpoint exactly matches interrupted iteration1525 model/optimizer/replay/pool/main RNG and counters; new namespace reserved. Worker continuation remains statistical.",
+    "Static remainder reached original target; resumed attempt verified. Earlier crash suffix remains unknown, not silently set to zero.",
+    "Stage2 completed fixed common-deck comparisons, repeated-parent join and prior-corpus check. Broad-collapse gate=False; no final-benchmark claim.",
+    "Same experiment remaining training and both original stage2 evaluations complete. Researcher must aggregate interruption-aware costs/learning curve and finish record; no next experiment automatically started.",
+    "Final review occurs after both controller owners exited. Deferred post-analysis and external-preparation sources/tests/actual commands are now attached. External preparation used synthetic fixtures, zero poker hands;no external record or launch yet. Original interrupted static_stage2 outputs remain unchanged; unknown crash suffix is null. lineage_training_hands denotes the largest single endpoint local lineage, not the two-arm union or unknown pretraining exposure. Historical command recording is provenance, not permission to rerun overwrite-protected completed outputs.",
+    "Post-finish logger audit: one experiment, zero warnings. Top-level paired CI metrics now copy the authoritative report at full precision; the finish helper's approximately 2e-9 rounding difference has no inferential effect. Completed status and original ended_at are preserved; no new poker hands."
+  ],
+  "result": {
+    "summary": "Both frozen approximately8.395M endpoints completed;8394971 new retained training hands,131072 internal hands,80000 drift states,0 Slumbot. Static-minus4M -7.44;phase-held +7.51;paired difference +14.95 CI[-5.29,35.19],unresolved.",
+    "conclusion": "Valid single-seed matched-initialization control with statistical resume and unknown interrupted suffix preserved. No demonstrated stable winning policy or continued positive moving-reference slope. Intervals are nominal conditional internal diagnostics.",
+    "decision": "PREREGISTER_BOTH_ENDPOINT_EXTERNAL_DEVELOPMENT_COMPARISON",
+    "next_step": "Separately preregister and qualify fixed40k fresh Slumbot hands per final endpoint;no internal-rank selection,no automatic16M or final100k. Use external alignment and uncertainty to decide independent Seed3 replication."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 41,
+    "command_count": 41
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-phase-held-reference-control-20260904/protocol.md": {
+      "type": "file",
+      "bytes": 7412,
+      "sha256": "5b3b3efc1356097f4c79af00cf27456079fa3ae6a0a7637bf9aa83ea74d505f8"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/code.patch": {
+      "type": "file",
+      "bytes": 303883,
+      "sha256": "2eba69e5fd5e5c7ec4c121ae4a8992792276bd83d6cc67a46d65e94f2740b212"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 1129,
+      "sha256": "11ed22043321ad8ca6a42efb3dd81e93072cca3c6134e80b06127abddd8f756a"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/run_control.py": {
+      "type": "file",
+      "bytes": 28632,
+      "sha256": "a36c48530524d1caf63d7971e85c7fd0865e32b4f15356e7eda47dd5fba9231f"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/test_command_contract.py": {
+      "type": "file",
+      "bytes": 2131,
+      "sha256": "44f73da2dbc14e1ca99948248315e1fe9a1035d89362dd55446d3fc77a28667c"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/command_contract_tests.xml": {
+      "type": "file",
+      "bytes": 1064,
+      "sha256": "1a7a08740693239fc7a858b22a920a9e84d035e0fef2b37bd03cf46d07427ef3"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/control_evidence.py": {
+      "type": "file",
+      "bytes": 12374,
+      "sha256": "8acc0ae7a23b577e169a6661286f50daa2ddc01b80c5ffa83461a9e505aa0362"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/test_controller_evidence.py": {
+      "type": "file",
+      "bytes": 10449,
+      "sha256": "77f19f8f22146552ad3271e513c4558d5368d29348e37d62c192d59290e74a8a"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/controller_tests.xml": {
+      "type": "file",
+      "bytes": 5316,
+      "sha256": "1fd453777571c292dacc72ba8229bc78a48cb9fbd94b67e196c81582f6276abd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\input_contract.json": {
+      "type": "file",
+      "bytes": 64524,
+      "sha256": "db608578f57249c6ccb033ae1a802a067be67f20a4183321d35a31ecec9b7f89"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\ownership.json": {
+      "type": "file",
+      "bytes": 301,
+      "sha256": "6b38e0702633349b2be467968127d03af0afbeb7172fa232894dadc315718884"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\run_control.py": {
+      "type": "file",
+      "bytes": 28632,
+      "sha256": "a36c48530524d1caf63d7971e85c7fd0865e32b4f15356e7eda47dd5fba9231f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\control_evidence.py": {
+      "type": "file",
+      "bytes": 12374,
+      "sha256": "8acc0ae7a23b577e169a6661286f50daa2ddc01b80c5ffa83461a9e505aa0362"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\controller_tests.xml": {
+      "type": "file",
+      "bytes": 5316,
+      "sha256": "1fd453777571c292dacc72ba8229bc78a48cb9fbd94b67e196c81582f6276abd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3423,
+      "sha256": "9e4f80ded0914891ac0d7f06305248c63f179eaec4a27382ce933eeb0895c5f7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 309170522,
+      "sha256": "863878cbdb6fecfa284d09149cdeaeff10f63dd97c4b70cb0625edac896e0681"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 5163,
+      "sha256": "af039942a14cb8b05a08e2863c5bec1c443aeb9663ee50b0a0c9c224105d165c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 645,
+      "sha256": "d596d17c35d7b6d5887e6d1eafd5e78e0f19122f6ee515bff10d68938a69dac6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\latest.pt": {
+      "type": "file",
+      "bytes": 316420442,
+      "sha256": "e62a16fe420ce7f273258d5d50f217b7119e3a630d9f2d11eae32c75b4d15a05"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 40056703,
+      "sha256": "76342368b62b1b69b300dd0f4ec9840913dc877ed13f41a7c0d496682104e1ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 3733188,
+      "sha256": "0a547f6fb2c250efa02336346e982c0ad76a7117972231260710a28a43b8a32d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3316,
+      "sha256": "8d179c6340a87c74a03268999ab534e1fca61cf87652ff82c27305914c1a259c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 342222634,
+      "sha256": "f33ada779b27bee3cfd215d0ad1e8874bbe6e8a3c3b285214227e9a49fff4e4b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 5544,
+      "sha256": "727ace0ee6f37b86d91ce9424e469f4583160dbcd0dd1139aaa6ae909db67ceb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 650,
+      "sha256": "80ff9377fb3cdcb787758a62a270f8e3440eef2bf20710ab12fb02fbeb556008"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\latest.pt": {
+      "type": "file",
+      "bytes": 342616106,
+      "sha256": "a317b03afb335f5a768a6849e9c4d1eaa48ec676b9c4abc0fe67e741333d3765"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 39982752,
+      "sha256": "2fe011bfd2f2b3dcd12a126adfae182daa2b733386448596b48292f740ff75e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 3719649,
+      "sha256": "b2403ee8d1d671aef0f16aa07b14757e41d7f956b23729b26437315a1c21851d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1245,
+      "sha256": "98c16ab3198ce3bdab87898c7c5c4228d7f4b90a885e055459aec8fdd83320b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\command.json": {
+      "type": "file",
+      "bytes": 827,
+      "sha256": "042e204ffb33665beecf1c455265722ecc5d7a7ade28a210d7c554dbbdf494c6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1251,
+      "sha256": "693972c8d4523a96ffe502dc9ef46b994dd02d740d7795f35c835887aaaaaa03"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\command.json": {
+      "type": "file",
+      "bytes": 833,
+      "sha256": "f349002a280570f97b7fd7cd13cd36cf0293ef534cf785d1590b9664e5701f92"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\stage1_analysis.json": {
+      "type": "file",
+      "bytes": 15039,
+      "sha256": "d5e981e4f9c62a63949d2df6fa28604dffbbdc9cc2cc602a614eb01112512697"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3329,
+      "sha256": "e57d3641d4b03ea6c20bbaf040d482040116ba14659ba2da9f0a11eeb84c3f70"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 342443306,
+      "sha256": "e602780f2b4e630ce5fc1856a08e0871a7f1e63ca617eca382d74b92567f6824"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 5881,
+      "sha256": "85d32da992ff5a1d17a986bb6a995b24936d18cc5ee3c149594c73b9db7783c3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 650,
+      "sha256": "994be58123b7a87973396cdc6e5c460cbd9608485134f45833e42c37d5a5b88c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt": {
+      "type": "file",
+      "bytes": 340758570,
+      "sha256": "b0ab97e76dd6d3603b5b6cde0b2fccaa1726fb8b825b23458f9f9f58dc36f932"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 53503574,
+      "sha256": "991221dd340f150eb1e41d3c54b9de4e17c5022dceab474b6ec8d09a5abd4b70"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4966743,
+      "sha256": "c69d24f8bd16ef0937cf96811ed5a25b1e6ed73124072259e091ec1e30a38aff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3433,
+      "sha256": "3cb83b999ba4658c4622bd4ec086db2ea91cdf2476bc626e70a55f8fb61645ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\static_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 316247578,
+      "sha256": "eb84d2b733db3002441104f3950a2aa5d29e24289070b5350ec216007274183a"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/post_analysis/stage1_resume_review.json": {
+      "type": "file",
+      "bytes": 4398,
+      "sha256": "66e1af648500463e136da91a39505d4ad331b50ee6f443edd394754f68c00bfe"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/post_analysis/review_stage1_resume.py": {
+      "type": "file",
+      "bytes": 8296,
+      "sha256": "6f6c798bcd1c7920daaa0d6ac5cb6e9e3801f0b8ea3dd34f21b3c0d449379e6e"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/post_analysis/tests.xml": {
+      "type": "file",
+      "bytes": 1747,
+      "sha256": "c4796d0b2aba9e617565a5305ed5aebccb856c92b50d0c50d79742d4d76ef299"
+    },
+    "research/decision_notes/frozen-qualification-power-planning-20260905.md": {
+      "type": "file",
+      "bytes": 4734,
+      "sha256": "cdee4426f2bba1df8e4ff8993ff5cf1bea17c5f7b805bbebf85e14ad76361916"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\interruption_audit.json": {
+      "type": "file",
+      "bytes": 9441,
+      "sha256": "56e1689ace59371d3b61479bae1c323457c85cebb67b501bb7def8e5da1dcafb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\resume_control.py": {
+      "type": "file",
+      "bytes": 21444,
+      "sha256": "4e80b5ad5caee5c6dbfa54d788a45b8b42c861f8310a456a72ee32081fa9fd6a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\README.md": {
+      "type": "file",
+      "bytes": 2381,
+      "sha256": "111d526fef291a0ef1def38770b8067cea46f103e9668dfd6cbf0de23e9e6901"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/tests.xml": {
+      "type": "file",
+      "bytes": 2508,
+      "sha256": "82ab2a5b105c6db3021f889d2c7556a8b3b0c9737675fef4f7662d2d1a29d926"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/tests_final.xml": {
+      "type": "file",
+      "bytes": 2508,
+      "sha256": "2d8b4dfcf95bb257b90128a15951f535859733b8ef0654f08155ae5026c104fc"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/test_resume_control.py": {
+      "type": "file",
+      "bytes": 4886,
+      "sha256": "3e12d0fa7916a201c7c7d4959a0a81b65d9ab6efbe2262574bf5c53b24498678"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/resume_control.py": {
+      "type": "file",
+      "bytes": 21444,
+      "sha256": "4e80b5ad5caee5c6dbfa54d788a45b8b42c861f8310a456a72ee32081fa9fd6a"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/launch.ps1": {
+      "type": "file",
+      "bytes": 917,
+      "sha256": "e87ed42f2914aea0d08b1c36e76e56c9d56a1997fd7e5274ef10de3ee2031732"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\ownership.json": {
+      "type": "file",
+      "bytes": 380,
+      "sha256": "6f4b00c722aceda29650ff98941ba6b9d81eec6ea760a7d196139bad9e26af58"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\input_contract.json": {
+      "type": "file",
+      "bytes": 68864,
+      "sha256": "a323386e33b8f129f32e61f380cd7654a960b63a3aa038f40592578ec5066eee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\command.json": {
+      "type": "file",
+      "bytes": 3520,
+      "sha256": "b056b226b7d0da57f3ea0f0a4fc735663966f1ae547bd961282289b9bebcdfe9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 308691674,
+      "sha256": "8c216ed5c32187b1f36f06113325fcb63fe4784b84fc2aeaea1416a6cc44dc18"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\verification.json": {
+      "type": "file",
+      "bytes": 4693,
+      "sha256": "23b34af84e33e2baeffe310a790250d567eb36f1ab1f4f98d5214968b620a0ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\termination.json": {
+      "type": "file",
+      "bytes": 650,
+      "sha256": "7d8455fce35162c7fee21a61e690470ea9fd7d1c31625c33a843dd8fd195a6b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\latest.pt": {
+      "type": "file",
+      "bytes": 307236826,
+      "sha256": "41ff38496167424fa71373028e9291a0d8bd595315f7121d8fa303e6b15a3372"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 53370912,
+      "sha256": "8aeef945b8624c68d908b61160f6e1df7c547965d2a97d20d2687fc268d765b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\static_stage2_remainder\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4971823,
+      "sha256": "068a87954be8cf0e7e610ead3a34436c97f810161c40eea718ecf5ed261907f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "8d88e716121725759a8f05a347b236207348d3251d98995623bfc54775c9d13d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\command.json": {
+      "type": "file",
+      "bytes": 856,
+      "sha256": "cea153a91143389b2c1da3e3de5e627de831c84df8290207d79afc932f100783"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1251,
+      "sha256": "453fe728ce4a486ed70bd4e6031d8b533f38ac483282f4693c6bb98256759421"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\command.json": {
+      "type": "file",
+      "bytes": 833,
+      "sha256": "d3d3de387b663a83142c56ced7a529ac8a6e00dab94cebfb42ddb88b69b2f239"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\stage2_analysis.json": {
+      "type": "file",
+      "bytes": 15089,
+      "sha256": "e28543910a992f6fde62b2fc417a06059d27fa7b365b513fa6311183882be4f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\pipeline_result.json": {
+      "type": "file",
+      "bytes": 24038,
+      "sha256": "45badd549477b3b73e353de7a854325722f45d87d15cf5057f65966b29ac24da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\decision_notes\\phase-held-external-readiness-20260905.md": {
+      "type": "file",
+      "bytes": 5950,
+      "sha256": "132295cf4305e2bbe1a4919e09aabc662b01485899324397574db43614c5fbda"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-17faf3a5c9f74d9c816047218a4bdfec.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "e2b131d7a49dbaf37640588fe8f80d80124045d95989a7717c339d7afdcb3280"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-33c5ced5be054c01b108ef0eb08435df.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "03fe83cb488b7a55ae663a02a4c5b46a7cf03da3f36b1491d601999cfcb8c8e1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-37bb512628084d318e9b128eb37e1b2d.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "6664683753215eff8cf54fb560b8669d4311760c7e045cb453d7d8c8fba02bf5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-61d5723569e14fe498d6dd01a5abf27b.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "243e2b93ba01269e844b461549d74f4255e75a815288585da958eb6e76976640"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\attempt_registry\\attempt-afbbeec42bfa425fba094af44de4d515.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "ef73f733a368ffe15ff67fbe54be052cdceb911bc2da26e71a6147f642e6fcee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\drift_analysis.json": {
+      "type": "file",
+      "bytes": 4503,
+      "sha256": "74b7ce8b3498257459521a1909f410f993fef03c2941dd4e30a10985573054a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 320588,
+      "sha256": "50e5fbcd9a8287ac7bb3400af9397c9cb8e72994c7f80c83087b033825dafc6f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 243,
+      "sha256": "f996c78cdc1dd06ca0d49e343ffc08c59c8869a68c7bbbe7342b40604c378153"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\drift_analysis.json": {
+      "type": "file",
+      "bytes": 4504,
+      "sha256": "acf3e1c517e2d534b0153d6df8dc497d9732dc52e694caf0e6ae5aab7d3de093"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 320502,
+      "sha256": "b93915cb2e432e89ac0fd5c3e12324057413afd71bf933eed40b841712325849"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_moving256_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 244,
+      "sha256": "a670f3c03af1ac02182dc52c534b819de0f1d5d10b6eb31f8c3f63775d7b92b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\drift_analysis.json": {
+      "type": "file",
+      "bytes": 4486,
+      "sha256": "d2e02b9141930051799bc0a9867cafda8c12b104b2f7918dbbcc1a8a8bec3153"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 320100,
+      "sha256": "855147f4e9ad7e450a7861cb58ef25ad701a839fe0e4881849fe1ee0d0dbf37c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 243,
+      "sha256": "9e6d6d99f9f1120d002f7572b60a966aa150313d18cf3ab3fa5f3d8dd7ab1450"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\drift_analysis.json": {
+      "type": "file",
+      "bytes": 4556,
+      "sha256": "65fa1c28b6aa396d7d4b3b3bbe10289ca43e4c3fe7be554829fd93fcd0ec728b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 321028,
+      "sha256": "a46e6ab4554e186258c2c4d6053ae88681a339e80c1eadca7f1bee836c73a2e7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\drift_static_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 245,
+      "sha256": "9cfb1cef94fb39f1d0f9fcc437dc37d669070a37a275115bc8cb9bddf0eef578"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 532974,
+      "sha256": "bedd6e3e29834816bcd4b17aab1e517bd80a05b5006ce7801f20d0c9e77f2b64"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11546,
+      "sha256": "6e9e5ebc3094d0fdede7b97c7fbf545bd358ee6fc5340e7c6477d8415edd52a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 534796,
+      "sha256": "4c42f7cbe6c1c1e2e9fce0c0bfb0f786fcbc43d3988165edd3b72864e878171d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_moving256_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11558,
+      "sha256": "ab78bb99ddcb31cbc7295f5e4c8625c34997e3574e0a7af8a71660b16f654e8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 531319,
+      "sha256": "63762edce2ed7dd570b00e4a8c3decbc76ee337aefba6c44af05a779f9d679ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11525,
+      "sha256": "0db6aed2a991810c1fa15f5663c0c6ad1f4ba34a64233a791a1e65d12cd374f1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 532644,
+      "sha256": "6020b4f939a075e78cf5c1714839869dd184a5faaea67ad200d8949a5be25aee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\eval_static_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11606,
+      "sha256": "920f670b96c97ed9c1368c81e59b51396dfa5d77ddca4a129c925ee835ee44bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 242,
+      "sha256": "b6dc4ddf8c97923596daeb535e03655e2a473bf77403562f0846c6d51ddd77a1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_moving256_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 245,
+      "sha256": "6623dd3ca0a5f96a7242c5ab4f4da0270291e48282227eb974e3a45ce3b67a51"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 245,
+      "sha256": "f473d6bfda49a20742a78d521cff331f499c28b2dee93cef7cc0391fb14c1251"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\job_eval_static_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 242,
+      "sha256": "913edfdeb0312de05e54fbe9da7d79097a6b82640d78173fdd1f0e7fab85fef4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\post_analysis\\README.md": {
+      "type": "file",
+      "bytes": 6225,
+      "sha256": "ad27b8d83edc036bd529ab6f4631e5f7914cf2ce6d7cdd19eef09f0ac43b839f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\post_analysis\\summarize_geometric_control.py": {
+      "type": "file",
+      "bytes": 10584,
+      "sha256": "9444bf91f618770de00e5013418f0b4d15d4a5572ad5f70a1f9be719c4e6745b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\post_analysis\\test_geometric_summary.py": {
+      "type": "file",
+      "bytes": 3529,
+      "sha256": "434ce3825a69b57694909f8a7ac9c630ce1d3405af4c2c9723921da76efa1cf3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\README.md": {
+      "type": "file",
+      "bytes": 4323,
+      "sha256": "002460f33da17b4f406d57d704169eaefc46a43461cd57b9d1e0290ef4a61ee4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\pair_protocol.py": {
+      "type": "file",
+      "bytes": 6198,
+      "sha256": "de9927eda4bb8b34a0d1703673f9459b31c1c90b2944bcc4438f2755d6e4ef43"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\run_pair.py": {
+      "type": "file",
+      "bytes": 29729,
+      "sha256": "ff3f7541504f8335c46bf2f1a42c2e639f3893d5b180a2f6b331070e190d30b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests.xml": {
+      "type": "file",
+      "bytes": 7376,
+      "sha256": "ca20308a36776d9de688c276a7bac98358c296cbcfffffbac6aa962196e1dcd5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests_final.xml": {
+      "type": "file",
+      "bytes": 9746,
+      "sha256": "245c51ec141d7670ce86ff21629c47e3ad73a5e669d3406264f01d1596b542a5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests_v2.xml": {
+      "type": "file",
+      "bytes": 8030,
+      "sha256": "8ea6c349073283098d3344d8cfb99841f9e3f4e934bb4b5a97244c85bd79af22"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\runner_tests_v3.xml": {
+      "type": "file",
+      "bytes": 9746,
+      "sha256": "c9ca945ad8627453bffdd58d434f01ef5d06f41cb026878a418b92f4dafc2402"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\test_pair_protocol.py": {
+      "type": "file",
+      "bytes": 4487,
+      "sha256": "fb0861735b6e2a0642413d4028dcadf2d1f415c9d0d8cc6ab22f53620ba49bfc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\test_run_pair.py": {
+      "type": "file",
+      "bytes": 11454,
+      "sha256": "47623ea8a136b3c111fc2c4549b17b7ee5ce813fbe2bd20b79a744a58f645c90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\external_preparation\\tests.xml": {
+      "type": "file",
+      "bytes": 3557,
+      "sha256": "df033312bc3d1d366e6c60b520fe1a28909c8a1d717c6a315c333b1398c847f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\final_analysis.py": {
+      "type": "file",
+      "bytes": 11457,
+      "sha256": "f28892936873943dfec44ced1f2ba65c60bcbfebbd39ec8c35adf2e75ed56901"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\final_analysis_tests.xml": {
+      "type": "file",
+      "bytes": 1821,
+      "sha256": "99654976c787908a76163dc45953c5a62975b448d6b4d340f4cf4f1dc3d3b490"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\finish_review.py": {
+      "type": "file",
+      "bytes": 5936,
+      "sha256": "69e2d0cc69944d52511cb6e4d0dabd2ec26992cc835bec362bbb45d4dc643a7d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\post_terminal_report.json": {
+      "type": "file",
+      "bytes": 60628,
+      "sha256": "461a74b29504eb70d7156f61f2f3b693d4c6a6cb609ccc213a3bd28ade0a65c9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\recovery_20260905\\test_final_analysis.py": {
+      "type": "file",
+      "bytes": 3065,
+      "sha256": "03bd9d4ff314bd3e5c398cd7aa28679c7185a2f32a8bb5eac1d81fb679b191d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\result_summary.md": {
+      "type": "file",
+      "bytes": 5332,
+      "sha256": "84fbb3463345e7a171440167d4243bcaf5c38e723eb3b5f6877e93813e11e8ce"
+    },
+    "research/experiments/v6-phase-held-reference-control-20260904/recovery_20260905/finish_log_audit.json": {
+      "type": "file",
+      "bytes": 224,
+      "sha256": "c208ac82a9a9fb74c978d8721e42aca79d0b21385eac76dc4c15d52f27e4aadd"
+    }
+  }
+}

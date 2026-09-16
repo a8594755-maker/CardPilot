@@ -1,0 +1,559 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "large-batch-optimizer-regimen-pilot-20260830",
+  "title": "Matched large-batch optimizer-regimen pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T22:20:24+00:00",
+  "updated_at": "2026-08-30T23:01:09+00:00",
+  "started_at": "2026-08-30T22:20:24+00:00",
+  "ended_at": "2026-08-30T23:01:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Larger optimizer batches with explicit learning-rate compensation improve general sampled-policy outcomes relative to the small-batch regimen under a common rollout-batch and physical-hand budget,following observed whole-hand gradient noise.",
+  "material_change": "From original Standard10 with fresh Adam/local counters,compare minibatch1024 lr3e-5 control versus minibatch16384 lr3e-4 treatment. Both collect8192 marker hands per update and target131072 measured physical hands. Same sourceKL1,all-policy-heads,fixed3-anchor league and25percent selfplay.",
+  "baseline": "models/baseline/standard10/latest.pt",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "hand-group-gradient-noise-diagnostic-20260830",
+  "command": "python research/experiments/large-batch-optimizer-regimen-pilot-20260830/profile_batch_memory.py",
+  "commands": [
+    {
+      "command": "python research/experiments/large-batch-optimizer-regimen-pilot-20260830/profile_batch_memory.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:20:24+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/large-batch-optimizer-regimen-pilot-20260830/profile_batch_memory.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:23:03+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/large-batch-optimizer-regimen-pilot-20260830/run_pilot.py research/experiments/large-batch-optimizer-regimen-pilot-20260830/evaluate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:28:22+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_pilot.py scripts/alpha_holdem/test_sampled_mirror_eval.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:28:22+00:00"
+    },
+    {
+      "command": "python research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:28:24+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 8192 --total-hands 99999999 --total-environment-hands 131072 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089800 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id large_batch_control_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\latest.pt --seed 20260898 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:28:25+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control --expected-target-hands 99999999 --expected-target-environment-hands 131072 --expected-final-iteration 14 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:38:38+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 8192 --total-hands 99999999 --total-environment-hands 131072 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089800 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id large_batch_large_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\latest.pt --seed 20260898 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:38:42+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large --expected-target-hands 99999999 --expected-target-environment-hands 131072 --expected-final-iteration 14 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:48:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\evaluate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:48:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --candidate-label large_batch_pilot_source --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260899 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:48:59+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\frozen\\control.pt --candidate-label large_batch_pilot_control --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260899 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:52:37+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\frozen\\large.pt --candidate-label large_batch_pilot_large --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260899 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:56:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_vs_control.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:59:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:59:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:59:59+00:00"
+    },
+    {
+      "command": "python research/experiments/large-batch-optimizer-regimen-pilot-20260830/report_completed_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:01:08+00:00"
+    },
+    {
+      "command": "python C:/Users/a8594/CardPilot/research/experiments/large-batch-optimizer-regimen-pilot-20260830/finish_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:01:08+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_completed_report.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:01:08+00:00"
+    },
+    {
+      "command": "python research/experiments/large-batch-optimizer-regimen-pilot-20260830/inspect_completed_training.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:01:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "dd4b0e75c7233b72ec1635b65e31ccfff6502f559364abe499006b8b7047c8fe",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/network_hybrid_h1.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-30T22:20:24+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/large-batch-optimizer-regimen-pilot-20260830/code.patch",
+    "patch_sha256": "0b48451cdac6e127357adffc66beda2f97d85d5b52345719741b20b3c0daaec4",
+    "source_manifest": "research/experiments/large-batch-optimizer-regimen-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "c58df3dfffeebc2f43022f2e623904357cf5091b88d6e1e8edbe6630ef48b6e7",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 274832,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 73728,
+    "wall_time_seconds": 2445.0
+  },
+  "metrics": {
+    "training_seed": 20260898,
+    "worker_seed_base": 2026089800,
+    "evaluation_seed": 20260899,
+    "planned_physical_hands_per_arm": 131072,
+    "control_minibatch": 1024,
+    "treatment_minibatch": 16384,
+    "control_learning_rate": 3e-05,
+    "treatment_learning_rate": 0.0003,
+    "memory_profile_pass": 1,
+    "batch16384_peak_allocated_bytes": 823134720,
+    "batch16384_peak_allocated_fraction": 0.06391747273592395,
+    "preflight_tests_passed": 14,
+    "control_pid": 47712,
+    "control_latest_iteration": 14,
+    "control_physical_hands": 137268,
+    "control_exit_code": 0,
+    "control_complete": 1,
+    "large_pid": 40752,
+    "large_latest_iteration": 14,
+    "large_physical_hands": 137564,
+    "large_exit_code": 0,
+    "large_complete": 1,
+    "training_complete": 1,
+    "pilot_evaluation_complete": 1,
+    "admits_independent_confirmation": 0,
+    "supplemental_report_updates_merged": 1,
+    "completed_independent_audit_pass": 1,
+    "supplemental_report_tests_passed": 9,
+    "control_adam_steps": 784,
+    "control_partial_batch_steps": 28,
+    "control_unchanged_representation_tensors": 76,
+    "large_adam_steps": 56,
+    "large_partial_batch_steps": 28,
+    "large_unchanged_representation_tensors": 76
+  },
+  "artifacts": [
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/code.patch",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/source_manifest.json",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/profile_batch_memory.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/memory_profile.json",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/run_pilot.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/evaluate.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_pilot.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control_process_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\frozen\\control.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large_process_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\frozen\\large.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\checkpoint_selection.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_vs_control.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\pilot_analysis.json",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/report_completed_pilot.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_completed_report.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/inspect_completed_training.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/training_mechanism_analysis.json",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/next_direction_review.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\deferred_report_updates.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\finish_review.py"
+  ],
+  "notes": [
+    "Joint optimizer batch/LR regimen,not an isolated batch causal effect.10x LR partly offsets about16x fewer steps per data pass;actual partial batches/Adam steps and KL stops must be reported. Common8192-marker collection batches remove collection-size differences between arms. Fresh seed streams shared by arms are not a claim of bitwise matched trajectories after policies diverge. No policy rules,temperature changes,replay,or further training-scale increase.",
+    "First run a synthetic shape/memory profile with no environment hands. Require finite forward/backward/step and peak CUDA allocated memory below80percent device capacity at batch16384; do not silently lower treatment batch or auto-retry an OOM as a new regimen. If feasible,train control then treatment,each131072 physical hands at update boundaries with7200s safety guard. Original source and anchors remain frozen.",
+    "Freeze each final endpoint by budget,not score. Independent sampled_both_sides evaluation with seed20260899 and4096 mirrored pairs per each of3 anchors for original source,control,treatment:73728 total internal hands. Primary comparison is treatment-minus-matched-smallbatch-control;also compare treatment to original source. Admission requires all3 primary deltas positive and >=one nominal95percent lower positive,valid evidence,and nonnegative treatment-minus-source point estimates on all3 anchors. Any admitted signal requires separate independent replication; do not pool or optionally extend evaluation. Report Bonferroni secondary intervals. No Slumbot games or paper-scale expansion in this pilot.",
+    "Synthetic shape profile passed finite forward/backward/Adam step with32768 rollout input rows resident and optimizer batch16384;peak allocated823134720bytes. Scratch model weights discarded,no environment hands,no saved policy checkpoint. This is capacity evidence,not measured training strength or a production throughput guarantee.",
+    "14 launcher/evidence/gate tests passed and memory profile PASS. Production/evaluation wrapper enforces one set of immutable sources and inputs,per-iteration physical accounting,final-only selection,and a fixed independent73728-hand matrix. It leaves the record RUNNING for review; no automatic restart or strength promotion.",
+    "Full execution snapshot frozen before both arms. Same source/deal seeds/collection/physical budgets; only optimizer batch/LR and output identity differ. No live source edits allowed during this wrapper.",
+    "Both preregistered final physical endpoints frozen by budget only; original source hash unchanged. Starting fixed independent sampled evaluation.",
+    "Both frozen endpoints evaluated against source and matched optimizer control on independent seed. Complete raw evidence and independent CI recomputation passed. Inspect numerical/Adam health and result before finish; no claim of Slumbot success.",
+    "Merged all supplemental commands, tests, analysis and notes from deferred_report_updates.json after original wrapper EXIT0. Its PENDING label is retained as historical intent; this metric confirms the merge is complete.",
+    "Added a post-completion-only independent result report with writer guard, raw contrast reconstruction, session/file/source SHA checks, finite model/Adam states, native-head/frozen-trunk checks, physical accounting and Adam-step reconstruction including partial minibatches. Initial8 synthetic tests passed; added a rounded printed-value-loss parser and reran9 tests, all passed, while unchanged production continued. The regimen changes critic steps as well as actor steps; descriptive training loss is not heldout critic quality.",
+    "An additional read-only check of the immutable control iteration8 archive matched all10 Adam state counters at438 steps to the persisted metric prefix, including16 partial-batch steps. No weights, counters, sessions or live source were edited by that check.",
+    "The three fixed anchors are used both for training and assessment. Fresh assessment deals are not a heldout opponent population. Report this limitation alongside the joint batch/LR and single-training-seed limitations.",
+    "During the unchanged fixed evaluation, CPU-only analysis of both final frozen checkpoints verified all76 shared-representation tensors unchanged and exact784/56 Adam steps. Postflop delta L2 was0.05442495/0.08212802,preflop delta L2 was0.03631740/0.05100213(control/large). These are descriptive parameter changes,not strength or causal batch evidence. The script read no evaluation outcomes,created zero hands,and retained source/checkpoint hashes.",
+    "Before reading treatment contrasts, documented conditional next directions: if the fixed gate passes, independent exact-endpoint confirmation; if it fails, repair/test stochastic external evidence audits then separately preregister an unchanged Standard10 native-sampled external baseline. Historicalgreedy20k is not a sampled-policy baseline. No external games or captured-source changes occurred during this review."
+  ],
+  "result": {
+    "summary": "Both matched arms completed274832 measured physical hands and73728 frozen internal evaluation hands. All integrity checks passed; the joint large-batch/LR regimen failed its registered admission gate.",
+    "conclusion": "Large-minus-control deltas were-0.33594,+0.83411,+3.35493bb/100 across Standard10/slumbot_free/CFR96; all primary95percent CIs cross0. No evidence supports promoting or scaling this regimen. Saved Adam steps784versus56 exactly match all full/partial batches; no KL stops and76 shared tensors unchanged. This is a valid inconclusive treatment result,not a failed execution.",
+    "decision": "JOINT_REGIMEN_NOT_ADMITTED: retain all frozen evidence; no optional extension,checkpoint reselection,unchanged-regimen scaleup or treatment Slumbot promotion.",
+    "next_step": "Follow pre-result conditional review: repair/test stochastic Slumbot evidence audits,then separately preregister a fixed fresh external baseline for unchanged original Standard10 native sample/temp1. Historical greedy20k is not a sampled-policy baseline; future qualifying100k must be fresh and separate. Continue learned-weight research informed by that calibration."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 20,
+    "command_count": 20
+  },
+  "artifact_integrity": {
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 283933,
+      "sha256": "0b48451cdac6e127357adffc66beda2f97d85d5b52345719741b20b3c0daaec4"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 972,
+      "sha256": "c58df3dfffeebc2f43022f2e623904357cf5091b88d6e1e8edbe6630ef48b6e7"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/profile_batch_memory.py": {
+      "type": "file",
+      "bytes": 5128,
+      "sha256": "98443d4d7aaecf5d969169a7f7823778a89b5c6d97e6332e36afc99a63c2cb68"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/memory_profile.json": {
+      "type": "file",
+      "bytes": 873,
+      "sha256": "a7c802240f43b2a36ba4886857abe32d9daa84a6ffe88e66e52369d28e695493"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/run_pilot.py": {
+      "type": "file",
+      "bytes": 9903,
+      "sha256": "4c42075d421e2e38594c04b2bb5d4e4f3bfad106d86487021e2e4517726c0c4f"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/evaluate.py": {
+      "type": "file",
+      "bytes": 7971,
+      "sha256": "899369e286c13b23bfaaa4886d3aa8832e3b37233b9ef110a63fc29d99f35282"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_pilot.py": {
+      "type": "file",
+      "bytes": 3185,
+      "sha256": "02183904e4cdc6a6a11132b09e8b55e4f4410b7cff14ed305b9542527ee6d62f"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 4250,
+      "sha256": "d6659343c96fa06a4848a28b28aaaf6fa33af344cd8f49499c866ca12751c90c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 18950,
+      "sha256": "439c85d4e95c21b54a736a36903c171bc4c891ac4048d6320525991c87da73eb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 10932,
+      "sha256": "9a07d5b1a2932be78f7ceb27099b06390c5232aaf539bbc26a6ab179eaa46587"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 354247,
+      "sha256": "365fe4c62a9189f0ebc0e34997b2d33bda00ce513268b7b0960a9b58415ac2f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control_process_stdout.log": {
+      "type": "file",
+      "bytes": 10776,
+      "sha256": "803c9ed7383c9b4f42e317161ea6d1b93a79b671ae8eab5448d1db874b7a3b77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\frozen\\control.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "42461ca127a690b3ea4ad176f0bc8718d924c0a2880694dc6e555878a1b98f0d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control_audit.json": {
+      "type": "file",
+      "bytes": 5683,
+      "sha256": "26b8c8901f456ea213a732e18aa78e41f83e12d5620015df077c4aefe0a90d62"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\latest.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "42461ca127a690b3ea4ad176f0bc8718d924c0a2880694dc6e555878a1b98f0d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57191,
+      "sha256": "206c6e4eb13b7a1c53cbb260c195bb1a8207657f7faa839a7528d0be38f86fc1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 364322,
+      "sha256": "df77efdf4be210d4279e8cd37f5d3fefbff52f6371cddac1052acd1d78960804"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 36397,
+      "sha256": "f8529b13e0679eff2b62bf6689f62a5ef9e9742c7ddad88d735889671c12f6cc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\control\\latest_train.log": {
+      "type": "file",
+      "bytes": 6139,
+      "sha256": "f090266659b58c7cfcb60dae61b1f625c091c465a5df3029754dd9dc2d9c1d5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large_process_stdout.log": {
+      "type": "file",
+      "bytes": 10741,
+      "sha256": "85bb85819a39c7d2cf951c0c21b647aa8e2c15fa9df66927b07bc5ae2b481e55"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\frozen\\large.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "3e1be1f1c29594f99b6d17e9c9a9451e4352df4eaa662d37613863cdc757504a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large_audit.json": {
+      "type": "file",
+      "bytes": 5668,
+      "sha256": "869ea4d3968fbc865764cdb01b357fa429eeeda7aa7f25c3a5fe94633f429346"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\latest.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "3e1be1f1c29594f99b6d17e9c9a9451e4352df4eaa662d37613863cdc757504a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57261,
+      "sha256": "bcabf5bfad14163c613a5388107ac1c21a02fcab77ea916c5a10d28b149afbe0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 364631,
+      "sha256": "3a72075ca888b712a32f2147c34ba58b63431470b4c1df781e342c5ca8340606"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 36370,
+      "sha256": "3c2d2667e4d898f06341c06db00e14d9a4bd6c0d34224840660456dacc262321"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\large\\latest_train.log": {
+      "type": "file",
+      "bytes": 6146,
+      "sha256": "e0fbaf35c58e3121157bf18f53d4ab997ee0264fa66bb9206b8db6eeebe9f58b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\checkpoint_selection.json": {
+      "type": "file",
+      "bytes": 795,
+      "sha256": "a079f06c65cd37cba8f466024790975374d7ecad84b31e7524eeb972b65222a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.json": {
+      "type": "file",
+      "bytes": 653797,
+      "sha256": "d10f0c27eaf9abd63425705b03da0958ba053a7e3c8d577130c56d87cd19d4bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source.md": {
+      "type": "file",
+      "bytes": 1519,
+      "sha256": "bdc6de13be13e44d2ac1f998d1f1f18f8dae478a5f713b07a15029dd9501bede"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source_execution.json": {
+      "type": "file",
+      "bytes": 2135,
+      "sha256": "14f7c36cb86e4a8996ee527aeba3c175c371625a1b66f571374d242d0e12a0dc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\source_stdout.log": {
+      "type": "file",
+      "bytes": 653797,
+      "sha256": "d10f0c27eaf9abd63425705b03da0958ba053a7e3c8d577130c56d87cd19d4bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.json": {
+      "type": "file",
+      "bytes": 654572,
+      "sha256": "ea6a66a905b9886f3cb7dcce5a689d178520b32ffe56096036eceac08eee15ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control.md": {
+      "type": "file",
+      "bytes": 1566,
+      "sha256": "69de14b884efa6038265b00986c13e9febd6f34d29614e18f82bf46170fdcea0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_execution.json": {
+      "type": "file",
+      "bytes": 2186,
+      "sha256": "e3357065f691aac6c6cf4d1417c251e99629a4ff9376f99004d9a318bb328c60"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_stdout.log": {
+      "type": "file",
+      "bytes": 654572,
+      "sha256": "ea6a66a905b9886f3cb7dcce5a689d178520b32ffe56096036eceac08eee15ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.json": {
+      "type": "file",
+      "bytes": 654774,
+      "sha256": "20b01310a51157119f38db9899177e5ac3f51c6eb7798c29b55ee9550c2f4720"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large.md": {
+      "type": "file",
+      "bytes": 1562,
+      "sha256": "1f9d58c1c20ad02d3744d0a0cf5c0908a7f8ec6b1ab0af8cd24bd2fd7e07490d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_execution.json": {
+      "type": "file",
+      "bytes": 2177,
+      "sha256": "27661035b2076d10c9e9138b56367fb401b2de09a33e282baea920d79bcf69d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_stdout.log": {
+      "type": "file",
+      "bytes": 654774,
+      "sha256": "20b01310a51157119f38db9899177e5ac3f51c6eb7798c29b55ee9550c2f4720"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_vs_control.json": {
+      "type": "file",
+      "bytes": 5061,
+      "sha256": "f28ee6caeefc123ae35aa1721acb744890141541f20d29ed24f7b6e05038d209"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\large_vs_source.json": {
+      "type": "file",
+      "bytes": 5020,
+      "sha256": "7d558019d1c3aa2820d3a8a9bc015c9a0229f742b70ee00c5466457499ba5832"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\matrix\\control_vs_source.json": {
+      "type": "file",
+      "bytes": 5030,
+      "sha256": "cd79ec00ae7ff01e6582c20ff58ea985bf8935901531d3eac2069390df75894d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\pilot_analysis.json": {
+      "type": "file",
+      "bytes": 3854,
+      "sha256": "6261540d9861e5ece69e3f4ec86aeca8210613fd896c2d4e66dfb4f8047dcd14"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/report_completed_pilot.py": {
+      "type": "file",
+      "bytes": 12580,
+      "sha256": "f1eaf6208559542e884e9a5acd44d0e907de5c0bb95bf009fe35eba1cb8a70e8"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_completed_report.py": {
+      "type": "file",
+      "bytes": 1839,
+      "sha256": "63553f0894f517c12d8587b03288e680899787fe979a0de660d17cc0dcdc88ca"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/inspect_completed_training.py": {
+      "type": "file",
+      "bytes": 4858,
+      "sha256": "7e290cd3bf52791f1cd43c91dcf2e9753d5f8c4e6546a269f8f6a1b64c0e33a4"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/training_mechanism_analysis.json": {
+      "type": "file",
+      "bytes": 11845,
+      "sha256": "b44e8eeac6e989b67253e7a41fb04ce34babfd66917264162b479a45f98fd4fa"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/next_direction_review.md": {
+      "type": "file",
+      "bytes": 3236,
+      "sha256": "b0522e79574f8d1dec641e39214b990560288cce1a7cae0ae1e13f70ec89e207"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\deferred_report_updates.json": {
+      "type": "file",
+      "bytes": 3541,
+      "sha256": "b9f8d630b5cd28ef5bbcda1432d1c53b72fd15610fff9f7edc58deb36756db1f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 15503,
+      "sha256": "a851f8193771bea652f32efa48bff9b0d9418a9c693c38be43580206c9d57786"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 2337,
+      "sha256": "177ce50d0b0a09dac6abc2a07c6219e780175873588f0d854fb71709c9f6c26e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\large-batch-optimizer-regimen-pilot-20260830\\finish_review.py": {
+      "type": "file",
+      "bytes": 3800,
+      "sha256": "15fe725ed9175599e7a1b3cdf265f60745855be5c5983e0773e3095cc4e724d6"
+    }
+  }
+}

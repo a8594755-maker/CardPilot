@@ -1,0 +1,154 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-context-reliability-shrinkage-fresh-control-20260902",
+  "title": "Frozen entropy-reliability contextual shrinkage fresh control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T06:38:38+00:00",
+  "updated_at": "2026-09-02T06:53:20+00:00",
+  "started_at": "2026-09-02T06:38:38+00:00",
+  "ended_at": "2026-09-02T06:53:20+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The fixed outcome-blind multiplier 1 - posterior_entropy/log(6) will preserve nonnegative training-domain and both-seat performance while repairing unseen breadth: both frozen seeds and both seats remain nonnegative versus Standard10, holdout shrunk-minus-base is nonnegative, and shrinkage improves holdout reward versus the unshrunk checkpoint on fresh common decks.",
+  "material_change": "Add inference-only posterior reliability power=1 without changing learned tensors. Hash-load both frozen recovery checkpoints and the classifier, generate wholly fresh 64-hand contexts and 128 common-deck pairs for every nine-policy/two-seat cell, and compare Standard10, unshrunk, and reliability-shrunk arms. No reward-based multiplier search and no training updates.",
+  "baseline": "Unshrunk checkpoints were positive across seeds/seats but pooled holdout delta was -1.302 ±7.491 bb/100. Independent sealed features showed reliability mean 0.583 seen versus 0.349 unseen with AUC 0.799.",
+  "source": "research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run",
+  "parent_id": "v6-context-entropy-reliability-feasibility-20260902",
+  "command": "python scripts/alpha_holdem/v6_context_reliability_shrinkage_control.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-context-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --checkpoint research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed0_contextual_residual.pt --checkpoint research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed1_contextual_residual.pt --expected-checkpoint-sha256 963b2fe3e34802881ccf8ec5aee2115b4ee057d3f2dd53b2ed4f391011f0c1e7 --expected-checkpoint-sha256 abea1ae17db51f0661d4e592270a683b49eb52a37868cb0c50b4d41897968209 --seed 20262810 --warmup-hands 64 --pairs-per-policy 128 --device cuda --out-dir research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_context_reliability_shrinkage_control.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-context-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --checkpoint research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed0_contextual_residual.pt --checkpoint research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed1_contextual_residual.pt --expected-checkpoint-sha256 963b2fe3e34802881ccf8ec5aee2115b4ee057d3f2dd53b2ed4f391011f0c1e7 --expected-checkpoint-sha256 abea1ae17db51f0661d4e592270a683b49eb52a37868cb0c50b4d41897968209 --seed 20262810 --warmup-hands 64 --pairs-per-policy 128 --device cuda --out-dir research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:38:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_context_reliability_shrinkage_control.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-context-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --checkpoint research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed0_contextual_residual.pt --checkpoint research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed1_contextual_residual.pt --expected-checkpoint-sha256 963b2fe3e34802881ccf8ec5aee2115b4ee057d3f2dd53b2ed4f391011f0c1e7 --expected-checkpoint-sha256 abea1ae17db51f0661d4e592270a683b49eb52a37868cb0c50b4d41897968209 --seed 20262810 --warmup-hands 64 --pairs-per-policy 128 --device cuda --out-dir research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/run --aggregate-existing",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:53:20+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:53:20+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "957ca2ab678d5535ece3c31047890ee721766135287e846ec8b84d8b96545b2d",
+    "code_paths": [
+      "scripts/alpha_holdem/contextual_residual_v6.py",
+      "scripts/alpha_holdem/v6_context_reliability_shrinkage_control.py"
+    ],
+    "captured_at": "2026-09-02T06:38:39+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/source_manifest.json",
+    "source_manifest_sha256": "0f38b85cec7a80df15944800a952e55c5a7a2b362ce7ebbdb326bfdf974afeb0",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 16896,
+    "offline_samples": 0,
+    "evaluation_hands": 16128,
+    "wall_time_seconds": 882.0,
+    "planned_training_hands": 0,
+    "planned_evaluation_hands": 16128,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "pooled_shrunk_minus_base_bb100": 3.4724392361111107,
+    "pooled_shrunk_minus_base_ci95_half_bb100": 4.920076041731735,
+    "pooled_unshrunk_minus_base_bb100": -3.791883680555555,
+    "pooled_shrunk_minus_unshrunk_bb100": 7.264322916666667,
+    "holdout_shrunk_minus_base_bb100": 0.87890625,
+    "holdout_shrunk_minus_base_ci95_half_bb100": 5.225848741239227,
+    "holdout_unshrunk_minus_base_bb100": -13.125,
+    "holdout_shrunk_minus_unshrunk_bb100": 14.00390625,
+    "training_shrunk_minus_base_bb100": 4.769205729166667,
+    "seed0_shrunk_minus_base_bb100": 6.424045138888888,
+    "seed1_shrunk_minus_base_bb100": 0.5208333333333333,
+    "tests_passed": 286,
+    "admitted": true
+  },
+  "artifacts": [
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/code.patch",
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/source_manifest.json",
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/run",
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/tests.xml",
+    "scripts/alpha_holdem/contextual_residual_v6.py",
+    "scripts/alpha_holdem/v6_context_reliability_shrinkage_control.py",
+    "scripts/alpha_holdem/test_v6_context_reliability_shrinkage_control.py"
+  ],
+  "notes": [
+    "Power=1 is fixed from the outcome-blind feasibility result. The control will not scan powers or select checkpoints from these rewards. Paired-deck units average seats before primary CIs.",
+    "Both 8,064-hand seed evidence files completed before a postprocessing-only failure. The original aggregation omitted seed_index from its pair key; recovery added seed_index and recomputed all metrics from unchanged SHA-frozen JSONL with zero regenerated hands.",
+    "All preregistered pooled gates passed, but seed1 holdout was unchanged by shrinkage and remained -0.456 bb/100. Therefore the multiplier is admitted as a conservative OOD control, not as replicated holdout improvement."
+  ],
+  "result": {
+    "summary": "Across 16,128 fresh evaluation hands, fixed entropy reliability changed the two frozen policies from pooled -3.792 bb/100 unshrunk to +3.472 ±4.920 shrunk. Holdouts improved from -13.125 to +0.879 ±5.226 and training domains remained +4.769; both seeds and seats had nonnegative shrunk pooled point estimates.",
+    "conclusion": "Outcome-blind entropy shrinkage materially reduces OOD downside while preserving the learned contextual signal. Its effect is seed-heterogeneous, so it supports a conservative geometric learning-curve expansion with multiple seeds and frozen checkpoints, not a strength claim or Slumbot gate.",
+    "decision": "ADMIT_RELIABILITY_SHRUNK_CONTEXTUAL_GEOMETRIC_CURVE",
+    "next_step": "Train three new posterior-centered seeds on a preregistered 4x geometric curve with frozen checkpoints at the current 128 and 512 learning-hands-per-group doses; evaluate every endpoint with reliability power=1 on new broad common decks, tracking seed slopes, holdout breadth, both seats, and Standard10 preservation."
+  },
+  "tags": [
+    "calibration",
+    "fresh-evaluation",
+    "frozen-policy",
+    "ood",
+    "standard10-preservation"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 491,
+      "sha256": "0f38b85cec7a80df15944800a952e55c5a7a2b362ce7ebbdb326bfdf974afeb0"
+    },
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-context-reliability-shrinkage-fresh-control-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 43317,
+      "sha256": "b83288cc5bb6ff498c83ed4bb5bccc4c2b502cec791195fa9ee58b1becce5dd4"
+    },
+    "scripts/alpha_holdem/contextual_residual_v6.py": {
+      "type": "file",
+      "bytes": 8844,
+      "sha256": "df53352396c66f7e186278bb7fa9522c1cd230b84f300c2ca30ef16a05d28028"
+    },
+    "scripts/alpha_holdem/v6_context_reliability_shrinkage_control.py": {
+      "type": "file",
+      "bytes": 14887,
+      "sha256": "92e38af5b0849743a19fc0584f4a2f2795a166269c44d85980565bcf8139fb37"
+    },
+    "scripts/alpha_holdem/test_v6_context_reliability_shrinkage_control.py": {
+      "type": "file",
+      "bytes": 1013,
+      "sha256": "e3d5f31319a670548abb507293a07a3924d67961b98396d2165ffd097659fc7d"
+    }
+  }
+}

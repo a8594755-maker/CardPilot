@@ -1,0 +1,120 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-decision-gate-gradient-conflict-audit-20260902",
+  "title": "Decision-gate opponent-seat gradient conflict audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T12:22:31+00:00",
+  "updated_at": "2026-09-02T12:26:15+00:00",
+  "started_at": "2026-09-02T12:22:31+00:00",
+  "ended_at": "2026-09-02T12:26:15+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The high-dose gate's residual opponent/seat failures arise from material conflict among the twelve opponent-seat policy gradients; replaying the exact saved transitions will show negative ordinary worst-group alignment while an MGDA minimum-norm direction is nonnegative for every group.",
+  "material_change": "Replay all twelve saved transition shards from exact seed initializations and Adam state, verify endpoint reconstruction, and at each of four pre-update points per seed compute the twelve full policy-gradient vectors, pairwise cosines, ordinary alignment, and MGDA alignment. No new game, policy rollout, or environment hand.",
+  "baseline": "Ordinary equal-weight average policy gradient used by the completed high-dose run.",
+  "source": "v6-decision-expert-gate-highdose-calibration-20260902",
+  "parent_id": "v6-decision-expert-gate-highdose-calibration-20260902",
+  "command": "python scripts/alpha_holdem/v6_decision_gate_gradient_conflict_audit.py --run-dir research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run --device cuda --out research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/analysis.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_decision_gate_gradient_conflict_audit.py --run-dir research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run --device cuda --out research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/analysis.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T12:22:31+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "78578868a3639a3b2e0379ab1db55e29d6cc3929fd9cb6e44f93b6fb4887757d",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py"
+    ],
+    "captured_at": "2026-09-02T12:22:31+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "17475e845315b226035242ae79c9d26e39217f7346ec2e492aae455623f890ed",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 32655,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 224.0
+  },
+  "metrics": {
+    "exact_replay_max_abs_error": 0,
+    "ordinary_conflict_chunks": 12,
+    "total_chunks": 12,
+    "pairwise_cosine_minimum": -0.9766463397398056,
+    "ordinary_worst_alignment_minimum": -0.9616456900632797,
+    "ordinary_worst_alignment_maximum": -0.11776316243633597,
+    "mgda_worst_alignment_minimum": 0.03958522750015096,
+    "mgda_worst_alignment_maximum": 0.23169829224805097
+  },
+  "artifacts": [
+    "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/code.patch",
+    "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/source_manifest.json",
+    "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/analysis.json",
+    "scripts/alpha_holdem/v6_decision_gate_gradient_conflict_audit.py",
+    "scripts/alpha_holdem/test_v6_decision_gate_gradient_conflict_audit.py"
+  ],
+  "notes": [
+    "Admission of one separately preregistered MGDA-gate comparison requires endpoint replay max tensor error <=1e-6 in all seeds, pairwise negative conflicts, ordinary worst-group alignment <0 in at least half of the 12 chunk audits, MGDA worst-group alignment >=-1e-8 in every chunk, and strict MGDA improvement in every chunk. Otherwise close the decision-gate route.",
+    "Exact replay counted 32655 source transitions across twelve shards; corrects the preregistered manual total 32455 without changing any source artifact."
+  ],
+  "result": {
+    "summary": "Exact replay consumed all 32,655 saved transitions and reconstructed all three high-dose gate endpoints bit-exactly. Every one of 12 chunk audits had material conflict: 20-38 negative gradient pairs, pairwise minimum cosine -0.977 to -0.783, and ordinary worst-group alignment -0.962 to -0.118. MGDA improved every chunk to positive worst-group alignment +0.0396 to +0.2317 with broad 7-12 group support.",
+    "conclusion": "The high-dose gate's remaining opponent/seat weakness has a concrete optimization mechanism: equal averaging applies a direction opposed to at least one opponent-seat objective at every update point, while an MGDA common descent direction exists throughout. This is exact saved-transition geometry, not strength evidence, and justifies one matched on-policy MGDA gate smoke only.",
+    "decision": "ADMIT_MATCHED_MGDA_GATE_SMOKE",
+    "next_step": "Run a separately preregistered three-seed MGDA-gate treatment matched to the high-dose ordinary arm in frozen experts, seeds, decks, hand budgets, learning rate, epochs, KL, and evaluation. Require exact evidence, positive worst-group training alignment at every step, and the original multi-seed/opponent/seat holdout breadth gates before any geometric scaling."
+  },
+  "tags": [
+    "exact-replay",
+    "gradient-conflict",
+    "mgda",
+    "zero-hand"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 299,
+      "sha256": "17475e845315b226035242ae79c9d26e39217f7346ec2e492aae455623f890ed"
+    },
+    "research/experiments/v6-decision-gate-gradient-conflict-audit-20260902/analysis.json": {
+      "type": "file",
+      "bytes": 22699,
+      "sha256": "fd71f1c76a9b0154a05e096c67097af7630b3eb874dbefbd0a9990d1d78dd4e5"
+    },
+    "scripts/alpha_holdem/v6_decision_gate_gradient_conflict_audit.py": {
+      "type": "file",
+      "bytes": 8179,
+      "sha256": "a992499e1dd43a5c4c5d1f7ea3baf657c90323c2ae9a632dc0dfc3e315ca8a3f"
+    },
+    "scripts/alpha_holdem/test_v6_decision_gate_gradient_conflict_audit.py": {
+      "type": "file",
+      "bytes": 1081,
+      "sha256": "c91c5099fa2a8a03922ddb2b235c602c5124a91014f78082ba7ee70e013fca16"
+    }
+  }
+}

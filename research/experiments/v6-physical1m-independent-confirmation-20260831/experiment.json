@@ -1,0 +1,533 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-physical1m-independent-confirmation-20260831",
+  "title": "Corrected-v6 frozen physical1m independent confirmation",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T13:35:35+00:00",
+  "updated_at": "2026-08-31T14:01:00+00:00",
+  "started_at": "2026-08-31T13:35:35+00:00",
+  "ended_at": "2026-08-31T14:01:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact new physical1m final reproduces source breadth and heldout within-run growth on independent mirrored deals.",
+  "material_change": "No training or policy change; freeze source, mid262, final and all five anchors, evaluate twelve fixed cells on seed20261002.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-physical1m-learning-curve-20260831",
+  "command": "python research/experiments/v6-physical1m-independent-confirmation-20260831/run_confirmation.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-physical1m-independent-confirmation-20260831/run_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:35+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\test_confirmation.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\source.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\source.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\source.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\source.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\source.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\mid262.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\mid262.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20261002 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:35:58+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-08-31T07:47:00+00:00 --out-json research/experiments/v6-physical1m-independent-confirmation-20260831/startup_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:36:52+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-physical1m-independent-confirmation-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:00:59+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-physical1m-independent-confirmation-20260831/run_confirmation.py",
+      "research/experiments/v6-physical1m-independent-confirmation-20260831/confirmation_contract.py",
+      "research/experiments/v6-physical1m-independent-confirmation-20260831/review_finish.py",
+      "research/experiments/v6-physical1m-independent-confirmation-20260831/test_confirmation.py",
+      "research/experiments/v6-physical1m-independent-confirmation-20260831/preregistration.md",
+      "research/experiment_log.py",
+      "scripts/alpha_holdem/v6_mirror_eval.py"
+    ],
+    "captured_at": "2026-08-31T13:35:35+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-physical1m-independent-confirmation-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-physical1m-independent-confirmation-20260831/source_manifest.json",
+    "source_manifest_sha256": "48a6278f021a00dee1f946f0c8e654a0cae61abc9e1f34c28bb39244f86b65a6",
+    "source_files": 7
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 196608,
+    "wall_time_seconds": 1525.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "target_evaluation_hands": 196608,
+    "evaluation_seed": 20261002
+  },
+  "artifacts": [
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/preregistration.md",
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/code.patch",
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\model_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\anchor_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\source.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\mid262.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\deal_freshness.json",
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/startup_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\mid262_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\mid262_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Parent final independently admitted; only final eligible. Six primary contrasts, no parent sample pooling, no Slumbot qualification claim.",
+    "All models frozen and full-deck freshness verified before the fixed196608hand matrix; no outcome peeking or extensions.",
+    "Startup independent status check:16prerun tests PASS;8192unique full decks and zero parent full-deck overlap;6captured-runtime evaluators live. Legacy parent inline-command classification warning remains preserved; new confirmation has no audit warning.",
+    "All fixed cells completed; independent arithmetic/session review required before finish.",
+    "Independent twelve-cell raw/session/deck/identity and family-six CI verification passed; no parent samples pooled."
+  ],
+  "result": {
+    "summary": "Frozen physical1m independent confirmation completed196608internal hands;ADMIT_SEPARATE_SLUMBOT_PILOT.",
+    "conclusion": "Fixed independent-deal breadth and held-out growth test, all evidence valid; no Slumbot claim.",
+    "decision": "ADMIT_SEPARATE_SLUMBOT_PILOT",
+    "next_step": "Candidate-specific offline deployment checks, then separately preregistered fresh Slumbot20k pilot of this exact final."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 16,
+    "command_count": 16
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4171,
+      "sha256": "86373ae2ea3f4437d65844bbec51b8f03ac85274104ccd435bc9ad13806ebb2d"
+    },
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1563,
+      "sha256": "48a6278f021a00dee1f946f0c8e654a0cae61abc9e1f34c28bb39244f86b65a6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14098,
+      "sha256": "4f7cc9652658ccc73c0383be9559000a241bc583d5e6477440800c76b753df49"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 24351,
+      "sha256": "91b104fb07912c87f19f64bb71de2ce03ab5679b65028a2e638c32953064ca40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2827,
+      "sha256": "f68a275eacb3bddbda6f97cf6691b97b504f1c3340f62d3e07477195a9a9f144"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\model_manifest.json": {
+      "type": "file",
+      "bytes": 1149,
+      "sha256": "568d376d3cdc192b407dec12e788733756d44240d315ab09f0afcd23c7e7f5ab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\anchor_manifest.json": {
+      "type": "file",
+      "bytes": 1843,
+      "sha256": "0db9a159040a65565076b5bf2f876d1711e329107d524ef5c2738c1298b1f0ab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\source.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\mid262.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "7d7eeb0d648f2d1a51ff79b600e59e0fdc4afcca73541e90bd5dda304348a0c3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "bc4f62257a474ad438cd574d4c59b28ea009060749f0fb86e3e97c46120d0172"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\deal_freshness.json": {
+      "type": "file",
+      "bytes": 520,
+      "sha256": "d1bd4faf4a48d97f605830cdcc2b443c27a725a39d667b50877b1dc14756e5db"
+    },
+    "research/experiments/v6-physical1m-independent-confirmation-20260831/startup_audit.json": {
+      "type": "file",
+      "bytes": 1666,
+      "sha256": "3b3461b6c34497f1b127a6b0309e1452e12f7c180062a69c012ec4fa3bbf6c4a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2297734,
+      "sha256": "75b8479ef1e720f2ccafdc34ae3d33b543a29b170a8f81304b1c823543740208"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1651,
+      "sha256": "6ad77e1f748424e88a218e9c6f227cdbcf9bb3f06f9d63defc8a48c565ec1e7e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1890,
+      "sha256": "91cc57a3062d6e5d2ba76d74cc6420912acac1c2b71c69b3f304ae8cf92a0f0d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2279771,
+      "sha256": "108fbefbf4343a9aeac1eecac1bb4f255e150b469c1fcf2aaff5a759f377d9e1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "8f886b3f3f154a6b75164729a286979fb3756a49545666fb27a7bd7fbba35739"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1933,
+      "sha256": "c850764ac08fad18b81ae7e2315be881227be058209b158a98e422c092c12083"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2294277,
+      "sha256": "5f7ed1e198dbacf24d7df853b8eed64395c38f04422503777cda59be52cdca29"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "215ef8ab2bbd0672fd3a197054c459705f920d1dc5abd3e6b0aaf5e5fe272487"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1934,
+      "sha256": "ce61993ae6cf97161b463b750c88cd1c77ea187163c8cfafb9594fd13aabebbe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2301198,
+      "sha256": "ba465118f674d1fd8d6786bbfde55ed94e2604054d4a4f74e5978e8af3b1b657"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "0842fc6104840ae4d7099b71060637dd197e602d58f12777cfdc11b2e1a19232"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1933,
+      "sha256": "433845bb76851e0fff151ed3fcf65f979347d94d7ee5d4549fc86e2edb0c77ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2302783,
+      "sha256": "6bd0106afdb5cff9225523ee80bd15a053f215cbd4a63f546f50e29ed81115c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "8661ab27c22e36d03efc52ee286476b89cdce0ea6e80fc36902f82f319f123dc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1934,
+      "sha256": "dfab546ec5cbddda510f1ece8cc32a1d110f4f439dda550adfea3c06f8f2dbcd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2291647,
+      "sha256": "e72a3bba10e37d4d803d6a4b4bde5782a671ddcfd85ba6038f556531d5565e5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "5034e0f2bba3c3ed0b7e44ea9bed5559a77b48394a1181b8276b7664c48622a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1933,
+      "sha256": "d8933af5831c99b898d774bb0d61d1aa8e2e2accf325ca5042ffa9162658cd8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2280170,
+      "sha256": "5c90039b0bf6346b76655b7e77907364adb535f821300b3a92dbf4cc37bf7a39"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "5993674adbeea84267ba2a2e851482d5f73301b15a061b45cae7f4d563e41710"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1933,
+      "sha256": "eb82b53801923306a1217e045c4d29fccdf5d4809031f3cb441929b2aabd07ab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2291141,
+      "sha256": "d1f774b08117d0c345d80b4c692b1c678c6e254da1bcd044a9b7b74e65d71b26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "2c61661087b1c2eb9c78b5f66da2ce5426c67c2f2addf75c448cae985ae8b2a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1931,
+      "sha256": "7f12b91a362307fbc944e809f63bd198e179e6893a91f1255bcc2aa2f06aa09e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2295370,
+      "sha256": "0219759c5f2b7b354b57d25575792448f9663135ee912dff57b77047a7b40fab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "8d2172d7d46dbdefdb84e1fe6e7c601b2abeaad76d9ec709a65395be06a51234"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1930,
+      "sha256": "f9b6384301979b61cfe5bc3aeb41ab92fb2b63d1c6fb0fb1e4f9862611d6f1aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2295195,
+      "sha256": "468539e78cbf0e91c5e30a85557a739daee78bb0315f88f1908d43e8f663aca1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\final_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "0125864149cc3832213f5697bc1ec13a0b6ea21a84ae3795d1d564c61266479e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\final_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1931,
+      "sha256": "e006faad76585eee8e494b37669bd153b6743b14825c54114004de7350d3702d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2298654,
+      "sha256": "e077b738fc8c893882bd0fa961336b26402454922d19ace873691b7d7cee59a5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "b164b4453b758cc1b00aeede5998822470e19c8e38443fc83a456e7ac8c44901"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\mid262_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1931,
+      "sha256": "3e362d55e85d892ac2c46e92bde4fcb44b31d40a3f6e8077f54c3265e6c94cb3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2296469,
+      "sha256": "a3da8281401549bbd04e503e416b64079a0f41e7a44bc09dee6099694d7e06cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\matrix\\mid262_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "de052a48a63a5e9843de5930f0839953f72d1115ae14c2cc8d12043e8a537406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\mid262_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1934,
+      "sha256": "a296c23b6837e1014ebf15c473740ac62e6d6ec2a36162ac0cd6b90787e8dc5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 3168,
+      "sha256": "8f7c8e72d689aa84d1fe8c7b601273c6f0853ef1ff3db41a86cb964fb1d2e109"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 12078,
+      "sha256": "c248d6929eb60aeaa8a25178ab81e431d8caf28860746b3cf4c9001bd2154854"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 9134,
+      "sha256": "23aad3108d3b8c3753f81028a8220ecfa1fd48f89ed746559c5bb7afa52abc0e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-independent-confirmation-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1187,
+      "sha256": "9b82d2bd7a7fc109011e99e673dae5293fe209c158b52d9d75e1dd7513970973"
+    }
+  }
+}

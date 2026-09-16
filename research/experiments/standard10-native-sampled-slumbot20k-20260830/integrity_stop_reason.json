@@ -1,0 +1,18 @@
+{
+  "decision": "REQUESTED_OUTCOME_BLIND_INTEGRITY_ABORT",
+  "session": "part04",
+  "affected_client_pid": 3456,
+  "original_wrapper_pid": 34820,
+  "observed_problem": "Attempted hand127 failed to establish a new HTTPS connection for /slumbot/api/new_hand with Windows socket error10048 and was skipped by the existing client loop.",
+  "raw_evidence": {
+    "path": "sessions/part04_hands.jsonl",
+    "first_successful_hand_after_gap": 127,
+    "attempted_hand_for_that_success": 128,
+    "http_action_fallback_seen_in_that_session_at_detection": false
+  },
+  "reason": "The fixed client loop makes2500attempts. After one skipped attempt this session cannot produce2500successful hands. The preregistration forbids supplements/restarts and requires clean complete2500-per-session evidence. Continuing cannot restore eligibility.",
+  "interim_pilot_winrate_or_ci_examined": false,
+  "policy_weights_or_raw_evidence_modified": false,
+  "action": "After checking current PID ownership and exact session command,stop only the affected owned client. Allow the existing wrapper's terminal-error cleanup to stop its other owned clients and preserve all files/counters. Do not restart any client or change the frozen source.",
+  "causal_limit": "Connection setup failure is verified. Per-call requests.post and observed TCP TIME_WAIT churn motivate a connection-pooling investigation,but system-wide ephemeral-port exhaustion has not been established."
+}

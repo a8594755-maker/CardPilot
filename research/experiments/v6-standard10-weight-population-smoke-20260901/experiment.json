@@ -1,0 +1,591 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-weight-population-smoke-20260901",
+  "title": "Standard10 weight-space opponent population smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T03:13:25+00:00",
+  "updated_at": "2026-09-01T03:33:33+00:00",
+  "started_at": "2026-09-01T03:19:59+00:00",
+  "ended_at": "2026-09-01T03:33:33+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A frozen, seed-separated population of actor-head perturbations around the best mature external reference Standard10 will expose the raw parent to a genuinely different learned-policy data distribution; a conservative 65536-environment-hand actor-head tail can improve performance against untouched perturbation seeds while preserving the parent's deployed behavior.",
+  "material_change": "Generate deterministic frozen Standard10 actor-head perturbations using preregistered train/eval seed partitions and outcome-free diversity calibration; resume the frozen raw parent with preserved optimizer/counters, LR 1e-5, source-KL 0.1 to the parent, and fixed 65536 additional environment hands against the training population; evaluate parent and candidate on untouched population anchors and apply an outcome-free parent-preservation gate before any external promotion.",
+  "baseline": "Frozen raw parent 9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4; external context Standard10 greedy fresh20k -11.4275 bb/100 CI[-28.7124,5.8574], strict sampled -48.9778; prior single imitation teacher fresh20k about -18.5025 is negative evidence, not support.",
+  "source": "models/baseline/standard10/latest.pt sha256=91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 and research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt sha256=9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4",
+  "parent_id": "v6-heldout-proxy-ranking-panel-20260901",
+  "command": "python research/experiments/v6-standard10-weight-population-smoke-20260901/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-standard10-weight-population-smoke-20260901/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:13:25+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:20:01+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 198089 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\production\\train\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026110300 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_actor_ema_terminal_smoke_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\production\\train --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\production\\train\\latest.pt --seed 20261103 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:20:15+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\production\\train --expected-target-hands 99999999 --expected-target-environment-hands 198089 --expected-final-iteration 42 --expected-pool-size 5 --expected-archive-every 8 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\production\\train\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:24:30+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-standard10-weight-population-smoke-20260901/recover_after_audit.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:25:13+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\audit_resumed_fixed_pool.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:42+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval0.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:50+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval1.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval2.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:53+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval3.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval4.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:55+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\candidate.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval0.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\candidate.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval1.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:57+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\candidate.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval2.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:27:59+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\candidate.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval3.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:28:00+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\candidate.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval4.pt --pairs 1024 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:28:01+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:33:31+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-09-01T03:13:25+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-weight-population-smoke-20260901/code.patch",
+    "patch_sha256": "2ab2daf1524ba08173ee38800edefeb12f6214e1008173db4d90b524c95369f7",
+    "source_manifest": "research/experiments/v6-standard10-weight-population-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "901e531876209e9ed4b58a90195963a2f09ca7ca63586dae0a3a611595cbd515",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 65624,
+    "lineage_training_hands": 198177,
+    "offline_samples": 0,
+    "evaluation_hands": 50406,
+    "wall_time_seconds": 814.0,
+    "training_hands": 0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "target_additional_environment_hands": 65536,
+    "wall_time_seconds": 348.84399999998277,
+    "aggregate_delta_bb100": 40.01552734375,
+    "aggregate_delta_ci_low": -3.5729400521168273,
+    "parent_state_tv": 0.029096737064542084,
+    "parent_state_greedy_disagreement": 0.03181180244603355
+  },
+  "artifacts": [
+    "models/baseline/standard10/latest.pt",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt",
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/code.patch",
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution.json",
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/latest.pt",
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/run_manifest.json",
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/h1_training_metrics.jsonl",
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/opponent_assignments.jsonl",
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\recovery_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\recovery_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\production\\train\\resume_session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\resume_audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\candidate.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_state_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\preservation.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\recovery_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\reviewed_analysis.json"
+  ],
+  "notes": [
+    "Preregistered before population generation or training. Training perturbation seeds and untouched evaluation seeds are disjoint. Perturbation scale selection is outcome-free and based only on behavior-TV/disagreement coverage on a fixed synthetic state cohort; no poker returns or Slumbot outcomes may select scale. No benchmark-specific action rule is added.",
+    "Promotion requires candidate-parent improvement on the untouched seed panel with positive aggregate paired CI and at least 4/5 positive anchors, plus parent-state mean TV <=0.02 and greedy disagreement <=2% on the existing audited parent fresh5k states. Failure stops before new Slumbot hands. Passing permits only a separately logged fresh5k exploratory transfer gate, not goal completion.",
+    "Execution error or interruption preserved; no retry, counter reset, or evidence overwrite was attempted.",
+    "Post-training shared auditor failed because it requires metric iterations range(1, final+1), while this valid optimizer-continuous resume began at parent iteration27 and emitted a contiguous session range28-42. Trainer exited0 at198177 lineage physical hands (65624 new) and endpoint SHA256=5a39b7df564d42a1dba3fe6890cf363e1c6218f9d7414715c97192f6658d527e. Original audit_stdout and traceback remain immutable. Recovery is zero-training-hand and may only perform resume-aware raw-evidence audit, freeze this exact endpoint, and continue the preregistered untouched evaluation; no trainer launch, counter reset, checkpoint mutation, or evidence overwrite.",
+    "Independent reviewer regenerated every matrix contrast from raw pairs, recomputed state preservation from raw JSONL, and verified checkpoint hashes, seed separation, session audit, accounting, and the fixed gate."
+  ],
+  "result": {
+    "summary": "Completed 65624 new physical training hands and 50406 offline evaluation hands; untouched-population candidate-minus-parent was +40.0155 bb/100 with CI[-3.5729,+83.6040], 4/5 positive anchors; parent-state TV=0.029097, disagreement=0.031812.",
+    "conclusion": "The frozen seed-separated Standard10 weight population did not pass the preregistered joint transfer-proxy and preservation gate.",
+    "decision": "WEIGHT_POPULATION_SMOKE_NOT_PROMISING",
+    "next_step": "Do not spend Slumbot hands or scale this weight-population route; choose a materially different self-play or opponent-generation mechanism."
+  },
+  "tags": [
+    "learned-weight",
+    "opponent-population",
+    "smoke",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 17,
+    "command_count": 17
+  },
+  "artifact_integrity": {
+    "models/baseline/standard10/latest.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 223335,
+      "sha256": "2ab2daf1524ba08173ee38800edefeb12f6214e1008173db4d90b524c95369f7"
+    },
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 279,
+      "sha256": "901e531876209e9ed4b58a90195963a2f09ca7ca63586dae0a3a611595cbd515"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13852,
+      "sha256": "90db5b5b3bfe95af97ea41f69c818440c8aa90188f4a81a9a455e9db19f13f36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23831,
+      "sha256": "8c5504e027079e953785ea2f402f79041d3e812ee6a2e885534317e0d20a69b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 715,
+      "sha256": "2f24554268ac7dd8d56fe79fb23fbf133c0451bb21f99bbb26924e0fa597d25d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population_manifest.json": {
+      "type": "file",
+      "bytes": 5054,
+      "sha256": "66f951085240386a5a8d74e65665fb9cdee8fe9d247186e2319c0e5be30b21ac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\parent_raw.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train0.pt": {
+      "type": "file",
+      "bytes": 33034362,
+      "sha256": "c6a18dc6ff16e195bf7940b1a705abab57a0922161ac0b1a61a971cd252d15e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train1.pt": {
+      "type": "file",
+      "bytes": 33034362,
+      "sha256": "e25573e94d8e35c3e079b0d53ca7610a00185d897093cd3068573a0889a8583d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train2.pt": {
+      "type": "file",
+      "bytes": 33034362,
+      "sha256": "6a19d1307eb49e4b6a4cfcd646c2a18f74e0b6ae35b44689d2832edf3b5c959d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train3.pt": {
+      "type": "file",
+      "bytes": 33034362,
+      "sha256": "1c27bf64da6bc5946712e4247c69ee22f64fcad5053d021330c5faee702c0f55"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\train4.pt": {
+      "type": "file",
+      "bytes": 33034362,
+      "sha256": "5584222a494a141e15d11f09f97ce23004fc6c384a79ba34df7223b4d4ed9166"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval0.pt": {
+      "type": "file",
+      "bytes": 33034272,
+      "sha256": "d99d9d9638669656ef6fa3da718075dfc2293d99b02652d663680138a9bde699"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval1.pt": {
+      "type": "file",
+      "bytes": 33034272,
+      "sha256": "ebe5f795bb853d6a309d6c92e2f1896b99da4badbb788adb7195ecc6ab49ca95"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval2.pt": {
+      "type": "file",
+      "bytes": 33034272,
+      "sha256": "550dd5ca2d7cf29dcda5bda7cad738c7e48c332875562933b84c071322440bcd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval3.pt": {
+      "type": "file",
+      "bytes": 33034272,
+      "sha256": "b23718e4a0920fd5221745f2c0522b8330d359f9006b6c325fe2590a27cda525"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\population\\eval4.pt": {
+      "type": "file",
+      "bytes": 33034272,
+      "sha256": "709c09369ccb1fef0180190d9bec730c476bfed8881a0281978fe7fa6f0e8f79"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 8898,
+      "sha256": "36b0ae3847dfd1476d2b1e05599fdf1358612f9d7ad1dbea0c00e139e47fa2ea"
+    },
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/latest.pt": {
+      "type": "file",
+      "bytes": 199115580,
+      "sha256": "5a39b7df564d42a1dba3fe6890cf363e1c6218f9d7414715c97192f6658d527e"
+    },
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/run_manifest.json": {
+      "type": "file",
+      "bytes": 60013,
+      "sha256": "c454f3b466307a603df69f15267243d4f39743d7174bfbd4e3ac632e9ac09910"
+    },
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 394092,
+      "sha256": "ea9bd8cc31c0cd98e5cf4f061a75dff38fbb9c8fae7b3ed58f6dd65d68ca1509"
+    },
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 41478,
+      "sha256": "4a653a0775bd1b4d1d165515f19d03183e4682941f7efa0161a81b3b6afbffa4"
+    },
+    "research/experiments/v6-standard10-weight-population-smoke-20260901/production/train/audit_stdout.log": {
+      "type": "file",
+      "bytes": 425,
+      "sha256": "6cabdee7311956456c7a60a4696032a04a6f5103b90cb99de4fb28a4f9786f3c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\recovery_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14308,
+      "sha256": "c05e354e8b98e2c701f7a98771a42859a6985c8c94d96f2b6efa8f0298b1f2bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\recovery_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\production\\train\\resume_session_audit.json": {
+      "type": "file",
+      "bytes": 4707,
+      "sha256": "8b400527a7e8c5c09962c36f0e84178a1bbc03b84125e1d9714b5413930853da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\resume_audit_stdout.log": {
+      "type": "file",
+      "bytes": 4204,
+      "sha256": "56ec3fe887a2c3b588633ed05b9e17e0c338e4c8da5652e01c058c62fc85f3fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\frozen\\candidate.pt": {
+      "type": "file",
+      "bytes": 199115580,
+      "sha256": "5a39b7df564d42a1dba3fe6890cf363e1c6218f9d7414715c97192f6658d527e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 479,
+      "sha256": "cf8d213254faaf95f534e4564029929eada60f37c1a9e226acd37a43be736630"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1625,
+      "sha256": "73a0c8bae092eedcc04d99ef71a1c4a462e180b116d549650bdea9dcb77047a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 283135,
+      "sha256": "82a7e86450d45d2def1acc259c7a5243cce7f4004c7f76970e39104b60aa5301"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1508,
+      "sha256": "b8b31c0b524afe045f7176016ac18ad3bcf79f1a18643265b1ff9a28939aa603"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1624,
+      "sha256": "b7383f3187e102760c807317ad2e81dd3aa2fc9fdc01368ddaf1a8dd255d5df2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 283180,
+      "sha256": "b9052f7a5b334753708571ab4629e90f2c20bbcdc9646ac1b9d8bc3bea4ba498"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1507,
+      "sha256": "8e7e598fe41a78503b0a6d935d3c10b4c72b7d820fcbf9c4ac10df43fbe5803a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1625,
+      "sha256": "c08b3c16f4c8c9e5ef9101dbc26b00e18620dd20f0fce7dd6c991a926b1e5ce6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287166,
+      "sha256": "ef35550b4cfcc7283cd746fe776c1837a99b879289a496452ae85f3831d175d0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1508,
+      "sha256": "4e5c6f7504440e2da7636db347e25fa14eb93a9574902e319b055d164e52727a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1626,
+      "sha256": "9077a113c98aa5a5c11c3f93d98deb111310d3cd7e7f37aabe7c08f1978691cf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 285713,
+      "sha256": "404e41f2e2f9195edccf47fc15d4141e59b93f5349a64fb936cddb8897cfafd8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1509,
+      "sha256": "323525c04d3802e67dd4333417203950af64db4d07156fe7e4fddfa5a608ab74"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1625,
+      "sha256": "cd5386a4954bcc150d73a4760e07a842996f859f76f9a368a6d4698e571e8aed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\parent_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287711,
+      "sha256": "cd53e87b8265b8d442e15aea115c431cef3bf8507ca5f0b66ac1121375e0a4dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1508,
+      "sha256": "b3700731a4993c2fd779655e618e63c62c579167c28b637dd784432f92a9b0b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1626,
+      "sha256": "7ee05f06e0191bb5cfe4af2469d9a3f34380eda58d1ba58edd3740938e2be981"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 283111,
+      "sha256": "b5107f76962f0e90fc2e83bbc667fdaf80e4fb138568034d2463ac769703217d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1509,
+      "sha256": "2e5ca15c1772efbd6f421ff4553ad6af1c544ce89c28865c8363c6c9c9b0c843"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1626,
+      "sha256": "b639b2f5704c5b485cfae426f3030c9d842756beaea745c3cb5add5ca2b3c693"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 283177,
+      "sha256": "12f826fceb9e7d76a7a950fb0cebfc1064b208ac33930201fb8cc30ec2425074"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1509,
+      "sha256": "cc4fe4632f64701a360873b4d75f3aae40332ea8bbf439d88ede005020856d76"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1627,
+      "sha256": "776a5e755d2e066de693ef44fd839e8ee54b177d7de3008bef28653436a4eae9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287117,
+      "sha256": "bb023c76c777c9f1f329368650714cb5d2ecae83b37a1da10e7d39c1d6dfa19c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1510,
+      "sha256": "c65c38fc77646b14811acdc254ac9863e85f22e1db8dc8ec09127a0d0120e43b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1628,
+      "sha256": "ce2f6edcf14d39234a114b4f323fee4411b75edda76f8afba077d894bfa67bc4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 285702,
+      "sha256": "d936d7292d203b55c804fee4432ec5a2d6d929750ca7b7114574ac66c8747cc0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1511,
+      "sha256": "33060d15116d573b0217ae6e7cc1bcae285377349bf82811b712d40fe9b921d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1625,
+      "sha256": "2d222efaba33a12afdc0f5a5b2dae08c64e5c59ae4c878b59a233a3d68d4f3b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\matrix\\candidate_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287580,
+      "sha256": "39f645469d57c53326d3c7d98ffff99a1d4ee6a4f3f162524c79f6eae6b08f85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\candidate_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1508,
+      "sha256": "472a44aa9885bb00e83af7d62e08efd0be799a2c8d151896da0d1b3cad1fbbfc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\parent_state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1803542,
+      "sha256": "d74143062062cb06d4f8cea1685f62d19a192d1e92b1e99fd9642f0eb662b117"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\preservation.json": {
+      "type": "file",
+      "bytes": 2243,
+      "sha256": "4f239bf514a653ecd1eaff7095a4111c3d0fb2511e92af434a2208f582c358e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 4085,
+      "sha256": "de03251d67eb56b44f54847119b2495f484df20e62bad0224c63b3d655ac79cf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\recovery_execution.json": {
+      "type": "file",
+      "bytes": 9015,
+      "sha256": "0a8c04edeb93c5de984a26bcc25ca385c324f9c766407275ab846f617ac806c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-weight-population-smoke-20260901\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1689,
+      "sha256": "5b99b44bffa3e42ef2a3c5c4173c254431d5f660c6acaeea010794033d7bea11"
+    }
+  }
+}

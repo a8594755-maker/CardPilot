@@ -1,0 +1,118 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-snapshot-vs-standard10-20260901",
+  "title": "Frozen Deep CFR snapshot policy versus Standard10",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:22:56+00:00",
+  "updated_at": "2026-09-01T15:27:07+00:00",
+  "started_at": "2026-09-01T15:22:56+00:00",
+  "ended_at": "2026-09-01T15:27:07+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The strongest frozen exact-v6 K4 fresh-reinit surrogate snapshot bundle will outperform frozen Standard10 under matched physical-v6 play when each policy retains its own learned execution contract, providing enough transfer evidence to justify a fresh Slumbot gate.",
+  "material_change": "Evaluate 4,096 common-deck seat pairs: candidate samples one LCFR-weighted snapshot per hand and regret-matched actions; Standard10 uses its audited legacy-v4 bridge and historical greedy execution. Persist raw pair evidence and exact hashes.",
+  "baseline": "Standard10 is the closest-to-zero mature external reference; the candidate K4 snapshot bundle had the best current three-anchor development mean but no learned-anchor or Slumbot evidence.",
+  "source": "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/surrogate/snapshot_policy.pt",
+  "parent_id": "v6-deep-cfr-paper-loss-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_vs_standard10.py --candidate research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/surrogate/snapshot_policy.pt --standard10 models/baseline/standard10/latest.pt --pairs 4096 --seed 60910 --output-dir research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_vs_standard10.py --candidate research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/surrogate/snapshot_policy.pt --standard10 models/baseline/standard10/latest.pt --pairs 4096 --seed 60910 --output-dir research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:22:56+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "219c4623d757445a2d6bcd20dae98a17de522d98457b1d432456b81b475535e8",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T15:22:56+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/source_manifest.json",
+    "source_manifest_sha256": "dc73e1f14f8ceb28b920c214fa10e52cf0ed8e369782193f68782f13a49125f2",
+    "source_files": 127
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 8192,
+    "wall_time_seconds": 251.0,
+    "planned_evaluation_hands": 8192,
+    "environment_training_hands": 0,
+    "pairs": 4096
+  },
+  "metrics": {
+    "candidate_bb100": -473.51086425781244,
+    "ci_lower_bb100": -702.7192916502718,
+    "ci_upper_bb100": -244.30243686535312
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/run/pairs.jsonl.gz",
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/analysis.md"
+  ],
+  "notes": [
+    "Candidate is frozen before this experiment. No checkpoint selection, tactical override, nearest-action repair, or Slumbot hands."
+  ],
+  "result": {
+    "summary": "Frozen exact-v6 K4 fresh-reinit surrogate Deep CFR snapshot scored -473.5109 bb/100 versus frozen Standard10 over 4,096 common-deck seat pairs (8,192 hands), with paired 95% CI [-702.7193, -244.3024].",
+    "conclusion": "The current from-zero Deep CFR snapshot is decisively weaker than the closest mature learned reference despite favorable generic-anchor diagnostics; no Slumbot adapter or gate is justified.",
+    "decision": "REJECT_CURRENT_DEEP_CFR_SNAPSHOT_TRANSFER",
+    "next_step": "Close the current from-zero Deep CFR route and audit the existing fresh-evidence learned-policy frontier before selecting a preservation-first learned-weight experiment; retain the negative Standard10 and historical imitation evidence."
+  },
+  "tags": [
+    "deep-cfr",
+    "frozen-evaluation",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 23188,
+      "sha256": "dc73e1f14f8ceb28b920c214fa10e52cf0ed8e369782193f68782f13a49125f2"
+    },
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 1333,
+      "sha256": "b40a7d03fa3615ba2723f7fedb5158d5496dd21f8c2bad5255447f2780a53ed0"
+    },
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/run/pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 251953,
+      "sha256": "74fa7f2423c81f3256d7b326f5bdfe3a0a00b088d32d7e63444d7a53cbcbf673"
+    },
+    "research/experiments/v6-deep-cfr-snapshot-vs-standard10-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1544,
+      "sha256": "f3cc7dc28fad49f73d61c5ab1b63ef0e7e76c515f178fdfc98bc8673f48243a8"
+    }
+  }
+}

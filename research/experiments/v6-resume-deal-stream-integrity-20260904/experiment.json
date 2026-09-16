@@ -1,0 +1,150 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-resume-deal-stream-integrity-20260904",
+  "title": "Fixed-deal resume integrity and fail-closed preflight",
+  "status": "COMPLETED",
+  "created_at": "2026-09-04T19:51:31+00:00",
+  "updated_at": "2026-09-04T19:57:01+00:00",
+  "started_at": "2026-09-04T19:51:31+00:00",
+  "ended_at": "2026-09-04T19:57:01+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Serialized optimizer and replay do not prevent deterministic deal overlap when a process restarts at the same worker seed and start index.",
+  "material_change": "Audit the existing 4M recovery boundaries without interrupting training; implement and test an isolated fail-closed resume-window validator before integration at a safe point.",
+  "baseline": "Immutable original and two Seed2 recovery boundaries",
+  "source": "",
+  "parent_id": "v6-static-current-kl-4m-scale-20260904",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_fixed_deal_resume_integrity.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_fixed_deal_resume_integrity.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T19:51:31+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_fixed_deal_resume_integrity.py research/test_experiment_log.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T19:57:01+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/fixed_deal_resume_integrity.py --verify-report research/experiments/v6-resume-deal-stream-integrity-20260904/observed_overlap.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T19:57:01+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "c9b5480965e52d94239d7e867a5aed5841a1ff6ab9604e468a79a5da73da474a",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training.ps1",
+      "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_guard1_recovery.ps1",
+      "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_recovery2.ps1"
+    ],
+    "captured_at": "2026-09-04T19:51:31+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-resume-deal-stream-integrity-20260904/code.patch",
+    "patch_sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252",
+    "source_manifest": "research/experiments/v6-resume-deal-stream-integrity-20260904/source_manifest.json",
+    "source_manifest_sha256": "710f9ab6f328679f9a275fc607c7b5e3c358cf8a004fdb789d35c0af3b06125d",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 3,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 330.0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "focused_tests_passed": 13,
+    "logger_tests_passed": 4,
+    "observed_seed2_stage_executed_hands": 1961132,
+    "observed_seed2_stage_unique_deal_identities": 1519687,
+    "observed_repeated_deal_exposures": 441445,
+    "trainer_integration_complete": 0
+  },
+  "artifacts": [
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/code.patch",
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/source_manifest.json",
+    "scripts/alpha_holdem/fixed_deal_resume_integrity.py",
+    "scripts/alpha_holdem/test_fixed_deal_resume_integrity.py",
+    "research/RESEARCH_POLICY.md",
+    "AGENTS.md",
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/observed_overlap.json",
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/conclusion.md"
+  ],
+  "notes": [
+    "User authorized the reviewed efficiency-first research goal. Existing training process and checkpoint evidence remain untouched; no new Slumbot hands. This infrastructure audit does not constitute a second algorithm research branch."
+  ],
+  "result": {
+    "summary": "Reconstructed441445 repeated deterministic deal exposures among1961132 evidenced Seed2 stage executions. Built isolated fail-closed validator;13 focused and4 logger tests passed; frozen prefix replay exact. Live training untouched.",
+    "conclusion": "Optimizer/replay/counter continuity did not imply fresh deal coverage. Actual physical executions remain valid counts, but exact/fresh-resume claims and clean Seed2 scale interpretation require correction. Validator integration is deliberately pending a safe process boundary, not claimed complete.",
+    "decision": "CONFIRMED_RESUME_DEAL_REUSE; STAGED_GUARD_VALIDATED; DEFER_LIVE_INTEGRATION",
+    "next_step": "At frozen Seed2 endpoint recompute final overlap. Preserve the active sequential training source until a safe boundary, then integrate durable attempt/cursor/namespace preflight and test interrupted real-worker recovery. Treat Seed2 as deviated exposure before deciding4M-to8M scale."
+  },
+  "tags": [
+    "infrastructure",
+    "resume-integrity"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/code.patch": {
+      "type": "file",
+      "bytes": 292740,
+      "sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252"
+    },
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 938,
+      "sha256": "710f9ab6f328679f9a275fc607c7b5e3c358cf8a004fdb789d35c0af3b06125d"
+    },
+    "scripts/alpha_holdem/fixed_deal_resume_integrity.py": {
+      "type": "file",
+      "bytes": 9501,
+      "sha256": "2470a9b5995c5da78f302b976967986119cd726fb41ad4d8a4307a99e31f6523"
+    },
+    "scripts/alpha_holdem/test_fixed_deal_resume_integrity.py": {
+      "type": "file",
+      "bytes": 4120,
+      "sha256": "ef2b05148e11775fd609cb30eebe6d0edb1f81dafbc37ac9e62725b10218e9e4"
+    },
+    "research/RESEARCH_POLICY.md": {
+      "type": "file",
+      "bytes": 3088,
+      "sha256": "80c56269faf2fbc3f2cd170e746461209485d3d753f90b0366f9db36276f7af6"
+    },
+    "AGENTS.md": {
+      "type": "file",
+      "bytes": 1117,
+      "sha256": "d15916209ab7b3e23ef478db448a2345c84f18122af722327b5150cbd0c1beaa"
+    },
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/observed_overlap.json": {
+      "type": "file",
+      "bytes": 51734,
+      "sha256": "3c96eac76b92bacd479068573df76e7d27fe7e913ff65254c275c77f6cd026a3"
+    },
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/conclusion.md": {
+      "type": "file",
+      "bytes": 3809,
+      "sha256": "c2d196e8ba279c3fd4e6b0dc5993040a286def6d86da1c5b4bfe18f60060a79f"
+    }
+  }
+}

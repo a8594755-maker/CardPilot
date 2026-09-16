@@ -1,0 +1,280 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901",
+  "title": "Frozen MGDA seed1 12k dual-contract fresh20k confirmation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T19:18:12+00:00",
+  "updated_at": "2026-09-01T19:31:31+00:00",
+  "started_at": "2026-09-01T19:18:12+00:00",
+  "ended_at": "2026-09-01T19:31:31+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact seed1 12k policy will confirm its near-Standard10 fresh5k direction on 20,000 wholly new hands, with a positive point estimate and a lower CI above the historical Standard10 point estimate.",
+  "material_change": "Run eight new independent 2,500-hand greedy journaled Slumbot sessions on exact bundle SHA 21b08229 and base SHA 91b0c587. Audit/replay all decisions and compute raw 20k CI without combining the prior 5k pilot, retries, replacements, or training.",
+  "baseline": "Seed1 12k fresh5k -11.11 CI[-49.879,+27.659], seats -17.971/-4.227. Historical Standard10 fresh20k -11.4275 CI[-28.7124,+5.8574]. Seed0 12k fresh5k -54.53.",
+  "source": "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/dual_contract_seed1_12k_deployment.pt",
+  "parent_id": "v6-mgda-seed1-12k-dual-greedy-fresh5k-multiseed-20260901",
+  "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/alpha_holdem/bench_dual_contract_slumbot.ps1 -ModelPath research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/dual_contract_seed1_12k_deployment.pt -BaseModel models/baseline/standard10/latest.pt -OutDir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions -SessionPrefix mgda_seed1_12k_20k_20260901 -HandsPerSession 2500 -Sessions 8 -SeedBase 2026094200 -LaunchStaggerSeconds 1 -PythonExe C:/Users/a8594/AppData/Local/Programs/Python/Python312/python.exe",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/alpha_holdem/bench_dual_contract_slumbot.ps1 -ModelPath research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/dual_contract_seed1_12k_deployment.pt -BaseModel models/baseline/standard10/latest.pt -OutDir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions -SessionPrefix mgda_seed1_12k_20k_20260901 -HandsPerSession 2500 -Sessions 8 -SeedBase 2026094200 -LaunchStaggerSeconds 1 -PythonExe C:/Users/a8594/AppData/Local/Programs/Python/Python312/python.exe",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:18:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/summarize_journaled_slumbot_gate.py --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s01 --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s02 --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s03 --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s04 --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s05 --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s06 --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s07 --session-dir research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s08 --out-json research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/gate_summary.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:31:31+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7446780c54d4dfb2403c932edd34926b366352c40201f13c67079f55a2549368",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T19:18:12+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/source_manifest.json",
+    "source_manifest_sha256": "49b3c3afe10bccfaef7e101613cf4c04afd12de6792585937cecd6bd96d6ff7a",
+    "source_files": 146
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 12288,
+    "offline_samples": 0,
+    "evaluation_hands": 20000,
+    "wall_time_seconds": 799.0,
+    "slumbot_hands": 20000,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 20000
+  },
+  "metrics": {
+    "bb_per_100": -47.525,
+    "ci95_low_bb_per_100": -67.16941388639012,
+    "ci95_high_bb_per_100": -27.88058611360988,
+    "seat0_bb_per_100": -42.505,
+    "seat1_bb_per_100": -52.545,
+    "decision_replays": 62155,
+    "request_count": 82155,
+    "sessions": 8,
+    "tests_passed": 241
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/code.patch",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/ci_summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/session_audit.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/session_independence.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/gate_summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s01/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s01/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s01/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s02/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s02/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s02/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s03/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s03/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s03/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s04/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s04/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s04/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s05/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s05/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s05/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s06/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s06/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s06/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s07/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s07/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s07/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s08/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s08/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s08/summary.json"
+  ],
+  "notes": [
+    "Primary confirmation uses only these 20,000 new hands. Consider 100k qualification only if bb/100 > 0 and the 95% lower bound exceeds -11.4275, with both seat point estimates nonnegative. If upper CI < 0, stop evaluation scaling. Intermediate outcomes remain evidence for seed robustness and objective design, not grounds to reject a mechanism solely for low training volume."
+  ],
+  "result": {
+    "summary": "The exact seed1 12k policy completed eight wholly new 2,500-hand sessions (20,000 total) at -47.525 bb/100 with raw 95% CI[-67.169,-27.881]. Seat0 was -42.505 and seat1 -52.545. All 62,155 decisions and 82,155 requests replayed exactly; session identities, token chains, visible deal streams, checkpoint/base/runtime hashes, and raw evidence passed.",
+    "conclusion": "The independent 20k confirmation rejects the optimistic fresh5k transfer signal. Its upper CI is below zero and below the Standard10 point estimate, and both seats are materially negative. The current seed1 12k policy must not advance to 100k. Together with seed0, this shows that the present internal MGDA proxy is not externally reliable at this training dose, while not disproving longer-horizon conflict-aware learning under a redesigned, broader objective.",
+    "decision": "REJECT_CURRENT_12K_MGDA_POLICIES_FOR_EXTERNAL_SCALING",
+    "next_step": "Stop Slumbot evaluation scaling for current MGDA checkpoints. Perform a read-only cross-experiment proxy-alignment audit over frozen policies that have both internal breadth/preservation metrics and fresh external results. Use it to select a broader seed-robust self-play/opponent-league objective and preregister a geometric learning curve before allocating million-plus hands."
+  },
+  "tags": [
+    "confirmation",
+    "dual-contract",
+    "external-evaluation",
+    "fresh20k",
+    "greedy"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 27399,
+      "sha256": "49b3c3afe10bccfaef7e101613cf4c04afd12de6792585937cecd6bd96d6ff7a"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/ci_summary.json": {
+      "type": "file",
+      "bytes": 2069,
+      "sha256": "9f6e69c675171a77ec5ea61ca7ec7c0bde9cef76aea9a5ee1558762462cf7502"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/session_audit.json": {
+      "type": "file",
+      "bytes": 9692,
+      "sha256": "0e45379e880cfa065ffcb7bf0f53e2858f56b8c621b286a44c81604fd17fd24a"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/session_independence.json": {
+      "type": "file",
+      "bytes": 11390,
+      "sha256": "2683c9497403e04ebd34be360eeacb56027688544981cf2e45aa07769c634739"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/gate_summary.json": {
+      "type": "file",
+      "bytes": 10909,
+      "sha256": "e3a87b9871c8d10dc63578156ba161cc9dd910f652ca02829098025f2be9f3f0"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s01/journal.jsonl": {
+      "type": "file",
+      "bytes": 23658030,
+      "sha256": "df75ef228a2142c99d028c0afb4c4d39ff04d10ea3097dbd48db111a827ef3cc"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s01/hands.jsonl": {
+      "type": "file",
+      "bytes": 14324615,
+      "sha256": "17d38cb8a8e7226b1311d0c73af934dc4a91d147257312921c325475dad9ea17"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s01/summary.json": {
+      "type": "file",
+      "bytes": 5219,
+      "sha256": "6f4c56d2a988c3b0eda85cdbe90f1886c84068f0370982df937a3992bd2b2200"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s02/journal.jsonl": {
+      "type": "file",
+      "bytes": 23562203,
+      "sha256": "cca1d73d27b6370dd240cdcb3b4c5aef500d6b1d8c52fc46f65cad8447ea87b2"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s02/hands.jsonl": {
+      "type": "file",
+      "bytes": 14270619,
+      "sha256": "65e3b53827e912bfea5235064164f70eade07fe379daceca433be71856d1d319"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s02/summary.json": {
+      "type": "file",
+      "bytes": 5218,
+      "sha256": "6b03d748cf7eff4e85a4c6b484eb8c68afa4cc92f5919a887a8eb53deaf059fb"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s03/journal.jsonl": {
+      "type": "file",
+      "bytes": 23196603,
+      "sha256": "f57d4da3aa73ba6efd97094509120bb7adefdf20be7dc71e0a866904a2a076be"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s03/hands.jsonl": {
+      "type": "file",
+      "bytes": 14060808,
+      "sha256": "4c90796e737527074001fb3b93fb7d55f04d2dbb12b12aa395d3d33c286d5fbd"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s03/summary.json": {
+      "type": "file",
+      "bytes": 5217,
+      "sha256": "da5530b3b995a5c7aae627fc20518a169068e9f9fd8609a2906bb2751e4b7a2e"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s04/journal.jsonl": {
+      "type": "file",
+      "bytes": 23522317,
+      "sha256": "bad44b096a87b13ba36137f75ac55aa462f89ef0e53bb8c4677adda406e13aa5"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s04/hands.jsonl": {
+      "type": "file",
+      "bytes": 14246442,
+      "sha256": "2b0742d88fbac294cbdbcdc9be89fbd221cb31974e5c2ee9fa4c0b20f5ed1cc6"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s04/summary.json": {
+      "type": "file",
+      "bytes": 5219,
+      "sha256": "d7b9f049a4b51068d645657b1be1d3f08c6e7fbbefcd4baa267a5b1ddb02cd28"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s05/journal.jsonl": {
+      "type": "file",
+      "bytes": 23545910,
+      "sha256": "4d4db031c72b907cdcfd5914865bb7423da055254657eb4f58de8eec0140b933"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s05/hands.jsonl": {
+      "type": "file",
+      "bytes": 14260269,
+      "sha256": "53f275b85673895fbbf6c74a15abeb04ed1500c1644c0e6fa872099bd43bda70"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s05/summary.json": {
+      "type": "file",
+      "bytes": 5218,
+      "sha256": "215345a8f4597b375e56b68fd765738003d4ba456913b33bfc0259cbb1b7f073"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s06/journal.jsonl": {
+      "type": "file",
+      "bytes": 23598716,
+      "sha256": "478aef26a2bc149bd56488850464e624171f28980c3e19ba0e5294cfdef04627"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s06/hands.jsonl": {
+      "type": "file",
+      "bytes": 14285978,
+      "sha256": "054c0a65b2e0a3be12cf32eb848b41e8a67e159b631ee4ce9e6b25fcbf30cc2d"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s06/summary.json": {
+      "type": "file",
+      "bytes": 5217,
+      "sha256": "c2c2c671c485f6e4cc52fd5eacfcbff9606695a0fca6480882c96e3ce09f8153"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s07/journal.jsonl": {
+      "type": "file",
+      "bytes": 23304970,
+      "sha256": "7190549b397c4b085f027ae13523d140b4ac6032ba3ef839ff4a283d09e451d5"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s07/hands.jsonl": {
+      "type": "file",
+      "bytes": 14121448,
+      "sha256": "3351886bbe1ca91eaae608b40efb446636ae0af13406ebb3d70bbeabfcc1e596"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s07/summary.json": {
+      "type": "file",
+      "bytes": 5217,
+      "sha256": "15fda48d6e753fde0d5da8367451a3226f5d3188cef964906b61228e40b229be"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s08/journal.jsonl": {
+      "type": "file",
+      "bytes": 24023167,
+      "sha256": "20aec6c1cdbd2655881e636d2d89bd5af24efc7e86c82ba47da56ca19feb0df8"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s08/hands.jsonl": {
+      "type": "file",
+      "bytes": 14516643,
+      "sha256": "1209a2a8083d290cc746f63b0ae1b21e137a463a01a9680ee5ee815585ff3be8"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901/sessions/s08/summary.json": {
+      "type": "file",
+      "bytes": 5219,
+      "sha256": "ba1b34a7d583310e9b7b4437e4c42f275142caf9e0e3ae400b8de98b54eb3804"
+    }
+  }
+}

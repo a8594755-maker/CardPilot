@@ -1,0 +1,138 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-opponent-session-context-regularization-control-20260902",
+  "title": "Nested-CV opponent-context regularization control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T05:37:55+00:00",
+  "updated_at": "2026-09-02T05:39:31+00:00",
+  "started_at": "2026-09-02T05:37:55+00:00",
+  "ended_at": "2026-09-02T05:39:31+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The failed minimum-class and OOD-calibration gates arise mainly from the unregularized readout rather than insufficient public session features; session-index-disjoint cross-validation can select L2 and temperature without touching the final test, yielding at 64 hands at least 75% overall accuracy, 50% every-class accuracy, and 25% normalized entropy on SHA-disjoint unseen policies.",
+  "material_change": "Reuse the exact hash-frozen 84 session-feature rows with zero new environment hands. Select L2 by eight-fold session-index OOF minimum-class accuracy then overall accuracy and NLL; select temperature only by OOF NLL; fit on all 48 selection rows and open the 24 untouched test plus 12 unseen holdout rows exactly once.",
+  "baseline": "The unregularized readout reached 79.17% aggregate 64-hand accuracy but only 25% minimum-class accuracy and 0.00368 nats holdout entropy with 100% training accuracy.",
+  "source": "research/experiments/v6-opponent-session-context-feasibility-20260902/run/session_features.jsonl",
+  "parent_id": "v6-opponent-session-context-feasibility-20260902",
+  "command": "python scripts/alpha_holdem/v6_opponent_context_regularization_control.py --features research/experiments/v6-opponent-session-context-feasibility-20260902/run/session_features.jsonl --expected-features-sha256 32186f482c62afca936e66c779231181274964393ce796563951b398d70ca49f --train-sessions-per-policy 8 --horizons 32 64 --l2-grid 0.0001 0.001 0.01 0.1 1 10 --out-dir research/experiments/v6-opponent-session-context-regularization-control-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_opponent_context_regularization_control.py --features research/experiments/v6-opponent-session-context-feasibility-20260902/run/session_features.jsonl --expected-features-sha256 32186f482c62afca936e66c779231181274964393ce796563951b398d70ca49f --train-sessions-per-policy 8 --horizons 32 64 --l2-grid 0.0001 0.001 0.01 0.1 1 10 --out-dir research/experiments/v6-opponent-session-context-regularization-control-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:37:55+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-opponent-session-context-regularization-control-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:39:31+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "913ce305cc7c39e6e06782b6be8936e27e794534421ad8d3c884bac7dfe18988",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_opponent_context_regularization_control.py"
+    ],
+    "captured_at": "2026-09-02T05:37:55+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-opponent-session-context-regularization-control-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-opponent-session-context-regularization-control-20260902/source_manifest.json",
+    "source_manifest_sha256": "2219f6e02722124b9b15847f5c7e2c1570d805b0607d6642c4a910c24d273714",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 3072,
+    "offline_samples": 84,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 96.0,
+    "planned_training_hands": 0,
+    "planned_evaluation_hands": 0,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "horizon32_untouched_accuracy": 0.75,
+    "horizon32_untouched_min_class_accuracy": 0.25,
+    "horizon64_untouched_accuracy": 0.9166666666666666,
+    "horizon64_untouched_min_class_accuracy": 0.75,
+    "horizon64_untouched_nll": 0.3985918333768211,
+    "horizon64_untouched_ece": 0.22173007228394598,
+    "horizon64_holdout_normalized_entropy": 0.6511462541341612,
+    "horizon64_selected_l2": 1.0,
+    "horizon64_selected_temperature": 1.1892071150027208,
+    "admitted": true,
+    "tests_passed": 270
+  },
+  "artifacts": [
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/code.patch",
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/source_manifest.json",
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/run",
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_opponent_context_regularization_control.py",
+    "scripts/alpha_holdem/test_v6_opponent_context_regularization_control.py"
+  ],
+  "notes": [
+    "The 24 final test rows and 12 unseen-policy rows are sealed from hyperparameter and temperature selection. Passing this readout gate would admit a context representation mechanism only, not policy strength.",
+    "No new poker hands were generated. Model and temperature selection used only 48 selection sessions; 24 test sessions and 12 SHA-disjoint holdout sessions remained untouched until the final evaluation.",
+    "At 32 hands, overall accuracy passed but minimum-class accuracy remained 25%; any downstream policy prototype must treat the first 32 hands as insufficient context and preserve the base policy under uncertainty."
+  ],
+  "result": {
+    "summary": "Nested session-index CV selected L2=1 and temperature=1.1892 at 64 hands. The single untouched test reached 91.67% overall accuracy and 75% minimum-class accuracy, while SHA-disjoint holdout normalized entropy rose to 65.11%; all preregistered gates passed with zero new environment hands.",
+    "conclusion": "Strong regularization and OOF-only calibration resolve the prior readout's breadth failure at 64 hands, so public cross-hand context is admitted as a feasible representation mechanism. The 32-hand minimum-class failure bounds the useful horizon, and no poker-policy strength claim follows from classifier accuracy alone.",
+    "decision": "ADMIT_REGULARIZED_64_HAND_PUBLIC_CONTEXT_MECHANISM",
+    "next_step": "Build a minimal Standard10-preserving context-conditioned learned residual pilot across multiple seeds and both seats, with a strict zero-context equivalence gate and untouched broad-league evaluation before any Slumbot use or geometric scaling."
+  },
+  "tags": [
+    "calibration",
+    "nested-cv",
+    "opponent-modeling",
+    "zero-new-hands"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 312,
+      "sha256": "2219f6e02722124b9b15847f5c7e2c1570d805b0607d6642c4a910c24d273714"
+    },
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 40843,
+      "sha256": "5883d8bf4fbe76ce4a672ad9d1244aabb05a2fca385e4c0e72c7a3d8dbc6436f"
+    },
+    "scripts/alpha_holdem/v6_opponent_context_regularization_control.py": {
+      "type": "file",
+      "bytes": 11125,
+      "sha256": "a46d420b7b81eb870236b77e5ab36d1eaa44c0b52a3596621198e4bec4f260f2"
+    },
+    "scripts/alpha_holdem/test_v6_opponent_context_regularization_control.py": {
+      "type": "file",
+      "bytes": 1165,
+      "sha256": "ef1869312d26ac3d1a9bc9ddd7c50f5fb0f8320922ef4181d5f049a302a41eb2"
+    }
+  }
+}

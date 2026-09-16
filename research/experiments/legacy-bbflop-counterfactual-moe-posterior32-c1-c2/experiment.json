@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-bbflop-counterfactual-moe-posterior32-c1-c2",
+  "title": "bbflop_counterfactual_moe_posterior32_c1_c2",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "models/diagnostic_standard10_bbflop_counterfactual_moe_replicatedbehavior32_q3seed_c2_20260829/experiment_record.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "models/diagnostic_standard10_bbflop_counterfactual_moe_replicatedbehavior32_q3seed_c2_20260829/experiment_record.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "C1 learned source preservation and restored transfer seed agreement to 0.982-0.998 with only 13-20 changes, but legacy behavior labels caused 10-12 unsupported all-ins. C2 allowed only replicated rows to teach behavior; all seeds became exact source-equivalent with 100% agreement and zero unsupported all-ins, but changed zero actions because only 11 replicated changed examples existed.",
+    "conclusion": "Do not externally evaluate either posterior32 checkpoint, re-enable legacy behavior supervision, or tune coefficients on the same 11 changed examples.",
+    "decision": "RETAIN_TOPOLOGY_AND_EVIDENCE_SCOPE_AWAIT_POSTERIOR128",
+    "next_step": "Use the in-flight posterior128x2 replicated dataset with the evidence-scoped MoE contract and repeat independent transfer, cross-seed, unsupported-all-in and worst-tail gates."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

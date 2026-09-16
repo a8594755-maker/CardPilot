@@ -1,0 +1,337 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-alphaholdem-geometric-pilot-20260902",
+  "title": "Integrated AlphaHoldem recipe multi-seed geometric pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T17:05:23+00:00",
+  "updated_at": "2026-09-02T18:27:37+00:00",
+  "started_at": "2026-09-02T17:05:23+00:00",
+  "ended_at": "2026-09-02T18:27:37+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The jointly validated Trinal-Clip replay x dynamic loss-K-best recipe will show reproducible positive within-seed learning slopes from the approximately 16k checkpoint to approximately 65k actual environment hands on untouched common-deal evaluations against four frozen learned opponents, while preserving Standard10 behavior and update health. A negative absolute external score at this scale is not a rejection criterion.",
+  "material_change": "Run three independent fixed-stream seeds from the identical frozen Standard10 checkpoint to 65,536 planned actual environment hands. Keep all smoke hyperparameters fixed; vary only trainer/worker seeds and nonoverlapping deal-stream offsets. Archive every four updates for geometric checkpoints. Evaluate iter4 versus final on 2,048 common deck pairs per each of four frozen learned anchors in both seats, plus 20,000 balanced outcome-blind drift states per final policy.",
+  "baseline": "The 18,809-hand integrated mechanism smoke passed 17/17 artifact gates and source preservation, but supplied no strength evidence. Earlier isolated replay, K-best, and large-batch pilots were not jointly tested and small single-seed scores were inconclusive.",
+  "source": "AlphaHoldem AAAI 2022 Trinal-Clip PPO, asynchronous replay, and K-Best Self-Play; v6-integrated-alphaholdem-recipe-contract-smoke-20260902",
+  "parent_id": "v6-integrated-alphaholdem-recipe-contract-smoke-20260902",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026171000 --fixed-training-deal-stream --fixed-training-deal-start-index 13000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_integrated_alphaholdem_geo_seed1_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1 --out research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --seed 20261710 --max-runtime-seconds 3600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026171000 --fixed-training-deal-stream --fixed-training-deal-start-index 13000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_integrated_alphaholdem_geo_seed1_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1 --out research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --seed 20261710 --max-runtime-seconds 3600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T17:05:23+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026171100 --fixed-training-deal-stream --fixed-training-deal-start-index 14000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_integrated_alphaholdem_geo_seed2_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2 --out research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt --seed 20261711 --max-runtime-seconds 3600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T17:19:04+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026171200 --fixed-training-deal-stream --fixed-training-deal-start-index 15000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_integrated_alphaholdem_geo_seed3_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3 --out research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt --seed 20261712 --max-runtime-seconds 3600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T17:33:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_integrated_alphaholdem_geometric.py --run seed1=research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1 --run seed2=research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2 --run seed3=research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3 --base models/baseline/standard10/latest.pt --out research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/training_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T17:49:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/checkpoints/checkpoint_iter000004_hands000000016499.pt --treatment research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20261720 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T17:49:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/checkpoints/checkpoint_iter000004_hands000000016513.pt --treatment research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20261721 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T18:06:44+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/checkpoints/checkpoint_iter000004_hands000000016465.pt --treatment research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20261722 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T18:06:44+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --out-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed1 --states 20000 --seed 20261731 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T18:25:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt --out-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed2 --states 20000 --seed 20261732 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T18:25:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt --out-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed3 --states 20000 --seed 20261733 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T18:25:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_geometric_pilot.py --experiment-dir research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902 --out research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T18:27:37+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8550e9b9327479f5e93c215474286ebf391d8c3ccfbf22d6550acce887edf4f0",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T17:05:23+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/code.patch",
+    "patch_sha256": "8e10a8dfd065c085b3e1de5b223d789fb242ed6b3a7a482e8eee0b482d5c245a",
+    "source_manifest": "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/source_manifest.json",
+    "source_manifest_sha256": "182990cac56390f331a3203cf17b8beed8a648b14c7336fc1cd9aab1cedd207c",
+    "source_files": 222
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 209408,
+    "lineage_training_hands": 0,
+    "offline_samples": 60000,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 4934.0,
+    "planned_environment_training_hands": 196608,
+    "planned_evaluation_hands": 98304,
+    "planned_offline_drift_states": 60000,
+    "environment_training_hands": 209408,
+    "transition_hands": 181224
+  },
+  "metrics": {
+    "positive_seed_slopes": 3,
+    "median_pooled_slope_bb100": 5.7525634765625,
+    "positive_anchor_seed_cells": 10,
+    "positive_pooled_seat_slopes": 6,
+    "total_seed_slopes": 3,
+    "mean_seed_slope_bb100": 5.18798828125,
+    "median_seed_slope_bb100": 5.7525634765625,
+    "seed_t95_low_bb100": 2.50546495915665,
+    "seed_t95_high_bb100": 7.87051160334335,
+    "pooled_pair_slope_bb100": 5.18798828125,
+    "pooled_pair_ci95_half_bb100": 4.666574640825974,
+    "source_preservation_passed": 3,
+    "full_tests_passed": 319
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/code.patch",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/source_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/run_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/h1_training_metrics.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/opponent_assignments.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/run_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/h1_training_metrics.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/opponent_assignments.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/run_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/h1_training_metrics.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/opponent_assignments.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/training_audit.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed1/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed1/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed2/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed2/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed3/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed3/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/aggregate.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed1/drift_analysis.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed1/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed2/drift_analysis.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed2/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed3/drift_analysis.json",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed3/drift_raw.jsonl.gz"
+  ],
+  "notes": [
+    "Preregistered promotion gate: at least two of three seeds have positive pooled final-minus-iter4 bb/100; the median pooled slope is positive; at least two seeds are nonnegative on at least three of four anchors and on both pooled seats; all three final checkpoints pass mean-TV<0.03 and greedy-disagreement<0.05 source preservation; no mechanism/accounting collapse. These are internal scaling gates, not benchmark completion.",
+    "Rejection requires mechanism failure, reproducible proxy reversal, or catastrophic source drift. Mere negative absolute Slumbot performance at 65k is explicitly not a rejection condition and no Slumbot calls are planned for this pilot.",
+    "Seed1 completed normally at the first full PPO boundary above target: 69,802 actual environment hands, 61,786 transition-bearing hands, 15 updates. Iter4/8/12 archives are immutable; replay stayed nonzero after iteration1 and the dynamic pool remained size5.",
+    "Seed2 completed normally at 69,608 actual environment hands, 57,719 transition-bearing hands, 14 updates. Iter4/8/12 archives are immutable; replay, K-best pool, KL, and importance ratios remained healthy.",
+    "Seed3 completed normally at 69,998 actual environment hands, 61,719 transition-bearing hands, 15 updates. Independent aggregate audit passed all 17 gates for all three seeds; total actual hands=209,408 and all input hashes are frozen before evaluation.",
+    "The three matched evaluations use separate immutable checkpoint pairs, output directories, and common-deck seeds. Seed2 and seed3 may execute concurrently on separate CPU cores; this does not change hand streams or evidence.",
+    "All three independent seeds passed every matched-evaluation gate. Pooled final-minus-iter4 slopes were +5.8685, +3.9429, and +5.7526 bb/100; individual paired CIs cross zero, so this is reproducible directional scaling evidence rather than a significance or benchmark claim.",
+    "All 98,304 evaluation hands are local physical-v6 common-deck matches, not Slumbot hands. No benchmark hands were consumed and no policy was selected on Slumbot.",
+    "The seed-level t interval uses only three independent seeds (df=2) and is reported as early directional scaling evidence, not as proof of general external strength. Pair-level rows are nested within seed/anchor; both summaries are retained."
+  ],
+  "result": {
+    "summary": "Three independent integrated-recipe runs completed 209,408 actual environment hands total with all training artifact gates passing. Frozen final-minus-iter4 slopes were +5.8685, +3.9429, and +5.7526 bb/100 across four learned anchors and both seats. All 3 seeds were positive, 10/12 anchor-seed cells and 6/6 pooled seat slopes were positive. Raw-recomputed mean slope was +5.1880; the three-seed Student-t 95% interval was [+2.5055,+7.8705]. All three final policies preserved Standard10 on 20,000 balanced states each (mean TV 0.0095-0.0116; greedy disagreement 1.095%-1.295%). 319 tests passed.",
+    "conclusion": "The integrated AlphaHoldem recipe has reproducible positive geometric learning direction from roughly 20k to roughly 70k actual hands across seeds, opponents, and seats without catastrophic Standard10 drift. Unlike earlier small experiments, proxy direction and breadth agree. This meets the preregistered internal scale gate; it does not establish Slumbot strength or the final benchmark.",
+    "decision": "SCALE_INTEGRATED_RECIPE_TO_262K_MULTI_SEED",
+    "next_step": "Resume the same three immutable final checkpoints, including optimizer, serialized replay, dynamic K-best pool, assignment RNG evidence, and actual-hand counters, to 262,144 actual environment hands per seed on the same nonoverlapping fixed streams. Evaluate 70k-to-262k slopes on a fresh untouched common-deal panel and repeat source preservation. If at least two seeds remain directionally positive without proxy reversal, scale selected lineage to approximately 1M before any expensive Slumbot confirmation."
+  },
+  "tags": [
+    "AlphaHoldem",
+    "geometric-learning-curve",
+    "k-best",
+    "multi-seed",
+    "replay",
+    "source-preservation"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816679,
+      "sha256": "8e10a8dfd065c085b3e1de5b223d789fb242ed6b3a7a482e8eee0b482d5c245a"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 42174,
+      "sha256": "182990cac56390f331a3203cf17b8beed8a648b14c7336fc1cd9aab1cedd207c"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt": {
+      "type": "file",
+      "bytes": 314444976,
+      "sha256": "4defee91789c643d881a633af74f900423b84bc4f8aa795f631e8eb2e20a9fa2"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/run_manifest.json": {
+      "type": "file",
+      "bytes": 148166,
+      "sha256": "5304b2a992996340324266980b799dc47e646c2c42bf3aaa2783e07c59a933df"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 442854,
+      "sha256": "2ba91833ce6aa375f7a6cf942fd0be06843b51e43ccb422f99ecdd61a703bc21"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 41199,
+      "sha256": "10fcb7038dc490da285f4a58b7f8efb4a5bc6a1bbcf08e02cab8c03f938e3df0"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt": {
+      "type": "file",
+      "bytes": 312684976,
+      "sha256": "41dd3ab819ead0fd6c4d45e0bb9652f9dd34e01818c486835985c3b3fa950228"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/run_manifest.json": {
+      "type": "file",
+      "bytes": 148431,
+      "sha256": "16b2b5df0edc7e4802ddc3832cf5f82507ab7dc04bb6e8eea014e8db369d3056"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 415006,
+      "sha256": "e4080fad67905fa3206332e1b594d96e9cf445bf834218cc9301e73dbf849b68"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 38551,
+      "sha256": "6edef938161b029a1e77807a816b97c730adfc00b6e38e970cbcf0a622cce002"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt": {
+      "type": "file",
+      "bytes": 304960880,
+      "sha256": "204dc8deecd1eafce1ea3e8c5cfe9e1db725ecc093802821a07b2ebb6cd180aa"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/run_manifest.json": {
+      "type": "file",
+      "bytes": 147297,
+      "sha256": "6c5dd7d7de6585951642598494cd17ea247ff3ba62c66441673265b797abc752"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 442747,
+      "sha256": "fc3fbbb64d68fe467aeea7230e100e529738d546d9f1a2b88ab7816ccbb6054a"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 41412,
+      "sha256": "ebaca83b323bf04ef793dd376ef131120c0b5993b03a6bc7ea80959d1f1a53a3"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/training_audit.json": {
+      "type": "file",
+      "bytes": 11688,
+      "sha256": "666f98ecebe565365bc156bf1adebf0956b431077d3a697a6990f9a700f1ed2c"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed1/summary.json": {
+      "type": "file",
+      "bytes": 11407,
+      "sha256": "eeb9e393dc7bd16e83a19ffb98c87e0ba130713814ac54ecd8fe8dbbc7088c5d"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed1/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 530693,
+      "sha256": "59929a8fb7e24ab036dd1ae3c115255f2b07b295d5be6d048ddf47250ef56c42"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed2/summary.json": {
+      "type": "file",
+      "bytes": 11398,
+      "sha256": "af23c087059e60895e361945155f7f44f8fc018f97b2bec9a11d07731bfea56e"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed2/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 533395,
+      "sha256": "968cc17624346612265d5146796001f51345080cea9ba90f70efd063aaa04a86"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed3/summary.json": {
+      "type": "file",
+      "bytes": 11398,
+      "sha256": "22e1d559c1f254c08b87d23c10c714555800cb0222962815779622e9b27b0fff"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/eval_seed3/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 534735,
+      "sha256": "88bdb3dfc9d2eecb3650e90afe405ec1efd002ede6e47bc0afab3ffbc30bd7be"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/aggregate.json": {
+      "type": "file",
+      "bytes": 7952,
+      "sha256": "4d6fcd404091e48d2f044fea83be00a3af1559628ec4c345985974273e553472"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed1/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4380,
+      "sha256": "2bcba50ae36a46dd3cfad2e1c49b072571dc5bd25a29503b8265daa6e1139dca"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed1/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319033,
+      "sha256": "8bb1e991c3c5883d18336b80208385551bd7ccb7dcd38de77048307d6b7f0d68"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed2/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4377,
+      "sha256": "be315fad5dc13907d2e204c85c024854700d86b935374544c23f5cc45f6fe490"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed2/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319404,
+      "sha256": "a76df3c1071bb62c4953ec423e78e86ffadec1c62c0e432661315c94f69349ee"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed3/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4377,
+      "sha256": "a0be8a462aca083bc28cf23e6a8b22a0374b8c2a84fac91306f4177c477c734c"
+    },
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed3/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319642,
+      "sha256": "8f64d12315a9c7d351e5997af5ab9d733bc485252e8c11d6cfa082f59ca224c4"
+    }
+  }
+}

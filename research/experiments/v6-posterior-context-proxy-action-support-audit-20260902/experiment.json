@@ -1,0 +1,157 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-posterior-context-proxy-action-support-audit-20260902",
+  "title": "Posterior-context proxy and argmax-support alignment audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T10:08:29+00:00",
+  "updated_at": "2026-09-02T10:27:41+00:00",
+  "started_at": "2026-09-02T10:08:29+00:00",
+  "ended_at": "2026-09-02T10:27:41+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The internally positive endpoint512 evidence is carried by reproducible nontrivial greedy action flips across seeds, SHA-disjoint holdouts, seats, and streets; if so, a margin-aware contextual objective is a better next scale intervention than abandoning the undertrained method.",
+  "material_change": "Exact-replay the saved 128/512 three-seed evaluations and decompose candidate-vs-Standard10 argmax flips, margins, paths, splits, seats, and paired reward contributions. No weights or environment hands are generated.",
+  "baseline": "Live endpoint512 changed 1.663% of active decisions and failed fresh5k absolutely, while its independent delta versus execution-matched Standard10 remained inconclusive.",
+  "source": "research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run",
+  "parent_id": "v6-posterior-context-endpoint512-greedy-fresh5k-20260902",
+  "command": "python scripts/alpha_holdem/v6_posterior_context_proxy_action_support_audit.py --run-dir research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --seed 20263010 --seeds 3 --pairs-per-policy 64 --device cuda --out-dir research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_posterior_context_proxy_action_support_audit.py --run-dir research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --seed 20263010 --seeds 3 --pairs-per-policy 64 --device cuda --out-dir research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T10:08:29+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T10:26:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "68d89b653fb88c808994cc2d020f789c90ace086dd7a959b1a8f20fb7d47316e",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_posterior_context_proxy_action_support_audit.py"
+    ],
+    "captured_at": "2026-09-02T10:08:29+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "68949c0d961ead9d24bbbfe55cf80f4bef3c986f4cd51109556c58dd9dd7f840",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1152.0,
+    "training_hands": 0
+  },
+  "metrics": {
+    "replayed_warmup_rows": 6912,
+    "replayed_paired_rows": 6912,
+    "seed0_endpoint512_flip_rate": 0.00803673938,
+    "seed1_endpoint512_flip_rate": 0.00763143019,
+    "seed2_endpoint512_flip_rate": 0.00841933732,
+    "seed0_endpoint512_delta_bb100": 3.90190972,
+    "seed1_endpoint512_delta_bb100": 16.4140625,
+    "seed2_endpoint512_delta_bb100": 10.24739583,
+    "full_tests_passed": 294
+  },
+  "artifacts": [
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/code.patch",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/source_manifest.json",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/summary.json",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed0_endpoint128_action_support.jsonl.gz",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed0_endpoint512_action_support.jsonl.gz",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed1_endpoint128_action_support.jsonl.gz",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed1_endpoint512_action_support.jsonl.gz",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed2_endpoint128_action_support.jsonl.gz",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed2_endpoint512_action_support.jsonl.gz",
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/tests.xml"
+  ],
+  "notes": [
+    "Admission requires exact saved evidence replay, >=1% endpoint512 flips in all seeds, >=10 flip-hands in each seat and holdout per seed, pooled positive all seeds, and holdout positive in at least2/3 seeds.",
+    "Exact replay passed all 13824 saved rows. Endpoint512 candidate-path flip rates were only0.764-0.842%; positive pooled deltas were carried by21-28 nonzero-outcome hands per1152. Seed2 seat1 had only8 flip-hands. Preregistered support gate failed despite pooled3/3 and holdout2/3 positive."
+  ],
+  "result": {
+    "summary": "Exact replay verified all 6912 saved warmup rows and 6912 paired evaluation rows across three seeds and endpoints128/512 with zero new environment hands. Endpoint512 pooled deltas were +3.902,+16.414,+10.247 and holdout was positive in2/3, but candidate-path flip rates were only0.804%,0.763%,0.842%; seed2 seat1 had only8 flip-hands. Only21-28/1152 hands per seed carried nonzero paired outcomes. Full suite:294 passed.",
+    "conclusion": "The internal geometric improvement is real on its saved decks but is supported by extremely sparse, high-variance argmax-boundary events rather than broad policy improvement. This explains why preservation remained high and why a fresh5k external probe had little power to isolate the contextual effect. The preregistered action-support gate fails, so neither unchanged scaling nor a margin-only amplification of this proxy is warranted. This is a mechanism-specific pivot, not a claim that contextual or long-horizon learning is impossible.",
+    "decision": "PIVOT_FROM_CURRENT_CONTEXT_PROXY_SPARSE_ARGMAX_SUPPORT",
+    "next_step": "Return to a materially different learned-policy objective with denser all-action credit and real opponent-league/self-play hands. Before allocating a geometric 65k-to1m curve, audit primary AlphaHoldem training details against the current trainer and use existing multi-seed evidence to preregister one bounded causal control whose update signal is dense, source-preserving, and measured across six training identities, three SHA-disjoint holdouts, both seats, and all streets."
+  },
+  "tags": [
+    "diagnostic",
+    "posterior-context",
+    "proxy-alignment"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 317,
+      "sha256": "68949c0d961ead9d24bbbfe55cf80f4bef3c986f4cd51109556c58dd9dd7f840"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 32696,
+      "sha256": "bd97ea0f00062a972109a9ce7c9f12a4d7cc66cd13ee27cb3902fc1a23be30cd"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed0_endpoint128_action_support.jsonl.gz": {
+      "type": "file",
+      "bytes": 5600,
+      "sha256": "1829fd3fbcdc5d0e8e636044ca2bb4f30d8fec73466d59eda44abbf8837579e5"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed0_endpoint512_action_support.jsonl.gz": {
+      "type": "file",
+      "bytes": 6493,
+      "sha256": "d9244f8f584455c13af62158feec68e6cd8e40ee210a54128a327670e1273eda"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed1_endpoint128_action_support.jsonl.gz": {
+      "type": "file",
+      "bytes": 5580,
+      "sha256": "aa2b1ff19557ea5733fbe6d7117371e55cc5739992ce8c2634cc20a166b53fb1"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed1_endpoint512_action_support.jsonl.gz": {
+      "type": "file",
+      "bytes": 6468,
+      "sha256": "512c5e280cbccbf9c1e172e112d31a0d98bdcd745e92a508daed1d65d96d3833"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed2_endpoint128_action_support.jsonl.gz": {
+      "type": "file",
+      "bytes": 5237,
+      "sha256": "277cde7e1626a34e37d1c908b5cf6ac53dd973cc8bc0debfcc8376a3990dccfd"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/run/seed2_endpoint512_action_support.jsonl.gz": {
+      "type": "file",
+      "bytes": 6626,
+      "sha256": "212c34b440bbca1000ec7ce1360edbd2b53e5c2d2b62b6a0817905e44b02c5de"
+    },
+    "research/experiments/v6-posterior-context-proxy-action-support-audit-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 44556,
+      "sha256": "9b73ffabbfa8abbf949896b0ba0a809a764334f01c49801284f61afe9f69b3d4"
+    }
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "physical-hand-accounting-repair-20260830",
+  "title": "Physical environment-hand accounting repair",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T19:25:25+00:00",
+  "updated_at": "2026-08-30T19:42:02+00:00",
+  "started_at": "2026-08-30T19:25:25+00:00",
+  "ended_at": "2026-08-30T19:42:02+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The legacy total_hands marker counter undercounts physical work whenever the trainable seat has no action; independent worker terminal counters can provide complete, checkpoint-safe physical accounting without resetting legacy counters or optimizer state.",
+  "material_change": "Add an independent completed-environment-hand accounting schema covering no-decision hands and worker tails, persist it in checkpoints/manifests/metrics, preserve legacy total_hands semantics, and add an opt-in physical-hand stopping target with fail-closed handling of unknown legacy prefixes. Audit historical paired evidence as a lower bound without modifying raw artifacts.",
+  "baseline": "Current train_v5.py marker-only total_hands; paired pilot has 263,479 marker hands but 316,700 emitted source-plus-mirror hand evidence.",
+  "source": "Existing trainer and immutable paired-seat-average-actor-pilot-20260830 evidence; no policy algorithm change.",
+  "parent_id": "sampled-policy-frozen-diagnostic-20260830",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_environment_hand_accounting.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_environment_hand_accounting.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:25:25+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:31:00+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_paired_seat_actor_returns.py scripts/alpha_holdem/test_train_v5_mirror_deals.py scripts/alpha_holdem/test_train_v5_allin_ev.py scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_sampled_mirror_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:31:00+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 256 --total-hands 999999 --total-environment-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 512 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/physical-hand-accounting-repair-20260830/single/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089100 --fixed-training-deal-stream --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id physical_hand_single_20260830 --run-dir research/experiments/physical-hand-accounting-repair-20260830/single --out research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt --seed 20260891 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:31:00+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 256 --total-hands 999999 --total-environment-hands 1024 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 512 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/physical-hand-accounting-repair-20260830/single/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089100 --fixed-training-deal-stream --fixed-training-deal-start-index 100000 --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id physical_hand_single_20260830 --run-dir research/experiments/physical-hand-accounting-repair-20260830/single --out research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt --seed 20260891 --max-runtime-seconds 600 --resume research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt --allow-resume --resume-assignment-state-from-provenance --preserve-resumed-optimizer-lr",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:32:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 256 --total-hands 999999 --total-environment-hands 1024 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 512 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/physical-hand-accounting-repair-20260830/single/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089100 --fixed-training-deal-stream --fixed-training-deal-start-index 100000 --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id physical_hand_single_20260830 --run-dir research/experiments/physical-hand-accounting-repair-20260830/single --out research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt --seed 20260891 --max-runtime-seconds 600 --resume research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt --allow-resume --no-reset-optimizer --resume-assignment-state-from-provenance --preserve-resumed-optimizer-lr",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:32:40+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 2 --hands-per-iter 256 --total-hands 999999 --total-environment-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 512 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 2 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/physical-hand-accounting-repair-20260830/multi/opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 4 --worker-seed-base 2026089200 --fixed-training-deal-stream --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id physical_hand_multi_20260830 --run-dir research/experiments/physical-hand-accounting-repair-20260830/multi --out research/experiments/physical-hand-accounting-repair-20260830/multi/latest.pt --seed 20260892 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:33:42+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cpu --workers 1 --hands-per-iter 256 --total-hands 999999 --total-environment-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --separate-preflop-head --all-policy-heads-only-training --critic-contract critic_v2 --h1-effective-stack-divisor 200 --autonomous-critic-v2-continue --run-id physical_unknown_prefix_probe_20260830 --run-dir research/experiments/physical-hand-accounting-repair-20260830/unknown_prefix_probe --out research/experiments/physical-hand-accounting-repair-20260830/unknown_prefix_probe/latest.pt --max-runtime-seconds 1 --resume research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263479.pt --allow-resume --no-reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:34:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cpu --workers 1 --hands-per-iter 256 --total-hands 999999 --total-environment-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --separate-preflop-head --all-policy-heads-only-training --critic-contract critic_v2 --h1-effective-stack-divisor 200 --autonomous-critic-v2-continue --run-id physical_unknown_prefix_probe_20260830 --run-dir research/experiments/physical-hand-accounting-repair-20260830/unknown_prefix_probe --out research/experiments/physical-hand-accounting-repair-20260830/unknown_prefix_probe/latest.pt --max-runtime-seconds 1 --resume research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263479.pt --allow-resume --no-reset-optimizer --value-coef 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:35:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cpu --workers 1 --hands-per-iter 256 --total-hands 999999 --total-environment-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --separate-preflop-head --all-policy-heads-only-training --critic-contract critic_v2 --h1-effective-stack-divisor 200 --autonomous-critic-v2-continue --run-id physical_completed_target_probe_20260830 --run-dir research/experiments/physical-hand-accounting-repair-20260830/completed_target_probe --out research/experiments/physical-hand-accounting-repair-20260830/completed_target_probe/latest.pt --max-runtime-seconds 1 --resume research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt --allow-resume --no-reset-optimizer --value-coef 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:38:37+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py scripts/alpha_holdem/audit_paired_seat_average_session.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:42:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/physical-hand-accounting-repair-20260830/single --expected-target-hands 512 --expected-target-environment-hands 512 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --workspace . --out research/experiments/physical-hand-accounting-repair-20260830/single_audit_before_resume.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:42:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/physical-hand-accounting-repair-20260830/single --expected-target-hands 851 --expected-target-environment-hands 1024 --expected-final-iteration 3 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --workspace . --out research/experiments/physical-hand-accounting-repair-20260830/single_audit_after_resume.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:42:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/physical-hand-accounting-repair-20260830/multi --expected-target-hands 512 --expected-target-environment-hands 512 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --workspace . --out research/experiments/physical-hand-accounting-repair-20260830/multi_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:42:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_paired_seat_average_session.py --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/production --expected-iterations 64 --out research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_production_lower_bound.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:42:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_paired_seat_average_session.py --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/smoke3 --expected-iterations 1 --out research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_smoke3_lower_bound.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:42:02+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8a4e98348742c131571457a428b26efe90e9790971e74190a2c25112d1695271",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py"
+    ],
+    "captured_at": "2026-08-30T19:25:25+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/physical-hand-accounting-repair-20260830/code.patch",
+    "patch_sha256": "b397d759f8e576bc48b3943cfe554044610fe637b711120dea840d76e98fcd8c",
+    "source_manifest": "research/experiments/physical-hand-accounting-repair-20260830/source_manifest.json",
+    "source_manifest_sha256": "3c2195023ec580ffa3dd1ea31eb9571b956cbf60c0b2a720c8ee39b79bcb9906",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 1824,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 997.0
+  },
+  "metrics": {
+    "single_before_resume_physical_hands": 771,
+    "single_before_resume_marker_hands": 574,
+    "single_before_resume_no_decision_hands": 137,
+    "single_after_resume_physical_hands": 1200,
+    "single_after_resume_marker_hands": 851,
+    "single_after_resume_no_decision_hands": 216,
+    "resume_optimizer_step_before": 10,
+    "resume_optimizer_step_after": 14,
+    "multi_physical_hands": 624,
+    "multi_marker_hands": 568,
+    "multi_no_decision_hands": 33,
+    "unknown_prefix_guard_verified": true,
+    "legacy_training_marker_hands": 1419,
+    "physical_no_decision_hands": 249,
+    "physical_completed_unconsumed_decision_hands": 156,
+    "all_session_audits_pass": true,
+    "completed_target_guard_verified": true,
+    "regression_tests_passed": 37
+  },
+  "artifacts": [
+    "research/experiments/physical-hand-accounting-repair-20260830/code.patch",
+    "research/experiments/physical-hand-accounting-repair-20260830/source_manifest.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/single_audit_before_resume.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/single_audit_after_resume.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi_audit.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/result_summary.md",
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/code.patch",
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_manifest.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_production_lower_bound.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_smoke3_lower_bound.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/train_v5.py",
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/audit_train_v5_fixed_pool_session.py",
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/audit_paired_seat_average_session.py",
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/test_environment_hand_accounting.py",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/run_manifest.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/h1_training_metrics.jsonl",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/latest_train.log",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/opponent_assignments.jsonl",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/checkpoints/checkpoint_iter000001_hands000000000288.pt",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/checkpoints/checkpoint_iter000002_hands000000000574.pt",
+    "research/experiments/physical-hand-accounting-repair-20260830/single/checkpoints/checkpoint_iter000003_hands000000000851.pt",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/latest.pt",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/run_manifest.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/h1_training_metrics.jsonl",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/latest_train.log",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/opponent_assignments.jsonl",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/checkpoints/checkpoint_iter000001_hands000000000287.pt",
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/checkpoints/checkpoint_iter000002_hands000000000568.pt"
+  ],
+  "notes": [
+    "No further production training until unit tests and small single/multi/resume smokes verify physical counters include no-decision hands, remain monotone, preserve legacy total_hands and optimizer state, and reject physical-target continuation from an unknown historical prefix. Do not rewrite historical checkpoint/session/hand evidence. Historical physical work may only be reported as an evidence-backed lower bound where exact worker-tail counts are unavailable.",
+    "37 tests passed after adding physical counters and a PPO-boundary physical target. No trainer policy/reward/optimizer algorithm was changed. Legacy total_hands is explicitly transition-bearing hands; physical counters include no-decision terminal hands and completed worker tails.",
+    "Single smoke passed at 771 physical completed hands, 574 legacy marker hands, 137 no-decision hands, and 60 completed but unconsumed decision-bearing tails. Resume smoke keeps the same checkpoint/optimizer/counters and assignment RNG, uses physical endpoint 1024, and deliberately skips to fixed-deal index 100000 to avoid repeating prior smoke deals. Skipped indices are not counted as hands; this tests accounting continuation, not bitwise uninterrupted rollout equivalence.",
+    "The first resume invocation was rejected by parser validation before any worker or file mutation because --no-reset-optimizer was not explicit. Corrected invocation includes --no-reset-optimizer; the preserved-LR guard prevented accidental optimizer reset.",
+    "Single resume PASS: physical 771+429=1200, no-decision 137+79=216, legacy 574->851, optimizer step 10->14; prior archive hashes unchanged and assignment chain contiguous/pending null.",
+    "The first unknown-prefix probe was stopped earlier by the existing critic_v2 value-coef guard; it did not test the physical-prefix guard and produced no checkpoint. Repeating with the required --value-coef 1.",
+    "Corrected unknown-prefix probe reached the intended ValueError after loading the checkpoint optimizer but before worker startup or checkpoint creation. Added a guard that rejects already-completed physical endpoints before creating unused assignment evidence.",
+    "Final source snapshot includes the terminal-counter implementation exercised by single/multi/resume smokes and the final prefix-type/completed-endpoint guards exercised by unit/probe checks. Immutable source copies were SHA256-verified against workspace files; final patch SHA256 6a36b02fa8d2cbc072169ae9d9cbe5cedaac29c1c52183d03652c6fadfd3986d.",
+    "Historical paired accounting corrected to a physical lower bound of 317800 while preserving legacy markers 264545 and all raw training/evaluation evidence. The central contract is documented in research/HAND_ACCOUNTING.md."
+  ],
+  "result": {
+    "summary": "Implemented independent physical terminal counters for single/multi workers, verified no-decision and tail accounting, preserved same-checkpoint optimizer/counter continuation, and repaired historical paired-pilot physical-hand labels using immutable lower-bound evidence.",
+    "conclusion": "New runs can budget and report complete local physical environment work. Legacy total_hands remains transition-bearing hands; unknown historical physical prefixes are never guessed, and counter continuity is not claimed to provide bitwise uninterrupted rollout equivalence.",
+    "decision": "PHYSICAL_HAND_ACCOUNTING_REPAIRED_AND_RESUME_VERIFIED",
+    "next_step": "Choose the next learned-policy experiment using research/HAND_ACCOUNTING.md, an immutable pre-run source snapshot, explicit physical-hand budgets, and staged frozen evaluations; do not scale the rejected paired/sampled treatments unchanged."
+  },
+  "tags": [
+    "accounting",
+    "infrastructure",
+    "resume-integrity"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 16,
+    "command_count": 16
+  },
+  "artifact_integrity": {
+    "research/experiments/physical-hand-accounting-repair-20260830/code.patch": {
+      "type": "file",
+      "bytes": 181871,
+      "sha256": "b397d759f8e576bc48b3943cfe554044610fe637b711120dea840d76e98fcd8c"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 472,
+      "sha256": "3c2195023ec580ffa3dd1ea31eb9571b956cbf60c0b2a720c8ee39b79bcb9906"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single_audit_before_resume.json": {
+      "type": "file",
+      "bytes": 4253,
+      "sha256": "5138c1610fe7a67c0fce24e6ddb545dacbffce57777b75d2f6bd441a19de16b8"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single_audit_after_resume.json": {
+      "type": "file",
+      "bytes": 4599,
+      "sha256": "dcffc099045c12a7342b29e4830e13b58519dd8a554bc8207a9a4002fd4635cb"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi_audit.json": {
+      "type": "file",
+      "bytes": 4006,
+      "sha256": "529b1018e7d7a86dec87f1a2631ab0aab219b630795beca8eff54dc767f0f9c3"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 4323,
+      "sha256": "444523cb7439f0df95ae4e6a777ea8b431995d25a1f95db4a7f8acb481ffbfc6"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/code.patch": {
+      "type": "file",
+      "bytes": 192536,
+      "sha256": "6a36b02fa8d2cbc072169ae9d9cbe5cedaac29c1c52183d03652c6fadfd3986d"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 855,
+      "sha256": "a637c85a17457d2333d023598509856bfc4ba5f90d114b6d1f6bd70e2b1097c6"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_production_lower_bound.json": {
+      "type": "file",
+      "bytes": 1561,
+      "sha256": "198f52b4dd9a59386260d61700a9abab3af4e239ff5918911c6b94e369e509af"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_smoke3_lower_bound.json": {
+      "type": "file",
+      "bytes": 1537,
+      "sha256": "306dbc8400e6058728ea0502f834e92a22a74016fa190b2ee373ae105e1fd0e6"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/train_v5.py": {
+      "type": "file",
+      "bytes": 399245,
+      "sha256": "ceda1caeb9ac1914647e64d137bef6827464f36423973413bc6adcb09841b1a8"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/audit_train_v5_fixed_pool_session.py": {
+      "type": "file",
+      "bytes": 14669,
+      "sha256": "cfa9ba55eb4b2c206f86baaa375e57d6c7a81a5a869aef89faec9d58c17cd265"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/audit_paired_seat_average_session.py": {
+      "type": "file",
+      "bytes": 3758,
+      "sha256": "cdea3d0b91196c12cbcfe7071acf47f32fc28fdbe61bb16c046c24b09b0f6f3e"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/final_code/source_files/test_environment_hand_accounting.py": {
+      "type": "file",
+      "bytes": 3966,
+      "sha256": "71f1b05164b8d1ec6030dfd97e8f033e1ac82d5a8417877a914f33ca03a78e90"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/latest.pt": {
+      "type": "file",
+      "bytes": 133304820,
+      "sha256": "c76ff028cc55c6d1af5219f545c145fde53d0c023d4a074222a42752c6854af4"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/run_manifest.json": {
+      "type": "file",
+      "bytes": 53399,
+      "sha256": "68c894f13f21fef7b7f0d445e345431f0959d244ed9791a38b5911e26e542cbd"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 67694,
+      "sha256": "88e21561051e15d8c0d9c1b12d5ba712bff808e25c99df2d47268fa9cf53493e"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/latest_train.log": {
+      "type": "file",
+      "bytes": 1285,
+      "sha256": "15e69a542ac0eead141255741c1f485cc85b3d64d3252c19154d7c59eaff1179"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4317,
+      "sha256": "c94f63ce58e1488f954afe6b6c3543c007614c39e001852f76143cbc2ff2c78f"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/checkpoints/checkpoint_iter000001_hands000000000288.pt": {
+      "type": "file",
+      "bytes": 133323702,
+      "sha256": "a059ddcacc1f5f05d48722c437579d09013bae4690f78aee214643f974e961a4"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/checkpoints/checkpoint_iter000002_hands000000000574.pt": {
+      "type": "file",
+      "bytes": 133323702,
+      "sha256": "616e8f0adec47b1e7384cbf57745a9c8bf9e0e9ceb8b00505b4bf342fc072749"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/single/checkpoints/checkpoint_iter000003_hands000000000851.pt": {
+      "type": "file",
+      "bytes": 133324022,
+      "sha256": "46ac0c837b8bc15f9edeff8746c0a043ee1181ff8eb7e1a37be067d84fe99e65"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/latest.pt": {
+      "type": "file",
+      "bytes": 133304436,
+      "sha256": "8f958cf66b877f478afdb549a78974d7b83317c7d1a458488b625892ba5cd8a8"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/run_manifest.json": {
+      "type": "file",
+      "bytes": 52832,
+      "sha256": "e467c38bf56d8bbb7c97c0e942412b55aa30bea9cc9402064ec55c29b994d088"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 43904,
+      "sha256": "dca3e91e64ff6948d94b636463523b21a1a6f871235523a545b5805f5cabd16c"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/latest_train.log": {
+      "type": "file",
+      "bytes": 857,
+      "sha256": "ac6079da45589304c0344093e07c6490cee655c8602513aa29061fd03e195025"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2275,
+      "sha256": "aa8008907e5d9b8d1f063c284aedda5b2238a6f3d2f53aef6caa27e4a7c72f03"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/checkpoints/checkpoint_iter000001_hands000000000287.pt": {
+      "type": "file",
+      "bytes": 133323574,
+      "sha256": "2751d05ccb2c770188cd0712cf02458f4676996f2616f74cfad40503bac28f9a"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/multi/checkpoints/checkpoint_iter000002_hands000000000568.pt": {
+      "type": "file",
+      "bytes": 133323574,
+      "sha256": "93479ceee40001165bc0584c343f5eb5c0a2bf1619fd6a332693616fd67124e3"
+    }
+  }
+}

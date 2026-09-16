@@ -1,0 +1,131 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "deployment-cfr4-adapter-pilot-20260829",
+  "title": "Four-board deployment CFR adapter pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T22:41:58+00:00",
+  "updated_at": "2026-08-30T02:18:47+00:00",
+  "started_at": "2026-08-29T22:41:58+00:00",
+  "ended_at": "2026-08-29T23:42:26+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Even an intentionally bounded corrected SRP+3BP teacher spanning four stratified boards will generalize better than the rejected narrow 96-board SRP adapter because it matches deployed financial state, nine-slot masks, and both dominant raised-pot topologies.",
+  "material_change": "Solve four stratified flops for corrected exact-grid SRP and 3BP at b8/i200 with fixed per-board seeds; convert street-balanced compact data; train a frozen-source postflop adapter with board-disjoint validation/test; gate on heldout target KL, source anchor KL, action-change rate, and paired internal poker before any external Slumbot.",
+  "baseline": "Old CFR96 adapter: heldout target KL 0.874 but fresh Slumbot early gate -314.7 bb/100 over 501 hands. Corrected pipeline one-board live history+mask coverage 39.66% versus 1.51% old.",
+  "source": "packages/cfr-solver/src/tree/tree-config.ts",
+  "parent_id": "exact-grid-solver-scale-profile-20260829",
+  "command": "node --max-old-space-size=24576 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_<root>_200bb --flops 4 --use-selector --parallel --workers 4 --iterations 200 --buckets 8 --seed 20260829",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "provenance_gap": "Historical record predates automatic patch/source-manifest capture; the exact dirty worktree cannot be reconstructed post hoc."
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 33252,
+    "wall_time_seconds": 3628.0,
+    "solver_boards_completed": 0,
+    "training_rows": 0,
+    "aborted_solver_batches": 1,
+    "failed_solver_workers": 3,
+    "completed_srp_boards": 4,
+    "completed_3bp_boards": 4,
+    "compact_3bp_rows": 131844,
+    "compact_srp_rows": 324822,
+    "compact_total_rows": 456666,
+    "slumbot_hands": 5060
+  },
+  "metrics": {
+    "financial_state_parity": "PASS",
+    "selector_four_board_diversity": "FAIL",
+    "srp_flop0_infosets": 13914074,
+    "srp_flop0_solve_seconds": 267.4,
+    "compact_3bp_bridge_mask_exact_fraction": 0.6749795212523891,
+    "h256_skl025_val_target_kl": 0.0812444095457188,
+    "h256_skl025_test_target_kl": 0.09374693442146258,
+    "h256_skl025_test_source_kl": 0.35773893036763277,
+    "h256_skl025_mirror_bb100": -35.3978271484375,
+    "h256_skl025_mirror_ci95": 9.427476420505435,
+    "h64_skl1_val_target_kl": 0.2205854690697721,
+    "h64_skl1_test_target_kl": 0.2563773916459703,
+    "h64_skl1_test_source_kl": 0.14525707662507004,
+    "h64_skl1_mirror10000_bb100": 2.33,
+    "h64_skl1_mirror10000_ci95": 0.7378744365353832,
+    "slumbot_bb100": -9.411067193675889,
+    "slumbot_ci95_lower": -52.940000000000005,
+    "slumbot_ci95_upper": 34.12,
+    "slumbot_bb_seat": -12.701934465061193,
+    "slumbot_sb_seat": -6.112386228729719
+  },
+  "artifacts": [
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/slumbot_fresh5k/final_ci.json",
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/slumbot_fresh5k/final_loss_report.json",
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/slumbot_fresh5k/session_independence.json",
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/mirror10000_h64_skl1_e3.json"
+  ],
+  "notes": [
+    "Stopped the first parallel batch before completion because --use-selector returned four two-tone/disconnected/unpaired boards. Re-run with the deterministic QUICK_FLOPS first four to include dry, two-tone, monotone-connected and disconnected textures.",
+    "Initial four-worker SRP batch exposed ESM heap autodetection failure: CommonJS require(node:os) threw, silently imposing 8192 MB per worker; three workers OOMed (exit 134). One board As7d2c completed and checkpointed. Patched worker-pool to import totalmem from node:os; typecheck passes. Parent failure bookkeeping also observed to hang after worker exits.",
+    "Completed corrected b8/i200 teacher solves on four deployment QUICK_FLOPS. SRP infosets by board: 13,914,074; 17,103,606; 20,401,056; 15,876,568. 3BP total 10,074,070 infosets and 532.2 MB. Converted 3BP at deterministic street rates FLOP=1, TURN=0.1, RIVER=0.01 to 131,844 compact rows; independent Python replay found zero state/target failures. Added topology-aware BC/BBC v4 distillation encoding and explicit board train/validation/final-test split support; unit tests pass.",
+    "Selected epoch2 by lowest board2 validation target KL, then revealed board3 test. Despite strong teacher fit, 4096 mirrored pairs vs Standard10 were decisively negative (-35.40 bb/100 CI95 +/-9.43; BB -54.47), so candidate is rejected before Slumbot. Next ablation increases source preservation and reduces adapter capacity/residual magnitude.",
+    "H64/source-KL1/L2=.01 epoch3 selected on board2 validation and generalized to untouched board3 with target KL .2564, source KL .1453, greedy change 3.56%. It passed 10,000 paired internal mirror gate vs Standard10 at +2.33 bb/100, paired CI95 +/-0.738 (lower +1.592), OOD rate zero. Promote to a small fresh Slumbot smoke, not yet formal benchmark.",
+    "Post-hoc infrastructure repair refreshed verifiable wall-time and artifact-integrity fields. The exact historical dirty-worktree patch/source manifest and placeholder commands cannot be reconstructed without falsifying provenance; the record explicitly preserves that gap."
+  ],
+  "result": {
+    "summary": "A four-board exact-grid SRP+3BP teacher produced a conservative learned adapter that passed the 10k paired internal gate (+2.33 bb/100, lower +1.59) and avoided the old narrow-teacher collapse, but 5,060 fresh Slumbot hands were -9.41 bb/100 CI95 [-52.94,+34.12].",
+    "conclusion": "Deployment financial/action parity and topology breadth repaired catastrophic transfer, but four boards are insufficient to establish positive external EV. Both seats are near the Standard10 baseline; losses concentrate in BB flop/turn and SB turn/river. The policy is not promoted to 100k.",
+    "decision": "NO_PROMOTION_SCALE_BOARD_BREADTH",
+    "next_step": "Run a compute-matched breadth experiment: solve 16 diverse deployment SRP+3BP boards at b8/i50 with fixed seeds, distill the same H64/source-KL1/L2=.01 adapter under board-disjoint train/validation/test, and require internal plus fresh-smoke improvement before further scaling."
+  },
+  "tags": [
+    "200bb",
+    "adapter",
+    "distillation"
+  ],
+  "commands": [
+    {
+      "command": "node --max-old-space-size=24576 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_<root>_200bb --flops 4 --use-selector --parallel --workers 4 --iterations 200 --buckets 8 --seed 20260829",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-29T22:41:58+00:00"
+    }
+  ],
+  "reproducibility": {
+    "exact_command_available": false,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 0,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/slumbot_fresh5k/final_ci.json": {
+      "type": "file",
+      "bytes": 1732,
+      "sha256": "96ef681d30cf5c9e7d2f2efc3fbe1dd96d03c2508d87c1875ad110b519a31148"
+    },
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/slumbot_fresh5k/final_loss_report.json": {
+      "type": "file",
+      "bytes": 21000,
+      "sha256": "a1d3a811b83057c73a96acdcc0b2d26c829cd22ea21447254297fd0590efd0d0"
+    },
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/slumbot_fresh5k/session_independence.json": {
+      "type": "file",
+      "bytes": 11501,
+      "sha256": "aa7ba20f13016b9192c9d3ed9a51c2a66d48f67d93bd371a3a2f9f9a2622b4b6"
+    },
+    "research/experiments/deployment-cfr4-adapter-pilot-20260829/mirror10000_h64_skl1_e3.json": {
+      "type": "file",
+      "bytes": 6323,
+      "sha256": "ecf495ccfc1f973858613ce0caca5182f732666221730bf3466507536764a8d7"
+    }
+  }
+}

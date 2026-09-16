@@ -1,0 +1,129 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-posterior-counterfactual-target-reliability-smoke-20260901",
+  "title": "Posterior-marginalized all-action target reliability smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:37:47+00:00",
+  "updated_at": "2026-09-01T14:39:38+00:00",
+  "started_at": "2026-09-01T14:37:47+00:00",
+  "ended_at": "2026-09-01T14:39:38+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Disjoint history-consistent opponent-hole and future-runout samples will make candidate-continuation action targets stable across seat/street while eliminating fixed-hole new-all-in bias.",
+  "material_change": "Consume the frozen 64-row posterior support artifact; evaluate every legal action with disjoint 8+8 posterior-hole/future samples and gate independent action identity/value before any learned update.",
+  "baseline": "v6-broad-counterfactual-target-reliability-smoke-20260901",
+  "source": "v6-history-consistent-hole-posterior-smoke-20260901 SHA1ccf2568...",
+  "parent_id": "v6-history-consistent-hole-posterior-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_posterior_counterfactual_reliability.py --posterior-rows research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data/posterior_rows.jsonl --posterior-rows-sha256 1ccf2568114055640e2115322f174fb5ab3d6bf0476baaaa3a91cf0e40f1708b --candidate models/baseline/standard10/latest.pt --candidate-observation-style legacy_v4 --opponent standard10=models/baseline/standard10/latest.pt --opponent freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --opponent raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent-style standard10=legacy_v4 --opponent-style freshzero=legacy_v4 --opponent-style raw_actor=v6 --opponent-style procedural_soup=v6 --dev-samples 8 --confirm-samples 8 --sample-seed 2026134001 --device cuda --out-dir research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/data",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_posterior_counterfactual_reliability.py --posterior-rows research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data/posterior_rows.jsonl --posterior-rows-sha256 1ccf2568114055640e2115322f174fb5ab3d6bf0476baaaa3a91cf0e40f1708b --candidate models/baseline/standard10/latest.pt --candidate-observation-style legacy_v4 --opponent standard10=models/baseline/standard10/latest.pt --opponent freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --opponent raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent-style standard10=legacy_v4 --opponent-style freshzero=legacy_v4 --opponent-style raw_actor=v6 --opponent-style procedural_soup=v6 --dev-samples 8 --confirm-samples 8 --sample-seed 2026134001 --device cuda --out-dir research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/data",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:37:47+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:39:38+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5d43fc724e8c04dd684a10339c540fe92db4d3ec1877c9681ee88fabc7b86e41",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_posterior_counterfactual_reliability.py",
+      "scripts/alpha_holdem/test_v6_posterior_counterfactual_reliability.py",
+      "scripts/alpha_holdem/v6_counterfactual_target_reliability.py",
+      "scripts/alpha_holdem/v6_history_consistent_hole_posterior.py",
+      "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/preregistration.md"
+    ],
+    "captured_at": "2026-09-01T14:37:47+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "f6c43b63095d4780b4fb5986d7b1ce6461ab17179a238f57e8a0512962d4c2a2",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 112,
+    "offline_samples": 7776,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 111.0
+  },
+  "metrics": {
+    "posterior_reliability_tests_passed": 2,
+    "alpha_holdem_tests_passed": 202,
+    "posterior_rows": 64,
+    "continuation_rollouts": 7776,
+    "overall_dev_confirm_agreement": 0.265625,
+    "overall_confirm_delta_bb": 5.35466796875,
+    "overall_confirm_delta_ci95_low": -1.406546699618604,
+    "overall_confirm_delta_ci95_high": 12.115882637118604,
+    "new_allin_fraction": 0.40625,
+    "training_admitted": 0
+  },
+  "artifacts": [
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/preregistration.md",
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/code.patch",
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/data/summary.json",
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/data/rows.jsonl"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "The admitted 64-row history-consistent posterior was evaluated with disjoint 8+8 opponent-hole/future samples across every legal action, producing 7,776 continuation rollouts. Development/confirmation action agreement was only 26.6%, aggregate confirmation delta CI crossed zero, six of eight strata had negative or near-zero means, and 40.6% of rows selected a new all-in.",
+    "conclusion": "History-consistent posterior support is abundant, but all-action return ranking remains far too noisy and tail-seeking for supervised policy improvement. Marginalizing hidden holes exposes rather than fixes the fixed-hole hindsight artifact. The failure spans preflop through river and both seats, so tuning only runout count, thresholds, or selecting apparently positive rows would reuse development outcomes and is not justified.",
+    "decision": "REJECT_POSTERIOR_COUNTERFACTUAL_TARGETS_UNSTABLE",
+    "next_step": "Stop one-step counterfactual target and PPO/ELO variants. Audit the existing Deep CFR/NFSP implementation and historical evidence for a small exact-game correctness/convergence gate; only pursue a neural regret-minimization route if it supplies counterfactual regret without these point-action targets and can connect to the physical-v6 learned policy contract."
+  },
+  "tags": [
+    "counterfactual",
+    "posterior",
+    "reliability",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 2046,
+      "sha256": "384cd874614f4f2e17292bfe88919ebb46bbf01cf9d8753ee66eb11612bd1ab5"
+    },
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 1139,
+      "sha256": "f6c43b63095d4780b4fb5986d7b1ce6461ab17179a238f57e8a0512962d4c2a2"
+    },
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/data/summary.json": {
+      "type": "file",
+      "bytes": 5456,
+      "sha256": "5cf5fa16ff06cdd20014613d52c306998199ff530c039ff771ca2d6a315ba32a"
+    },
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/data/rows.jsonl": {
+      "type": "file",
+      "bytes": 107866,
+      "sha256": "c472191db1f35e4f65beef468b1b02538423b9a657bd0480da1322740a143840"
+    }
+  }
+}

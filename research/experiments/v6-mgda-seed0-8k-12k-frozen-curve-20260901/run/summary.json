@@ -1,0 +1,112 @@
+{
+  "admit_seed1_continuation_replication": true,
+  "base_sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_mgda_frozen_checkpoint_curve.py",
+    "--base-checkpoint",
+    "models/baseline/standard10/latest.pt",
+    "--opponent",
+    "models/baseline/standard10/latest.pt",
+    "--opponent",
+    "C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt",
+    "--opponent",
+    "C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt",
+    "--earlier-checkpoint",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt",
+    "--later-checkpoint",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt",
+    "--state-panel",
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz",
+    "--pairs-per-anchor",
+    "1024",
+    "--seed",
+    "20261500",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/run"
+  ],
+  "completed_at": "2026-09-01T18:29:32.922096+00:00",
+  "decision": "ADMIT_SEED1_12K_REPLICATION",
+  "disagreement_growth_8k_to_12k": 0.018717467784881592,
+  "earlier_checkpoint_sha256": "de70dd34888a7b860632d44d7b2089a8bc9ff946b9416a3507448461c3b32738",
+  "evaluation": {
+    "anchors": [
+      {
+        "anchor_index": 0,
+        "delta_bb100": 28.466796875,
+        "delta_ci95_bb100": 34.789912555438626,
+        "pairs": 1024
+      },
+      {
+        "anchor_index": 1,
+        "delta_bb100": 31.339355468750004,
+        "delta_ci95_bb100": 32.82899132257544,
+        "pairs": 1024
+      },
+      {
+        "anchor_index": 2,
+        "delta_bb100": 5.46875,
+        "delta_ci95_bb100": 17.692849275361603,
+        "pairs": 1024
+      }
+    ],
+    "pairs": 3072,
+    "pooled_delta_bb100": 21.758300781249996,
+    "pooled_delta_ci95_bb100": 16.999780381232238,
+    "seats": [
+      {
+        "delta_bb100": 15.188151041666668,
+        "delta_ci95_bb100": 19.072837500610603,
+        "seat": 0
+      },
+      {
+        "delta_bb100": 28.328450520833332,
+        "delta_ci95_bb100": 28.0644043942686,
+        "seat": 1
+      }
+    ]
+  },
+  "evaluation_evidence_sha256": "d50168f876445228428d05c231af3d68371efef058f715a74f2d9c1d41c9ed85",
+  "evaluation_hands": 12288,
+  "gates": {
+    "both_residual_caps_respected": true,
+    "both_seat_deltas_nonnegative": true,
+    "disagreement_growth_at_most_2pp": true,
+    "exact_lineage_valid": true,
+    "later_agreement_at_least_95pct": true,
+    "pooled_delta_positive": true,
+    "positive_delta_on_at_least_two_anchors": true,
+    "standard10_delta_nonnegative": true
+  },
+  "later_checkpoint_sha256": "7831a7545bbae20ae30d387895158af8639cf5f4616b8486d7a1c20d1832cf51",
+  "max_abs_residual_logit": {
+    "earlier": 0.20297884941101074,
+    "later": 0.2410721778869629
+  },
+  "panel_metrics": {
+    "earlier": {
+      "greedy_agreement": 0.9832357168197632,
+      "greedy_disagreement": 0.016764283180236816,
+      "maximum_abs_legal_logit_delta": 0.2029275894165039,
+      "mean_abs_legal_logit_delta": 0.05469918251037598,
+      "mean_kl_base_to_candidate": 0.0012316869106143713,
+      "p95_kl_base_to_candidate": 0.005362289492040873,
+      "states": 6144
+    },
+    "later": {
+      "greedy_agreement": 0.9645182490348816,
+      "greedy_disagreement": 0.03548175096511841,
+      "maximum_abs_legal_logit_delta": 0.2413926124572754,
+      "mean_abs_legal_logit_delta": 0.09552912414073944,
+      "mean_kl_base_to_candidate": 0.0037266795989125967,
+      "p95_kl_base_to_candidate": 0.013488211669027805,
+      "states": 6144
+    }
+  },
+  "schema": "cardpilot.mgda_frozen_checkpoint_curve.v1",
+  "state_panel_sha256": "dbad566fb59e25105a3073f0df4514e7c903338b2658cd17fe86a9ac4947e385",
+  "status": "COMPLETED",
+  "wall_time_seconds": 241.25497603416443
+}

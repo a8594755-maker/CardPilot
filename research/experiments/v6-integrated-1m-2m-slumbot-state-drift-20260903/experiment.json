@@ -1,0 +1,189 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-1m-2m-slumbot-state-drift-20260903",
+  "title": "Integrated 1M-to-2M outcome-blind Slumbot-state drift",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T13:34:00+00:00",
+  "updated_at": "2026-09-03T13:48:49+00:00",
+  "started_at": "2026-09-03T13:34:00+00:00",
+  "ended_at": "2026-09-03T13:48:49+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The 2M endpoint's external decline is accompanied by a reproducible increase in high-exposure greedy disagreement from Standard10 relative to the 1M policy on both independent on-policy Slumbot state corpora, localizing a policy-preservation target rather than attributing the outcome to training scale alone.",
+  "material_change": "Replay frozen Standard10, Seed1 1M, and Seed1 2M policies on every decision state from the independent audited 1M fresh20k and 2M fresh20k corpora. Use the trained legacy-v4 observation bridge, compare physical-action probability distributions and greedy actions, and stratify by corpus, seat, street, facing-bet, pot, SPR, and exposure. Never read hand outcomes into rows or make network calls.",
+  "baseline": "1M fresh20k was -21.7592 bb/100 CI [-44.2479,0.7295]; 2M fresh20k was -38.02 CI [-59.4244,-16.6156]. Internal combined 2M-minus-1M showed Standard10 -5.9489 and seat0 -4.8258 bb/100 with CI upper below zero, while synthetic Standard10 drift remained small.",
+  "source": "Audited raw decision corpora and frozen SHAs from v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903 and v6-integrated-seed1-2m-greedy-fresh20k-slumbot-20260903; Standard10 SHA 91b0c587, 1M SHA 6fbbe021, 2M SHA 993fe99b.",
+  "parent_id": "v6-integrated-seed1-2m-greedy-fresh20k-slumbot-20260903",
+  "command": "python research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analyze_drift.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analyze_drift.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T13:34:00+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analyze_drift.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T13:39:39+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/repair_batch_boundary.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T13:45:33+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4b3917a17427cb2ddc00954650579457979701702a2fdd40c3ec16bace949a83",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T13:34:00+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/code.patch",
+    "patch_sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea",
+    "source_manifest": "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/source_manifest.json",
+    "source_manifest_sha256": "9637d232a6a32043a3a1a8d359ce99a3b16e3d5e80e4cd762455940874007060",
+    "source_files": 242
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 2098423,
+    "offline_samples": 248243,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 889.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "cuda_replay_parity_failures": 7,
+    "cuda_replay_states": 124121,
+    "cpu_batch_replay_parity_failures": 1,
+    "cpu_batch_replay_states": 124121,
+    "analyzed_unique_states": 124121,
+    "model_state_queries": 744729,
+    "final_logged_action_parity_failures": 0,
+    "seed1_1m_corpus_standard10_vs_1m_mean_tv": 0.00803448212934069,
+    "seed1_1m_corpus_standard10_vs_2m_mean_tv": 0.00760682978080351,
+    "seed1_1m_corpus_one_m_vs_two_m_greedy_disagreement": 0.0103837833506931,
+    "seed1_1m_corpus_stake_weighted_disagreement_gap": -0.004653175543220263,
+    "seed1_2m_corpus_standard10_vs_1m_mean_tv": 0.00793694856228246,
+    "seed1_2m_corpus_standard10_vs_2m_mean_tv": 0.00741744082702442,
+    "seed1_2m_corpus_one_m_vs_two_m_greedy_disagreement": 0.010353879058915,
+    "seed1_2m_corpus_stake_weighted_disagreement_gap": -0.004085034243770054
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/code.patch",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analyze_drift_cuda.py",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analysis.json",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/input_manifest.json",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analyze_drift.py",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu/analysis.json",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu/input_manifest.json",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/repair_batch_boundary.py",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu",
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu_exact"
+  ],
+  "notes": [
+    "Preregistered mechanism support requires 2M-minus-1M Standard10 stake-weighted greedy-disagreement increase >=0.005 on both on-policy corpora, 100% replay parity for the logged on-policy actions, and at least one supported seat/street/exposure partition showing the same direction. Failure means the external loss is not explained by this drift metric, not that training scale is sufficient.",
+    "The preregistered first replay selected CUDA and reproduced 124114/124121 logged CPU actions. Seven near-boundary mismatches invalidate its integrity gate. Original evidence and engine are preserved; a CPU-only wrapper will write to a new cpu/ directory without overwriting first-pass artifacts.",
+    "CPU batch-1024 replay reduced logged-action mismatch to 1/124121. The remaining state is a numerical batch-boundary argmax mismatch; all live session auditors already passed batch-size-one CPU replay. A new repair command will re-infer only mismatched rows for all three policies at batch size one and write new cpu_exact artifacts.",
+    "CPU-exact repair re-inferred the sole batch-boundary mismatch for all three policies at deployment batch size one. Final parity is 124121/124121; first CUDA and second CPU-batch artifacts remain immutable and explicitly non-admissible for the integrity gate."
+  ],
+  "result": {
+    "summary": "Outcome-blind replay evaluated Standard10, Seed1 1M, and Seed1 2M on 124121 audited decision states from two independent 20k Slumbot corpora. CPU-exact correction achieved 124121/124121 logged-action parity. The 2M-minus-1M Standard10 stake-weighted disagreement gap was -0.00465 on the 1M corpus and -0.00409 on the 2M corpus; direct 1M-versus-2M disagreement was about 1.04%.",
+    "conclusion": "The preregistered high-exposure Standard10-drift mechanism is rejected. On both corpora the externally worse 2M policy was closer to Standard10 in mean TV and stake-weighted greedy behavior, not farther. Only preflop/small-pot disagreement increased about 0.5 percentage point. Therefore more source KL or a high-stakes preservation penalty is not evidence-based; simple distribution distance to Standard10 is externally misaligned here. Initial CUDA and batched-CPU parity failures were numerical audit-contract issues and were resolved without changing raw corpora.",
+    "decision": "REJECT_STANDARD10_DISTANCE_AS_EXTERNAL_LOSS_MECHANISM",
+    "next_step": "Do not revive entropy sharpening, greedy-margin, direct-greedy ES, or 25%-public-opponent training, which have explicit negative evidence. Test whether a public-opponent reward objective can coexist geometrically with broad anchor-seat and source-preservation objectives at the retained 1M checkpoint using an offline multi-objective gradient feasibility audit. Only if a common descent direction exists should a bounded on-policy public-opponent-aware intervention be trained and evaluated across multiple seeds."
+  },
+  "tags": [
+    "offline-diagnostic",
+    "outcome-blind",
+    "policy-drift",
+    "slumbot-states",
+    "standard10"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12837937,
+      "sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 46095,
+      "sha256": "9637d232a6a32043a3a1a8d359ce99a3b16e3d5e80e4cd762455940874007060"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analyze_drift_cuda.py": {
+      "type": "file",
+      "bytes": 16998,
+      "sha256": "b81664d4c05076cb1a39b0f62f84e906345c8e4c1fcbcca5a8355a0a83d0656f"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 12088316,
+      "sha256": "ebead5ef64b1582867c81350df753bec98fe9032096807576de8a8070e0cc342"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analysis.json": {
+      "type": "file",
+      "bytes": 75386,
+      "sha256": "7858c13e082e051d2a0de4bd7aaa0c0be766ef9a4a37b795f23ebc999a9ae8af"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/input_manifest.json": {
+      "type": "file",
+      "bytes": 6098,
+      "sha256": "522463753f5bd0e1c35ff6443b43c2de1dd5d6d5d8a716ad2abe3347ce3a61fa"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/analyze_drift.py": {
+      "type": "file",
+      "bytes": 666,
+      "sha256": "04d903d0d6dfe6ca9501909f2a6f582311743f03efa2973ba5338396c30673bc"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 12089229,
+      "sha256": "b9eb47d53397ccf81491e8c673280312b4b21a52d07649c6eda3ffd9c61acee0"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu/analysis.json": {
+      "type": "file",
+      "bytes": 75421,
+      "sha256": "740ada408eb75095c108f902a10f578c92b7d405bdb9fd3a7acc78a45ef5473d"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu/input_manifest.json": {
+      "type": "file",
+      "bytes": 6098,
+      "sha256": "522463753f5bd0e1c35ff6443b43c2de1dd5d6d5d8a716ad2abe3347ce3a61fa"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/repair_batch_boundary.py": {
+      "type": "file",
+      "bytes": 9915,
+      "sha256": "9e670fca47bc21b9e82983c9bdd155c42b048b4af92ec08d2b914920e71e1155"
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-2m-slumbot-state-drift-20260903/cpu_exact": {
+      "type": "directory",
+      "sha256": null
+    }
+  }
+}

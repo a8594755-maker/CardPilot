@@ -1,0 +1,834 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-static-current-kl-4m-scale-20260904",
+  "title": "Static current-KL multi-seed 2M-to-4M geometric scale",
+  "status": "COMPLETED",
+  "created_at": "2026-09-04T11:16:01+00:00",
+  "updated_at": "2026-09-05T00:32:09+00:00",
+  "started_at": "2026-09-04T11:16:01+00:00",
+  "ended_at": "2026-09-05T00:32:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The preserved static current-to-Standard10 KL method will show improving multi-seed and breadth evidence from 2M to 4M without catastrophic source drift or replicated broad reversal.",
+  "material_change": "Resume all three frozen 2M endpoints without resetting weights, optimizer, replay buffer/RNG, league state, assignment evidence, or counters; extend each to at least 4,194,304 cumulative physical environment hands on disjoint fixed deal windows.",
+  "baseline": "At 1M-to-2M, two of three seed slopes and the median were positive, one seed broadly reversed, combined slope was -1.1373 bb/100 CI95 [-4.6040,2.3295], no seed met strict breadth, and all mechanics and drift gates passed.",
+  "source": "Frozen seed1/2/3 endpoints from v6-static-current-kl-2m-scale-20260904 with checkpoint SHA256s fixed in preregistration and the same immutable Standard10/static league anchors.",
+  "parent_id": "v6-static-current-kl-2m-scale-20260904",
+  "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-4m-scale-20260904/run_training.ps1",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-4m-scale-20260904/run_training.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T11:16:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/audit_final_seed2_overlap.py --source original=research/experiments/v6-static-current-kl-4m-scale-20260904/recovery_sources/seed2_guard1_iter768_hands3163932_physical3619473.pt --source recovery1=research/experiments/v6-static-current-kl-4m-scale-20260904/recovery_sources/seed2_recovery1_interrupted_iter776_hands3196923_physical3657838.pt --source recovery2_final=research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_endpoints/seed2_iter890.pt --out research/experiments/v6-static-current-kl-4m-scale-20260904/final_seed2_overlap.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:09:19+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/audit_frozen_endpoints.py --seeds 1 2 --out research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_seed12_mechanics.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:37:25+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/audit_frozen_endpoints.py --seeds 1 2 --verify-inherited-bridge --out research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_seed12_mechanics_inherited_bridge.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:42:59+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-static-current-kl-4m-scale-20260904/test_deviation_report.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:48:14+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-static-current-kl-4m-scale-20260904/test_deviation_report.py research/experiments/v6-static-current-kl-4m-scale-20260904/test_guarded_followthrough.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:59:04+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/run_guarded_followthrough.py --trainer-pid 57140 --launcher-pid 29580 --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:59:04+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/run_guarded_followthrough.py --trainer-pid 57140 --launcher-pid 29580",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:59:04+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py --experiment-dir research/experiments/v6-static-current-kl-4m-scale-20260904 --base models/baseline/standard10/latest.pt --min-environment-hands 4194304 --expected-archive-iteration 448 --expected-archive-iteration 512 --expected-archive-iteration 576 --expected-archive-iteration 640 --expected-archive-iteration 704 --expected-archive-iteration 768 --expected-archive-iteration 832 --schema cardpilot.static_current_kl_4m_training_audit.v1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\training_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:31:56+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-static-current-kl-4m-scale-20260904/test_pool_history_windows.py --junitxml research/experiments/v6-static-current-kl-4m-scale-20260904/pool_history_window_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:40:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/audit_pool_history_windows.py --out research/experiments/v6-static-current-kl-4m-scale-20260904/pool_history_window_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:40:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/audit_frozen_endpoints.py --seeds 1 2 3 --verify-inherited-bridge --out research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_allseed_mechanics_inherited_bridge.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:42:24+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-static-current-kl-4m-scale-20260904/test_pool_qualified_evaluation.py research/experiments/v6-static-current-kl-4m-scale-20260904/test_pool_history_windows.py --junitxml research/experiments/v6-static-current-kl-4m-scale-20260904/pool_qualified_followthrough_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:48:29+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/run_pool_qualified_evaluation.py --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:48:29+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-static-current-kl-4m-scale-20260904/run_pool_qualified_evaluation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:48:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/latest.pt --treatment research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263281 --device cuda --out-dir research/experiments/v6-static-current-kl-4m-scale-20260904/eval_seed1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:48:52+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/latest.pt --treatment research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263282 --device cuda --out-dir research/experiments/v6-static-current-kl-4m-scale-20260904/eval_seed2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T23:59:46+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-static-current-kl-2m-scale-20260904/seed3/latest.pt --treatment research/experiments/v6-static-current-kl-4m-scale-20260904/seed3/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263283 --device cuda --out-dir research/experiments/v6-static-current-kl-4m-scale-20260904/eval_seed3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:11:46+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed1 --states 20000 --seed 20263291 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:20:22+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed2 --states 20000 --seed 20263292 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:20:49+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-static-current-kl-4m-scale-20260904/seed3/latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed3 --states 20000 --seed 20263293 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:21:17+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py --experiment-dir research/experiments/v6-static-current-kl-4m-scale-20260904 --prior-dir research/experiments/v6-static-current-kl-262k-scale-20260903 --prior-dir research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903 --prior-dir research/experiments/v6-static-current-kl-1m-scale-20260903 --prior-dir research/experiments/v6-static-current-kl-2m-scale-20260904 --expected-prior-raw-rows 122880 --eval-seed-base 20263280 --drift-seed-base 20263290 --scale-label 4M --schema cardpilot.static_current_kl_4m_aggregate.v1 --breadth-informational-only --require-positive-combined --require-improved-breadth --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:21:43+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\report_4m_deviation.py --legacy-aggregate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\aggregate.json --posthoc-mechanics C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\frozen_allseed_mechanics_inherited_bridge.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\deviation_aware_report.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:22:04+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "c9b5480965e52d94239d7e867a5aed5841a1ff6ab9604e468a79a5da73da474a",
+    "code_paths": [
+      "research/experiments/v6-static-current-kl-4m-scale-20260904",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/stage_v6_integrated_scale_resume.py",
+      "scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py",
+      "scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py"
+    ],
+    "captured_at": "2026-09-04T11:16:01+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-static-current-kl-4m-scale-20260904/code.patch",
+    "patch_sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252",
+    "source_manifest": "research/experiments/v6-static-current-kl-4m-scale-20260904/source_manifest.json",
+    "source_manifest_sha256": "98fa4e367933d123dee2cb1b10e822257eeee49033f7992cde6e4c630bca43c2",
+    "source_files": 7
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 6291386,
+    "lineage_training_hands": 12588188,
+    "offline_samples": 0,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 47768.0,
+    "planned_new_training_hands": 6286110,
+    "target_lineage_training_hands": 12582912,
+    "environment_training_hands": 6291386,
+    "slumbot_hands": 0,
+    "existing_offline_pair_rows_arithmetic_verified": 24576,
+    "offline_drift_states": 60000,
+    "new_transition_bearing_hands": 5469450,
+    "new_replay_rows": 9658592,
+    "new_optimizer_updates": 1328
+  },
+  "metrics": {
+    "seed1_current_iteration": 882,
+    "seed1_current_physical_hands": 4197976,
+    "seed1_final_iteration": 882,
+    "seed1_final_physical_hands": 4197976,
+    "seed1_suffix_environment_hands": 2100620,
+    "seed2_current_iteration": 890,
+    "seed2_current_physical_hands": 4195304,
+    "seed2_confirmed_repeated_deal_exposures_observed_prefix": 441445,
+    "seed2_final_iteration": 890,
+    "seed2_final_physical_hands": 4195304,
+    "seed2_stage_executed_hands": 2095518,
+    "seed2_stage_unique_deal_identities": 1519687,
+    "seed2_final_repeated_deal_exposures": 575831,
+    "seed3_current_iteration": 880,
+    "seed3_current_physical_hands": 4194908,
+    "seed3_latest_iteration": 529,
+    "seed3_observed_physical_hands": 2516779,
+    "seed12_posthoc_observed_mechanics_passed": true,
+    "seed12_generic_bridge_failures_preserved": 2,
+    "seed2_training_freshness_qualified": false,
+    "evaluation_gate_and_or_mismatch_identified": true,
+    "scoped_report_and_guard_tests_passed": 25,
+    "guarded_pipeline_phase": "EVIDENCE_READY_FOR_RESEARCH_ANALYSIS",
+    "seed3_final_iteration": 880,
+    "seed3_final_physical_hands": 4194908,
+    "seed3_final_transition_hands": 3624053,
+    "all_three_training_targets_complete": true,
+    "original_audit_dynamic_pool_failed_all_seeds": true,
+    "capped_pool_audit_synthetic_tests_passed": 12,
+    "capped_pool_window_replay_passed": true,
+    "capped_pool_candidates_reconstructed": 664,
+    "capped_pool_checkpoint_windows_verified": 27,
+    "capped_pool_suffix_assignments_verified": 1328,
+    "historical_pool_formula_label_mismatch": true,
+    "all_three_posthoc_observed_mechanics_passed": true,
+    "pool_qualified_followthrough_tests_passed": 23,
+    "pool_qualified_preflight_frozen_inputs": 312,
+    "final_pooled_delta_bb100": 1.2625325520833335,
+    "final_pooled_ci95_low": -2.1195515475058846,
+    "final_pooled_ci95_high": 4.6446166516725516,
+    "final_unaffected_subset_delta_bb100": 0.04595947265625,
+    "final_unaffected_subset_ci95_low": -3.593550937313795,
+    "final_unaffected_subset_ci95_high": 3.6854698826262946,
+    "automatic_scaling_authorized": false
+  },
+  "artifacts": [
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/preregistration.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training.ps1",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/code.patch",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/source_manifest.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/resume_stage_manifest.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/preflight_record_audit.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000448_hands000001845280.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_evaluation.ps1",
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000512_hands000002108844.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000576_hands000002372489.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000640_hands000002636225.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000704_hands000002899785.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000768_hands000003163081.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000832_hands000003426499.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/latest.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000448_hands000001845439.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000512_hands000002109088.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000576_hands000002373189.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000640_hands000002636853.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000704_hands000002900316.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000768_hands000003163932.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/recovery_sources/seed2_guard1_iter768_hands3163932_physical3619473.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/runtime_guard1_recovery.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_guard1_recovery.ps1",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/recovery_sources/seed2_recovery1_interrupted_iter776_hands3196923_physical3657838.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/recovery2.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_recovery2.ps1",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000832_hands000003427526.pt",
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/observed_overlap.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/resume_deviation_amendment.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_endpoints/seed2_iter890.pt",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/audit_final_seed2_overlap.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/final_seed2_overlap.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/audit_frozen_endpoints.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_seed12_mechanics.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_seed12_mechanics_inherited_bridge.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/evaluation_readiness_notes.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/report_4m_deviation.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_deviation_report.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_guarded_followthrough.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_guarded_followthrough.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/guarded_followthrough_contract.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v1\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v1\\original_audit.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\training_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v1\\status.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/training_audit.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/guarded_followthrough_v1/status.json",
+    "research/decision_notes/post4m-prior-evidence-20260904.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/audit_pool_history_windows.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_pool_history_windows.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_history_window_tests.xml",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_history_window_audit.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_allseed_mechanics_inherited_bridge.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_pool_qualified_evaluation.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_pool_qualified_evaluation.py",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_qualified_followthrough_contract.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_qualified_followthrough_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\eval_seed1.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\eval_seed1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\eval_seed2.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\eval_seed2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\eval_seed3.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\eval_seed3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\drift_seed1.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed1\\drift_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\drift_seed2.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed2\\drift_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\drift_seed3.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed3\\drift_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\original_aggregate.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\aggregate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\deviation_report.command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\deviation_aware_report.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/result_summary.md",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/aggregate.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/deviation_aware_report.json",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/guarded_followthrough_v2_pool_qualified/status.json"
+  ],
+  "notes": [
+    "Pre-start hardware audit: no AlphaHoldem or Slumbot process was active; RTX 4070 was idle; C drive had approximately 548 GB free. Parent optimizer steps were 1758/1774/1758 with replay2 and independent pool states preserved.",
+    "Continuation preflight passed: 26 focused trainer/resume tests; all 27 exact-state staging gates across three seeds. Parent checkpoint, metric-prefix, assignment-prefix, optimizer, replay/RNG, pool, adaptive league, counters, assignment chain, and nonoverlapping deal-window checks passed before the first new hand. Seed1 resumed at iter440/physical2097356 with optimizer LR1e-4 and replay2.",
+    "Seed1 committed continuously through iter449/physical2139645 (42289 new). Iter448 geometric archive committed. Replay2/2, reference KL 0.0007-0.0011, PPO KL near zero, no KL stop/value-head catch; isolated clipfrac0.001 at iter447 returned to0.",
+    "Verified live session38839 through seed1 iter457/physical2177231 (79875 new). Every observed boundary saved; replay2/2, reference KL0.0007-0.0012, PPO KL<=0.0002, no stop/catch and no persistent clipping. Iter456 critic loss elevation was finite and immediately decreased at457; no intervention.",
+    "Verified live session38839 through seed1 iter462/physical2201832? Correction: authoritative console envhands=2201832 and checkpoint physical counter will be re-read before the next accounting update; no scientific decision depends on this transient note. Training health remains stable.",
+    "Corrected the preceding manual console transcription from the authoritative saved checkpoint: seed1 iter463/physical2206707, suffix109351. The earlier temporary metric 2202832/count105635 was a record-entry typo only; model, checkpoint, metrics, and training session were untouched.",
+    "Prepared the no-overwrite 4M audit/evaluation launcher without touching live training state. Added preregistered positive-combined and improved-breadth gates to the generic aggregator; py_compile/help and PowerShell parse passed, and exact 1M/2M reaggregation preserved prior decisions, promotion flags, integrity maps, and summaries. Authoritative checkpoint progress iter473/physical2254108, suffix156752.",
+    "Focused stronger-gate regression reused the completed 2M evidence: positive-combined=false, improved-breadth=false, no-significantly-negative-combined-seat=false, promote=false, and decision STOP_FOR_DIAGNOSIS_MIXED_2M_EVIDENCE exactly as intended. This confirms the 4M gate will not auto-scale on the same mixed pattern. Live checkpoint iter477/physical2273060, suffix175704.",
+    "Authoritative saved checkpoint reached seed1 iter483/physical2301831, suffix204475. Optimizer step, replay2, and independent pool state remain serialized; continuous observed boundaries remain finite with no stop/catch.",
+    "Verified live session38839 at seed1 iter493/physical2348997, suffix251641. Continuous saves and stable replay/KL/clip health persist; no data-dependent intervention.",
+    "Seed1 iter512 geometric archive committed at transition hands2108844/physical2445153 with SHA256 845117ae81036d74a2ae495a1e611a59a0ce53ef626d1a5621b00b9c736eb84e. Trainer continued normally; authoritative latest iter514/physical2454275, suffix356919. Replay/KL/clip health remained stable.",
+    "Verified live seed1 at authoritative checkpoint iter524/physical2500540, suffix403184. Post-512 updates remain continuously saved with replay2/2, low KL and zero clipping.",
+    "Seed1 crossed 500k new physical hands at authoritative checkpoint iter/physical, suffix-2097356. Optimizer and replay remain serialized; recent reference KL up to0.0015 stayed far below target with zero clipping and no stop.",
+    "Corrected the immediately preceding concurrent-read record update from a successfully deserialized saved checkpoint: iter548/physical2613577, suffix516221, optimizer steps 2190, replay2. The transient EOF occurred only while latest.pt was being replaced; session38839 and checkpoint chain continued normally.",
+    "Seed1 crossed 600k new physical hands at successfully deserialized checkpoint iter568/physical2710369, suffix613013; optimizer step 2270, replay2. Continuous save and health gates remain normal.",
+    "Seed1 iter576 immutable archive committed at transition hands2372489/physical2747767 with SHA256 cbc2a71cac2cba30e47370427b4d169cfe5edca0aee497cd3e3367433018f490. Trainer then saved iter577/physical2752673 (suffix655317); replay/KL/clip health remained normal.",
+    "Seed1 crossed 700k new physical hands at completed save boundary iter588/physical2802443, suffix705087. Session38839 remains continuous; replay2/2, reference KL<=0.0013 in the latest interval, clipping0, no stop/catch.",
+    "Seed1 crossed 800k new physical hands at completed save boundary iter609/physical2901223, suffix803867. Session38839 remains continuous; all recent updates saved with replay2/2, low KL, clipping0 and no stop/catch.",
+    "Seed1 crossed 900k new physical hands at completed save boundary iter629/physical2998950, suffix901594. Session38839 remains continuous; replay2/2, low KL, clipping0 and save continuity persist.",
+    "Seed1 iter640 immutable archive committed at transition hands2636225/physical3051293 with SHA256 b59cac96606c50783be6b1eb32123d8c3210ebf482a5d19ec08f92938c5e4d00. All observed boundaries through640 saved; replay2/2, low KL, clipping0 and no stop/catch.",
+    "Seed1 crossed one million new physical hands at completed save boundary iter651/physical3101302, suffix1003946. Session38839 remains continuous; replay2/2, low KL, clipping0 and checkpoint continuity persist.",
+    "Seed1 crossed the 1.1M continuation boundary at a completed save: iteration 672, physical environment hands 3,201,393, suffix 1,104,037. Training remains live with replay 2/2, optimizer continuity, low reference KL, and unchanged loss-kbest active pool [0,1,2,132,53].",
+    "Seed1 crossed the 1.2M continuation boundary at completed save iteration 693: physical environment hands 3,297,583, suffix 1,200,227. The isolated critic-loss spike at iteration 684 reverted immediately; replay, KL, optimizer, and policy update health remain normal.",
+    "Bound seed1 geometric archive iteration 704 / physical envhands 3,352,604: checkpoint_iter000704_hands000002899785.pt SHA256 cee020a6420f084d1caf61f953fab8080e968a8b1d9d44ea97329bf88ba8f994.",
+    "Seed1 crossed the 1.3M continuation boundary and reached completed save iteration 715: physical environment hands 3,407,002, suffix 1,309,646. Iteration-704 archive is SHA-bound; training health remains normal.",
+    "Seed1 crossed the 1.4M continuation boundary and reached completed save iteration 736: physical environment hands 3,509,599, suffix 1,412,243. Replay 2/2, reference KL approximately 0.001, and all stability guards remain normal.",
+    "Seed1 crossed the 1.5M continuation boundary and reached completed save iteration 757: physical environment hands 3,610,217, suffix 1,512,861. Training contract and stability checks remain intact.",
+    "Bound seed1 geometric archive iteration 768 / physical envhands 3,663,487: checkpoint_iter000768_hands000003163081.pt SHA256 3a253b857e55e184b39b43629f3ef24d7a1cbb3e77da7ee6fd5e4cef965e21af. Iteration-767 critic-loss elevation partially reverted at 768 without a guard trigger.",
+    "Seed1 crossed the 1.6M continuation boundary at completed save iteration 776: physical environment hands 3,700,360, suffix 1,603,004. Iteration-768 archive is SHA-bound and all training invariants remain healthy.",
+    "Seed1 crossed the 1.7M continuation boundary at completed save iteration 798: physical environment hands 3,805,702, suffix 1,708,346. Training remains stable with replay 2/2 and low KL.",
+    "Seed1 crossed the 1.8M continuation boundary and reached completed save iteration 820: physical environment hands 3,906,412, suffix 1,809,056. Replay, KL, optimizer continuity, and stability guards remain healthy.",
+    "Bound seed1 geometric archive iteration 832 / physical envhands 3,962,000: checkpoint_iter000832_hands000003426499.pt SHA256 82679bcca7efc2694348ddda38711318c5ea5c8a6699a66921c23f92af1f9056. Training continued naturally through completed save iteration 833.",
+    "Seed1 crossed the 1.9M continuation boundary and reached completed save iteration 842: physical environment hands 4,009,893, suffix 1,912,537. All preregistered training invariants remain intact.",
+    "Seed1 crossed the 2.0M continuation boundary at completed save iteration 861: physical environment hands 4,100,770, suffix 2,003,414. All seed1 geometric archives are SHA-bound; training remains healthy.",
+    "Seed1 finished naturally at iteration 882 with 4,197,976 physical environment hands and 2,100,620 session hands; final latest.pt SHA256 7ea4d74d0fcf881c75c4c99bdc0cbe84f82a55001ba277c01aafec6dc5a98f3f. The sequential launcher then exact-resumed seed2 from parent iteration 444, restoring optimizer state, serialized replay entries=2, adaptive league, assignment RNG tail_iter=444, and preserved LR=1e-4; seed2 reached completed save iteration 446 / physical 2,108,926 without intervention.",
+    "Bound seed2 geometric archive iteration 448 / physical envhands 2,118,500: checkpoint_iter000448_hands000001845439.pt SHA256 30149c5a75d94e68ea8839f4cf2d021faba5b225f9ac6dcac1763f3cc401062c. Seed2 continued naturally to completed save iteration 449 / physical 2,123,414; cumulative experiment suffix across finished seed1 and live seed2 is 2,124,248 hands.",
+    "Seed2 crossed its 100k continuation boundary and reached completed save iteration 467: physical environment hands 2,209,536, seed2 suffix 109,750; cumulative experiment suffix including finished seed1 is 2,210,370. Resume invariants and stability metrics remain healthy.",
+    "Seed2 crossed its 200k continuation boundary at completed save iteration 487: physical environment hands 2,302,553, seed2 suffix 202,767; cumulative experiment suffix is 2,303,387. Replay 2/2, low reference KL, and all stability guards remain normal.",
+    "Bound seed2 geometric archive iteration 512 / physical envhands 2,418,598: checkpoint_iter000512_hands000002109088.pt SHA256 5d87b78c545cc0826b0f585800ede3e9dd92775abd070878d71057fa02cd08be. Seed2 continued to completed save iteration 514 / physical 2,427,731, suffix 327,945; cumulative experiment suffix is 2,428,565.",
+    "Seed2 crossed its 400k continuation boundary and reached completed save iteration 532: physical environment hands 2,510,941, seed2 suffix 411,155; cumulative experiment suffix is 2,511,775. Iteration-512 archive is SHA-bound and training remains healthy.",
+    "Seed2 crossed its 500k continuation boundary at completed save iteration 552: physical environment hands 2,604,368, seed2 suffix 504,582; cumulative experiment suffix is 2,605,202. Training remains stable and uninterrupted.",
+    "Bound seed2 geometric archive iteration 576 / physical envhands 2,717,906: checkpoint_iter000576_hands000002373189.pt SHA256 60e9d0255273a54e2fa65b610136e169f2b8e8ff6b6179d57b725107aadf9d96. Seed2 continued to completed save iteration 577 / physical 2,723,449, suffix 623,663; cumulative experiment suffix is 2,724,283. Iteration-567 critic-loss elevation reverted by 569 without a guard trigger.",
+    "Seed2 crossed its 700k continuation boundary and reached completed save iteration 595: physical environment hands 2,806,648, seed2 suffix 706,862; cumulative experiment suffix is 2,807,482. Iteration-576 archive is SHA-bound and all training invariants remain healthy.",
+    "Seed2 crossed its 800k continuation boundary at completed save iteration 617: physical environment hands 2,907,424, seed2 suffix 807,638; cumulative experiment suffix is 2,908,258. Iteration 618 had computed but was not yet observed saved, so accounting remains tied to the verified iteration-617 boundary.",
+    "Bound seed2 geometric archive iteration 640 / physical envhands 3,015,536: checkpoint_iter000640_hands000002636853.pt SHA256 fa2bba1a8d7aa072e3cc4e34c1c4460924ae5965fa80e92435830d9b05f5ff18. Seed2 crossed its 900k suffix and reached verified completed save iteration 641 / physical 3,019,884, seed2 suffix 920,098; cumulative experiment suffix is 3,020,718. Iteration 642 had computed but its save was not yet observed.",
+    "Seed2 crossed the preregistered 1.0M physical suffix boundary at the completed iter659 save: physical_env_hands=3104016, parent_physical=2099786, seed2_suffix=1004230. Together with finished seed1 suffix=2100620, cumulative new physical environment hands=3104850. Optimizer/replay/RNG/adaptive-league continuation remains intact; pool=[0,1,2,122,206], replay=2/2, no KL-stop or value-head guard trigger.",
+    "Seed2 crossed 1.1M physical suffix at completed iter680 save: physical_env_hands=3201267, seed2_suffix=1101481; cumulative new physical environment hands including seed1=3202101. Replay=2/2, active_ids=[0,1,2,122,206], no KL-stop/value-head guard trigger.",
+    "Seed2 crossed 1.2M suffix and produced preregistered immutable iter704 archive. Completed save physical_env_hands=3312883; cumulative new physical environment hands=3313717. Archive SHA256=9d6cd6f37ac9bfe064b28be6d915d4bbc08c0eafc5eb74e789951e57962c8d7c. The isolated iter686 critic loss 1201.6 bb2 reverted to 842.7 at iter687 and 585.4 at iter689; no guard trigger or persistent instability.",
+    "Seed2 crossed 1.3M physical suffix at completed iter723 save: physical_env_hands=3401571, parent_physical=2099786, seed2_suffix=1301785; cumulative new physical environment hands including seed1=3402405. Serialized replay continuation remains 2/2, pool=[0,1,2,122,206], no KL-stop or value-head guard trigger.",
+    "Seed2 crossed 1.4M physical suffix at completed iter744 save: physical_env_hands=3504222, seed2_suffix=1404436; cumulative new physical environment hands including seed1=3505056. Iter726-729 formed a short high-variance critic-target cluster (1039.8,1162.7,1058.7,1168.2 bb2), reverted to 781.3 at iter730 and 682.8 at iter732; later high-tail batches remained associated with higher all-in/raise exposure and did not produce rising KL, ratio-tail expansion, KL-stop, or value-head guard triggers. Classified as monitored target variance, not demonstrated divergence.",
+    "Seed2 crossed 1.5M physical suffix at completed iter765 save: physical_env_hands=3601071, parent_physical=2099786, seed2_suffix=1501285; cumulative new physical environment hands including seed1=3601905. Replay=2/2, pool=[0,1,2,122,206], no KL-stop/value-head guard trigger; earlier critic-target variance has returned to the 660-840 bb2 range.",
+    "Seed2 preregistered immutable iter768 archive produced after completed save. physical_env_hands=3615669; cumulative new physical environment hands=3616503. Archive SHA256=13e64c5f7ba82c84d8c713daa189d6b968ca76f6afa19d2ebb8fa7fb99e476c8. Replay=2/2, active_ids=[0,1,2,122,206], no update guard triggers.",
+    "Original training process reached its preregistered 14400-second runtime guard and stopped cleanly after draining workers: seed2 iter768, transition hands3163932, physical hands3619473, cumulative new physical hands3620307. This is a safe operational interruption, not failure. Frozen recovery source SHA256=466b471fb404b89145e44a12e28c781ffc161f881f5b4cf4c5c3ba16fba9e77a; it preserves optimizer LR1e-4/state, replay entries767/768 plus RNG and cumulative rows5583306, physical counter, pool and pending assignment769 evidence. Exact recovery command: pwsh -NoProfile -File research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_guard1_recovery.ps1",
+    "Runtime-guard recovery rationale and frozen boundary; SHA256=7d8831ee59c9c8b760becd63f13f50f64be0c167bb9c468b9a949e9679841cc1.",
+    "One-time evidence-preserving guard recovery launcher; PowerShell parse and git diff --check passed. SHA256=4c30d963f537ba42960569497a1a77d6da4ae63e89e57e5877f371f8dcfa7f45.",
+    "First recovery preflight ran 26 tests PASS and stopped before training because exact PowerShell floating comparison rejected stored LR=9.999999999999996e-05 versus semantic 1e-4. No checkpoint/metric/assignment/hand state changed. Corrected only verifier tolerance to 1e-12; parse and git diff --check pass; corrected launcher SHA256=bfd452c55afcdc282f57ea7944f8cbd7809f5b5a44437d699690d0a51c205492.",
+    "Runtime-guard recovery1 verified at first completed update. Iter769 continued from iter768: transition hands3168066, physical hands3624078; cumulative new physical hands3624912. Evidence remained append-only: metrics rows768->769; assignment rows769->770; newly generated assignment770 links previous_record_sha256=ffec7162a8079863b2f4a50f3d79bc5c34d238196396d42098754e17b020fdd5 and has before-hands3168066. Pending assignment769 was reused, optimizer LR1e-4 and replay2/2 preserved. Recovery session=71589.",
+    "Recovery1 process became absent from the OS process table while manifest remained running; last complete evidence is seed2 iter776, transition hands3196923, physical3657838, cumulative new physical3658672. Classified external interruption, not runtime guard or training failure. Frozen recovery2 source SHA256=3fd0959095f62f19f2de0541e4bbda24735b6cf288001efa7f0b6f98691dd700; optimizer/replay/RNG/pool intact. Exact recovery command: pwsh -NoProfile -File research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_recovery2.ps1",
+    "Recovery2 interruption and boundary rationale; SHA256=44bb27be8b1018be2390d3bdf803c09236553346ef46e164556fd29eceb8280c.",
+    "Evidence-preserving recovery2 launcher; parse and git diff --check pass; SHA256=6d86867664d264ced6ee83dbe438fe66636f73235f94e655b74cfbf33e3ec3ad.",
+    "Recovery2 verified at first completed update. Iter777 continued from iter776: transition hands3201033, physical3662371, cumulative new physical3663205. Metrics rows776->777; assignment rows777->778; assignment778 links previous SHA256=8e9980b429d99e645136cbae7b5298b1f899d65a0d6d2e06a43c84bfc3d94a39 and before-hands3201033. Pending assignment777 reused; optimizer LR1e-4 and replay2/2 preserved. Recovery2 session=74329.",
+    "Seed2 recovery2 crossed 1.6M physical suffix by completed iter786 and was confirmed through completed iter787 save: physical3707534, seed2 suffix1607748, cumulative new physical3708368. Replay=2/2, pool=[0,1,2,122,206], LR1e-4, no KL-stop/value-head guard trigger.",
+    "Seed2 recovery2 crossed 1.7M physical suffix at completed iter807 save: physical3801745, seed2 suffix1701959, cumulative new physical3802579. Iter807 critic target loss1275.8 bb2 coincided with a higher raise/all-in-exposure batch; policy KL/ratio tails/replay and guards remained normal, so recorded as monitored variance rather than divergence.",
+    "Seed2 recovery2 crossed 1.8M physical suffix at completed iter829 save: physical3902714, seed2 suffix1802928, cumulative new physical3903548. Replay=2/2, pool=[0,1,2,122,206], no KL-stop/value-head guard trigger; critic target variance remained nonpersistent.",
+    "Seed2 preregistered immutable iter832 archive produced under recovery2 and SHA-bound: SHA256=fc9bde356169e1b3723de78a8cf2ae170ca744ffc2976cb5ac366a706fad9f3b. Confirmed through completed iter833 save, physical3921711, cumulative new physical3922545. Replay2/2, active pool unchanged, no guards.",
+    "2026-09-04 resume-integrity correction: original Seed2 launch and recovery1/recovery2 all use worker-seed-base2026300200 and fixed-training-deal-start-index38300000. Worker code initializes source_deal_index directly from this argument on each process start. Thus optimizer/replay/counter continuity does not establish nonoverlapping new deals; recovery sessions reuse the deterministic deal prefix. Prior exact-state/new-deal claims must be interpreted with this limitation. Physical terminal execution counts are preserved, not silently reduced. Current training remains untouched while v6-resume-deal-stream-integrity-20260904 quantifies evidenced overlap and designs fail-closed prevention. No automatic8M promotion is authorized by this record until this discrepancy is adjudicated.",
+    "Frozen overlap audit replay PASS:1961132 observed Seed2 stage executions comprised1519687 distinct deterministic deal identities and441445 repeated exposures. This is a prefix lower bound while training continues. Counters remain actual executions, not unique deals; lineage accounting is sum of three separately trained seeds, not one model's training volume. Standalone preflight13tests and logger4tests passed; not yet integrated into the active trainer. Original evidence preserved.",
+    "Outcome-blind deviation amendment recorded before4M evaluation: preserve all original endpoint/anchor/deck/sample choices and report all seeds, with separately labeled Seed1+Seed3 incident-unaffected subset. Original3seed8M promotion becomes descriptive only; no silent gate bypass or selective seed replacement. Known training-deal reuse does not itself invalidate fresh frozen-policy evaluation, but unrelated integrity failures must be resolved.",
+    "Seed2 finished naturally at iter890/physical4195304/transition3666391. Frozen endpoint SHA103dcc4790207ca1aacb4bad9c85e3d88f1f0809f597a5e08fcdf1b40753b20e. Final3attempt audit reconciles2095518 physical stage executions,1519687 unique evidenced deal identities,575831 repeated exposures; immutable report replay PASS. Original sequential session74329 automatically started preregistered Seed3 from frozen2M parent, OS PID57140, with optimizer/replay/assignment restored. Source remains unchanged. Seed3 is live, so this is not the safe integration boundary.",
+    "Non-mutating progress accounting from the latest complete raw metric. Seed1 and Seed2 are terminal; Seed3 continues normally. No checkpoint, process, session or hand evidence altered. Managed-resume integration is staged only and waits for the complete sequential launcher to finish. All counts remain physical executions, not independent deal identities.",
+    "Before any strength evaluation, perform a read-only post-hoc audit of already-finished Seed1/Seed2 using existing generic checks and immutable recovery sources. This is not a replacement for missing historical preflights, does not certify bitwise restart equivalence, and preserves training-freshness failure separately. Active Seed3 and original all-seed evaluation remain untouched.",
+    "Read-only frozen Seed1/Seed2 post-hoc audit completed with zero new hands. All observed segment optimizer/replay/physical accounting checks passed. Original generic bridge failures remain preserved; actual SHA/contract checks through inherited audit chains independently resolve the lineage lookup limitation. This does not fabricate preflights or prove byte-identical lost-process startup. Also identified shared aggregate collapse uses AND, while 4M preregistration requires OR; final scoped descriptive report must use the preregistered rule and cannot auto-promote8M.",
+    "Supplemental inherited-bridge audit replayed identically with no new hands or source/evidence mutation. Seed3 remains OS-verified live (PID57140), launcherPID29580 live; preserve natural completion or runtime-guard boundary. Current count update is based on the last complete raw metric.",
+    "Implement scoped 4M deviation reporting before outcomes exist. Keep the historical aggregator and outputs unchanged; use preregistered broad reversal OR, reconstruct reward differences from raw paired hands, retain all-three and fixed Seed1/Seed3 summaries, and categorically disable automatic promotion under the documented freshness deviation. Test only synthetic data; no new poker hands.",
+    "Scoped4M report and one-shot followthrough passed25 tests. Raw reward arithmetic verified on24576 existing2M pair rows;zero new hands. Preflight confirmed live trainer57140 and launcher29580,267 frozen source files, unchanged production and no existing evaluation destinations. Launch guarded followthrough as sole writer for this record; no competing logger/source/evaluation writes while its owner is live. It never starts training or auto-promotes.",
+    "One-shot guarded followthrough owns this experiment logger until terminal. It waits for the exact live trainer and launcher identities, never restarts training, requires actual4M endpoints and independent mechanical qualification, preserves original audit failures, and runs only the existing preregistered evaluation. No production source edits or competing record writer while owner is live.",
+    "Guarded followthrough stopped without restarting/overwriting evidence: RuntimeError: unrelated original audit failure: seed1 ['dynamic_pool_healthy']",
+    "All three trainers and the original launcher naturally terminated; the guarded owner and original-audit child are OS-confirmed terminal. All three physical targets are complete. The fail-closed owner stopped before any new evaluation because the original 4M audit failed dynamic_pool_healthy in every seed, in addition to previously scoped deviations. Main researcher now owns this same record. Inspection identifies a possible 200-record candidate-history retention mismatch with 220-224 new candidates; this is a hypothesis to verify against immutable parent/archive/final checkpoints, not permission to bypass the failed gate. Preserve the original audit and guarded status unchanged. Production source and evaluation inputs remain frozen.",
+    "Added a scoped post-hoc capped-history verifier, not a change to the original gate/report or training. Twelve synthetic tests pass, including rejection of missing archive coverage, conflicting metadata, incorrect scores/selection/assignments, changed cadence, and nonfinite data. Real verification will merge SHA-bound original parent, seven archives, and terminal checkpoints; replay every continuation candidate and next-iteration assignment; and require exact active pools. Source inspection also found historical score_components.formula text says coefficient1 while executed loss-kbest selection_loss_from_stats uses0.5; the verifier will reproduce the actual frozen0.5 scoring and preserve/disclose the descriptive mismatch without changing trained policies. No new evaluation or automatic scale is authorized by this check.",
+    "Real immutable archive replay passed all three seeds:221/223/220 new candidates, with21/23/20 evicted from the capped200 terminal windows. Exact full overlapping metadata, executed0.5 score formula, survivor selection,27 checkpoint active pools and1328 next-iteration assignment references matched. This proves the original dynamic_pool_healthy failure was its final-window completeness assumption, not missing candidate generation. Original audit SHA11486bcb5582a574b875baf21cf7e672f742bcd5b64426a6aefbe098d00a44f2 remains unchanged. The formula text mismatch is retained and disclosed. Independent all-seed endpoint/resume qualification remains mandatory before starting any evaluation; do not broadly bypass other failures.",
+    "All-three independent endpoint/optimizer/replay/recovery qualification passed; generic bridge failures remain preserved with verified inherited proof. The scoped evaluation continuation passed23 synthetic tests and a read-only312-input preflight with all old process identities terminal and every evaluation destination absent. It accepts only the precisely observed original failure sets together with the immutable capped-history and independent-mechanics proofs, and reuses the original endpoint/anchor/seed/budget commands. Launching the one-shot v2 owner now transfers exclusive record ownership to its live PID; no production cutover or competing record writer until terminal. The old v1 failed audit and status are not rewritten. GPU qualification will need an explicit tested v2 handoff adapter after evaluation; its preregistered recipe/order/budget remain fixed.",
+    "New one-shot evaluation owner after the separately verified capped-history false failure. Original audit/status remain immutable. Full pool archive/assignment replay and independent endpoint/resume checks passed before any new evaluation. Original 3 seeds, four anchors, decks, both seats, budgets and production runtime remain unchanged. No competing writer or edits to this owner frozen inputs until terminal.",
+    "All original evaluation and drift budgets completed after the bounded capped-history proof. All original failures and Seed2 freshness limitations remain preserved. Main researcher must analyze/finish the same record; no automatic training or scale.",
+    "Stage execution counts include repeated Seed2 exposures and exclude unknown crash suffix; replay is not new hands. Original v1 guard remains stopped, successor owner and children confirmed terminal. Result summary added only after completed evaluation; no historical preregistration rewritten."
+  ],
+  "result": {
+    "summary": "Three frozen 4M endpoints completed 6,291,386 additional physical executions, 98,304 untouched internal evaluation hands and 60,000 drift states. Pooled 4M-minus-2M +1.2625 bb/100 CI[-2.1196,4.6446]; fixed incident-unaffected Seed1/3 +0.0460 CI[-3.5936,3.6855]. Seed2 repeated 575,831 deterministic deal exposures; original audit failures retained and capped pool-history artifact separately qualified.",
+    "conclusion": "Completed measurement with a preserved training deviation. Direction is mildly favorable across all three but nearly flat in the fixed unaffected subset; no established strength gain or clean three-seed replication. Limited behavioral drift is not poker improvement. Long-horizon learning remains unproven, not mechanistically rejected.",
+    "decision": "RETAIN_FAMILY_UNCERTAIN_NO_AUTOMATIC_8M; COMPLETE_MANAGED_RESUME_AND_COST_QUALIFICATION_THEN_FIXED_SEED1_EXTERNAL_DEVELOPMENT_CALIBRATION",
+    "next_step": "Finish existing managed-resume integration with exact staged production source and fixed-parent GPU ABBA qualification; then preregister a new Seed1 external development calibration without score-based seed selection. Preserve all old weights, raw evidence and failed audit."
+  },
+  "tags": [
+    "geometric-scale",
+    "multi-seed",
+    "no-slumbot",
+    "static-current-kl",
+    "training"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 23,
+    "command_count": 23
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/preregistration.md": {
+      "type": "file",
+      "bytes": 4207,
+      "sha256": "4b7859299b36222563bd285e31872a1556bb0da6a53a41c561350d92321c0f5f"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training.ps1": {
+      "type": "file",
+      "bytes": 7077,
+      "sha256": "84d6e42f8ed4fcf6a12cc09f57dfaf61c038a05d22be59179d64211b4433f7a5"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/code.patch": {
+      "type": "file",
+      "bytes": 292740,
+      "sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 1492,
+      "sha256": "98fa4e367933d123dee2cb1b10e822257eeee49033f7992cde6e4c630bca43c2"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/resume_stage_manifest.json": {
+      "type": "file",
+      "bytes": 7154,
+      "sha256": "3e8747df573864e32f9f83968866517d1ee427f27ab6a18ce21c635b4a63a044"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/preflight_record_audit.json": {
+      "type": "file",
+      "bytes": 222,
+      "sha256": "b14fe70ed688f378a31ab347d8b7102c178b29c2849bada181c2a8a2fa454a6d"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000448_hands000001845280.pt": {
+      "type": "file",
+      "bytes": 310331614,
+      "sha256": "764efe49f9f4f8da317ab59e533551d3002644e074c420e78f7a150a2ee4f50b"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_evaluation.ps1": {
+      "type": "file",
+      "bytes": 4694,
+      "sha256": "65e62837922ac50fe84b61b1a31a3efa66b03302c1c79cb49fbc6d4d26983ced"
+    },
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py": {
+      "type": "file",
+      "bytes": 13522,
+      "sha256": "6bd1170a050da78c815bfaf7318c21478512c3a31db7ddbe1f1d1e976dd0bd49"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000512_hands000002108844.pt": {
+      "type": "file",
+      "bytes": 303115358,
+      "sha256": "845117ae81036d74a2ae495a1e611a59a0ce53ef626d1a5621b00b9c736eb84e"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000576_hands000002372489.pt": {
+      "type": "file",
+      "bytes": 304037854,
+      "sha256": "cbc2a71cac2cba30e47370427b4d169cfe5edca0aee497cd3e3367433018f490"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000640_hands000002636225.pt": {
+      "type": "file",
+      "bytes": 318029918,
+      "sha256": "b59cac96606c50783be6b1eb32123d8c3210ebf482a5d19ec08f92938c5e4d00"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000704_hands000002899785.pt": {
+      "type": "file",
+      "bytes": 305718622,
+      "sha256": "cee020a6420f084d1caf61f953fab8080e968a8b1d9d44ea97329bf88ba8f994"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000768_hands000003163081.pt": {
+      "type": "file",
+      "bytes": 313996254,
+      "sha256": "3a253b857e55e184b39b43629f3ef24d7a1cbb3e77da7ee6fd5e4cef965e21af"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/checkpoints/checkpoint_iter000832_hands000003426499.pt": {
+      "type": "file",
+      "bytes": 310842142,
+      "sha256": "82679bcca7efc2694348ddda38711318c5ea5c8a6699a66921c23f92af1f9056"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/latest.pt": {
+      "type": "file",
+      "bytes": 311051120,
+      "sha256": "7ea4d74d0fcf881c75c4c99bdc0cbe84f82a55001ba277c01aafec6dc5a98f3f"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000448_hands000001845439.pt": {
+      "type": "file",
+      "bytes": 308911774,
+      "sha256": "30149c5a75d94e68ea8839f4cf2d021faba5b225f9ac6dcac1763f3cc401062c"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000512_hands000002109088.pt": {
+      "type": "file",
+      "bytes": 312685470,
+      "sha256": "5d87b78c545cc0826b0f585800ede3e9dd92775abd070878d71057fa02cd08be"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000576_hands000002373189.pt": {
+      "type": "file",
+      "bytes": 313809886,
+      "sha256": "60e9d0255273a54e2fa65b610136e169f2b8e8ff6b6179d57b725107aadf9d96"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000640_hands000002636853.pt": {
+      "type": "file",
+      "bytes": 316071966,
+      "sha256": "fa2bba1a8d7aa072e3cc4e34c1c4460924ae5965fa80e92435830d9b05f5ff18"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000704_hands000002900316.pt": {
+      "type": "file",
+      "bytes": 314940766,
+      "sha256": "9d6cd6f37ac9bfe064b28be6d915d4bbc08c0eafc5eb74e789951e57962c8d7c"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000768_hands000003163932.pt": {
+      "type": "file",
+      "bytes": 313440414,
+      "sha256": "13e64c5f7ba82c84d8c713daa189d6b968ca76f6afa19d2ebb8fa7fb99e476c8"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/recovery_sources/seed2_guard1_iter768_hands3163932_physical3619473.pt": {
+      "type": "file",
+      "bytes": 313415408,
+      "sha256": "466b471fb404b89145e44a12e28c781ffc161f881f5b4cf4c5c3ba16fba9e77a"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/runtime_guard1_recovery.md": {
+      "type": "file",
+      "bytes": 1641,
+      "sha256": "7d8831ee59c9c8b760becd63f13f50f64be0c167bb9c468b9a949e9679841cc1"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_guard1_recovery.ps1": {
+      "type": "file",
+      "bytes": 9041,
+      "sha256": "bfd452c55afcdc282f57ea7944f8cbd7809f5b5a44437d699690d0a51c205492"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/recovery_sources/seed2_recovery1_interrupted_iter776_hands3196923_physical3657838.pt": {
+      "type": "file",
+      "bytes": 301672496,
+      "sha256": "3fd0959095f62f19f2de0541e4bbda24735b6cf288001efa7f0b6f98691dd700"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/recovery2.md": {
+      "type": "file",
+      "bytes": 1503,
+      "sha256": "44bb27be8b1018be2390d3bdf803c09236553346ef46e164556fd29eceb8280c"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_training_recovery2.ps1": {
+      "type": "file",
+      "bytes": 9056,
+      "sha256": "6d86867664d264ced6ee83dbe438fe66636f73235f94e655b74cfbf33e3ec3ad"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed2/checkpoints/checkpoint_iter000832_hands000003427526.pt": {
+      "type": "file",
+      "bytes": 310809118,
+      "sha256": "fc9bde356169e1b3723de78a8cf2ae170ca744ffc2976cb5ac366a706fad9f3b"
+    },
+    "research/experiments/v6-resume-deal-stream-integrity-20260904/observed_overlap.json": {
+      "type": "file",
+      "bytes": 51734,
+      "sha256": "3c96eac76b92bacd479068573df76e7d27fe7e913ff65254c275c77f6cd026a3"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/resume_deviation_amendment.md": {
+      "type": "file",
+      "bytes": 2630,
+      "sha256": "054c1fa030e82aaf75c0cc02708135c3dd244017b56e6030b6cca5a0a090be0a"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_endpoints/seed2_iter890.pt": {
+      "type": "file",
+      "bytes": 300805872,
+      "sha256": "103dcc4790207ca1aacb4bad9c85e3d88f1f0809f597a5e08fcdf1b40753b20e"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/audit_final_seed2_overlap.py": {
+      "type": "file",
+      "bytes": 3104,
+      "sha256": "b531c88d337b3002c97c33c67c0017ba7c6377aa4c5f25b54136843c6f3a42e3"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/final_seed2_overlap.json": {
+      "type": "file",
+      "bytes": 7261,
+      "sha256": "33434981d781c0de7022b492b9362ce84edba435f77255281eb347494cb16559"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/audit_frozen_endpoints.py": {
+      "type": "file",
+      "bytes": 12690,
+      "sha256": "26bf26664966d36f6795cd241197935531d85b2ebf4806a9862eb147be0ed62b"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_seed12_mechanics.json": {
+      "type": "file",
+      "bytes": 22007,
+      "sha256": "bc4707edfb03c338f73b0aa8ce738038ad36a9c648129c21f2855c129b80349d"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_seed12_mechanics_inherited_bridge.json": {
+      "type": "file",
+      "bytes": 26070,
+      "sha256": "1d6cdca97dd2f464d85a4d3875e1081cc4ce0d2abf720e9ebc117a02f1c35bc6"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/evaluation_readiness_notes.md": {
+      "type": "file",
+      "bytes": 3424,
+      "sha256": "d0e663fda0205ee932bce7db7f325a6c2cc1b7b192fc5c7eedb93bc5c8aecae1"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/report_4m_deviation.py": {
+      "type": "file",
+      "bytes": 10221,
+      "sha256": "07ac993bce3ab4d58836b4c2934223d3543c77d8052e29b57ae41a2a416bc854"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_deviation_report.py": {
+      "type": "file",
+      "bytes": 3566,
+      "sha256": "1daa53d16e3dc77381619dc1f114b39648a975ab1d438791648f7eebfcd9fde7"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_guarded_followthrough.py": {
+      "type": "file",
+      "bytes": 16885,
+      "sha256": "f0f3998644320ea086f02896968fa0e75d1c1f00d0bb82528316424b9257f1fb"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_guarded_followthrough.py": {
+      "type": "file",
+      "bytes": 2019,
+      "sha256": "190a4ce9632a40fea223e68da0ab0acf00884912f05379f539491eae92455f09"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/guarded_followthrough_contract.md": {
+      "type": "file",
+      "bytes": 3519,
+      "sha256": "4831e1080ecad679d4d576b8b3cb61260b1c4e0fbedf26524ac1b7bceca4ebe1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v1\\ownership.json": {
+      "type": "file",
+      "bytes": 47995,
+      "sha256": "d7319365c1b7f8a83c7636132d374f1f3dac36c1fe4db0fdfc02bbc5d6352e3d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v1\\original_audit.command.json": {
+      "type": "file",
+      "bytes": 858,
+      "sha256": "a16b19c6fbd232cf4685e6e948dd870aaa764e98375fe4efa4b41635444f400c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\training_audit.json": {
+      "type": "file",
+      "bytes": 26628,
+      "sha256": "11486bcb5582a574b875baf21cf7e672f742bcd5b64426a6aefbe098d00a44f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v1\\status.json": {
+      "type": "file",
+      "bytes": 238,
+      "sha256": "101368b20dd123b797c768f8924d7d6b8db0d70ca0e4cca8bb085542597e7165"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/training_audit.json": {
+      "type": "file",
+      "bytes": 26628,
+      "sha256": "11486bcb5582a574b875baf21cf7e672f742bcd5b64426a6aefbe098d00a44f2"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/guarded_followthrough_v1/status.json": {
+      "type": "file",
+      "bytes": 238,
+      "sha256": "101368b20dd123b797c768f8924d7d6b8db0d70ca0e4cca8bb085542597e7165"
+    },
+    "research/decision_notes/post4m-prior-evidence-20260904.md": {
+      "type": "file",
+      "bytes": 8748,
+      "sha256": "df9b4804c2b18501b2f7bc0a2190cd3c22a01c46a1d39c2a066884bde4c398b2"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/audit_pool_history_windows.py": {
+      "type": "file",
+      "bytes": 11281,
+      "sha256": "1c23b7632fa6cdcec95591884d8092bc274e8609b31d51aa04d7a73442dccf96"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_pool_history_windows.py": {
+      "type": "file",
+      "bytes": 3975,
+      "sha256": "ed4c3f5a0df32dc05591fd11fbb336246a6e381ce17e256c553328fba9f4a766"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_history_window_tests.xml": {
+      "type": "file",
+      "bytes": 2459,
+      "sha256": "49cb56feb1a64903f4cf76123735e2a1cf3d30eebc8778e46803c69650c8da0a"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_history_window_audit.json": {
+      "type": "file",
+      "bytes": 11442,
+      "sha256": "3409300bf825a45aae9559c580a83ce67e732cce64425c2fa41dc326f0770586"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/frozen_allseed_mechanics_inherited_bridge.json": {
+      "type": "file",
+      "bytes": 37685,
+      "sha256": "ae936fc725c84dc0950117063a57e5bc1db36642b6f13cd98f5f0f9925b1bb6a"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/run_pool_qualified_evaluation.py": {
+      "type": "file",
+      "bytes": 11879,
+      "sha256": "3bb2a8825466878d4391ff96df341091f41900f055f55fe7a706aa8ba496402a"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/test_pool_qualified_evaluation.py": {
+      "type": "file",
+      "bytes": 3033,
+      "sha256": "b00f04ac4223aabe5e66e5d6e7bc37e1882d5a854a692b7d104886921d8eede5"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_qualified_followthrough_contract.md": {
+      "type": "file",
+      "bytes": 3048,
+      "sha256": "3a7e9be3200011b937206769855763ba7d684510de0ed565f032a84584f825db"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/pool_qualified_followthrough_tests.xml": {
+      "type": "file",
+      "bytes": 4596,
+      "sha256": "ba261c0eef095cca0197480fa78e4e2f8d1f46b52dc896b9014cedcb4c89c22c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\ownership.json": {
+      "type": "file",
+      "bytes": 102238,
+      "sha256": "e126dfb8866f3ab5f0ef193d3d49ee5540581a1cff2c352c3bd782d8ee25a8fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\eval_seed1.command.json": {
+      "type": "file",
+      "bytes": 956,
+      "sha256": "94ec68ba270fa5d27d5b764d7b47cee276a776b9d336a33bbe9d92a09147459e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\eval_seed1\\summary.json": {
+      "type": "file",
+      "bytes": 11255,
+      "sha256": "91df15354adeaaa5546f64189637b43e86589d8dd97811324098e851edcdd687"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\eval_seed2.command.json": {
+      "type": "file",
+      "bytes": 956,
+      "sha256": "18eabe68e570ea61a6bd91f3b869e2870bd0277489f46ce753d093b2aad8c02e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\eval_seed2\\summary.json": {
+      "type": "file",
+      "bytes": 11222,
+      "sha256": "bdda9021c02a42ac7e85f39e538a1ae7771138d1a0df9162b1ff5aafab140ef4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\eval_seed3.command.json": {
+      "type": "file",
+      "bytes": 956,
+      "sha256": "80603d817fa2815bece5dd84c04d293dfd5e20f9eee45adf28d172e15d25f4d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\eval_seed3\\summary.json": {
+      "type": "file",
+      "bytes": 11244,
+      "sha256": "be8caa58640ddaf06c493a6bbd0c8449c0c75b6528e22d0001c05fad8663c706"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\drift_seed1.command.json": {
+      "type": "file",
+      "bytes": 702,
+      "sha256": "c0481f470f75747fdebba464f820745822b88c671784c3130ba8b18c4d5a4133"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed1\\drift_analysis.json": {
+      "type": "file",
+      "bytes": 4356,
+      "sha256": "1a2b1fb5284d3b1ec24c89670c3e8714dedfbdfbbf34db21c925d11b0705cec8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\drift_seed2.command.json": {
+      "type": "file",
+      "bytes": 702,
+      "sha256": "53383eb2d51ad426c0204d4ce377e68e2e8ece9481616917e1a0bb8cb0765480"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed2\\drift_analysis.json": {
+      "type": "file",
+      "bytes": 4361,
+      "sha256": "2e9e7feecd2cddc1b15ad64cc5869fded3b04b9694051395299954bd9a3ad953"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\drift_seed3.command.json": {
+      "type": "file",
+      "bytes": 702,
+      "sha256": "a1d9c08fed035fb72d7e49cb2eba75a068c8923273d20ce7cf9643d67f6fe1ca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed3\\drift_analysis.json": {
+      "type": "file",
+      "bytes": 4358,
+      "sha256": "ace0de72ce3eadf92324d02a06ec9d4a0a1bbb10b49bf5e7cfefecf55802c534"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\original_aggregate.command.json": {
+      "type": "file",
+      "bytes": 1034,
+      "sha256": "52b351353fa2655c6edd49d51afc9fe743e9f92fe2ced25ce6b4b98c302cc33b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\aggregate.json": {
+      "type": "file",
+      "bytes": 18718,
+      "sha256": "3c7e1ca09448264df7796876d7590e671e77d79bee689a5458506e8f8b769585"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\guarded_followthrough_v2_pool_qualified\\deviation_report.command.json": {
+      "type": "file",
+      "bytes": 653,
+      "sha256": "f8efbf228361d87fd4b2c14ba9e98d5908a3071afd63c061c5c5b56a14cc0f17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\deviation_aware_report.json": {
+      "type": "file",
+      "bytes": 13828,
+      "sha256": "074a9a7ce527906a6dafef25c831b0a02b97ce798b26bcc89936bb178b64913d"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/result_summary.md": {
+      "type": "file",
+      "bytes": 5947,
+      "sha256": "689c921068f2e40072e95bbd6c5887f61a55351980bdba46fd9b8b3b49eb9ebb"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/aggregate.json": {
+      "type": "file",
+      "bytes": 18718,
+      "sha256": "3c7e1ca09448264df7796876d7590e671e77d79bee689a5458506e8f8b769585"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/deviation_aware_report.json": {
+      "type": "file",
+      "bytes": 13828,
+      "sha256": "074a9a7ce527906a6dafef25c831b0a02b97ce798b26bcc89936bb178b64913d"
+    },
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/guarded_followthrough_v2_pool_qualified/status.json": {
+      "type": "file",
+      "bytes": 427,
+      "sha256": "54107eab7ae062c0ef19ac0c0cda1e7d235a42da6ae07d06591b59d4c4399e99"
+    }
+  }
+}

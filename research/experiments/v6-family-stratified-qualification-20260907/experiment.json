@@ -1,0 +1,288 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-family-stratified-qualification-20260907",
+  "title": "Identity-aware family allocation qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-07T22:26:42+00:00",
+  "updated_at": "2026-09-07T22:39:56+00:00",
+  "started_at": "2026-09-07T22:26:42+00:00",
+  "ended_at": "2026-09-07T22:39:56+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A conditional 0.50 original,0.25 added,0.25 recent family mixture can preserve within-family adaptive hardness while isolating distribution allocation from learned-update changes.",
+  "material_change": "Isolated pure snapshot-hash-bound identity normalization, edge tests, then trainer/resume qualification before hands. Default existing sources and prior evidence untouched.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-family-allocation-audit-20260907",
+  "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/test_family_weights.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/test_family_weights.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:26:42+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/test_trainer_hook.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:28:22+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/real_resume_check.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:29:48+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/real_resume_check.py --verify-existing",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:30:39+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/real_resume_check.py --verify-existing --seed 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:31:10+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/real_resume_check.py --verify-existing --seed 3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:31:10+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/test_wrapper.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:33:05+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/run_family_smoke.py --prepare",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:34:13+00:00"
+    },
+    {
+      "command": "python -B -u research/experiments/v6-family-stratified-qualification-20260907/run_family_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:34:25+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 14711519 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\latest.pt --seed 20263001 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\derived\\seed1_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:34:30+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 14710884 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\latest.pt --seed 20263003 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\derived\\seed3_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:36:01+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-stratified-qualification-20260907/post_analysis/review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:39:20+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-family-stratified-qualification-20260907"
+    ],
+    "captured_at": "2026-09-07T22:26:42+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-family-stratified-qualification-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-family-stratified-qualification-20260907/source_manifest.json",
+    "source_manifest_sha256": "4a3748598d0d595397784a4ede2c67b87648b78f50d3f1c2f07a481f6a6bd084",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 794.0,
+    "training_hands": 38909,
+    "transition_hands": 32997,
+    "replay_rows": 56250,
+    "final_qualification_hands": 0
+  },
+  "metrics": {
+    "pure_tests_passed": 5,
+    "trainer_hook_tests_passed": 3,
+    "real_parent_serialization_passed": 2,
+    "wrapper_ast_tests_passed": 1,
+    "smoke_phase": "TRAINING_SEED3",
+    "smoke_complete": true,
+    "terminal_review_passed": true
+  },
+  "artifacts": [
+    "research/experiments/v6-family-stratified-qualification-20260907/code.patch",
+    "research/experiments/v6-family-stratified-qualification-20260907/source_manifest.json",
+    "research/experiments/v6-family-stratified-qualification-20260907/trainer_hook.py",
+    "research/experiments/v6-family-stratified-qualification-20260907/test_trainer_hook.py",
+    "research/experiments/v6-family-stratified-qualification-20260907/real_resume_check.py",
+    "research/experiments/v6-family-stratified-qualification-20260907/real_resume_seed1.json",
+    "research/experiments/v6-family-stratified-qualification-20260907/real_resume_seed3.json",
+    "research/experiments/v6-family-stratified-qualification-20260907/train_candidate.py",
+    "research/experiments/v6-family-stratified-qualification-20260907/test_wrapper.py",
+    "research/experiments/v6-family-stratified-qualification-20260907/run_family_smoke.py",
+    "research/experiments/v6-family-stratified-qualification-20260907/preparation.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\smoke_result_v3.json",
+    "research/experiments/v6-family-stratified-qualification-20260907/post_analysis/review.py",
+    "research/experiments/v6-family-stratified-qualification-20260907/terminal_family_review.json",
+    "research/experiments/v6-family-stratified-qualification-20260907/smoke_result_v3.json"
+  ],
+  "notes": [
+    "Five isolated tests passed: exact family masses and internal ratios, permutation/turnover identity invariance, immutability/idempotence, invalid/zero-support rejection, hash-based fixed identity resolution. This does not qualify trainer hook, checkpoint resume or actual rollout; those remain required before training. Per-slot minimum probability may be changed by group normalization and must be explicitly recorded, not falsely claimed preserved.",
+    "Actual SHA-bound frozen trainer main compiles with precisely two call-site changes: per-iteration hardness update and pool-turnover hardness recomputation now receive active snapshot identities. Reversing these two AST edits exactly restores original main AST. Three hook tests and five pure tests pass. Original source remains byte-identical. Initial resume weights are loaded directly without hardness recomputation, so a separately derived and audited starting weight vector plus bound runtime manifest remain mandatory; no real trainer execution or new hands yet.",
+    "Qualify both retained original expanded roots, not trained descendants; exclusively serialize only sampling-weight changes, verify all other checkpoint fields bitwise, pool loader identity and actual hardness-hook turnover. No worker training authorized by this check.",
+    "First qualification invocation exited1 on duplicate trainer integration during second seed, after exclusive derived serialization; zero training/eval hands. Preserved both derived checkpoints. Repair installs trainer once and requires identical bound fixed IDs across seeds; explicit verify-existing mode reloads and bitwise-compares existing artifacts without overwriting.",
+    "Second verification correctly rejected seed-specific fixed-ID differences. Run each seed in a fresh process with its own source-hash-derived ID binding; no shared hook identity and no overwritten checkpoints. Both failures were qualification-only, zero hands.",
+    "Seed1 real checkpoint serialization and actual loader/hook/turnover passed; only adaptive_opponent_weights changed, all other fields bitwise preserved. Worker rollout/provenance still unqualified.",
+    "Both seeds now passed in distinct processes with source-bound seed-specific IDs. Saved iteration3116 and physical counters14695135/14694500 unchanged; model/Adam/replay/RNG and all nonallocation fields exact. Report includes derived hashes. Qualification remains RUNNING pending production wrapper and real worker first-assignment/evidence verification.",
+    "Isolated production wrapper preserves the exact existing wrapper AST except one installer dispatch; source hash and roundtrip AST test pass. New dispatcher binds parent and family source hashes, installs seed-specific hook, and exclusively writes runtime contract. Existing execution observation, resume checks and process behavior remain in original wrapper. Real worker startup and first assignment are not yet tested.",
+    "Preregister two seed real-worker smokes:16384 extra physical target each, whole-iteration overshoot counted,600s runtime bound, no automatic retry. Reuse qualified smoke controller and all initial-state/Adam/replay/namespace/raw-prefix checks, replacing only child wrapper and adding family runtime binding. Copy original evidence prefixes without changing checkpoint counters. Separate terminal first-assignment and family-mass review required before finish.",
+    "Both exact original-prefix preparations passed. Launching single-owner sequential Seed1/Seed3 worker validation with immutable inputs and automatic accounting; initial allocation fields are the only checkpoint change."
+  ],
+  "result": {
+    "summary": "Family-only allocation qualification complete:9 focused tests, two real derived checkpoint roundtrips, two actual worker smokes38909 physical hands, and independent terminal first-assignment/family-mass review passed.",
+    "conclusion": "Both seed-specific identities replayed first worker assignment exactly from preserved evidence and RNG; all8 completed assignment rows and both final vectors satisfy conditional original/added/recent masses0.50/0.25/0.25. Model/Adam/replay/counter restoration and raw prefixes passed, fresh attempt namespaces distinct, all child exits0. Two earlier preparation checks failed safely on repeated integration and seed-ID mismatch, with derived artifacts retained and then verified in separate processes. This establishes statistical continuation and allocation mechanics, not bitwise worker RNG equivalence, unique-deck coverage or poker strength.",
+    "decision": "Qualified for one matched family-allocation training control; do not promote smoke descendants or claim strength improvement. Preserve unchanged flat capacity9 comparator and all other training settings.",
+    "next_step": "Preregister seeds1/3 flat versus stratified capacity9 from the original qualified expanded roots, not smoke descendants, with262144 then1048576 additional physical hands and fresh fixed adaptation/preservation evaluation; conditional scaling only after broad replicated curve evidence."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-family-stratified-qualification-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 756,
+      "sha256": "4a3748598d0d595397784a4ede2c67b87648b78f50d3f1c2f07a481f6a6bd084"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/trainer_hook.py": {
+      "type": "file",
+      "bytes": 2206,
+      "sha256": "7f1bd35c7a2d78659b6b6d59f841d5fdf2cdc8ad33fdb08bea817f0be00acc5d"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/test_trainer_hook.py": {
+      "type": "file",
+      "bytes": 2019,
+      "sha256": "804e8a862089777ef4aa202784b50343336eec12e39e873c59994beefc1daefb"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/real_resume_check.py": {
+      "type": "file",
+      "bytes": 5716,
+      "sha256": "09310b6a9ee7305b3efd357eab7f344a1b6ccef912966c43bae309d3a5d435c4"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/real_resume_seed1.json": {
+      "type": "file",
+      "bytes": 3288,
+      "sha256": "048b31b8adb2cf4cd4cda33cf858797dbed579dc8b4f91e214748d0492504098"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/real_resume_seed3.json": {
+      "type": "file",
+      "bytes": 3288,
+      "sha256": "ad5a0490f3c984054951efbc50bf454ac652d7b7e6bec9a8c3f24cc244fa10f5"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/train_candidate.py": {
+      "type": "file",
+      "bytes": 3423,
+      "sha256": "816234710e896e606ad9f8f0b7fb5b81373f2eaf1ec8cbe6674cff18c9fbbd60"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/test_wrapper.py": {
+      "type": "file",
+      "bytes": 1105,
+      "sha256": "57e443d844fc696650d2cd147d91a408ecb2f9594d39036ced699f143b0950d7"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/run_family_smoke.py": {
+      "type": "file",
+      "bytes": 3354,
+      "sha256": "7c0b67d1df5cd98eff9724e80589dc4448d3c94557293a650712f523038543db"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/preparation.json": {
+      "type": "file",
+      "bytes": 7488,
+      "sha256": "79a29f00362bfd632419eca817a0b1554f8794e28821e08b7bee04dc09b83262"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\command.json": {
+      "type": "file",
+      "bytes": 3555,
+      "sha256": "67bb60b1746de3de5c23af10ca1918184d1f1fb0b203a0139be970ad673cf3d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\verification.json": {
+      "type": "file",
+      "bytes": 89270,
+      "sha256": "b05a1e1a3971183f8ebd7ce9d3f014ccc8cedabc76d60217fbf1eda373bc3b58"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed1_smoke_v3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 951,
+      "sha256": "2277c40a98b19108267d0597915a4cd5699278f3fc3511eb59e28f7b847e8e54"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\command.json": {
+      "type": "file",
+      "bytes": 3555,
+      "sha256": "bd7a2b84d47ae109429751db7c5ee70f6c35e52d95f5780e937d37a6f349a36b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\verification.json": {
+      "type": "file",
+      "bytes": 88344,
+      "sha256": "9ceca0bd0922228f6070ebeef44ea911e0c4ec447fa11ed7f710e781b831e971"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\seed3_smoke_v3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 951,
+      "sha256": "25009a281ae34f5d7551895536268b1898dcd4f9fe296e09c1c98da10691725b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\smoke_result_v3.json": {
+      "type": "file",
+      "bytes": 199871,
+      "sha256": "251836ce6cafb75281eec1a466d6c45b6256513fb5c5410b6e89ca523b0a84b0"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/post_analysis/review.py": {
+      "type": "file",
+      "bytes": 7089,
+      "sha256": "05e6d93843d81e3c1d3e15ca4942a328d066155d23bb7b47d65342815d329ca0"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/terminal_family_review.json": {
+      "type": "file",
+      "bytes": 15422,
+      "sha256": "c6387068d13b075b0ef8dd51fd5cf2418faf0069ee5133a2ecfb3394c7a1a687"
+    },
+    "research/experiments/v6-family-stratified-qualification-20260907/smoke_result_v3.json": {
+      "type": "file",
+      "bytes": 199871,
+      "sha256": "251836ce6cafb75281eec1a466d6c45b6256513fb5c5410b6e89ca523b0a84b0"
+    }
+  }
+}

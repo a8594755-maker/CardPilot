@@ -1,0 +1,133 @@
+{
+  "by_stratum": {
+    "seat0_street0": {
+      "mean_support": 1149.25,
+      "median_support": 1154.0,
+      "min_support": 1070,
+      "rows": 8
+    },
+    "seat0_street1": {
+      "mean_support": 902.375,
+      "median_support": 956.0,
+      "min_support": 615,
+      "rows": 8
+    },
+    "seat0_street2": {
+      "mean_support": 401.375,
+      "median_support": 356.5,
+      "min_support": 149,
+      "rows": 8
+    },
+    "seat0_street3": {
+      "mean_support": 394.25,
+      "median_support": 355.0,
+      "min_support": 213,
+      "rows": 8
+    },
+    "seat1_street0": {
+      "mean_support": 960.375,
+      "median_support": 1194.5,
+      "min_support": 433,
+      "rows": 8
+    },
+    "seat1_street1": {
+      "mean_support": 818.5,
+      "median_support": 1015.0,
+      "min_support": 204,
+      "rows": 8
+    },
+    "seat1_street2": {
+      "mean_support": 661.875,
+      "median_support": 698.0,
+      "min_support": 329,
+      "rows": 8
+    },
+    "seat1_street3": {
+      "mean_support": 578.125,
+      "median_support": 594.5,
+      "min_support": 253,
+      "rows": 8
+    }
+  },
+  "candidate": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+  "candidate_observation_style": "legacy_v4",
+  "candidate_sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_history_consistent_hole_posterior.py",
+    "--candidate",
+    "models/baseline/standard10/latest.pt",
+    "--candidate-observation-style",
+    "legacy_v4",
+    "--opponent",
+    "standard10=models/baseline/standard10/latest.pt",
+    "--opponent",
+    "freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt",
+    "--opponent",
+    "raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt",
+    "--opponent",
+    "procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt",
+    "--opponent-style",
+    "standard10=legacy_v4",
+    "--opponent-style",
+    "freshzero=legacy_v4",
+    "--opponent-style",
+    "raw_actor=v6",
+    "--opponent-style",
+    "procedural_soup=v6",
+    "--quota-per-stratum",
+    "8",
+    "--trajectory-seed",
+    "2026133001",
+    "--max-trajectory-hands",
+    "5000",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data"
+  ],
+  "completed_at": "2026-09-01T14:34:47.555088+00:00",
+  "gate_components": {
+    "all_public_financial_replays_exact": true,
+    "at_least_95pct_rows_support16": true,
+    "every_stratum_median_support_at_least32": true,
+    "overall_median_support_at_least64": true,
+    "true_holes_present_every_row": true
+  },
+  "opponents": {
+    "freshzero": {
+      "observation_style": "legacy_v4",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-fresh-zero-elo-smoke-20260901\\frozen\\final.pt",
+      "sha256": "00c6441cb9fc584a4ec76f97bdf1bcae1e03cdfb7e2d32432c9984a5bf9b4d67"
+    },
+    "procedural_soup": {
+      "observation_style": "v6",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901\\frozen\\final.pt",
+      "sha256": "66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c"
+    },
+    "raw_actor": {
+      "observation_style": "v6",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh20k-slumbot-20260901\\frozen\\final.pt",
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "standard10": {
+      "observation_style": "legacy_v4",
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    }
+  },
+  "overall_mean_support": 733.265625,
+  "overall_median_support": 772.0,
+  "overall_min_support": 149,
+  "posterior_target_generation_admitted": true,
+  "quota_per_stratum": 8,
+  "rows": 64,
+  "rows_sha256": "1ccf2568114055640e2115322f174fb5ab3d6bf0476baaaa3a91cf0e40f1708b",
+  "rows_with_support_at_least16": 64,
+  "schema": "cardpilot.v6_history_consistent_hole_posterior.v1",
+  "status": "COMPLETED",
+  "total_history_checks": 176925,
+  "total_hole_candidates": 69296,
+  "trajectory_decisions": 621,
+  "trajectory_hands": 112
+}

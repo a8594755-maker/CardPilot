@@ -1,0 +1,141 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-public-objective-gradient-feasibility-20260903",
+  "title": "Frozen nine-objective public-opponent gradient feasibility at retained 1M",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T13:54:14+00:00",
+  "updated_at": "2026-09-03T14:03:22+00:00",
+  "started_at": "2026-09-03T13:54:14+00:00",
+  "ended_at": "2026-09-03T14:03:22+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Although a naive 25%-external public-opponent mixture explicitly harmed all four anchors, a normalized minimum-norm direction over public-opponent reward, six existing anchor-seat reward objectives, the second public seat, and Standard10 forward-KL may still provide replicated common descent at both retained 1M lineages. This audit distinguishes objective incompatibility from insufficient training scale; it is not a poker-strength test.",
+  "material_change": "Add a frozen non-mutating four-opponent-by-two-seat plus Standard10-KL gradient audit. Use 1,024 deterministic sampled hands per opponent-seat group, both independent 1M checkpoints, four modulo folds, exact raw-hand replay, and no weight updates. Admit a bounded multi-objective update only if both full-lineage worst normalized alignments are at least +0.05 with valid KKT and at least 3/4 folds per lineage have strictly positive common descent.",
+  "baseline": "Prior six-anchor-seat plus Standard10-KL geometry admitted common descent, but its update had inconclusive breadth translation; naive 25% public-opponent training lost -9.9883 bb/100 versus control across all four anchors. Seed1 retained 1M is externally inconclusive at -21.7592 bb/100 fresh20k while seed1 2M is confidently negative.",
+  "source": "Frozen seed1/seed2 1M integrated checkpoints, three fixed anchor checkpoints, frozen public Slumbot behavior model, and Standard10 source checkpoint.",
+  "parent_id": "v6-integrated-1m-2m-slumbot-state-drift-20260903",
+  "command": "python -u scripts/alpha_holdem/audit_v6_integrated_public_objective_conflict.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --opponent standard10=models/baseline/standard10/latest.pt --opponent legacy_anchor=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent cfr4=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --public-opponent research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --source models/baseline/standard10/latest.pt --hands-per-group 1024 --folds 4 --seed 20262230 --device cuda --out-dir research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/audit_v6_integrated_public_objective_conflict.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --opponent standard10=models/baseline/standard10/latest.pt --opponent legacy_anchor=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent cfr4=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --public-opponent research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --source models/baseline/standard10/latest.pt --hands-per-group 1024 --folds 4 --seed 20262230 --device cuda --out-dir research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T13:54:14+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:03:22+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "9239f39aa2d24713f8370591e4ce5877c99570410939932868bd97c7958ae2c7",
+    "code_paths": [
+      "scripts/alpha_holdem/audit_v6_integrated_public_objective_conflict.py"
+    ],
+    "captured_at": "2026-09-03T13:54:15+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/source_manifest.json",
+    "source_manifest_sha256": "5ce8c28df63872df4cdc9ea9aa6503edfc5c92d109d22f261f027145d0ed6473",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 548.0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "planned_frozen_internal_hands": 16384,
+    "frozen_internal_hands": 16384,
+    "reconstructed_decisions": 39405
+  },
+  "metrics": {
+    "seed1_full_worst_alignment": 0.177139539833871,
+    "seed2_full_worst_alignment": 0.22619176335237,
+    "seed1_positive_folds": 4,
+    "seed2_positive_folds": 4,
+    "seed1_public_vs_source_kl_cosine": -0.512487365411277,
+    "seed2_public_vs_source_kl_cosine": -0.281582183771313
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/code.patch",
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/source_manifest.json",
+    "scripts/alpha_holdem/audit_v6_integrated_public_objective_conflict.py",
+    "scripts/alpha_holdem/test_audit_v6_integrated_public_objective_conflict.py",
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run/summary.json",
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run/frozen_training_hands.jsonl.gz",
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run/gradient_geometry.npz"
+  ],
+  "notes": [
+    "Preregistered scale interpretation: failure of this geometry gate rejects this particular public-objective intervention at retained 1M, not long-horizon self-play or opponent-league learning. Success admits only a bounded matched multi-seed intervention before geometric scaling.",
+    "Exact full alpha_holdem suite passed 327/327. The public reward aggregate conflicts with Standard10 source KL in both lineages, while the deployed decision-weighted reward plus coefficient-one KL direction harms 3/9 seed1 objectives and 2/9 seed2 objectives. The normalized nine-objective minimum-norm direction remains strictly positive in every fold."
+  ],
+  "result": {
+    "summary": "Frozen four-opponent-by-two-seat plus Standard10-KL audit completed on both independent retained 1M lineages: 16,384 deterministic internal hands and 39,405 hero decisions. Full-cohort worst normalized common-descent alignments were +0.17714 seed1 and +0.22619 seed2; all four folds in both lineages were strictly positive. Every raw-hand, legal-action, matched-deck, checkpoint, source, opponent, and artifact-integrity gate passed.",
+    "conclusion": "The naive 25%-public mixture remains rejected, but the public reward signal itself is not geometrically incompatible with broad learned-policy improvement. Its full-cohort gradient conflicts with Standard10 preservation in both lineages (cosines -0.5125 and -0.2816), explaining why coefficient summation can drift; normalized nine-objective MGDA resolves that conflict with comfortable replicated margins. This is mechanism evidence only, not external-strength evidence, and does not justify large-scale training without a bounded translation check.",
+    "decision": "ADMIT_BOUNDED_PUBLIC_OBJECTIVE_MULTI_OBJECTIVE_UPDATE",
+    "next_step": "Implement the smallest matched, multi-seed offline update using these exact frozen cohorts: compare the existing seven-objective direction against the nine-objective direction at matched parameter KL/dose, then evaluate untouched three-anchor/two-seat breadth plus public-opponent performance and Standard10 policy preservation. Scale only if translation is broad and replicated; otherwise preserve the retained 1M control and pivot to a different long-horizon learning mechanism."
+  },
+  "tags": [
+    "gradient-conflict",
+    "mechanism-audit",
+    "public-opponent",
+    "scale-aware"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 315,
+      "sha256": "5ce8c28df63872df4cdc9ea9aa6503edfc5c92d109d22f261f027145d0ed6473"
+    },
+    "scripts/alpha_holdem/audit_v6_integrated_public_objective_conflict.py": {
+      "type": "file",
+      "bytes": 18267,
+      "sha256": "28d4cf5494947da0dc99177304ab57fa0a2187de7af083b70459c1d3ab546252"
+    },
+    "scripts/alpha_holdem/test_audit_v6_integrated_public_objective_conflict.py": {
+      "type": "file",
+      "bytes": 1790,
+      "sha256": "4d89e93dea4bf15d85ffd2762134b5c563c6677ec9a1349bd7be0832e5b21026"
+    },
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run/summary.json": {
+      "type": "file",
+      "bytes": 45220,
+      "sha256": "7b7083a6a4cdec1def0edffc0136cb4173b08c09c7609a0e55290e81a1f08838"
+    },
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run/frozen_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 1581995,
+      "sha256": "11f85a5e06cbf9f6b3ac18dbf7b7c3a80fb3e94d86896d4cc43e264339841f97"
+    },
+    "research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run/gradient_geometry.npz": {
+      "type": "file",
+      "bytes": 705568,
+      "sha256": "c4fd451ce0a57dcdb5de88a28850361edd0f645e095a208510c63b2c97e6fa19"
+    }
+  }
+}

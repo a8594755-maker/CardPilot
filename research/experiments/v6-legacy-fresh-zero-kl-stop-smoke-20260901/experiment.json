@@ -1,0 +1,224 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-fresh-zero-kl-stop-smoke-20260901",
+  "title": "Matched fresh-zero PPO KL-stop smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T13:07:26+00:00",
+  "updated_at": "2026-09-01T13:16:21+00:00",
+  "started_at": "2026-09-01T13:07:26+00:00",
+  "ended_at": "2026-09-01T13:16:21+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Stopping PPO after the first epoch whose mean KL exceeds .01 will preserve fresh-zero self-play learning while preventing the high-LR tail-risk transfer collapse observed under four unconditional epochs.",
+  "material_change": "Repeat the audited 32768-physical-hand fresh-zero exact-v6 ELO smoke with identical initialization/config/seeds, changing only ppo-target-kl from0 to.01.",
+  "baseline": "v6-legacy-fresh-zero-elo-smoke-20260901",
+  "source": "deterministic random initialization; expected initial model-state sha afcf8f7406cf4159e76f6c21ca5e83d7d59665559e7eb2a0a3937750e3cb1665",
+  "parent_id": "v6-legacy-fresh-zero-elo-smoke-20260901",
+  "command": "python -m pytest scripts/alpha_holdem -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:07:26+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 32768 --starting-stack 200 --env-version v6legacyv4obs --norm-layer bn --lr .0003 --ppo-epochs 4 --ppo-target-kl .01 --mini-batch-size 1024 --pool-strategy elo-kbest --k-best 3 --elo-seed-initial-policy --elo-tournament-pairs 64 --elo-k-factor 32 --elo-tournament-seed 2026120101 --elo-tournament-provenance-file research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/elo_tournaments.jsonl --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120100 --fixed-training-deal-stream --critic-contract critic_v1 --value-coef .5 --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 2 --run-id v6_legacy_fresh_zero_kl_stop_smoke_20260901 --run-dir research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training --out research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/latest.pt --seed 20261201 --max-runtime-seconds 1800 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:07:58+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_elo_session.py --run-dir research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training --expected-target-hands 32768 --expected-target-environment-hands 32768 --expected-final-iteration 8 --expected-initial-pool-size 1 --expected-final-pool-size 3 --expected-snapshot-every 2 --expected-tournament-pairs 64 --out research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:11:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt --anchor research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/init.pt --pairs 4096 --seed 20261202 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/eval/final_vs_init",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:11:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt --anchor models/baseline/standard10/latest.pt --pairs 4096 --seed 20261203 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/eval/final_vs_standard10",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:11:12+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/analyze_results.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:16:21+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "3dcdd5dc506d9921bd18f07c7f612c1a196596ba6f18dd04d42431ad2f698081",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/policy_contract_v6.py",
+      "scripts/alpha_holdem/v6_elo_eval.py",
+      "scripts/alpha_holdem/v6_contract_mirror_eval.py",
+      "scripts/alpha_holdem/audit_train_v5_elo_session.py",
+      "scripts/alpha_holdem/test_train_v5_elo_pool.py",
+      "scripts/alpha_holdem/test_v6_elo_eval.py",
+      "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/preregistration.md"
+    ],
+    "captured_at": "2026-09-01T13:07:26+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/code.patch",
+    "patch_sha256": "37832cde276b5b187b975c78a40fd99afd37977340e38da48ef79ad8b4a03273",
+    "source_manifest": "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "adaa2a34f534a97a0b17d3d17e2a59c7f0f1760d0592886b3c6b14f2c6c50111",
+    "source_files": 8
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 34154,
+    "lineage_training_hands": 34154,
+    "offline_samples": 0,
+    "evaluation_hands": 18432,
+    "wall_time_seconds": 535.0
+  },
+  "metrics": {
+    "implementation_gate_pass": 1,
+    "alpha_holdem_tests_passed": 189,
+    "session_audit_pass": 1,
+    "initial_model_state_match": 1,
+    "max_approx_kl": 1.3378179990328276,
+    "max_clip_fraction": 0.8518585791954628,
+    "kl_stop_trigger_count": 8,
+    "scale_gate_passed": 0,
+    "final_vs_init_bb100": 4780.239013671875,
+    "final_vs_init_ci95_lower": 4689.526091446628,
+    "final_vs_standard10_bb100": 160.3897705078125,
+    "paired_final_minus_init_standard10_bb100": 103.69494628906246,
+    "paired_init_delta_ci95_lower": -60.330057161178274,
+    "paired_treatment_minus_control_bb100": 264.907958984375,
+    "paired_treatment_control_ci95_lower": 85.51046978122623
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/preregistration.md",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/code.patch",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/session_audit.json",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/init.pt",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/latest.pt",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/run_manifest.json",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/h1_training_metrics.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/opponent_assignments.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/elo_tournaments.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/eval/final_vs_init",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/eval/final_vs_standard10",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/analyze_results.py",
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/analysis.json"
+  ],
+  "notes": [
+    "Full regression gate passed 189/189. Matched KL-stop treatment authorized.",
+    "Terminal ELO/session audit PASS at 34,154 physical hands. Treatment init model state exactly matches control expected SHA; shared init-vs-Standard10 raw evidence is admissible.",
+    "Shared init-vs-Standard10 evidence was reused only after bit-exact model-state verification. Post-analysis full regression remained189/189 passed. No Slumbot hands."
+  ],
+  "result": {
+    "summary": "Completed the matched 34,154-physical-hand fresh-zero KL-stop treatment with audited exact-v6 ELO and 18,432 new evaluation hands; transfer improved significantly versus the no-stop control but the preregistered update-size gate failed.",
+    "conclusion": "Epoch-boundary KL stopping changed transfer in the desired direction: treatment minus control final versus Standard10 was +264.91 bb/100, CI95 [+85.51,+444.31], while final still dominated init. However every update triggered stopping and a single epoch reached KL1.338/clip0.852, worse than control maxima, so epoch stopping cannot enforce a trust region at LR3e-4. The shared-init transfer point was +103.69 but remained uncertain.",
+    "decision": "REJECT_EPOCH_BOUNDARY_KL_STOP_SCALE",
+    "next_step": "Run one matched fresh-zero exact-v6 ELO smoke retaining target-KL.01 and all identical seeds/config, changing only LR from3e-4 to1e-4. Require at least50% lower max KL and clip than this treatment, positive final-vs-init LCB, and nonnegative paired Standard10 transfer before any larger continuation."
+  },
+  "tags": [
+    "fresh-zero",
+    "learned-weights",
+    "selfplay",
+    "trust-region",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 3896,
+      "sha256": "44d9e8ac488cfb16c82e423405087f5b47f6d930ae8c86669195f8fa61549fd9"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 265624,
+      "sha256": "37832cde276b5b187b975c78a40fd99afd37977340e38da48ef79ad8b4a03273"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 1568,
+      "sha256": "adaa2a34f534a97a0b17d3d17e2a59c7f0f1760d0592886b3c6b14f2c6c50111"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/session_audit.json": {
+      "type": "file",
+      "bytes": 3837,
+      "sha256": "da216ea1b96f49bc86409b9b5b748d7c9800808f76557c618c2ab3c1e2739126"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/init.pt": {
+      "type": "file",
+      "bytes": 65363378,
+      "sha256": "0dce2a0186376e8c6a736b70025f938ede175364c12fff1ebc03651c4faf1159"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt": {
+      "type": "file",
+      "bytes": 196064454,
+      "sha256": "55cdfa9e2976769445dd368bc804c22725f5be1fe790e2b31750682bf4ab11ac"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/latest.pt": {
+      "type": "file",
+      "bytes": 196064454,
+      "sha256": "55cdfa9e2976769445dd368bc804c22725f5be1fe790e2b31750682bf4ab11ac"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/run_manifest.json": {
+      "type": "file",
+      "bytes": 183980,
+      "sha256": "d18f1fefd814d7de32356bb95adca32a94c135e6591d0622bdf20728c3a65eab"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 222017,
+      "sha256": "7bed4b7e713d7f231a72a8f5cd8c2be73ab849a158c23dee476fdf6dab745421"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 19349,
+      "sha256": "87512f014df29c4378997ba4c6224f343274b5185c9bf6f68a765bb5a4dcdadd"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/training/elo_tournaments.jsonl": {
+      "type": "file",
+      "bytes": 12229,
+      "sha256": "1c642623a9c2de8dae43338b42411fb3cfe30a191292216604fbf2fc5e602379"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/eval/final_vs_init": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/eval/final_vs_standard10": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/analyze_results.py": {
+      "type": "file",
+      "bytes": 6872,
+      "sha256": "7cc74f03285b4e2828789b75bfe013d5ea3580dec2b5a6466ab407e3feb70f8d"
+    },
+    "research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1873,
+      "sha256": "cb4d03ea162ee4db657b7542f95494c0830ca5868583e9a2965f3468305e16e4"
+    }
+  }
+}

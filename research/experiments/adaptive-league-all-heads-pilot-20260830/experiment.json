@@ -1,0 +1,324 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "adaptive-league-all-heads-pilot-20260830",
+  "title": "Adaptive league all-policy-heads pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T04:40:46+00:00",
+  "updated_at": "2026-08-30T05:36:48+00:00",
+  "started_at": "2026-08-30T04:40:46+00:00",
+  "ended_at": "2026-08-30T05:36:48+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "All-street league PPO on the dedicated preflop and postflop policy heads, under exact-source KL with a frozen shared representation, will address the preflop axis left untouched by postflop-only pilots while avoiding full-trunk representation drift.",
+  "material_change": "Add --all-policy-heads-only-training; resume Standard10; train policy_head, preflop_policy_head and value_head only; all-street PPO; source KL 1; target KL 0.01; advantage clip 3; lr 3e-5; same adaptive three-opponent league and 25% self-play.",
+  "baseline": "Postflop-head predecessor completed 263464 hands and later checkpoints had positive point estimates against all three internal anchors, but iter48 confirmation lower bounds remained negative vs Standard10 and CFR96; no Slumbot promotion.",
+  "source": "models/baseline/standard10/latest.pt SHA256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "parent_id": "adaptive-league-policy-head-pilot-20260830",
+  "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 256 --total-hands 256 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id adaptive_league_all_heads_smoke_20260830 --run-dir research/experiments/adaptive-league-all-heads-pilot-20260830/smoke --out research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/latest.pt --seed 20260851 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 256 --total-hands 256 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id adaptive_league_all_heads_smoke_20260830 --run-dir research/experiments/adaptive-league-all-heads-pilot-20260830/smoke --out research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/latest.pt --seed 20260851 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T04:40:46+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/adaptive-league-all-heads-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id adaptive_league_all_heads_262k_20260830 --run-dir research/experiments/adaptive-league-all-heads-pilot-20260830/production --out research/experiments/adaptive-league-all-heads-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T04:42:06+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065930.pt --candidate-label all_heads_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --out-md research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.md --execution-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T05:36:48+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131842.pt --candidate-label all_heads_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --out-md research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.md --execution-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T05:36:48+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197748.pt --candidate-label all_heads_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --out-md research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.md --execution-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T05:36:48+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt --candidate-label all_heads_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --out-md research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.md --execution-json research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T05:36:48+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131842.pt --candidate-label all_heads_iter32_confirmation --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 2048 --starting-stack 200 --include-pair-outcomes --seed 20260854 --device cuda --priority below-normal --out-json research/experiments/adaptive-league-all-heads-pilot-20260830/confirmation/iter32_seed20260854.json --out-md research/experiments/adaptive-league-all-heads-pilot-20260830/confirmation/iter32_seed20260854.md --execution-json research/experiments/adaptive-league-all-heads-pilot-20260830/confirmation/iter32_seed20260854_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T05:36:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8bd5a35bfa7f18bfa5d37d05dc6acd761f6d8614695d2b4601e7e8b33686a972",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/network_hybrid_h1.py",
+      "scripts/alpha_holdem/environment.py"
+    ],
+    "captured_at": "2026-08-30T04:40:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/adaptive-league-all-heads-pilot-20260830/code.patch",
+    "patch_sha256": "bfb94461f20c7d04fe96aa1175ca575347d5a315211b9d0ab6f67d964713d0b6",
+    "source_manifest": "research/experiments/adaptive-league-all-heads-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "af97e32e8c9a9cef89c7b2d29c02051eae3203665dc4a429a596c3db006aadbe",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 263864,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 36864,
+    "wall_time_seconds": 3362.0,
+    "source_lineage_hands": 10283876,
+    "smoke_environment_hands": 262,
+    "production_environment_hands": 263602
+  },
+  "metrics": {
+    "smoke_reference_policy_kl": 1.53953908466065e-06,
+    "smoke_approx_kl": 4.51656960649416e-05,
+    "smoke_clip_fraction": 0,
+    "smoke_advantage_clip_fraction": 0.0158898308873177,
+    "smoke_entropy": 0.50840151309967,
+    "smoke_postflop_head_tensors_changed": 2,
+    "smoke_preflop_head_tensors_changed": 2,
+    "smoke_value_tensors_changed": 6,
+    "smoke_frozen_tensors_changed": 0,
+    "smoke_assignment_chain_valid": 1,
+    "iter16_reference_policy_kl": 0.000691486021073965,
+    "iter16_approx_kl": 0.000262872548773885,
+    "iter16_clip_fraction": 0,
+    "iter16_advantage_clip_fraction": 0.0251103341579437,
+    "iter16_entropy": 0.514277018033541,
+    "iter32_reference_policy_kl": 0.00129579795667758,
+    "iter32_approx_kl": 4.68280363398103e-05,
+    "iter32_clip_fraction": 0,
+    "iter32_advantage_clip_fraction": 0.0245815124362707,
+    "iter32_entropy": 0.502120421482967,
+    "iter48_reference_policy_kl": 0.000374273762905172,
+    "iter48_approx_kl": 5.55559610282736e-05,
+    "iter48_clip_fraction": 0,
+    "iter48_advantage_clip_fraction": 0.0266589801758528,
+    "iter48_entropy": 0.502181359699794,
+    "production_iterations": 64,
+    "production_max_reference_policy_kl": 0.00172162901323575,
+    "production_mean_reference_policy_kl": 0.000823247573817676,
+    "production_max_clip_fraction": 8.13802083333333e-05,
+    "production_kl_stops": 0,
+    "production_mean_hands_per_second": 116.963425342382,
+    "production_final_reward_window_100": 0.237234800328031,
+    "production_postflop_head_tensors_changed": 2,
+    "production_preflop_head_tensors_changed": 2,
+    "production_value_tensors_changed": 6,
+    "production_frozen_tensors_changed": 0,
+    "assignment_provenance_chain_valid": 1,
+    "curve_iter16_mean_bb100": 7.13,
+    "curve_iter16_min_lower": -17.66,
+    "curve_iter32_mean_bb100": 10.9765625,
+    "curve_iter32_min_lower": -12.11,
+    "curve_iter48_mean_bb100": 7.39778645833333,
+    "curve_iter48_min_lower": -17.27,
+    "curve_iter64_mean_bb100": 7.37369791666667,
+    "curve_iter64_min_lower": -16.2,
+    "confirmation_standard10_bb100": 0.0732421875,
+    "confirmation_standard10_lower95": -0.9,
+    "confirmation_slumbot_free_bb100": 26.4404296875,
+    "confirmation_slumbot_free_lower95": 12.69,
+    "confirmation_cfr96_bb100": 2.42919921875,
+    "confirmation_cfr96_lower95": -14.5
+  },
+  "artifacts": [
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/code.patch",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/source_manifest.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/latest.pt",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065930.pt",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131842.pt",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197748.pt",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/latest.pt",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/run_manifest.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/confirmation/iter32_seed20260854.json",
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/confirmation/iter32_seed20260854_execution.json"
+  ],
+  "notes": [
+    "Preregistered smoke gate: exact source load; shared trunk bitwise unchanged; both policy heads and value head changed; finite all-street KL/entropy/action mix; no KL stop/collapse; assignment provenance valid.",
+    "Smoke gate PASS: both policy heads and value head changed, all 76 non-head model tensors remained bitwise unchanged, assignment SHA chain valid, and all-street PPO metrics were finite without clip/KL stop.",
+    "Smoke passed all tensor-scope and trust-region gates; launch fixed 262144-hand production from original Standard10, not from smoke.",
+    "Production iter16 archive retained. All-street policy-head training remains within trust region with healthy preflop/postflop action distributions.",
+    "Production iter32 halfway archive retained; all-street heads remain trust-region stable with no action collapse or intervention.",
+    "Production iter48 archive retained; both-head all-street update remains source-close with healthy action distributions.",
+    "Production completed normally: both policy heads and value head changed, all 76 shared/frozen tensors remained bitwise unchanged, 64-record assignment SHA chain valid, and no KL stops/action collapse occurred."
+  ],
+  "result": {
+    "summary": "All-policy-heads all-street league training completed 263602 production hands with exact frozen-trunk scope and stable trust-region metrics. Iter32 maximized direction-consistent three-anchor discovery mean, but untouched confirmation lower bounds remained negative versus Standard10 and corrected CFR96; no Slumbot run was launched.",
+    "conclusion": "Training both dedicated policy heads broadened changed decisions and strongly beat the Slumbot-free anchor, but head-only capacity did not establish robust improvement over the source Standard10 or CFR96. The evidence does not support scaling this head-only lineage further.",
+    "decision": "REJECT_ROBUST_INTERNAL_GATE_NO_SLUMBOT",
+    "next_step": "Test genuine full-network all-street representation learning at one-tenth the head-only learning rate with stronger source KL and tighter target KL; smoke-test trust-region and preflop behavior before a bounded pilot."
+  },
+  "tags": [
+    "adaptive-league",
+    "all-policy-heads",
+    "all-streets",
+    "trust-region"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 7,
+    "command_count": 7
+  },
+  "artifact_integrity": {
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 151382,
+      "sha256": "bfb94461f20c7d04fe96aa1175ca575347d5a315211b9d0ab6f67d964713d0b6"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 807,
+      "sha256": "af97e32e8c9a9cef89c7b2d29c02051eae3203665dc4a429a596c3db006aadbe"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 133299188,
+      "sha256": "3d2b93a374f7edc2694c5db923b7811019b58d4747420fb7a12dcbb5810f648a"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 50793,
+      "sha256": "8226d0ab1065c8db88e4667a20e6a44d7f87f1537965192d64318dc0dd90854b"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 21124,
+      "sha256": "5f41f01036ee529b52d56c3c57214edc74a413a19f67bd37fc003b63e3e60e98"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2443,
+      "sha256": "f01698c7c215cb61ee56215d74f1852ddd9dba1b279534fc47c8680552badae7"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065930.pt": {
+      "type": "file",
+      "bytes": 133318326,
+      "sha256": "eaaec254773c33d3beeff4ff32ecfaaaf2215be0981d68cac34d8770e820f363"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131842.pt": {
+      "type": "file",
+      "bytes": 133318326,
+      "sha256": "85d62217b722ad214c5175afdd58b8b9ac7ca32fcdeb7e5b03ffb9af4aa19f0e"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197748.pt": {
+      "type": "file",
+      "bytes": 133318326,
+      "sha256": "b0ba20c5becc6e5618491b056d58f15108f9c4352be7a5758e8d4d3291c8d7e8"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 133299188,
+      "sha256": "acc895cceea18ccf734de01bef76a17f21618f8dfb74b4ac5d4db75b628929f0"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt": {
+      "type": "file",
+      "bytes": 133318326,
+      "sha256": "27a8345b63ddf987df541b754637a13c803fcbfe53b08fc70b2db1f56c97932c"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 53119,
+      "sha256": "ad92ae2a2a6edc80868ce0f69b919cd0f2c1fe3b71fea0d57a0ce904c1c53b6d"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1498726,
+      "sha256": "81ef4c15f10f5396dad851be3e7b5cd2295f142c1baea26c83f99e25d7cdfa3f"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 161294,
+      "sha256": "3bee5464c0f85eb0a518c58519476fb3e74fbf12b35f00c02ab6f822d46100aa"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 173155,
+      "sha256": "eed53417249e122a579d20fba6dbb8d6e87581228eeb02cc4e61723747979582"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1849,
+      "sha256": "e086b1f20e2a8b48970aa6fbc0c1ab9ce9843cfb47d1d34b2ebba71f32a35084"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 172901,
+      "sha256": "383d1f84cc66fa441ba5b1cd9d89c58e4561f7975b6feac0d9b4a3c9add4488b"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1838,
+      "sha256": "a7caecf12af3c8dddf5018fe6638548d78fb69ab653351b86de97ff17230f393"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 172983,
+      "sha256": "3c51656f8cd2d429f7fe591347a65163d27e4e25fc482ceaa768de57a86965f9"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1849,
+      "sha256": "4320ec9e986650358d51b0446581a0a08317b2352d69b81729d469791b9894c9"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 173066,
+      "sha256": "55d40c03b974b7f654c8d38cc8222212d4adeca172a481c1f905676ae2574ea8"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1849,
+      "sha256": "0fa4d68653c3aa1999fe981a9ee916aec63b72b272d838a1837d4c1531b8d5b3"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/confirmation/iter32_seed20260854.json": {
+      "type": "file",
+      "bytes": 333378,
+      "sha256": "7e4211d4f679697e0332559c60086a8a285f8733ad963b3bc15d33833b1a7b3d"
+    },
+    "research/experiments/adaptive-league-all-heads-pilot-20260830/confirmation/iter32_seed20260854_execution.json": {
+      "type": "file",
+      "bytes": 1922,
+      "sha256": "05f876a60844b1f3acb227870705dc7e6878acf27f22342e1409b575e0c10298"
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.0108,
+      "greedy_disagreements": 54,
+      "max_tv": 0.2563970685005188,
+      "mean_tv": 0.009114251825071298,
+      "p95_tv": 0.021975305210798983,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.007,
+      "greedy_disagreements": 35,
+      "max_tv": 0.1491086333990097,
+      "mean_tv": 0.006222954014825154,
+      "p95_tv": 0.0186230736784637,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.0096,
+      "greedy_disagreements": 48,
+      "max_tv": 0.15487943589687347,
+      "mean_tv": 0.008986217614374983,
+      "p95_tv": 0.023510617576539522,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.0174,
+      "greedy_disagreements": 87,
+      "max_tv": 0.1452482044696808,
+      "mean_tv": 0.013692421498616021,
+      "p95_tv": 0.046881651878356946,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "models/baseline/standard10/latest.pt",
+    "--parent-sha256",
+    "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "--treatment",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt",
+    "--out-dir",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/drift_seed3",
+    "--states",
+    "20000",
+    "--seed",
+    "20261733",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "0.03",
+    "--greedy-disagreement-max",
+    "0.05"
+  ],
+  "created_at": "2026-09-02T18:25:29.089314+00:00",
+  "design": {
+    "greedy_disagreement_max": 0.05,
+    "outcome_blind": true,
+    "seed": 20261733,
+    "source_tv_max": 0.03,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 69998,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.0112,
+    "greedy_disagreements": 224,
+    "max_tv": 0.2563970685005188,
+    "mean_tv": 0.009503961238221864,
+    "p95_tv": 0.025878222379833456,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-geometric-pilot-20260902\\drift_seed3\\drift_raw.jsonl.gz",
+  "raw_sha256": "8f64d12315a9c7d351e5997af5ab9d733bc485252e8c11d6cfa082f59ca224c4",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 61719,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-geometric-pilot-20260902\\seed3\\latest.pt",
+    "sha256": "204dc8deecd1eafce1ea3e8c5cfe9e1db725ecc093802821a07b2ebb6cd180aa"
+  },
+  "wall_time_seconds": 4.9877636432647705
+}

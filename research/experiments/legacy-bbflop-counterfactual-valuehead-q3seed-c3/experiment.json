@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-bbflop-counterfactual-valuehead-q3seed-c3",
+  "title": "bbflop_counterfactual_valuehead_q3seed_c3",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "models/diagnostic_standard10_bbflop_counterfactual_valuehead_q3seed_c3_20260829/experiment_record.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "models/diagnostic_standard10_bbflop_counterfactual_valuehead_q3seed_c3_20260829/experiment_record.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "All three direct all-action value-head seeds passed positive robust and worst-continuation lower bounds on validation512 and changed 13-49 greedy actions. All three failed both lower bounds on separate transfer512, pairwise transfer action agreement was 0.8809-0.9355, and each seed introduced 7-8 unsupported new all-ins.",
+    "conclusion": "Do not externally evaluate, compile, or tune only hidden width, seed, learning rate or epoch selection on the same 512-state training distribution.",
+    "decision": "REVISE_DATA_AGGREGATION_NO_POLICY_NO_EXTERNAL",
+    "next_step": "Augment with independently replicated posterior-conditioned candidate-disagreement rows and repeat cross-seed, independent-transfer, cross-opponent and tail-risk gates."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

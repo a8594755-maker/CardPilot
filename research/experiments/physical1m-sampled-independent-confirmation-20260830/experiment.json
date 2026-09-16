@@ -1,0 +1,302 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "physical1m-sampled-independent-confirmation-20260830",
+  "title": "Frozen one-million-hand final sampled independent confirmation",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T21:41:02+00:00",
+  "updated_at": "2026-08-30T22:01:48+00:00",
+  "started_at": "2026-08-30T21:41:02+00:00",
+  "ended_at": "2026-08-30T22:01:48+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The primary-final sampled endpoint admitted by the1M discovery experiment reproduces positive matched treatment-minus-Standard10 deltas across three unchanged anchors on an independent8192-pair seed.",
+  "material_change": "No training. Freeze final checkpoint ddab8c71090a78346bbd9b2b425fd3676a2d6c1cd30e649fa95aab1ff06fa7a3 and sampled_both_sides mode, compare original Standard10 control with seed20260894 and8192 pairs per anchor.98304 total new internal evaluation hands.",
+  "baseline": "models/baseline/standard10/latest.pt",
+  "source": "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt",
+  "parent_id": "physical-budget-1m-learning-curve-20260830",
+  "command": "python -m py_compile research/experiments/physical1m-sampled-independent-confirmation-20260830/run_confirmation.py",
+  "commands": [
+    {
+      "command": "python -m py_compile research/experiments/physical1m-sampled-independent-confirmation-20260830/run_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:41:02+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/physical1m-sampled-independent-confirmation-20260830/test_confirmation.py scripts/alpha_holdem/test_sampled_mirror_eval.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:44:53+00:00"
+    },
+    {
+      "command": "python research/experiments/physical1m-sampled-independent-confirmation-20260830/run_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:45:31+00:00"
+    },
+    {
+      "command": "python research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\run_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:45:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --candidate-label physical1m_confirmation_control --policy-mode sampled_both_sides --pairs 8192 --starting-stack 200 --seed 20260894 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:45:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\final.pt --candidate-label physical1m_confirmation_final --policy-mode sampled_both_sides --pairs 8192 --starting-stack 200 --seed 20260894 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:53:01+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\paired_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:00:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/play_slumbot.py --strategy model --model research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt --device cpu --policy-mode sample --temperature 1 --hands 0 --result-json research/experiments/physical1m-sampled-independent-confirmation-20260830/deployment_dry_run.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:01:48+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/physical1m-sampled-independent-confirmation-20260830/report_completed_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:01:48+00:00"
+    },
+    {
+      "command": "python research/experiments/physical1m-sampled-independent-confirmation-20260830/report_completed_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:01:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "48b4ed7cb33dcfadfc467f338b0ca08eef1b054440919436a88cb3d380b5516c",
+    "code_paths": [
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/paired_mirror_treatment_delta.py",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-30T21:41:02+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/physical1m-sampled-independent-confirmation-20260830/code.patch",
+    "patch_sha256": "d70296d88ea9b55b7fa69802a0d8f02a59f77228c51f9989b8fec3b28525212a",
+    "source_manifest": "research/experiments/physical1m-sampled-independent-confirmation-20260830/source_manifest.json",
+    "source_manifest_sha256": "7508d90720ee7652c0d9380d0877f11c4249ffbe36b7e3cff420290be422f923",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 1246.0
+  },
+  "metrics": {
+    "evaluation_seed": 20260894,
+    "pairs_per_anchor": 8192,
+    "planned_evaluation_hands": 98304,
+    "preflight_tests_passed": 19,
+    "evaluation_started": 1,
+    "replication_complete": 1,
+    "nominal_replication_gate": 0,
+    "adjusted_secondary_gate": 0,
+    "post_completion_report_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/code.patch",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/source_manifest.json",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/run_confirmation.py",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/test_confirmation.py",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/preregistration.md",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/completed_analysis.json",
+    "research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\copy_manifest.json",
+    "research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\source_manifest.json",
+    "research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\paired_delta.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\replication_analysis.json",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/deployment_dry_run.json",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/report_completed_confirmation.py",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/external_readiness_review.md",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/deferred_record_updates.json",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/result_summary.md"
+  ],
+  "notes": [
+    "Predeclared checkpoint selection is primary-final precedence, not best observed reward. Single independent seed; no optional stopping or checkpoint/mode reselection, no discovery pooling. Control and treatment share fresh deck and action streams within anchor. Same Standard10,slumbot_free,corrected_cfr96 hashes as parent. Primary replication gate: all3 deltas positive and >=one nominal95percent pair-CI lower positive, allOOD/raw/hash checks pass. Report simultaneous Bonferroni98.333percent intervals as a stronger secondary check; do not interpret nominal one-of-three gate as familywise significance.",
+    "No new environment training hands or Slumbot games. If replication fails, do not scale this configuration; investigate fixed-weight hand-group gradient noise. If it passes, separately assess external sampled-policy validation. Parent147456 discovery hands are never included in this independent sample. Required success remains >=100000 fresh Slumbot hands on one frozen policy with positive95percent lower bound.",
+    "18 preflight tests passed, including raw evidence rejection, common stream identity, exact self cancellation, CI arithmetic, and separation of nominal versus multiplicity-adjusted gates. No other AlphaHoldem process remains. Original parent outputs are read-only inputs.",
+    "First launch aborted at duplicate-process preflight before any snapshot or games because the parent PowerShell command also contains the launcher name. Restricted duplicate detection to Python interpreters and added a parent-shell/self/other-interpreter regression test.19 tests now pass; seeds,budgets,checkpoint and evaluation semantics unchanged.",
+    "Independent replication completed; source/checkpoint hashes and raw evidence audit PASS. Analyze and finish the same record before selecting any next experiment. No Slumbot success claim.",
+    "Read-only external-readiness review identified that current full deal/action fingerprinting can miss shared deals when stochastic policies choose different actions. No current internal evaluation semantics were changed and no external sessions were started. If independent replication passes, strengthen/test action-independent deal auditing before sampled external assessment."
+  ],
+  "result": {
+    "summary": "Completed98304 independent internal hands with valid frozen evidence. The registered sampled final replication gate failed: deltas+1.913,-1.276,+12.192bb/100; all Bonferroni intervals cross zero.",
+    "conclusion": "CFR96 nominal positive effect replicated, but slumbot_free direction was negative and Standard10 CI crosses zero. The unchanged1M configuration has not established consistent multi-anchor improvement. No discovery pooling,checkpoint reselection,new training,or Slumbot games occurred.",
+    "decision": "INDEPENDENT_INTERNAL_REPLICATION_FAILED",
+    "next_step": "Do not scale unchanged training or promote this checkpoint to Slumbot. Start a separately preregistered fixed-weight whole-hand-group actor-gradient-noise diagnostic at original source and1M mature endpoint, with non-mutating probes and complete physical accounting. Defer conditional stochastic external-audit repair until external testing is warranted."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 10,
+    "command_count": 10
+  },
+  "artifact_integrity": {
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/code.patch": {
+      "type": "file",
+      "bytes": 14843,
+      "sha256": "d70296d88ea9b55b7fa69802a0d8f02a59f77228c51f9989b8fec3b28525212a"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 634,
+      "sha256": "7508d90720ee7652c0d9380d0877f11c4249ffbe36b7e3cff420290be422f923"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/run_confirmation.py": {
+      "type": "file",
+      "bytes": 13336,
+      "sha256": "05e64916d181f5ccfc9c6cf7929827a1257b2a0641b54b703698db6bb91f7f6b"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/test_confirmation.py": {
+      "type": "file",
+      "bytes": 3508,
+      "sha256": "d94141419344bbb1f6f2f53fa64bec986a4765a93a3790de8bf20190d6877b7a"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 3085,
+      "sha256": "ec52ed300498bc103dcf3dbe1a6553a75263d8f307a0385a725595dfccf8f151"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/completed_analysis.json": {
+      "type": "file",
+      "bytes": 9270,
+      "sha256": "5edab4625f535cacd3ba89d8ad8e81ee698101379f04d8338c05e68853c17c8c"
+    },
+    "research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 14566,
+      "sha256": "6947575adfcdfd632666e0163bcb3140e7235d52ab4221585caf263532db176c"
+    },
+    "research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 10381,
+      "sha256": "be9a21e4ce74b54b49c49d7becdb184ef217c46450cb051cccc65f55d03130a2"
+    },
+    "research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 351007,
+      "sha256": "1c3f41f5bb0e90c19d1969fd1efbfe8bec9cdc6c04fccaf97811809b9d0a263b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control.json": {
+      "type": "file",
+      "bytes": 1296857,
+      "sha256": "df437277cb30c82d38ca3ecedc22c3a7685d9085d005eea58d9fb6713e279539"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control.md": {
+      "type": "file",
+      "bytes": 1531,
+      "sha256": "c6a70d135562859782f6fed9c849064b6768d28237f15b85ecd46879d5cd1eef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control_execution.json": {
+      "type": "file",
+      "bytes": 2153,
+      "sha256": "6870f61c6d45c5bb29d144ae9563847f0254a5512c69d564a7b99305f2afec6f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\control_stdout.log": {
+      "type": "file",
+      "bytes": 1296857,
+      "sha256": "df437277cb30c82d38ca3ecedc22c3a7685d9085d005eea58d9fb6713e279539"
+    },
+    "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final.json": {
+      "type": "file",
+      "bytes": 1296791,
+      "sha256": "82da069f8ab71c8cf9752b1a590cca17f60cddbc3155cfacc780a7ae21a63f5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final.md": {
+      "type": "file",
+      "bytes": 1573,
+      "sha256": "ce84d9a84e8a09890a315e9ef6b4d7d6296c160c01b0c9c3702f5698e252dc10"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final_execution.json": {
+      "type": "file",
+      "bytes": 2189,
+      "sha256": "74818fd2c15e86c2d10774a4863c9f365f52dd83b9405823a416b91eeaf1bb17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\final_stdout.log": {
+      "type": "file",
+      "bytes": 1296791,
+      "sha256": "82da069f8ab71c8cf9752b1a590cca17f60cddbc3155cfacc780a7ae21a63f5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 133304820,
+      "sha256": "ddab8c71090a78346bbd9b2b425fd3676a2d6c1cd30e649fa95aab1ff06fa7a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\paired_delta.json": {
+      "type": "file",
+      "bytes": 5036,
+      "sha256": "b0da2b39c564a94beeb8bd1c7b3f74cf561ee4551a91bfb6ded5063256b5cb5e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical1m-sampled-independent-confirmation-20260830\\replication_analysis.json": {
+      "type": "file",
+      "bytes": 2055,
+      "sha256": "7b7de6eb16c08d5870087abfd6d68b680cfb8522294d9e12fbe369c8f59fdf03"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/deployment_dry_run.json": {
+      "type": "file",
+      "bytes": 805,
+      "sha256": "da31b00716b007425ff9dcd0a1f856a4434b08bf8fcc5889ac14f802247b18b2"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/report_completed_confirmation.py": {
+      "type": "file",
+      "bytes": 5374,
+      "sha256": "41d5c5ae747445386e15e9539b10b1095d5fb0792fd1956eaddbca65e3462cda"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/external_readiness_review.md": {
+      "type": "file",
+      "bytes": 4205,
+      "sha256": "62e19cc1fe152b0bc90f3c5cce485793d07107da694b109cf41a4f87cc3624ab"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/deferred_record_updates.json": {
+      "type": "file",
+      "bytes": 1404,
+      "sha256": "89c31c92a80d0ce71092599f47ec5a0fdcd1845ed82d8a2110a2aa8f32044b20"
+    },
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 2140,
+      "sha256": "f045d60ded9b4ed556c4310cf126a0404756e78f1f60f301efc8744f9fe49d0e"
+    }
+  }
+}

@@ -1,0 +1,462 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-multi-rollout-contract-audit-20260831",
+  "title": "CPU-only v6 real-worker rollout contract diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T09:36:56+00:00",
+  "updated_at": "2026-08-31T09:39:40+00:00",
+  "started_at": "2026-08-31T09:36:56+00:00",
+  "ended_at": "2026-08-31T09:37:24+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Real single/M1 multi/M4 v6 workers preserve shared observations,whole-hand transition blocks,and physical/no-decision counters under fixed-action fixtures.",
+  "material_change": "Nine fixed CPU-only spawned-worker cases with real shared memory/pipes and independent native event replay;no production source changes or neural-network training.",
+  "baseline": "native-rules-contract-repair-20260831",
+  "source": "native-rules-contract-repair-20260831",
+  "parent_id": "v6-source-kl-retention-pilot-20260831",
+  "command": "python research/experiments/v6-multi-rollout-contract-audit-20260831/run_audit.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-multi-rollout-contract-audit-20260831/run_audit.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T09:36:56+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-multi-rollout-contract-audit-20260831/run_audit.py --attempt attempt01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T09:36:57+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "56f8b3e0591abdb29d3e6ceeb2bfe342a1046ff42b19824ebd34ad2c850562f7",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/environment_v6.py",
+      "research/experiments/v6-multi-rollout-contract-audit-20260831"
+    ],
+    "captured_at": "2026-08-31T09:36:56+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-multi-rollout-contract-audit-20260831/code.patch",
+    "patch_sha256": "aaac4e98a8ff0757f4d7aaac2640303fcdca2813d1afb2c163c238707daa26ff",
+    "source_manifest": "research/experiments/v6-multi-rollout-contract-audit-20260831/source_manifest.json",
+    "source_manifest_sha256": "8e170276f272f9683110e60ef38f572262ddb81a1f2403b2f39ded583e4aebf5",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 28.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "planned_fixed_cases": 9,
+    "worker_case_target": 64,
+    "attempt01_completed_cases": 9,
+    "worker_validation_hands": 577,
+    "reference_replay_hands": 577,
+    "fixed_cases_passed": 9,
+    "source_pairs_verified": 69,
+    "independently_verified_raw_hashes": 36,
+    "unique_worker_decks": 112
+  },
+  "artifacts": [
+    "research/experiments/v6-multi-rollout-contract-audit-20260831/preregistration.md",
+    "research/experiments/v6-multi-rollout-contract-audit-20260831/code.patch",
+    "research/experiments/v6-multi-rollout-contract-audit-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\worker_events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\inference_requests.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\replayed_hand_blocks.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\transition_packets.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\worker_events.jsonl"
+  ],
+  "notes": [
+    "Validation trajectories and their native replays are tracked separately,not learning/evaluation hands. No source-KL configuration/checkpoint/session change;no GPU or external calls. Full inference/PPO batching and multi-slot resume remain unvalidated.",
+    "attempt01 fixed real-worker diagnostic endedPASS;no production source/GPU/model updates or benchmark hands. Preserve all case evidence.",
+    "Post-run read-only verification confirmed9clean child exits,36raw artifact hashes,577terminal worker events and112unique decks across deliberately repeated fixture regimes/modes. There are577corresponding native replays,not577new independent deals. All71source pairs of the concurrently running source-KL pilot remain byte-identical."
+  ],
+  "result": {
+    "summary": "Nine real-worker fixed-action cases passed;577worker validation hands plus matching reference replays;0training/evaluation/Slumbot hands.",
+    "conclusion": "v6 single/M1 multi and M4 shared-memory observations,whole-hand blocks and physical/no-decision counters agree in fixed-action fixtures. This does not validate learned GPU inference,PPO scalability,assignment changes or multi-slot resume.",
+    "decision": "V6_FIXED_ACTION_WORKER_CONTRACT_VALIDATED",
+    "next_step": "After learning evidence supports scaling, separately validate real multi-env inference/PPO throughput and per-slot resume;do not change the running source-KL pilot."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-multi-rollout-contract-audit-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2411,
+      "sha256": "c3b97dc71b51a97f6bbc7b25ffc5ce0197ae2948b5797de198b10865a01c4ce2"
+    },
+    "research/experiments/v6-multi-rollout-contract-audit-20260831/code.patch": {
+      "type": "file",
+      "bytes": 198736,
+      "sha256": "aaac4e98a8ff0757f4d7aaac2640303fcdca2813d1afb2c163c238707daa26ff"
+    },
+    "research/experiments/v6-multi-rollout-contract-audit-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1086,
+      "sha256": "8e170276f272f9683110e60ef38f572262ddb81a1f2403b2f39ded583e4aebf5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 12681,
+      "sha256": "d76e5ffa75ca4da9bf41c791b86da4b0262def1777d2f3bf8c4cc571da4905ee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22404,
+      "sha256": "e35efceca63111b56a2373402dcf4d55f700ed86d2945aa91ccec5c83719d3ee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\analysis.json": {
+      "type": "file",
+      "bytes": 1073,
+      "sha256": "6832127cb62cfec08f267419811ebcb5f4e6f17f994c2c74e9c99d92f5b2bca2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\analysis.json": {
+      "type": "file",
+      "bytes": 1072,
+      "sha256": "15cfe968bfae251ac1471f8e1072f838b86e6372fbbcfdea0589e085275e3820"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\analysis.json": {
+      "type": "file",
+      "bytes": 1072,
+      "sha256": "2c8b1e1f2d854f3d8d6070756e2c390d9c6d0c24ba0e210557dbe2ec269a28e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\analysis.json": {
+      "type": "file",
+      "bytes": 1073,
+      "sha256": "12706c8bd75496640ef9e56c06ff0ff669a373e05e43dfba7c2d3b3ac094722e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\analysis.json": {
+      "type": "file",
+      "bytes": 1070,
+      "sha256": "86c152371c444748786e51b579ba89b9da9280eab59de3144f61071cb8010d4f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\analysis.json": {
+      "type": "file",
+      "bytes": 1070,
+      "sha256": "4767e7d1b7d7ca98ee7200c27afe1e002958915f4af35450de78b2911ea48a06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\analysis.json": {
+      "type": "file",
+      "bytes": 1100,
+      "sha256": "1be933fa146c59c2d08d1bc788fbc039fe192f058fd54ac4493563c6e2fd4cd6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\analysis.json": {
+      "type": "file",
+      "bytes": 1098,
+      "sha256": "17d32d8aa64dcc01c37037039005390bf73f6fbed6ffb50f15f48a21b96540d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\analysis.json": {
+      "type": "file",
+      "bytes": 1098,
+      "sha256": "5a27d7250519714a098320ccedf8bd55758ace1d2748369a81cf6666fb26babd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\analysis.json": {
+      "type": "file",
+      "bytes": 11556,
+      "sha256": "5379e65d0ce6177de28323be1dd824648a8e600e9c54ce68726441fe16633ca0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 538816,
+      "sha256": "0b9680f5fe204fbd5aba8cc9182f16b9659d019304c21d6945a441baeb461100"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\process.json": {
+      "type": "file",
+      "bytes": 238,
+      "sha256": "352a08ec0775a80f5fd711fb936bbbeb85c144a5bb14ec9451ae9eebadfbc654"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15911,
+      "sha256": "30f682d87cf850f1a7682edc7b1ea2ecf1a57dc5550c459e4f7058521e7f3eb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 539811,
+      "sha256": "516bbc477f7ec65a6f562f2cf39c7c7ebcc7f19a69b1311d24a89e2d8637488c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_allin_self\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 20519,
+      "sha256": "70bb882628911158b8a5cf4befa8604fd94b466b49891e09a65434d3396fa5dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 269344,
+      "sha256": "c0701d62163f45e1e2c895d6b93cb17eb2533d5aa634e901011581ee8f6cd82e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\process.json": {
+      "type": "file",
+      "bytes": 239,
+      "sha256": "a513ccc256548a7aea17d9fd48537c634be66fd289c9d421fc81a8153544762d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15670,
+      "sha256": "3fd753ba1ea835689761c36eae7e2dc8d496e34eaefbb308f55fd1442a7b07e7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 134884,
+      "sha256": "10c04577d62fc50cdb77fd7eaa76d440a400113cda113d83af890e2a776c1965"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_fold_anchor\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 19830,
+      "sha256": "2decd6542e96e332a6379098926a3a1259264543d55bfd87aaa057e2fed3df85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 2155008,
+      "sha256": "152b0b8acdc70383ba22b7a3fc6525416770b8c319b07a00da51d22db3190534"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\process.json": {
+      "type": "file",
+      "bytes": 239,
+      "sha256": "690a8d08b8835b4d5d2af321bfbec61c31fde107c5edeaee03d2992fbe8b7830"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15667,
+      "sha256": "2e78f8fc4b442ebc8e8bac5842790a20761ab965ae10347ca40b41a7762076bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 2155242,
+      "sha256": "202d84c946206dc4ef574a460dcd7aa0f16c7dd333febb636ebed496a4b7b412"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi1_passive_self\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 21171,
+      "sha256": "34c9387232a254ee09601ad8dbe18efe336508068c10157f4ede8f7531cb0a94"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 551444,
+      "sha256": "3cdce6f282e0f831313cb9d68f86ffd7191f6bfa05aebebf867fd80ab514fad5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\process.json": {
+      "type": "file",
+      "bytes": 239,
+      "sha256": "47de5f42986d9997b9b3b6ecd977e8a1f48887a9f8d81083a1468899a8215456"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 16125,
+      "sha256": "ad4d56b8439566b19fdc54a03cc371009080807afcfd202ee467e4964e429bad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 548239,
+      "sha256": "be28fa221d857b9dbb87bb194767cff98febf4c5087b8234dcad00ac86b6f40d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_allin_self\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 20805,
+      "sha256": "1298358c1105f3bb6da6771bbff8a49b6854dae4d15ace05bcd4c5329e21b746"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 269344,
+      "sha256": "384cfef2f22a4ad77696c28b972f23c77b931eb78a22ce6adb316abc0514cb2d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\process.json": {
+      "type": "file",
+      "bytes": 240,
+      "sha256": "3cc9b867741f7ac21206a763322fc3a01270f7f231c053e120cc695f63c94e35"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15640,
+      "sha256": "fbd0318c122116e23280b092b1cc009f85562af17b46c7586941709426ae481a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 134885,
+      "sha256": "54c4695a43d0faa52ccc9becfbc4c0c6869dfea4532a4457a914f6b86aad8412"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_fold_anchor\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 19800,
+      "sha256": "e1af71ca288ca756f87741116107d12252d884c3ffffeb5573e52e477c938b73"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 2176053,
+      "sha256": "c60897f8cc67385502cbf891da7c618e428dcd6a1d5f7cbb6900dc4030c4c211"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\process.json": {
+      "type": "file",
+      "bytes": 239,
+      "sha256": "bd5fb7f55571e39260f0e77648ff8eab4c0deb830d534ee75cf319ebe3ed2f9f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15636,
+      "sha256": "3308d9d595045cb239a713b2635297beb208e7d00e5fd95c293ea800f1940159"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 2155241,
+      "sha256": "56258f05f946f934b55b865daa0eaf6d659ac062bfd6acff937ab65bd532e5a2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\multi4_passive_self\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 21140,
+      "sha256": "885c060ab5913f240d5b92fe7a74239edd402ae02e0b297aa073354f2e312b6d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 538816,
+      "sha256": "0b9680f5fe204fbd5aba8cc9182f16b9659d019304c21d6945a441baeb461100"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\process.json": {
+      "type": "file",
+      "bytes": 239,
+      "sha256": "a31230b2590fc8aef44e3b21ad650a1419653c8dcaa1fb36ad0d422a661e5257"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15911,
+      "sha256": "30f682d87cf850f1a7682edc7b1ea2ecf1a57dc5550c459e4f7058521e7f3eb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 539811,
+      "sha256": "516bbc477f7ec65a6f562f2cf39c7c7ebcc7f19a69b1311d24a89e2d8637488c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_allin_self\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 20519,
+      "sha256": "70bb882628911158b8a5cf4befa8604fd94b466b49891e09a65434d3396fa5dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 269344,
+      "sha256": "c0701d62163f45e1e2c895d6b93cb17eb2533d5aa634e901011581ee8f6cd82e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\process.json": {
+      "type": "file",
+      "bytes": 240,
+      "sha256": "0c679b55b3121d691046da2992f3ec6c0d2132d448e6ef6a5039cde5d3de93f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15670,
+      "sha256": "3fd753ba1ea835689761c36eae7e2dc8d496e34eaefbb308f55fd1442a7b07e7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 134884,
+      "sha256": "10c04577d62fc50cdb77fd7eaa76d440a400113cda113d83af890e2a776c1965"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_fold_anchor\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 19830,
+      "sha256": "2decd6542e96e332a6379098926a3a1259264543d55bfd87aaa057e2fed3df85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\inference_requests.jsonl": {
+      "type": "file",
+      "bytes": 2155008,
+      "sha256": "152b0b8acdc70383ba22b7a3fc6525416770b8c319b07a00da51d22db3190534"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\process.json": {
+      "type": "file",
+      "bytes": 238,
+      "sha256": "c243274f27989b4e2859d8ee93a919e92091fea0a6b3533d9cfe355ca3f265f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\replayed_hand_blocks.jsonl": {
+      "type": "file",
+      "bytes": 15667,
+      "sha256": "2e78f8fc4b442ebc8e8bac5842790a20761ab965ae10347ca40b41a7762076bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\transition_packets.jsonl": {
+      "type": "file",
+      "bytes": 2155242,
+      "sha256": "202d84c946206dc4ef574a460dcd7aa0f16c7dd333febb636ebed496a4b7b412"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-multi-rollout-contract-audit-20260831\\attempt01\\single1_passive_self\\worker_events.jsonl": {
+      "type": "file",
+      "bytes": 21171,
+      "sha256": "34c9387232a254ee09601ad8dbe18efe336508068c10157f4ede8f7531cb0a94"
+    }
+  }
+}

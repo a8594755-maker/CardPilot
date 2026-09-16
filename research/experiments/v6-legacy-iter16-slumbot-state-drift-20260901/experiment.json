@@ -1,0 +1,144 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-iter16-slumbot-state-drift-20260901",
+  "title": "Outcome-blind iter16 versus parent Slumbot-state drift decomposition",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T12:02:35+00:00",
+  "updated_at": "2026-09-01T12:05:05+00:00",
+  "started_at": "2026-09-01T12:02:35+00:00",
+  "ended_at": "2026-09-01T12:05:05+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The externally losing iter16 checkpoint differs from Standard10 on a small, identifiable high-leverage subset of actual Slumbot states rather than through broad diffuse drift; comparing candidate-onpolicy and parent-onpolicy state corpora can locate the context without using hand outcomes as labels.",
+  "material_change": "Replay exact parent and iter16 policies on every audited decision response from the independent parent fresh20k and candidate fresh20k cohorts. Compute probabilities, physical greedy actions, margins and outcome-blind context strata by street, seat, pot, SPR, facing-bet and parent action class. Do not read winnings or train.",
+  "baseline": "Synthetic four-street drift at iter16 was mean TV 0.02390 and 3.008% greedy disagreement, while fresh20k transfer was -37.1617 versus parent -24.5683. The internal multi-anchor proxy incorrectly promoted iter16.",
+  "source": "research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/sessions",
+  "parent_id": "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/curve_drift_analysis.json",
+  "command": "python research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/analyze_drift.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/analyze_drift.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:02:35+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/audit_backend_mismatches.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:05:05+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8d2c324af911558f2475eaede281f252d61f9df50b25e0ef083da10aac14ff2b",
+    "code_paths": [
+      "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/analyze_drift.py",
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T12:02:35+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/code.patch",
+    "patch_sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2",
+    "source_manifest": "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/source_manifest.json",
+    "source_manifest_sha256": "b584e8eb4cf2a26e917bf7f61504bf8834db8b8cbb5cc017f22e61ad1bd0c4de",
+    "source_files": 78
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 69288,
+    "offline_samples": 122875,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 150.0,
+    "target_slumbot_hands": 0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "candidate_state_tv": 0.022350878194055696,
+    "candidate_state_disagreement": 0.033041342611543185,
+    "candidate_stake_weighted_disagreement": 0.0522861420385125,
+    "parent_state_tv": 0.022388637027803873,
+    "parent_state_disagreement": 0.03302588996763754,
+    "parent_stake_weighted_disagreement": 0.05442210673511448,
+    "candidate_facing_bet_disagreement": 0.04836826255300842,
+    "candidate_river_disagreement": 0.056736035049288064,
+    "backend_audit_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/code.patch",
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/analyze_drift.py",
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/drift_analysis.json",
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/drift_raw.jsonl.gz",
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/audit_backend_mismatches.py",
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/backend_mismatch_audit.json"
+  ],
+  "notes": [
+    "Outcome and cumulative winnings fields are deliberately not accessed. This is descriptive allocation evidence, not training data or strength evidence.",
+    "The initial GPU-batched analysis marked FAIL because 4/122,875 logged argmax actions differed. Independent CPU-single replay matched all four live actions; maximum GPU margin was 0.000352. Original analysis/raw remain unchanged and the backend audit documents the correction."
+  ],
+  "result": {
+    "summary": "Outcome-blind replay queried parent and iter16 on 122,875 audited Slumbot decision states from independent parent/candidate cohorts. Both corpora showed stable broad drift: about 0.0224 mean TV and 3.30% greedy disagreement, amplified to 5.23-5.44% when weighted by pot plus call exposure.",
+    "conclusion": "The small-isolated-context hypothesis is rejected. Drift is consistent across both on-policy corpora and amplified in high-leverage states: facing-bet 4.84%, river 5.67%, >=30bb pots 7.20% on candidate states, with major fold-to-call, call-to-raise and raise-to-fold transitions. A local benchmark-specific rule would not address this. Standard source KL preserves average probability but not high-stake greedy actions; the next learned-weight intervention should weight preservation by public-state risk and source margin while retaining advantage-based release.",
+    "decision": "REJECT_LOCAL_CONTEXT_PATCH_ADMIT_RISK_WEIGHTED_SOURCE_PRESERVATION",
+    "next_step": "Implement a default-off, generic risk-weighted source-greedy preservation objective using only public pot/to-call/effective-stack features and the frozen Standard10 reference. Verify gradient/tensor scope in a matched smoke, then run a matched 65k control only if it reduces stake-weighted greedy disagreement without freezing all learning. Do not use Slumbot outcomes or identities in training."
+  },
+  "tags": [
+    "diagnostic",
+    "learned-weights",
+    "outcome-blind",
+    "slumbot-state",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795616,
+      "sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2"
+    },
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 14449,
+      "sha256": "b584e8eb4cf2a26e917bf7f61504bf8834db8b8cbb5cc017f22e61ad1bd0c4de"
+    },
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/analyze_drift.py": {
+      "type": "file",
+      "bytes": 10452,
+      "sha256": "7db2ac65e33c5d3725ca14d11228fdd305b9d2a6ff01037833be25d58099812c"
+    },
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/drift_analysis.json": {
+      "type": "file",
+      "bytes": 25030,
+      "sha256": "74d6d37558111e07d37f6fed4ab620c9d0c0777b27e1ee5dcc2306e45eb47175"
+    },
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 5193932,
+      "sha256": "88cae8ae0161b4c52e140274ac40af13f8b98d01c73c698d7d4da6090df7f025"
+    },
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/audit_backend_mismatches.py": {
+      "type": "file",
+      "bytes": 4203,
+      "sha256": "459c713550d418bc51b6d3d4c35d846d21968e566bf3d8f584476f8db780c2dd"
+    },
+    "research/experiments/v6-legacy-iter16-slumbot-state-drift-20260901/backend_mismatch_audit.json": {
+      "type": "file",
+      "bytes": 2143,
+      "sha256": "68d9f8e2843585b9947a8f985ec0de85434115ab2a404aacceaacc95403def80"
+    }
+  }
+}

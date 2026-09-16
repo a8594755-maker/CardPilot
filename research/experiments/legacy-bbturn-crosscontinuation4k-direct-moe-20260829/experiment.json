@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-bbturn-crosscontinuation4k-direct-moe-20260829",
+  "title": "bbturn_crosscontinuation4k_direct_moe_20260829",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "models/diagnostic_standard10_bbturn_crosscontinuation_stylemoe_q3seed_c1_20260829/experiment_record.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "models/diagnostic_standard10_bbturn_crosscontinuation_stylemoe_q3seed_c1_20260829/experiment_record.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "The scalar MoE selected epoch1 and 0/0/0 test changes; the 5x9 style-factorized MoE also selected epoch1 with 0/1/0 test changes. Later epochs learned many validation changes but degraded value. Both retained zero new all-ins and near-perfect seed agreement only by remaining source-like.",
+    "conclusion": "Do not tune only hidden width, LR, epochs, scalar versus style-min aggregation, or behavior-class weights on the same 4,096-state asset.",
+    "decision": "REJECT_SCALAR_AND_STYLE_FACTORIZED_DIRECT_MOE_NO_POLICY",
+    "next_step": "Cross-state coverage or opponent-style target evidence expands and resolves the conservative2m and trajectory-transfer failures before actor learning."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

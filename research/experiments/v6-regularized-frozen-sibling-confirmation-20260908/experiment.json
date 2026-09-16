@@ -1,0 +1,144 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-regularized-frozen-sibling-confirmation-20260908",
+  "title": "Independent frozen regularized endpoints preservation and sibling confirmation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T16:28:43+00:00",
+  "updated_at": "2026-09-08T16:45:39+00:00",
+  "started_at": "2026-09-08T16:28:43+00:00",
+  "ended_at": "2026-09-08T16:45:39+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The two-seed positive regularized-control result may persist on fresh decks and alternate sibling opponents, while own-parent comparisons separate recovery from absolute improvement.",
+  "material_change": "No weights changed; frozen three-policy two-seed sampled evaluation on four preservation and four sibling anchors,49152 hands, four primary contrasts with family intervals.",
+  "baseline": "v6-regularized-return-two-seed-pilot-20260908",
+  "source": "",
+  "parent_id": null,
+  "command": "python research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/run.py prepare",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/run.py prepare",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:28:43+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/run.py run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:29:16+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/run.py review",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:45:39+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908"
+    ],
+    "captured_at": "2026-09-08T16:28:43+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/source_manifest.json",
+    "source_manifest_sha256": "9c268fb11c8b2021b21d83335f18342d27aaedf21057256030b9a1d59709018c",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 49152,
+    "wall_time_seconds": 1016.0,
+    "training_hands": 0,
+    "unique_evaluation_deals": 8192
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/protocol.md",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/code.patch",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/source_manifest.json",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_contract.json",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/result.md",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/confirmation.json",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_review.json",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_terminal.json",
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_hands.jsonl"
+  ],
+  "notes": [
+    "Frozen final endpoints from both seeds, no winner selection. Sibling opponents not used in this pilot but share ancestry; not universal/lifetime heldout. Reuse qualified evaluator and ordered raw reviewer. No Slumbot hands or deployment mode substitution.",
+    "Preflight exit0: all frozen endpoint/anchor/source hashes valid;8192 distinct planned decks disjoint from1690210 inventoried prior deck rows. Launch exact49152 sampled paired executions; no weight changes."
+  ],
+  "result": {
+    "summary": "Independent frozen sibling confirmation complete49152 hands; raw review passed, confirmation criterion not met: treatment-control+41.09/-26.52 both95CI cross0.",
+    "conclusion": "No confirmed two-seed advantage or parent regression. Parent-relative+64.57/+20.41 both intervals cross0. Known sibling families share ancestry; seat asymmetry and large paired tails require caution. Preserve negative/inconclusive evidence; no endpoint promotion or method rejection from65k.",
+    "decision": "Do not repeat similar small internal panels or auto scale. Retain sole candidate for exact-execution external calibration readiness.",
+    "next_step": "Qualify sampled physical Slumbot execution and new-checkpoint export without server hands, then preregister fixed external development calibration before deciding geometric scale and opponent breadth."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/protocol.md": {
+      "type": "file",
+      "bytes": 2299,
+      "sha256": "7dd7270cf5a278e348fedecb278c471a05f41cce3f93bb34ae469df84038066e"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 758,
+      "sha256": "9c268fb11c8b2021b21d83335f18342d27aaedf21057256030b9a1d59709018c"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_contract.json": {
+      "type": "file",
+      "bytes": 53376,
+      "sha256": "dcd54f3e7c6c17510d1f23df4bc065d76d01ae108605c9bf3904b3fef4fcd3d4"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/result.md": {
+      "type": "file",
+      "bytes": 2490,
+      "sha256": "9703fa0f0eb76ccbdc9dc8b9440f4353c23cda2d0ac55c1fdae48dc02e1fb3cb"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/confirmation.json": {
+      "type": "file",
+      "bytes": 1448,
+      "sha256": "7cd29fccef685b07a7fb66b2d062dd5a10158a6a8b0547056d33579a31b27fd2"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_review.json": {
+      "type": "file",
+      "bytes": 17600,
+      "sha256": "0f619e6b6ce71f9e349624fdcda592474087c84ced69386fa4e5a62a78a93700"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_terminal.json": {
+      "type": "file",
+      "bytes": 178,
+      "sha256": "48982d5963368f20428ee3dc2988fa8d55e3c99b2d398ddd3bdf999331f1f246"
+    },
+    "research/experiments/v6-regularized-frozen-sibling-confirmation-20260908/stage1_evaluation_hands.jsonl": {
+      "type": "file",
+      "bytes": 18492349,
+      "sha256": "0be477936b6a6ade1f0faed3b7c1534143731ce9ef67e075b635d31b5784c81b"
+    }
+  }
+}

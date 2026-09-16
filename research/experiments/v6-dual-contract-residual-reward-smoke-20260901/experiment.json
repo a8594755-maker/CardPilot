@@ -1,0 +1,135 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-dual-contract-residual-reward-smoke-20260901",
+  "title": "Dual-contract bounded residual reward-training smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T16:59:36+00:00",
+  "updated_at": "2026-09-01T17:06:40+00:00",
+  "started_at": "2026-09-01T16:59:36+00:00",
+  "ended_at": "2026-09-01T17:06:40+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A small native-v6 residual trained by on-policy reward can improve a frozen Standard10 legacy-v4 policy across a diverse learned opponent panel without destroying its exact base representation or allowing large greedy-logit drift.",
+  "material_change": "Train only a zero-initialized native-v6 residual for 4,096 physical hands against a fixed three-policy learned league, with Standard10 base frozen and residual logits bounded to +/-0.25. Evaluate the frozen trained residual and exact zero-residual control on 1,024 untouched mirrored pairs per anchor.",
+  "baseline": "Zero-residual wrapper is bitwise exact to Standard10 on 4,096 states. Existing shallow whole-head PPO was -64.2932 fresh5k and public-opponent treatment was broadly negative.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-dual-contract-zero-residual-feasibility-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_residual_training_smoke.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-hands 4096 --pairs-per-anchor 1024 --seed 20261390 --device cuda --out-dir research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_residual_training_smoke.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-hands 4096 --pairs-per-anchor 1024 --seed 20261390 --device cuda --out-dir research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:59:36+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "02398eba0b06148e10fa91840be3ef3923d95af19c325ba92f8f513de2b21884",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T16:59:37+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "81a5dc3b372bef34be0daffd5f41e7a2d7329f7ca00d8489987985359ffc9ed4",
+    "source_files": 119
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 424.0,
+    "planned_environment_training_hands": 4096,
+    "planned_evaluation_hands": 12288,
+    "environment_training_hands": 4096,
+    "transition_rows": 8925,
+    "ppo_update_rows": 35700
+  },
+  "metrics": {
+    "pooled_delta_bb100": 2.465169270833334,
+    "pooled_ci95_low_bb100": -2.578790913800791,
+    "pooled_ci95_high_bb100": 7.509129455467459,
+    "standard10_delta_bb100": -0.1953125,
+    "slumbot_free_delta_bb100": 10.3232421875,
+    "corrected_cfr96_delta_bb100": -2.732421875,
+    "positive_anchor_count": 1,
+    "pooled_seat0_delta_bb100": -2.6627604166666665,
+    "pooled_seat1_delta_bb100": 7.593098958333333,
+    "max_abs_residual_logit": 0.17905521392822266,
+    "regression_tests_passed": 224,
+    "wall_time_seconds": 245.93023085594177
+  },
+  "artifacts": [
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/code.patch",
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/summary.json",
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/trained_residual.pt",
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/training_hands.jsonl.gz",
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/evaluation_pairs.jsonl.gz"
+  ],
+  "notes": [
+    "Preregistered admission to independent replication only: treatment-control paired point delta >0 on at least 2/3 anchors, pooled delta >0, Standard10 delta >=0, both pooled seat deltas >=0, base SHA unchanged, residual max abs logit <=0.25+1e-6, and no illegal/OOD actions."
+  ],
+  "result": {
+    "summary": "The frozen Standard10 plus native-v6 bounded residual completed 4,096 on-policy league hands and 12,288 untouched common-deck evaluation hands. Base tensors and source SHA remained unchanged; maximum residual logit magnitude was 0.179 within the preregistered 0.25 cap. Raw-pair recomputation and 224 tests passed.",
+    "conclusion": "The residual improved strongly against Slumbot-free (+10.323 bb/100, paired CI [2.446,18.201]) but moved slightly negative against Standard10 (-0.195) and corrected-CFR96 (-2.732). Only 1/3 anchor points was positive; pooled +2.465 had CI [-2.579,7.509], and seat0 was negative. The architecture preserves the source, but this reward dose did not establish broad general improvement.",
+    "decision": "REJECT_DUAL_CONTRACT_REWARD_SMOKE_NO_REPLICATION",
+    "next_step": "Keep the dual-contract architecture as a validated preservation primitive, but do not replicate or send this checkpoint to Slumbot. Before another weight update, diagnose the residual training signal by opponent and seat; consider balanced per-opponent/per-seat advantages or a minimax objective only if it can address the isolated Slumbot-free gain without reusing evaluation decks."
+  },
+  "tags": [
+    "physical-v6",
+    "residual",
+    "reward-training",
+    "self-play",
+    "standard10"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22143,
+      "sha256": "81a5dc3b372bef34be0daffd5f41e7a2d7329f7ca00d8489987985359ffc9ed4"
+    },
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 4023,
+      "sha256": "794570f12850c64207c20070a8a35030dc4e19f9a539a6fbf81b3d4d99ac31cc"
+    },
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/trained_residual.pt": {
+      "type": "file",
+      "bytes": 1387946,
+      "sha256": "8909ab4894734154a07130b1bbcc0fa41a794d2da1f653154a8fd2e38ee56482"
+    },
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 274248,
+      "sha256": "14210e8b0a33aed0e5b741d1af0d5e80bc4c5ff49cdfc82375ca0f1e7253673e"
+    },
+    "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 194546,
+      "sha256": "2f607f56e991bc321d091711da916621090180a3a2acdd912f5e654a9bb3aa37"
+    }
+  }
+}

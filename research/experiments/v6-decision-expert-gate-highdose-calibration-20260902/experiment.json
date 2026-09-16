@@ -1,0 +1,250 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-decision-expert-gate-highdose-calibration-20260902",
+  "title": "Decision expert gate one-shot high-dose calibration",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T11:54:18+00:00",
+  "updated_at": "2026-09-02T12:25:35+00:00",
+  "started_at": "2026-09-02T11:54:18+00:00",
+  "ended_at": "2026-09-02T12:21:22+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Increasing only the gate optimizer dose from lr3e-4/two epochs to lr1e-2/eight epochs per chunk will produce at least one percentage point of output movement in every seed while retaining Standard10 preservation and yielding consistent positive paired holdout direction.",
+  "material_change": "Repeat the exact three-seed 4096-hand/seed frozen-expert gate smoke with identical experts, opponents, seeds, decks, PPO clip, KL coefficient, and evaluation. Change only gate Adam learning rate to 0.01 and epochs per chunk to 8; save replay-complete transition arrays for every chunk and exact initial-to-final probe movement.",
+  "baseline": "v6-decision-expert-gate-three-seed-smoke-20260902 low-dose lr3e-4/two-epoch run.",
+  "source": "v6-decision-gate-update-magnitude-audit-20260902",
+  "parent_id": "v6-decision-gate-update-magnitude-audit-20260902",
+  "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --learning-rate .01 --epochs 8 --reference-kl-coef .1 --save-transition-audit --out-dir research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --learning-rate .01 --epochs 8 --reference-kl-coef .1 --save-transition-audit --out-dir research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T11:54:18+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "78578868a3639a3b2e0379ab1db55e29d6cc3929fd9cb6e44f93b6fb4887757d",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py"
+    ],
+    "captured_at": "2026-09-02T11:54:18+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/source_manifest.json",
+    "source_manifest_sha256": "cf45df4df737bffbfcab72e6a9e0d8af723ce4733266556312df32dadd241150",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 12288,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 18432,
+    "wall_time_seconds": 1624.0,
+    "planned_environment_training_hands": 12288,
+    "planned_evaluation_hands": 18432,
+    "saved_training_transitions": 32655
+  },
+  "metrics": {
+    "pooled_delta_bb100": 8.780924479166668,
+    "pooled_ci95_lower": -17.00296496482138,
+    "pooled_ci95_upper": 34.564813923154716,
+    "pooled_greedy_disagreement": 0.014592019058963668,
+    "pooled_alternate_weight": 0.05552697553660009,
+    "positive_seed_deltas": 2,
+    "negative_holdout_opponents": 1,
+    "negative_seats": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/code.patch",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/source_manifest.json",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/summary.json",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_gate.pt",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_gate.pt",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_gate.pt",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk00000_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk01024_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk02048_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk03072_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk00000_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk01024_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk02048_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk03072_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk00000_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk01024_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk02048_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk03072_transitions.npz",
+    "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py",
+    "scripts/alpha_holdem/test_v6_decision_expert_gate_smoke.py"
+  ],
+  "notes": [
+    "One-shot terminal calibration for this expert pair. Admission requires every seed probe max output movement >=0.01 plus the original exact counts, finite gradients, endpoint weight 1-50%, disagreement 0.5-25%, pooled/median/two-of-three-seed/all-opponent/both-seat positive gates. No further dose adjustment or checkpoint selection if rejected.",
+    "All 12 transition arrays (32455 decisions) were finite, retained exact probability mass for both experts, and matched summary SHA256. Training/evaluation gzip row counts and hashes matched. Six targeted tests and the full 306-test suite passed.",
+    "Accounting correction from exact replay: saved transition rows total 32655 (seed totals 10881+10904+10870), not the manually summed 32455 previously entered. Raw NPZ files, hashes, hand counts, summary, and scientific result were always unchanged."
+  ],
+  "result": {
+    "summary": "The one-shot high-dose calibration completed exactly 12,288 training and 18,432 paired evaluation hands. All seeds achieved material gate movement (probe maxima 6.91%, 13.98%, 8.00%). Pooled delta improved to +8.78 bb/100 CI [-17.00,+34.56], with seed deltas +30.48/-16.32/+12.18, but fictitious_response_phase2 remained -0.525 and seat1 -3.238 bb/100, so two preregistered breadth gates failed.",
+    "conclusion": "Higher optimizer dose converted the near-fixed mixture into a genuinely state-conditioned learned gate and produced a promising pooled point with two positive seeds. However, the average-gradient expert pair did not achieve the required cross-opponent and both-seat breadth, and uncertainty includes zero. This is insufficient for geometric scaling or external evaluation. It is undertrained rather than catastrophically collapsed, but no further dose tuning is allowed for this pair.",
+    "decision": "REJECT_AVERAGE_GRADIENT_GATE_PAIR_NO_SCALE",
+    "next_step": "Use the replay-complete saved transitions for a zero-new-hand opponent-seat gradient-conflict audit. If conflicts explain the negative groups and a conflict-averse direction improves every group geometrically, a separately defined constrained-gate method may be tested; otherwise close decision-level gating and choose another learned credit mechanism."
+  },
+  "tags": [
+    "mixture-of-experts",
+    "optimizer-dose",
+    "terminal-control",
+    "three-seed"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 299,
+      "sha256": "cf45df4df737bffbfcab72e6a9e0d8af723ce4733266556312df32dadd241150"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 10527,
+      "sha256": "cfddba75b452501cded9e1e3e7a73a02c4413acd67efcfe833885c8bba5b1550"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "67699a535fea5e0ad506cdd65a9d419955c4c6d6741a9399ecc435bfe69faae3"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "b8a458675197ac8a7aa9ec18fc280a7a0bad39ffbbc3ccdc9901ab924a8b785c"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "269d267a45c004b423452e6a0a22f2379046be329e08671c7321e347c20ad895"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 53142,
+      "sha256": "1a611cb41a2b1cbdfdf921fc80c1d4dc1448fbc4981d828f71ff5b8c4912992f"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 53502,
+      "sha256": "f165fcc8c6d20aa4d7d8404d5da891260ebc23cceec1d03ba3076d7adb1052aa"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 53164,
+      "sha256": "cf8ac828ee2b0d92fc5045d50b1c567eb2e963383d84cfbd5450c950fdf5bf30"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 53489,
+      "sha256": "e40ee8c4c31794e931254f85d25600ea5de88c5adc1f8b65b3aff52936ae449b"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 54012,
+      "sha256": "00060c259ff2bae9849f009b81c5e28cb56e2994c0fbf98137761f28d7016211"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 54066,
+      "sha256": "175ac64289bb36064c90eb5ce25615a27702bf2832e851d9f26d4b27bce39000"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk00000_transitions.npz": {
+      "type": "file",
+      "bytes": 293225,
+      "sha256": "6f17b4c6887a71c20a88d5ac5e1781353546681154b7dedb36141ad4d3c7cff1"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk01024_transitions.npz": {
+      "type": "file",
+      "bytes": 290827,
+      "sha256": "b3543616acd788556821604567327e851a205a3320307cac918d4ac40c5c9e22"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk02048_transitions.npz": {
+      "type": "file",
+      "bytes": 279881,
+      "sha256": "4f08b8bd11e69ee5d2fd362c5e688d609ba6cd3fddff6a830ddd3523b84f7947"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed0_chunk03072_transitions.npz": {
+      "type": "file",
+      "bytes": 289072,
+      "sha256": "cd77ba1635d332276953075a7b2d4b2a792028f86ea0f80939c6118c4d403ed9"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk00000_transitions.npz": {
+      "type": "file",
+      "bytes": 298593,
+      "sha256": "ba0a94b552bfa394eeb3b6064858af4706f5dbbbd717d498e51bea3bf6d612e6"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk01024_transitions.npz": {
+      "type": "file",
+      "bytes": 287994,
+      "sha256": "7c4787f9e601f6e412d8dadae60e7059fab329af493bf254e5e918d33244c25f"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk02048_transitions.npz": {
+      "type": "file",
+      "bytes": 278468,
+      "sha256": "7ace75894f59be0a529f1378d5413a8a2f3d910e70ecc71b097ec539153f6ade"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed1_chunk03072_transitions.npz": {
+      "type": "file",
+      "bytes": 288874,
+      "sha256": "38a88d65527b35a903e09396a2247aed342124b1187975be32085fcec34083c2"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk00000_transitions.npz": {
+      "type": "file",
+      "bytes": 297752,
+      "sha256": "8e5332a83f2a03560b652344fcb480f77328df46a9ca4b89263ce5acbd248dac"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk01024_transitions.npz": {
+      "type": "file",
+      "bytes": 282521,
+      "sha256": "71cd1f1fd9209023c0b07031a6cafbf735327461525579eb078895379da0b959"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk02048_transitions.npz": {
+      "type": "file",
+      "bytes": 287012,
+      "sha256": "22805f104f2eaaf6f8ac9d09c50e86914f2cfb3e75cdc0fd1e27fa69fc60252e"
+    },
+    "research/experiments/v6-decision-expert-gate-highdose-calibration-20260902/run/seed2_chunk03072_transitions.npz": {
+      "type": "file",
+      "bytes": 282720,
+      "sha256": "9128a841b2c9e45dce4fa4ec2c7cf4cca8931760ea8b0e2fe8f293dca3246311"
+    },
+    "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py": {
+      "type": "file",
+      "bytes": 23590,
+      "sha256": "5321691011f1456b3974c87c456103c6a300d078da3d4098f31eccc1a42dd63e"
+    },
+    "scripts/alpha_holdem/test_v6_decision_expert_gate_smoke.py": {
+      "type": "file",
+      "bytes": 2611,
+      "sha256": "6220f7fb89079693502d086d8b242b171b30b92ddc6474ce35f5902b09b6a6cd"
+    }
+  }
+}

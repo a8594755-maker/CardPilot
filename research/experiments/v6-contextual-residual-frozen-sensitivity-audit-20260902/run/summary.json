@@ -1,0 +1,200 @@
+{
+  "actionable_subargmax_signal": false,
+  "claim_scope": "FROZEN_CONTEXT_SENSITIVITY_NOT_POLICY_STRENGTH",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_contextual_residual_sensitivity_audit.py",
+    "--base-checkpoint",
+    "models/baseline/standard10/latest.pt",
+    "--checkpoint",
+    "research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed0_contextual_residual.pt",
+    "--checkpoint",
+    "research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed1_contextual_residual.pt",
+    "--training-evidence",
+    "research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed0_training_hands.jsonl.gz",
+    "--training-evidence",
+    "research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed1_training_hands.jsonl.gz",
+    "--expected-checkpoint-sha256",
+    "a1f4ffa131744d1770999e30789879211834c2476a8720d91ec068bfa370002a",
+    "--expected-checkpoint-sha256",
+    "ee4c6322e4f3250b02696d341707fc4d80924bc89be0651d61770699df90b98c",
+    "--expected-evidence-sha256",
+    "d1db6ba7c6bd68432d0f472fc71a873fa84ef5ff78ccad1a43c87605ae56622c",
+    "--expected-evidence-sha256",
+    "3e39a9e0e28b79cfbb4face888df5d0bbf36eaeb429c427d5ff6d8075ebbd34b",
+    "--states",
+    "2048",
+    "--seed",
+    "20262310",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/run"
+  ],
+  "completed_at": "2026-09-02T06:00:13.665325+00:00",
+  "decision": "REVISE_CONTEXTUAL_OBJECTIVE_OR_ARCHITECTURE",
+  "gates": {
+    "all_context_matrices_distinct": true,
+    "all_contextual_logit_rms_nontrivial": true,
+    "all_contextual_to_generic_ratio_at_least_10pct": false,
+    "any_seed_context_action_disagreement_at_least_0p5pct": false,
+    "any_seed_positive_margin_crossing_at_least_0p5pct": false
+  },
+  "new_environment_hands": 0,
+  "offline_state_context_queries": 49152,
+  "results": [
+    {
+      "base_action_changed_under_any_context_rate": 0.0009765625,
+      "checkpoint_sha256": "a1f4ffa131744d1770999e30789879211834c2476a8720d91ec068bfa370002a",
+      "context_action_disagreement_rate": 0.00048828125,
+      "context_pairwise_distance_median": 0.842543363571167,
+      "context_pairwise_distance_minimum": 0.17759504914283752,
+      "contextual_to_generic_rms_ratio": 0.15991071248860383,
+      "evidence_sha256": "d1db6ba7c6bd68432d0f472fc71a873fa84ef5ff78ccad1a43c87605ae56622c",
+      "maximum_context_logit_spread": 0.010922908782958984,
+      "maximum_crossing_slack": 0.010231971740722656,
+      "mean_contextual_delta_rms": 0.0009842176673788019,
+      "mean_generic_delta_rms": 0.006154795085719745,
+      "median_maximum_context_logit_spread": 0.005572319030761719,
+      "partitions": [
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0010257377279489798,
+          "seat": 0,
+          "states": 236,
+          "street": 0
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0009144025394215181,
+          "seat": 1,
+          "states": 276,
+          "street": 0
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0008713553205439425,
+          "seat": 0,
+          "states": 277,
+          "street": 1
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.001008111974412544,
+          "seat": 1,
+          "states": 235,
+          "street": 1
+        },
+        {
+          "context_action_disagreement_rate": 0.0036101083032490976,
+          "mean_contextual_delta_rms": 0.0010071909912922504,
+          "seat": 0,
+          "states": 277,
+          "street": 2
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0010727793212661225,
+          "seat": 1,
+          "states": 235,
+          "street": 2
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.00100022223858945,
+          "seat": 0,
+          "states": 280,
+          "street": 3
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.000999136070893663,
+          "seat": 1,
+          "states": 232,
+          "street": 3
+        }
+      ],
+      "positive_margin_crossing_slack_rate": 0.0009765625,
+      "seed_index": 0,
+      "states": 2048
+    },
+    {
+      "base_action_changed_under_any_context_rate": 0.001953125,
+      "checkpoint_sha256": "ee4c6322e4f3250b02696d341707fc4d80924bc89be0651d61770699df90b98c",
+      "context_action_disagreement_rate": 0.0009765625,
+      "context_pairwise_distance_median": 0.7993899583816528,
+      "context_pairwise_distance_minimum": 0.1539061814546585,
+      "contextual_to_generic_rms_ratio": 0.08251116929440126,
+      "evidence_sha256": "3e39a9e0e28b79cfbb4face888df5d0bbf36eaeb429c427d5ff6d8075ebbd34b",
+      "maximum_context_logit_spread": 0.007126331329345703,
+      "maximum_crossing_slack": 0.017660856246948242,
+      "mean_contextual_delta_rms": 0.0006046177754779427,
+      "mean_generic_delta_rms": 0.007327708244209413,
+      "median_maximum_context_logit_spread": 0.002888917922973633,
+      "partitions": [
+        {
+          "context_action_disagreement_rate": 0.00423728813559322,
+          "mean_contextual_delta_rms": 0.0007888542037333847,
+          "seat": 0,
+          "states": 236,
+          "street": 0
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0008350141787540918,
+          "seat": 1,
+          "states": 276,
+          "street": 0
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0006406838610667451,
+          "seat": 0,
+          "states": 277,
+          "street": 1
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0006252921967656834,
+          "seat": 1,
+          "states": 235,
+          "street": 1
+        },
+        {
+          "context_action_disagreement_rate": 0.0036101083032490976,
+          "mean_contextual_delta_rms": 0.0005061667968292698,
+          "seat": 0,
+          "states": 277,
+          "street": 2
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.0004997546623695912,
+          "seat": 1,
+          "states": 235,
+          "street": 2
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.000477171803811958,
+          "seat": 0,
+          "states": 280,
+          "street": 3
+        },
+        {
+          "context_action_disagreement_rate": 0.0,
+          "mean_contextual_delta_rms": 0.00045668943775984734,
+          "seat": 1,
+          "states": 232,
+          "street": 3
+        }
+      ],
+      "positive_margin_crossing_slack_rate": 0.001953125,
+      "seed_index": 1,
+      "states": 2048
+    }
+  ],
+  "schema": "cardpilot.contextual_residual_sensitivity_audit.v1",
+  "status": "COMPLETED",
+  "wall_time_seconds": 45.332242012023926
+}

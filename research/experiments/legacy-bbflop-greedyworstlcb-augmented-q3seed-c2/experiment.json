@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-bbflop-greedyworstlcb-augmented-q3seed-c2",
+  "title": "bbflop_greedyworstlcb_augmented_q3seed_c2",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "models/diagnostic_standard10_bbflop_greedyworstlcb_augmented_q3seed_c2_20260829/experiment_record.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "models/diagnostic_standard10_bbflop_greedyworstlcb_augmented_q3seed_c2_20260829/experiment_record.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "The 512+32 state BB-flop residual selected epoch 1 for all three optimizer seeds, changed zero independent-test greedy actions, created no unsupported all-ins and had 100% cross-seed action agreement, but validation/test robust and worst-continuation lower bounds failed. The learned update was effectively a no-op.",
+    "conclusion": "Do not compile, externally evaluate, or tune only optimizer seed/epochs/KL on this 512+32 data mixture.",
+    "decision": "REJECT_NO_POLICY_REVISE_FAILURE_DISTRIBUTION_COVERAGE",
+    "next_step": "Increase validated candidate-disagreement coverage or change the state representation/function approximator, while retaining independent-state and tail gates."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

@@ -13,6 +13,7 @@ import { buildTree } from '../tree/tree-builder.js';
 import {
   getTreeConfig,
   getMultiWayRangeConfigs,
+  getHURangeOptions,
   type TreeConfigName,
 } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
@@ -21,106 +22,12 @@ import {
   loadHUSRPRanges,
   loadMultiWayRanges,
   getWeightedRangeCombos,
-  type HUSRPRangesOptions,
 } from '../integration/preflop-ranges.js';
 import { exportToJSONL, exportMeta } from '../storage/json-export.js';
 import { resolve } from 'node:path';
 
 // Vectorized engine imports are loaded dynamically in solveCoachingHU()
 // to avoid ERR_MODULE_NOT_FOUND when vectorized/ directory doesn't exist yet.
-
-/**
- * Config-specific preflop range options.
- * Each config maps to different position spots and actions from GTO Wizard data.
- *
- * SRP configs: IP opens (raise), OOP calls (call)
- * 3-bet configs: OOP 3-bets (raise from BB spot), IP calls the 3-bet
- *   — IP calling range approximated by filtering opener's range with minFrequency
- */
-function getRangeOptions(configName: TreeConfigName): HUSRPRangesOptions {
-  switch (configName) {
-    // --- BTN vs BB ---
-    case 'pipeline_srp':
-    case 'pipeline_srp_v2':
-    case 'pipeline_srp_100bb':
-    case 'hu_btn_bb_srp_50bb':
-    case 'hu_btn_bb_srp_100bb':
-      return {
-        ipSpot: 'BTN_unopened_open2.5x',
-        ipAction: 'raise',
-        oopSpot: 'BB_vs_BTN_facing_open2.5x',
-        oopAction: 'call',
-      };
-
-    case 'pipeline_3bet':
-    case 'pipeline_3bet_v2':
-    case 'pipeline_3bet_100bb':
-    case 'hu_btn_bb_3bp_50bb':
-    case 'hu_btn_bb_3bp_100bb':
-      return {
-        oopSpot: 'BB_vs_BTN_facing_open2.5x',
-        oopAction: 'raise', // BB's 3-bet range
-        ipSpot: 'BTN_unopened_open2.5x',
-        ipAction: 'raise',
-        minFrequency: 0.4, // approximate BTN calling-3-bet range
-      };
-
-    // --- CO vs BB ---
-    case 'hu_co_bb_srp_100bb':
-      return {
-        ipSpot: 'CO_unopened_open2.5x',
-        ipAction: 'raise',
-        oopSpot: 'BB_vs_CO_facing_open2.5x',
-        oopAction: 'call',
-      };
-
-    case 'hu_co_bb_3bp_100bb':
-      return {
-        oopSpot: 'BB_vs_CO_facing_open2.5x',
-        oopAction: 'raise', // BB's 3-bet range vs CO
-        ipSpot: 'CO_unopened_open2.5x',
-        ipAction: 'raise',
-        minFrequency: 0.5, // CO range is tighter, so calling range is tighter
-      };
-
-    // --- UTG vs BB ---
-    case 'hu_utg_bb_srp_100bb':
-      return {
-        ipSpot: 'UTG_unopened_open2.5x',
-        ipAction: 'raise',
-        oopSpot: 'BB_vs_UTG_facing_open2.5x',
-        oopAction: 'call',
-      };
-
-    // --- Coaching HU SRP (BTN vs BB, all depths) ---
-    case 'coach_hu_srp_30bb':
-    case 'coach_hu_srp_60bb':
-    case 'coach_hu_srp_100bb':
-    case 'coach_hu_srp_200bb':
-      return {
-        ipSpot: 'BTN_unopened_open2.5x',
-        ipAction: 'raise',
-        oopSpot: 'BB_vs_BTN_facing_open2.5x',
-        oopAction: 'call',
-      };
-
-    // --- Coaching HU 3BP (BTN vs BB 3-bet, all depths) ---
-    case 'coach_hu_3bp_30bb':
-    case 'coach_hu_3bp_60bb':
-    case 'coach_hu_3bp_100bb':
-    case 'coach_hu_3bp_200bb':
-      return {
-        oopSpot: 'BB_vs_BTN_facing_open2.5x',
-        oopAction: 'raise', // BB's 3-bet range
-        ipSpot: 'BTN_unopened_open2.5x',
-        ipAction: 'raise',
-        minFrequency: 0.4, // approximate BTN calling-3-bet range
-      };
-
-    default:
-      return {}; // SRP BTN vs BB defaults
-  }
-}
 
 export interface FlopTask {
   type: 'solve';
@@ -129,6 +36,7 @@ export interface FlopTask {
   label: string;
   iterations: number;
   bucketCount: number;
+  seed?: number;
   outputDir: string;
   chartsPath: string;
   configName?: TreeConfigName; // defaults to 'v1_50bb' for backward compat
@@ -183,6 +91,9 @@ if (process.send) {
     const numPlayers = treeConfig.numPlayers ?? 2;
 
     // ── Coaching HU: use vectorized MCCFR showdown sampler ──
+    // Legacy coaching configs still depend on the unfinished vectorized export
+    // path.  Deployment configs intentionally use the corrected Map solver for
+    // the bounded pilot until that path has full street/pot/action parity.
     const isCoachingHU = cfgName.startsWith('coach_hu_') && numPlayers === 2;
     if (isCoachingHU) {
       try {
@@ -232,6 +143,7 @@ if (process.send) {
         numPlayers,
         iterations: task.iterations,
         bucketCount: task.bucketCount,
+        seed: task.seed,
         onProgress: (iter, _elapsed) => {
           process.send!({
             type: 'progress',
@@ -244,7 +156,7 @@ if (process.send) {
     } else {
       // ---- HU solve (existing path) ----
       if (!rangeCache.has(cfgName)) {
-        const rangeOpts = getRangeOptions(cfgName);
+        const rangeOpts = getHURangeOptions(cfgName);
         rangeCache.set(cfgName, loadHUSRPRanges(task.chartsPath, rangeOpts));
       }
       const ranges = rangeCache.get(cfgName)!;
@@ -262,6 +174,7 @@ if (process.send) {
         ipRange: ipCombos,
         iterations: task.iterations,
         bucketCount: task.bucketCount,
+        seed: task.seed,
         onProgress: (iter, _elapsed) => {
           process.send!({
             type: 'progress',
@@ -290,6 +203,7 @@ if (process.send) {
       stackLabel: task.stackLabel,
       configName: cfgName,
       betSizes: treeConfig.betSizes,
+      seed: task.seed,
     });
     exportMeta({
       outputPath,
@@ -303,6 +217,7 @@ if (process.send) {
       stackLabel: task.stackLabel,
       configName: cfgName,
       betSizes: treeConfig.betSizes,
+      seed: task.seed,
     });
 
     process.send!({

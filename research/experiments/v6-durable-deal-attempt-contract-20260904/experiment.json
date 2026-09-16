@@ -1,0 +1,141 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-durable-deal-attempt-contract-20260904",
+  "title": "Durable per-attempt deal namespace contract",
+  "status": "COMPLETED",
+  "created_at": "2026-09-04T20:00:24+00:00",
+  "updated_at": "2026-09-04T20:04:17+00:00",
+  "started_at": "2026-09-04T20:00:24+00:00",
+  "ended_at": "2026-09-04T20:04:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Persisting a unique attempt namespace before workers start prevents deterministic prefix reuse even when a crash loses worker cursors, without resetting learned state or inflating hand counts.",
+  "material_change": "Implement isolated durable namespace receipts and deterministic deck generation; validate crash reuse rejection, concurrent allocation, fixed-seed replay and physical environment resets. Production trainer integration remains deferred until no active source consumer exists.",
+  "baseline": "Legacy v1 fixed-deck hashing and confirmed same-start recovery overlap",
+  "source": "",
+  "parent_id": "v6-resume-deal-stream-integrity-20260904",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_fixed_deal_attempt.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_fixed_deal_attempt.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:00:24+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-durable-deal-attempt-contract-20260904/run_worker_probe.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:04:17+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_fixed_deal_attempt.py scripts/alpha_holdem/test_fixed_deal_resume_integrity.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_source_policy_moving_reference.py scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py research/test_experiment_log.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:04:17+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "310d09bd31f7b177aa217ccb462ff8950440a10ba3c4f972f25c4260705a2de2",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/fixed_deal_resume_integrity.py"
+    ],
+    "captured_at": "2026-09-04T20:00:24+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-durable-deal-attempt-contract-20260904/code.patch",
+    "patch_sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252",
+    "source_manifest": "research/experiments/v6-durable-deal-attempt-contract-20260904/source_manifest.json",
+    "source_manifest_sha256": "28989f6dd680e5bc7a88ee39b3941af4844a8e17b7655d512b3ba6ac81855a4f",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 233.0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "worker_validation_hands": 16,
+    "reference_replay_hands": 16
+  },
+  "metrics": {
+    "focused_attempt_tests_passed": 12,
+    "combined_tests_passed": 55,
+    "real_worker_cases_passed": 2,
+    "production_integration_complete": 0
+  },
+  "artifacts": [
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/code.patch",
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/source_manifest.json",
+    "scripts/alpha_holdem/fixed_deal_attempt.py",
+    "scripts/alpha_holdem/test_fixed_deal_attempt.py",
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/run_worker_probe.py",
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/worker_probe",
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/conclusion.md"
+  ],
+  "notes": [
+    "No live trainer source changes, new policy weights, or Slumbot hands. A fresh attempt namespace is explicitly statistical continuation, not bitwise uninterrupted RNG resume; receipt is fsynced before any worker may start."
+  ],
+  "result": {
+    "summary": "Durable exclusive attempt namespace and v2 deck contract passed55 combined tests plus16 real worker hands and16 reference replays across single/multi paths. Production source unchanged.",
+    "conclusion": "Unique precommitted namespaces prevent repeated deterministic deal prefixes across process restarts without counter/optimizer reset. Isolated contract established; production CLI and checkpoint integration are explicitly pending a safe process boundary.",
+    "decision": "ADMIT_SAFE_BOUNDARY_MANAGED_ATTEMPT_INTEGRATION",
+    "next_step": "Let existing sequential4M launcher reach its safe boundary, freeze and adjudicate final Seed2 overlap, then integrate namespace receipts and test a genuine trainer resume. Reuse prior multi8 throughput evidence for a current-recipe confirmation rather than a new broad search."
+  },
+  "tags": [
+    "attempt-lifecycle",
+    "infrastructure"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/code.patch": {
+      "type": "file",
+      "bytes": 292740,
+      "sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252"
+    },
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 465,
+      "sha256": "28989f6dd680e5bc7a88ee39b3941af4844a8e17b7655d512b3ba6ac81855a4f"
+    },
+    "scripts/alpha_holdem/fixed_deal_attempt.py": {
+      "type": "file",
+      "bytes": 4343,
+      "sha256": "9b7d81d95efff5a3144e21c4448bb860e055ff008e9a0660030a64e4ea536746"
+    },
+    "scripts/alpha_holdem/test_fixed_deal_attempt.py": {
+      "type": "file",
+      "bytes": 4660,
+      "sha256": "246f4f3e9f095f3b1e487ceee6472f51a7c1612e4cffae32f33a02df66cce1f1"
+    },
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/run_worker_probe.py": {
+      "type": "file",
+      "bytes": 3170,
+      "sha256": "1bf8cbe8e4b37d3df88032ade44b82f686ccae52c3f077ab9e5dfd0f86085f61"
+    },
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/worker_probe": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-durable-deal-attempt-contract-20260904/conclusion.md": {
+      "type": "file",
+      "bytes": 3567,
+      "sha256": "91ea86c1a64c5709875d90487840c768a0a8a021eb6ceb73a59b128cf85c509c"
+    }
+  }
+}

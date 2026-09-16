@@ -1,0 +1,205 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-current-kl-scope-transfer-20260905",
+  "title": "Current-regimen representation-scope Adam transfer qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-05T17:31:46+00:00",
+  "updated_at": "2026-09-05T17:47:22+00:00",
+  "started_at": "2026-09-05T17:31:46+00:00",
+  "ended_at": "2026-09-05T17:47:21+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Opening the existing feature extractor can be tested without resetting trained head Adam state,replay,counters or RNG;verified named-parameter transfer is required before a matched current-regimen full-versus-heads pilot.",
+  "material_change": "Isolated source-bound inspection and derived-copy single-group Adam scope expansion;zero environment or Slumbot hands. Preserve existing states by producer-verified parameter names and initialize only newly trainable representation states on first gradient.",
+  "baseline": "Both completed static8M Seed1 and Seed3 parents;not a selected winning seed",
+  "source": "scripts/alpha_holdem/train_v5.py",
+  "parent_id": "v6-phase-reference-seed3-greedy-paired-fresh80k-20260905",
+  "command": "python -B research/experiments/v6-current-kl-scope-transfer-20260905/inspect_parents.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-current-kl-scope-transfer-20260905/inspect_parents.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T17:31:46+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-current-kl-scope-transfer-20260905/test_scope_transfer.py --junitxml=research/experiments/v6-current-kl-scope-transfer-20260905/scope_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T17:37:36+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-current-kl-scope-transfer-20260905/qualify_real_parents.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T17:42:06+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-current-kl-scope-transfer-20260905/finish_experiment.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T17:47:21+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Users\\a8594\\CardPilot\\research\\experiment_log.py audit --since 2026-09-05T17:31:46+00:00 --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\post_finish_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T17:47:22+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-current-kl-scope-transfer-20260905",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/network_hybrid_h1.py"
+    ],
+    "captured_at": "2026-09-05T17:31:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-current-kl-scope-transfer-20260905/code.patch",
+    "patch_sha256": "5035b15f05f3107e1faaf7e7854d0d266986f14efb62bb6c6486461dbc0f4ba6",
+    "source_manifest": "research/experiments/v6-current-kl-scope-transfer-20260905/source_manifest.json",
+    "source_manifest_sha256": "9315f7b64d61ac9a8b9e34a9bbc7c4ce760798ed2c20b186da82ad810deea7a8",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 935.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "parent_inspection_passed": true,
+    "scope_unit_tests_passed": 25,
+    "actual_parent_qualification_passed": true,
+    "synthetic_paired_update_fixtures": 2,
+    "preserved_adam_states_per_parent": 10,
+    "new_representation_tensors_per_parent": 76,
+    "goal_achieved": false
+  },
+  "artifacts": [
+    "research/experiments/v6-current-kl-scope-transfer-20260905/protocol.md",
+    "research/experiments/v6-current-kl-scope-transfer-20260905/code.patch",
+    "research/experiments/v6-current-kl-scope-transfer-20260905/source_manifest.json",
+    "research/experiments/v6-current-kl-scope-transfer-20260905/parent_inspection.json",
+    "research/experiments/v6-current-kl-scope-transfer-20260905/scope_transfer.py",
+    "research/experiments/v6-current-kl-scope-transfer-20260905/test_scope_transfer.py",
+    "research/experiments/v6-current-kl-scope-transfer-20260905/scope_tests.xml",
+    "research/experiments/v6-current-kl-scope-transfer-20260905/qualify_real_parents.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\real_parent_qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\finish_experiment.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\scope_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\derived\\seed1_full.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\derived\\seed3_full.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\post_finish_audit.json"
+  ],
+  "notes": [
+    "No live poker processes observed;prior80k record completed with0 audit warnings. This is a prerequisite qualification,not a new architecture sweep or strength claim. Originals and production trainer/network remain unchanged;no automatic16M or final100k.",
+    "Both fixed static8M parents loaded under the bound production network:10 existing Adam parameter states,76 newly trainable representation tensors,effective LR9.999999999999996e-05. No gradient updates,environment hands or Slumbot requests;original checkpoints rehashed unchanged.",
+    "Added isolated named-state transfer and malformed-source/derived-state/Adam-step/serialization tests before execution. Production trainer and network remain unchanged;synthetic fixtures do not count as poker hands.",
+    "All25 predeclared synthetic transfer/Adam/serialization tests passed in5.461s. Register actual-parent qualifier before execution:source-bound exclusive derived copies,complete recursive preserved-state equality,actual Adam load and one disposable supplied-gradient step per parent;zero poker hands.",
+    "Original source/checkpoint hashes rechecked unchanged. Unstepped derived copies and exact commands are preserved;synthetic updated models were disposable and not saved. Existing experiment code/dirty patch and all later source/test artifact hashes remain available.",
+    "Post-finish scoped logger audit completed with no warnings."
+  ],
+  "result": {
+    "summary": "Both static8M parents passed named Adam scope expansion:10 existing states retained,76 new representation tensors initialize only on first gradient,all138 other checkpoint fields unchanged.25 tests and two actual serialized-parent/supplied-gradient fixtures passed;zero poker hands.",
+    "conclusion": "Existing head parameters and Adam updates are bitwise equal to heads-only controls for identical supplied gradients;derived weights remain identical to original parents. This qualifies scope-transfer mechanics only,not rollout continuation,CUDA equivalence or strength.",
+    "decision": "ADMIT_PREREGISTERED_MATCHED_CURRENT_REGIMEN_REPRESENTATION_PILOT",
+    "next_step": "Preregister a geometric two-seed full-representation versus heads-only continuation from both static8M parents. Bind current static Standard10 KL reference,unchanged poker contracts,effective LR and full initial state;use fresh managed namespaces and actual trainer initial-state audit before counting new hands. No automatic16M or Slumbot final test."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-current-kl-scope-transfer-20260905/protocol.md": {
+      "type": "file",
+      "bytes": 4649,
+      "sha256": "2ad7e5283f49b012714133ff2ceb5c59fd52298bbaad48ef65a4c73d54833a57"
+    },
+    "research/experiments/v6-current-kl-scope-transfer-20260905/code.patch": {
+      "type": "file",
+      "bytes": 332228,
+      "sha256": "5035b15f05f3107e1faaf7e7854d0d266986f14efb62bb6c6486461dbc0f4ba6"
+    },
+    "research/experiments/v6-current-kl-scope-transfer-20260905/source_manifest.json": {
+      "type": "file",
+      "bytes": 1079,
+      "sha256": "9315f7b64d61ac9a8b9e34a9bbc7c4ce760798ed2c20b186da82ad810deea7a8"
+    },
+    "research/experiments/v6-current-kl-scope-transfer-20260905/parent_inspection.json": {
+      "type": "file",
+      "bytes": 59849,
+      "sha256": "79347cb59b698f5e89a24f56efd814e0e6efb22b8a587b14f546b9fa0f9cdcf4"
+    },
+    "research/experiments/v6-current-kl-scope-transfer-20260905/scope_transfer.py": {
+      "type": "file",
+      "bytes": 7784,
+      "sha256": "e06f98fd8807ca8a90657bc0723052062f367b01a1e8b7857edea40da90f5537"
+    },
+    "research/experiments/v6-current-kl-scope-transfer-20260905/test_scope_transfer.py": {
+      "type": "file",
+      "bytes": 6879,
+      "sha256": "d2d53126391158fe10c20f86c6a558f536571046addeb830eae8bca581eead92"
+    },
+    "research/experiments/v6-current-kl-scope-transfer-20260905/scope_tests.xml": {
+      "type": "file",
+      "bytes": 4354,
+      "sha256": "9f2f45635338456c104523c3740fc1a84322a4da56fad27e8572fb61e245696d"
+    },
+    "research/experiments/v6-current-kl-scope-transfer-20260905/qualify_real_parents.py": {
+      "type": "file",
+      "bytes": 8433,
+      "sha256": "efcc1112cedfb91433aaedbeba90cc451001d64ab5574e9be4c83cc1f3ca2569"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\real_parent_qualification.json": {
+      "type": "file",
+      "bytes": 25692,
+      "sha256": "c35191054e22401c207f3384b851b7c9f5c790500cf8ebdaead12dd0dadebd92"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\finish_experiment.py": {
+      "type": "file",
+      "bytes": 3872,
+      "sha256": "91fab36cfd430230500376d44c602e26866ce893ef9f670ab0f80a662775189b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\result_summary.md": {
+      "type": "file",
+      "bytes": 4039,
+      "sha256": "60a07468efc073e13b01c4efae32f72c8605def05830f22ca0fb08083f377728"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\scope_tests.xml": {
+      "type": "file",
+      "bytes": 4354,
+      "sha256": "9f2f45635338456c104523c3740fc1a84322a4da56fad27e8572fb61e245696d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\derived\\seed1_full.pt": {
+      "type": "file",
+      "bytes": 307134042,
+      "sha256": "44d332a0e234b7806933680417095d6d2bcc0daf2779119d5b72bb36ca8c589f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\derived\\seed3_full.pt": {
+      "type": "file",
+      "bytes": 306662170,
+      "sha256": "12ac34ea420a6907add175c50e862d8a8f3b1f6e179c80bba9eb9eea60e55d9a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-scope-transfer-20260905\\post_finish_audit.json": {
+      "type": "file",
+      "bytes": 221,
+      "sha256": "42177738068dbf5abd4c3c89c09e184f777f7d7ab804a6e445c580495f0e16de"
+    }
+  }
+}

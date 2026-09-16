@@ -1,0 +1,290 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-regularized-return-two-seed-pilot-20260908",
+  "title": "Two-seed matched complete-trajectory regularized-return learning pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T15:27:19+00:00",
+  "updated_at": "2026-09-08T16:26:39+00:00",
+  "started_at": "2026-09-08T15:27:19+00:00",
+  "ended_at": "2026-09-08T16:26:39+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Full-trajectory eta0.1 regularization may improve learning or preservation relative to eta0 under matched retained-Adam on-policy training.",
+  "material_change": "Matched new gamma/lambda1 regimen with full chronology,2048 hands/update, fixed sampled Standard10 opponent/reference, two doses16k/65k and eight-anchor frozen evaluations.",
+  "baseline": "v6-fixed-regimen-two-seed-2m-20260908",
+  "source": "",
+  "parent_id": null,
+  "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/train.py 1",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/train.py 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:27:19+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/test_evaluate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:34:40+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py prepare 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:34:40+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py run 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:35:10+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/review_training.py 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:48:11+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py review 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:48:11+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/train.py 2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:48:11+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/review_training.py 2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:12:40+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py prepare 2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:12:40+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py run 2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:12:52+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py review 2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:26:39+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-regularized-return-two-seed-pilot-20260908"
+    ],
+    "captured_at": "2026-09-08T15:27:19+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-regularized-return-two-seed-pilot-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-regularized-return-two-seed-pilot-20260908/source_manifest.json",
+    "source_manifest_sha256": "88c878cb1fdf29124af004f832cfbaa2ebcb3e5bec758bc74e9d515c811a9d9d",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 3560.0,
+    "training_hands": 262144,
+    "unique_training_deals": 131072,
+    "unique_evaluation_deals": 16384,
+    "transition_hands": 242240,
+    "training_rows": 715001,
+    "optimizer_updates": 128
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/protocol.md",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/code.patch",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/source_manifest.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/test_evaluate.py",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluator_test_result.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_training_terminal.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_contract.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_training_review.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/review_training.py",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_review.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_terminal.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_training_terminal.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_training_review.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_contract.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/result.md",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_review.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_terminal.json",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_hands.jsonl",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_hands.jsonl",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed1_control/update-000031/checkpoint.pt",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed1_regularized/update-000031/checkpoint.pt",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed3_control/update-000031/checkpoint.pt",
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed3_regularized/update-000031/checkpoint.pt"
+  ],
+  "notes": [
+    "One treatment eta.1 and eta0 control across seeds1/3. Fixed opponent only is a bounded learning-signal test, not general equilibrium training.131072 distinct planned seed/deal keys across262144 planned total physical executions; matched arms share keys intentionally. Stage1 clean stop for evaluation. Legacy optimizer retained; old replay/pool inactive preserved in original hash-bound parents. No Slumbot hands.",
+    "Stage1 controller exit0 at65536 total physical hands across four arms, each16384. Evaluator implemented while training dependencies unchanged;3 zero-environment synthetic reviewer tests passed before collecting evaluation rewards. Now freeze stage1 evaluation inputs and verify available prior raw-deck overlap.",
+    "Stage1 evaluation preflight completed exit0; policy/source hashes frozen and8192 planned distinct decks disjoint from inventoried deck-bearing raw evidence. Launch49152 sampled paired internal executions, zero Slumbot.",
+    "Stage1 fixed49152 evaluation exit0; ordered raw/source hash review passed. Treatment-control S1+5.6084 CI[-12.4862,23.7030],S3+7.2351 CI[-5.0465,19.5167]. Positive direction not confirmed advantage. Own-parent treatment S1-23.0873 CI[-74.5644,28.3898],S3+43.8573 CI[-1.0241,88.7387]; no replicated broad catastrophic deterioration. Continue preregistered unchanged fixed second dose65536 per arm from exact retained checkpoints, not a success-triggered extra allocation.",
+    "Stage2 controller exit0, all four arms65536 new physical hands. Independent transaction/raw/deck/parent/Adam review passed262144 executions131072 unique decks. Per-arm86 Adam states advanced32 total updates with original optimizer options retained. Stage2 training wall1410.1603s. Preparing frozen final developmental panel before any final-stage evaluation rewards.",
+    "Stage2 evaluation preflight exit0; next8192 distinct evaluation decks checked disjoint from inventoried prior evidence including stage1 evaluation and all training. Launch unchanged49152 sampled paired internal executions; zero Slumbot."
+  ],
+  "result": {
+    "summary": "Fixed two-seed pilot complete262144 training and98304 internal evaluation executions; final treatment-control+71.67/+69.83bb100 with nominal95CI lower+5.42/+26.80.",
+    "conclusion": "Both stage raw/source and training/Adam audits passed. Positive two-seed final treatment-control signal; not yet replicated own-parent gain, unseen-family generalization or Slumbot success. Seed3 control declined and Seed1 seat contrast uneven. Fixed Standard10-only regimen is a mechanism pilot; not full RNaD. Preserve all frozen endpoints and raw evidence.",
+    "decision": "Retain the sole candidate for independent confirmation, no automatic promotion or paper-scale expansion.",
+    "next_step": "Preregister independent frozen comparison to control and parent with heterogeneous held-out coverage and external development calibration; then decide geometric scale and opponent breadth from confirmed evidence."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/protocol.md": {
+      "type": "file",
+      "bytes": 3074,
+      "sha256": "d26715d5f6e9d3dc706dac3851f098570362e8e931bd3487836e2cee1ba43f14"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 742,
+      "sha256": "88c878cb1fdf29124af004f832cfbaa2ebcb3e5bec758bc74e9d515c811a9d9d"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluate.py": {
+      "type": "file",
+      "bytes": 8392,
+      "sha256": "92fafbdf77bf2f15b7f30551a13572b1ff5b35b16e689a277d84333d0f77e0ec"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/test_evaluate.py": {
+      "type": "file",
+      "bytes": 4171,
+      "sha256": "8f161fc2d2b730bc2690a579a2f7a92a3b2ea2da5a873fcf08e3f1491ea59d47"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/evaluator_test_result.json": {
+      "type": "file",
+      "bytes": 126,
+      "sha256": "5735a383bdf209174952646b32bea2fb1aa10b37766c1359644693fe4c1412d2"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_training_terminal.json": {
+      "type": "file",
+      "bytes": 268,
+      "sha256": "5268040a46b587efae38702d67732cd279c176ec8c9c33fc28b9da573fac803f"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_contract.json": {
+      "type": "file",
+      "bytes": 51254,
+      "sha256": "f05535215cc7e773168170c70761ecff29048125c9939fd8bb3178cef6ff4fd1"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_training_review.json": {
+      "type": "file",
+      "bytes": 1252,
+      "sha256": "58356d729b195d5f67463644fc9ba1cf928b2f2952b8af278e16f3445eef2125"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/review_training.py": {
+      "type": "file",
+      "bytes": 4339,
+      "sha256": "1c3acd673022305098139bbf2cda45ee84a0cadf90425c19bca01f920d71dd0c"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_review.json": {
+      "type": "file",
+      "bytes": 17584,
+      "sha256": "16c53c7796557fc56e160cea9984d894cb98ecb1d04ff412b0c137f716d1d175"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_terminal.json": {
+      "type": "file",
+      "bytes": 178,
+      "sha256": "00d5c6913a79934542d71155e6814b4898e6a04084b398ec6e70b4ef2f356c79"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_training_terminal.json": {
+      "type": "file",
+      "bytes": 269,
+      "sha256": "a95b3153b231b931e5881a7c7bb7f94a5eb3e5cd29bc3584394e27db727841a4"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_training_review.json": {
+      "type": "file",
+      "bytes": 1266,
+      "sha256": "f1eb2f71e9b857a5e2e4d56e4ff5ad8af61750bff6a6aed87d29951bbe02bb48"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_contract.json": {
+      "type": "file",
+      "bytes": 51262,
+      "sha256": "2d20aa9e99d5df55ea537d271ecb32d030a3e63c9062b25bb6ca3460f29bd40a"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/result.md": {
+      "type": "file",
+      "bytes": 2764,
+      "sha256": "f977a75d07b749ce17269369e581fe0025335c6b953d05c79d84e7454ba680e8"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_review.json": {
+      "type": "file",
+      "bytes": 17545,
+      "sha256": "8dc11ff98ab5e923609c6df3dd275371580736f40320ed92e8d1360e4bf524a4"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_terminal.json": {
+      "type": "file",
+      "bytes": 178,
+      "sha256": "e94ddc9b116788e7f20348bb7626e8cd3a2bacb2161ce2c7338e5ddb0986ddf3"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage1_evaluation_hands.jsonl": {
+      "type": "file",
+      "bytes": 18482090,
+      "sha256": "03618c39434cf251ac18560d0d4133562c5f1fac3ab91468724b95bc9a852710"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/stage2_evaluation_hands.jsonl": {
+      "type": "file",
+      "bytes": 18479986,
+      "sha256": "3b15965def1fc57137224131b0cc3dc6fe2ecbc73981df2ab2e723b35c9bbc41"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed1_control/update-000031/checkpoint.pt": {
+      "type": "file",
+      "bytes": 99143552,
+      "sha256": "dd168974fa0b17db0165dd2394a817a53c1ac9171f922a64084074878f6ccdec"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed1_regularized/update-000031/checkpoint.pt": {
+      "type": "file",
+      "bytes": 99143552,
+      "sha256": "ed32a68a4ce11a2b4be6a8493cd1714f8710379762905f4f1548b965874e8ac9"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed3_control/update-000031/checkpoint.pt": {
+      "type": "file",
+      "bytes": 99143552,
+      "sha256": "fb7bf8138beca83d17e383bd658c90b1ea10b5bbae4a346c1e47508e1e78d038"
+    },
+    "research/experiments/v6-regularized-return-two-seed-pilot-20260908/seed3_regularized/update-000031/checkpoint.pt": {
+      "type": "file",
+      "bytes": 99143552,
+      "sha256": "46c12a1da4e85b79b1f7f0bbc7ebae12ab5f6bac3e26187e9291ab7875553682"
+    }
+  }
+}

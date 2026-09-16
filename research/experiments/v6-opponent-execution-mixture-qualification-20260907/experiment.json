@@ -1,0 +1,110 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-opponent-execution-mixture-qualification-20260907",
+  "title": "Generic historical-opponent execution mixture isolated qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-07T12:12:49+00:00",
+  "updated_at": "2026-09-07T12:13:19+00:00",
+  "started_at": "2026-09-07T12:12:49+00:00",
+  "ended_at": "2026-09-07T12:13:19+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Broader opponent execution styles may improve general training coverage; all historical opponents currently sample whereas internal anchors execute greedily.",
+  "material_change": "Isolated historical-opponent per-decision half sampled half greedy distribution; hero selfplay and PPO unchanged.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-retained-allocation-review-20260907",
+  "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-opponent-execution-mixture-qualification-20260907/test_mixture.py --junitxml=research/experiments/v6-opponent-execution-mixture-qualification-20260907/tests.xml",
+  "commands": [
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-opponent-execution-mixture-qualification-20260907/test_mixture.py --junitxml=research/experiments/v6-opponent-execution-mixture-qualification-20260907/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T12:12:49+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-opponent-execution-mixture-qualification-20260907"
+    ],
+    "captured_at": "2026-09-07T12:12:50+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-opponent-execution-mixture-qualification-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-opponent-execution-mixture-qualification-20260907/source_manifest.json",
+    "source_manifest_sha256": "22533db0008320e59b5d5c563cbe72a484378b18a0aa349a8c83a4982d69c756",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 30.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/protocol.md",
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/code.patch",
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/source_manifest.json",
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/train_candidate.py",
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/test_mixture.py",
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/tests.xml"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "Nine isolated tests passed, including actual frozen shared inference with 128 synthetic slots: hero outputs unchanged, opponent mixture log-probabilities exact, values unchanged and masked actions unsupported.",
+    "conclusion": "Generic opponent execution mixture is mathematically implemented and role-isolated. This is not a worker resume qualification or strength result; zero new poker hands.",
+    "decision": "Proceed to bounded real retained-parent managed resume qualification before allocating multi-seed training. Do not modify frozen prior runtime or start external evaluation.",
+    "next_step": "Bind mixture weight and wrapper hashes in managed launch evidence; verify actual two-seed worker sampling and exact optimizer/replay/counters; retain matched zero-mixture control."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/protocol.md": {
+      "type": "file",
+      "bytes": 1727,
+      "sha256": "7091b8acb51c56fe7e585c4074768e3ca7b3d1d27142584f6ed2f7f3e59684f1"
+    },
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 997,
+      "sha256": "22533db0008320e59b5d5c563cbe72a484378b18a0aa349a8c83a4982d69c756"
+    },
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/train_candidate.py": {
+      "type": "file",
+      "bytes": 2899,
+      "sha256": "97bd808d0587e0b30573c2872d1abcaf3fe23648bf572a9df43db8cfffc2162d"
+    },
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/test_mixture.py": {
+      "type": "file",
+      "bytes": 2818,
+      "sha256": "6467eb45b4fae87e7c87e538a309b32a6a935a1594191c1c1e3c4a22594461c8"
+    },
+    "research/experiments/v6-opponent-execution-mixture-qualification-20260907/tests.xml": {
+      "type": "file",
+      "bytes": 1609,
+      "sha256": "9ba6f03971a080b65cfd70e601b5f0573565d8cc690711c9f4f3ad2abfd6780b"
+    }
+  }
+}

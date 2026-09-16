@@ -1,0 +1,3 @@
+# Parent-KL conservative actor-tail result
+
+Decision: `ADMIT_OUTCOME_FREE_PARENT_DRIFT_GATE`. Added 65,064 physical hands to 197,617 lineage hands while preserving Adam/LR/counters/EMA/league evidence. Terminal parent-reference KL was 0.001185. The generic-greedy training-opponent matrix gave treatment minus parent +47.588965 bb/100, paired 95% CI [+8.604176, +86.573754], with 4/5 positive anchors. Audit and independent review passed. This matrix is not generalization evidence; zero Slumbot hands were used. The endpoint is admitted only to a separate outcome-free parent-drift gate. Goal not achieved.

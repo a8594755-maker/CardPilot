@@ -1,0 +1,131 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-greedy-es-sigma-calibration-20260902",
+  "title": "Outcome-blind greedy ES sigma calibration",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T04:56:42+00:00",
+  "updated_at": "2026-09-02T04:58:00+00:00",
+  "started_at": "2026-09-02T04:56:42+00:00",
+  "ended_at": "2026-09-02T04:58:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The prior zero-signal ES smoke is explained by unit-direction perturbations that were too small to cross Standard10 greedy margins; an outcome-blind geometric sigma scan will identify a cap-safe dose with median 1-8% and target approximately 3% action disagreement across every mirrored direction.",
+  "material_change": "Query 4,096 fresh balanced reachable states under the exact Standard10-plus-random-feature residual initialization and the exact eight ES directions. Scan sigma 0.005 through 0.8, measure action disagreement and residual-logit magnitude only, use no rewards or environment outcomes, and select a dose by preregistered activation bounds.",
+  "baseline": "At sigma 0.005, two fresh 6,144-hand generations produced exactly zero fitness differences and zero learned-weight update. This calibration determines whether the cause is perturbation scale rather than ES strength.",
+  "source": "research/experiments/v6-greedy-es-state-conditioned-smoke-20260902/run",
+  "parent_id": "v6-greedy-es-state-conditioned-smoke-20260902",
+  "command": "python scripts/alpha_holdem/v6_greedy_es_sigma_calibration.py --base-checkpoint models/baseline/standard10/latest.pt --seed 20261910 --state-seed 20261991 --states 4096 --directions 8 --sigma 0.005 --sigma 0.01 --sigma 0.02 --sigma 0.05 --sigma 0.1 --sigma 0.2 --sigma 0.4 --sigma 0.8 --batch-size 512 --device cuda --out-json research/experiments/v6-greedy-es-sigma-calibration-20260902/calibration.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_greedy_es_sigma_calibration.py --base-checkpoint models/baseline/standard10/latest.pt --seed 20261910 --state-seed 20261991 --states 4096 --directions 8 --sigma 0.005 --sigma 0.01 --sigma 0.02 --sigma 0.05 --sigma 0.1 --sigma 0.2 --sigma 0.4 --sigma 0.8 --batch-size 512 --device cuda --out-json research/experiments/v6-greedy-es-sigma-calibration-20260902/calibration.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:56:42+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-greedy-es-sigma-calibration-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:57:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4886efae5741bcece8551a3cc86e8f276c8bab02da42a799263372d7d33442a5",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T04:56:42+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-greedy-es-sigma-calibration-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-greedy-es-sigma-calibration-20260902/source_manifest.json",
+    "source_manifest_sha256": "f3008f1cd0b5f07728a16e259a543fb0e3d0a927aea025f915e3ec76ddac5f2d",
+    "source_files": 165
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 12288,
+    "offline_samples": 4096,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 78.0,
+    "planned_evaluation_hands": 0,
+    "planned_slumbot_hands": 0,
+    "slumbot_hands": 0,
+    "qualification_hands": 0
+  },
+  "metrics": {
+    "selected_sigma": 0.8,
+    "selected_median_disagreement": 0.0126953125,
+    "selected_minimum_disagreement": 0.00830078125,
+    "selected_maximum_disagreement": 0.018798828125,
+    "selected_max_residual_logit": 0.2001,
+    "admitted": true,
+    "tests_passed": 264
+  },
+  "artifacts": [
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/code.patch",
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/source_manifest.json",
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/calibration.json",
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_greedy_es_sigma_calibration.py",
+    "scripts/alpha_holdem/test_v6_greedy_es_sigma_calibration.py"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "An outcome-blind scan queried the exact eight mirrored ES directions over 4,096 fresh balanced states at eight geometric sigmas. Median greedy disagreement rose from 0 at sigma 0.005 to 1.2695% at sigma 0.8; the selected dose spanned 0.8301%-1.8799% across directions and kept the maximum residual logit near 0.2001 under the 0.25 cap. All 264 tests passed.",
+    "conclusion": "The prior two-generation zero-fitness result was caused by an inactive perturbation dose, not evidence against direct-greedy ES. Sigma 0.8 is the smallest scanned dose satisfying the preregistered 1-8% median activation band with every direction nonzero and cap-safe behavior. This is an outcome-blind activation result only and makes no strength claim.",
+    "decision": "ADMIT_SIGMA0P8_GREEDY_ES_MINIMAL_SIGNAL_RETRY",
+    "next_step": "Run one minimal fresh mirrored generation at sigma 0.8 with the same six opponents and both seats. Require nonzero fitness differences, positive split-half direction correlation, a nonzero trust-region-bounded center update, and untouched holdout direction agreement before considering a second generation or multi-seed geometric scale."
+  },
+  "tags": [
+    "calibration",
+    "evolution-strategy",
+    "outcome-blind"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 30995,
+      "sha256": "f3008f1cd0b5f07728a16e259a543fb0e3d0a927aea025f915e3ec76ddac5f2d"
+    },
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/calibration.json": {
+      "type": "file",
+      "bytes": 171586,
+      "sha256": "ab1a03e25415e3a18e4564fc6e03c987ea2b2db0215099009d82e49e4e74b54c"
+    },
+    "research/experiments/v6-greedy-es-sigma-calibration-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 39864,
+      "sha256": "0fa040b38df2ffea0a7dde85ab1c28b8e44429ddbd5cf31c921001f8177a72d0"
+    },
+    "scripts/alpha_holdem/v6_greedy_es_sigma_calibration.py": {
+      "type": "file",
+      "bytes": 7825,
+      "sha256": "fdefd253ae792296f704feb87b9acf373279dd5e69a5cf0d39204fe327127266"
+    },
+    "scripts/alpha_holdem/test_v6_greedy_es_sigma_calibration.py": {
+      "type": "file",
+      "bytes": 891,
+      "sha256": "e8684337b9ec2db0c8f49dde68fd5c77edf52c799ab730cc5893aeb28342511e"
+    }
+  }
+}

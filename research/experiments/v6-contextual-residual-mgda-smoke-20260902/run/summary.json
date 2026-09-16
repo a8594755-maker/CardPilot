@@ -1,0 +1,253 @@
+{
+  "actual_environment_training_hands": 4608,
+  "actual_learning_hands": 3072,
+  "admitted": false,
+  "artifact_sha256": {
+    "seed0_contextual_residual.pt": "a1f4ffa131744d1770999e30789879211834c2476a8720d91ec068bfa370002a",
+    "seed0_evaluation_hands.jsonl.gz": "78bd76e3f4ab932135e95436f716116c3b21f43eae970a686b9549411434bf77",
+    "seed0_schedule.jsonl.gz": "d8302690b3b92dae303d69c3b98a6369de4aca5efc06746934003a9bfd0e1179",
+    "seed0_training_hands.jsonl.gz": "d1db6ba7c6bd68432d0f472fc71a873fa84ef5ff78ccad1a43c87605ae56622c",
+    "seed1_contextual_residual.pt": "ee4c6322e4f3250b02696d341707fc4d80924bc89be0651d61770699df90b98c",
+    "seed1_evaluation_hands.jsonl.gz": "c6337f500dbe36d8c8e6df0006356000706e03c348620775814e96a3c05927f8",
+    "seed1_schedule.jsonl.gz": "e10d7e60895a34c0c0447944b1851620e172dd079bbdc732ccd98591ee29f85d",
+    "seed1_training_hands.jsonl.gz": "3e39a9e0e28b79cfbb4face888df5d0bbf36eaeb429c427d5ff6d8075ebbd34b"
+  },
+  "base_sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "claim_scope": "BROAD_CONTEXTUAL_POLICY_MECHANISM_NOT_SLUMBOT_STRENGTH",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py",
+    "--spec",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json",
+    "--base-checkpoint",
+    "models/baseline/standard10/latest.pt",
+    "--seed",
+    "20262210",
+    "--seeds",
+    "2",
+    "--warmup-hands",
+    "64",
+    "--learning-hands-per-group",
+    "128",
+    "--steps",
+    "32",
+    "--group-batch-size",
+    "64",
+    "--pairs-per-policy",
+    "64",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-contextual-residual-mgda-smoke-20260902/run"
+  ],
+  "completed_at": "2026-09-02T05:56:13.539703+00:00",
+  "decision": "HOLD_CONTEXTUAL_RESIDUAL_AFTER_SMOKE",
+  "evaluation_hands": 9216,
+  "gates": {
+    "all_active_source_agreement_at_least_95pct": true,
+    "all_active_source_partitions_at_least_90pct": true,
+    "all_context_encoders_updated": true,
+    "all_geometry_positive_at_least_75pct": true,
+    "all_residual_caps_respected": true,
+    "all_zero_context_exact": true,
+    "base_file_hash_unchanged": true,
+    "base_state_unchanged": true,
+    "median_correct_context_beats_wrong_context": false,
+    "median_correct_context_delta_nonnegative": false,
+    "training_hands_exact": true
+  },
+  "holdout_policies": [
+    {
+      "label": "weak_kl_full",
+      "sha256": "ff2b9e6fe188ac89aa3ff4b632b70a195a46e8e6a73f1b94a75fcfbbf543c17e"
+    },
+    {
+      "label": "fictitious_response_phase2",
+      "sha256": "393fb9e119ba73864ee76f6732c468d3e09c1329da3625f167f53de8321eea17"
+    },
+    {
+      "label": "fictitious_average_phase2",
+      "sha256": "c60dfc881ff1b97245219b226eabb5f4c00c1a3d421f71681b63097f45bfa3ea"
+    }
+  ],
+  "schema": "cardpilot.contextual_residual_mgda_smoke.v1",
+  "seed_summaries": [
+    {
+      "checkpoint": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-contextual-residual-mgda-smoke-20260902\\run\\seed0_contextual_residual.pt",
+      "checkpoint_sha256": "a1f4ffa131744d1770999e30789879211834c2476a8720d91ec068bfa370002a",
+      "context_encoder_update_l2": 0.19359593418665702,
+      "evaluation": {
+        "pooled_correct_minus_base": {
+          "bb100": 0.2170138888888889,
+          "ci95_half_bb100": 2.7669111257996075,
+          "hands": 1152
+        },
+        "pooled_correct_minus_wrong": {
+          "bb100": 0.0,
+          "ci95_half_bb100": 0.0,
+          "hands": 1152
+        },
+        "seats": {
+          "0": {
+            "bb100": -0.3472222222222222,
+            "ci95_half_bb100": 5.319853101695366,
+            "hands": 576
+          },
+          "1": {
+            "bb100": 0.78125,
+            "ci95_half_bb100": 1.53125,
+            "hands": 576
+          }
+        },
+        "splits": {
+          "holdout": {
+            "correct_minus_base": {
+              "bb100": -3.125,
+              "ci95_half_bb100": 6.125,
+              "hands": 384
+            },
+            "correct_minus_wrong": {
+              "bb100": 0.0,
+              "ci95_half_bb100": 0.0,
+              "hands": 384
+            }
+          },
+          "training": {
+            "correct_minus_base": {
+              "bb100": 1.8880208333333333,
+              "ci95_half_bb100": 2.7972120954683466,
+              "hands": 768
+            },
+            "correct_minus_wrong": {
+              "bb100": 0.0,
+              "ci95_half_bb100": 0.0,
+              "hands": 768
+            }
+          }
+        }
+      },
+      "evaluation_environment_hands": 4608,
+      "evaluation_evidence_sha256": "78bd76e3f4ab932135e95436f716116c3b21f43eae970a686b9549411434bf77",
+      "learning_hands": 1536,
+      "maximum_evaluation_delta": 0.02047133445739746,
+      "positive_worst_alignment_fraction": 1.0,
+      "preservation": {
+        "active_disagreement_rate": 0.001953125,
+        "max_abs_residual_logit": 0.022774219512939453,
+        "minimum_partition_agreement": 0.9956521739130435,
+        "overall_agreement": 0.998046875,
+        "states": 2048,
+        "zero_context_exact": true
+      },
+      "schedule_sha256": "d8302690b3b92dae303d69c3b98a6369de4aca5efc06746934003a9bfd0e1179",
+      "seed": 20262210,
+      "seed_index": 0,
+      "training_environment_hands": 2304,
+      "training_evidence_sha256": "d1db6ba7c6bd68432d0f472fc71a873fa84ef5ff78ccad1a43c87605ae56622c",
+      "transition_rows": 4061
+    },
+    {
+      "checkpoint": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-contextual-residual-mgda-smoke-20260902\\run\\seed1_contextual_residual.pt",
+      "checkpoint_sha256": "ee4c6322e4f3250b02696d341707fc4d80924bc89be0651d61770699df90b98c",
+      "context_encoder_update_l2": 0.18325225033165493,
+      "evaluation": {
+        "pooled_correct_minus_base": {
+          "bb100": -2.647569444444444,
+          "ci95_half_bb100": 7.201313352982447,
+          "hands": 1152
+        },
+        "pooled_correct_minus_wrong": {
+          "bb100": 0.0,
+          "ci95_half_bb100": 0.0,
+          "hands": 1152
+        },
+        "seats": {
+          "0": {
+            "bb100": 2.083333333333333,
+            "ci95_half_bb100": 5.206989681754105,
+            "hands": 576
+          },
+          "1": {
+            "bb100": -7.378472222222222,
+            "ci95_half_bb100": 13.424016930662628,
+            "hands": 576
+          }
+        },
+        "splits": {
+          "holdout": {
+            "correct_minus_base": {
+              "bb100": 1.3020833333333335,
+              "ci95_half_bb100": 11.620076771285335,
+              "hands": 384
+            },
+            "correct_minus_wrong": {
+              "bb100": 0.0,
+              "ci95_half_bb100": 0.0,
+              "hands": 384
+            }
+          },
+          "training": {
+            "correct_minus_base": {
+              "bb100": -4.622395833333334,
+              "ci95_half_bb100": 9.108355029887978,
+              "hands": 768
+            },
+            "correct_minus_wrong": {
+              "bb100": 0.0,
+              "ci95_half_bb100": 0.0,
+              "hands": 768
+            }
+          }
+        }
+      },
+      "evaluation_environment_hands": 4608,
+      "evaluation_evidence_sha256": "c6337f500dbe36d8c8e6df0006356000706e03c348620775814e96a3c05927f8",
+      "learning_hands": 1536,
+      "maximum_evaluation_delta": 0.0310211181640625,
+      "positive_worst_alignment_fraction": 1.0,
+      "preservation": {
+        "active_disagreement_rate": 0.001953125,
+        "max_abs_residual_logit": 0.02345895767211914,
+        "minimum_partition_agreement": 0.9956521739130435,
+        "overall_agreement": 0.998046875,
+        "states": 2048,
+        "zero_context_exact": true
+      },
+      "schedule_sha256": "e10d7e60895a34c0c0447944b1851620e172dd079bbdc732ccd98591ee29f85d",
+      "seed": 20272217,
+      "seed_index": 1,
+      "training_environment_hands": 2304,
+      "training_evidence_sha256": "3e39a9e0e28b79cfbb4face888df5d0bbf36eaeb429c427d5ff6d8075ebbd34b",
+      "transition_rows": 4143
+    }
+  ],
+  "spec_sha256": "aebc61731e50ec1256f9263de2680977a2cdd5723e78f5bd29a321f0310e207c",
+  "status": "COMPLETED",
+  "training_policies": [
+    {
+      "label": "standard10",
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    {
+      "label": "slumbot_free_anchor",
+      "sha256": "457d3babb82cb8014a2b7c378b2b5f916962565e63a44d192d5d7acd8393d6e7"
+    },
+    {
+      "label": "corrected_cfr96",
+      "sha256": "902a7049ca66c0552246d11fe482eed4df47ac5c675ddf051c34ed86dcf213a6"
+    },
+    {
+      "label": "legacy_iter16",
+      "sha256": "0b1b58a87637f620ae580754bc940ec7aca246d94762d77717c9b578aac9f290"
+    },
+    {
+      "label": "procedural_soup_iter32",
+      "sha256": "66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c"
+    },
+    {
+      "label": "diverse_league5",
+      "sha256": "52ddabe9c2f75f1242e5603778595f7e68674d8d8f5e2185170fb9515660f25a"
+    }
+  ],
+  "wall_time_seconds": 693.7584862709045
+}

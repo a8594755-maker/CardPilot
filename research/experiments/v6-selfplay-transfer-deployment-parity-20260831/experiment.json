@@ -1,0 +1,176 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-selfplay-transfer-deployment-parity-20260831",
+  "title": "Both self-play-share endpoints offline deployment parity",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T14:54:40+00:00",
+  "updated_at": "2026-08-31T15:22:58+00:00",
+  "started_at": "2026-08-31T15:18:21+00:00",
+  "ended_at": "2026-08-31T15:20:22+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Both new fixed learned-weight endpoints must produce exactly identical native/public observations, legal actions and sampled distributions on preserved exogenous states before live transfer measurement.",
+  "material_change": "CPU-only parity for two actual new frozen identities on4202old states each,16808model calls, no new game hands or network; run only after BOTH training endpoints frozen and health-audited.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-selfplay75-transfer-pilot-r4-20260831",
+  "command": "python research/experiments/v6-selfplay-transfer-deployment-parity-20260831/run_parity.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-selfplay-transfer-deployment-parity-20260831/run_parity.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:54:40+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\test_parity.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:18:23+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -Command \"`$parityBase='C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831'; `$report=Get-Content -LiteralPath `\"`$parityBase\\analysis.json`\" -Raw | ConvertFrom-Json; `$rows=@(Get-Content -LiteralPath `\"`$parityBase\\parity.jsonl`\" | ForEach-Object { `$_ | ConvertFrom-Json }); if (`$rows.Count -ne 8404 -or `$report.status -ne 'PASS' -or `$report.model_queries -ne 16808) { throw 'Incomplete parity' }; foreach (`$arm in @('control25','selfplay75')) {;   `$armRows=@(`$rows | Where-Object arm -eq `$arm);   if (`$armRows.Count -ne 4202) { throw 'Wrong arm count' };   for (`$i=0; `$i -lt 4202; `$i++) {;     `$row=`$armRows[`$i];     if (`$row.state_index -ne `$i -or -not `$row.observation_equal -or -not `$row.action_table_equal -or -not `$row.decision_equal -or `$row.model_sha256 -ne `$report.arms.`$arm.model_sha256) { throw 'Invalid parity row' };   }; }; `$rawHash=(Get-FileHash -LiteralPath `\"`$parityBase\\parity.jsonl`\" -Algorithm SHA256).Hash.ToLower(); if (`$rawHash -ne `$report.parity_sha256) { throw 'Raw hash mismatch' }; `$active='C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831'; `$copies=Get-Content -LiteralPath `\"`$active\\execution_code\\copy_manifest.json`\" -Raw | ConvertFrom-Json; foreach (`$row in `$copies) {;   foreach (`$key in @('original','copy')) {;     if ((Get-FileHash -LiteralPath (Join-Path 'C:\\Users\\a8594\\CardPilot' `$row.`$key) -Algorithm SHA256).Hash.ToLower() -ne `$row.sha256) { throw 'Active code changed' };   }; }; [pscustomobject]@{status='PASS'; raw_policy_states=`$rows.Count; model_calls=`$report.model_queries; active_source_pairs=`$copies.Count; parity_sha256=`$rawHash} | ConvertTo-Json\"",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-31T15:21:49+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-selfplay-transfer-deployment-parity-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T14:54:41+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/source_manifest.json",
+    "source_manifest_sha256": "7d029a4bb41d1548756392926e398a01761b3f05ce0a62e6d69cc9b3d609f74a",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 121.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "model_queries": 16808,
+    "states_checked": 8404,
+    "replayed_validation_trajectories": 1024
+  },
+  "artifacts": [
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/preregistration.md",
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/code.patch",
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\frozen\\control25.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\frozen\\selfplay75.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\parity.jsonl",
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/post_finish_audit.json"
+  ],
+  "notes": [
+    "Prepared and compiled before final weights exist, not launched. Runtime resolves ONLY the two final hashes from the active candidate_manifest after both training-health/session audits pass; cannot choose checkpoints by internal score. Active76source pairs remain protected. No policy queries until prerequisites satisfied.",
+    "Both r4 trainers exited0 and both full training health/session audits PASS. Finals now frozen before internal matrix: control25 a3f4f21eb7a0eb0e6bcaeb4929f06951ed1ac0bd74c0afd1920f5320e386d553; selfplay75 c3b6aaa07b5af62478c7bad651cec917ffaaf9dc3c9f7b4f0902f6cac31994be. Launching preregistered single-CPU actual-weight parity while untouched internal matrix proceeds; no training overlap or network.",
+    "Independent post-exit raw review verifies8404contiguous policy-state rows,4202per fixed model, all equality flags/identities, rawSHA bf5fca7060e852363747341ba207dffd17b7e96d65dba9f20dcd01ab2150b8f0,16808actual recorded model calls and all76active source/copy pairs unchanged. Original parity process exited0. No extra model calls or game hands.",
+    "Post-finish audit has ONE lexical command-classifier false positive: legacy COMMAND_PLACEHOLDER_RE treats legitimate PowerShell script blocks and hashtable braces as placeholders. The exact recorded wrapped command was independently executed successfully (exit0) and reproduced8404valid rows,16808recorded calls,raw hash and76unchanged pairs. Preserve the warning/command; do not erase evidence or modify logger while active source captures are protected. This is not a parity/model/session failure and no all-audits-green claim is made."
+  ],
+  "result": {
+    "summary": "Both frozen self-play-share endpoints passed4202native/public state comparisons each;16808model calls, zero new hands/network.",
+    "conclusion": "Exact observation/legal/probability/action parity on fixed old exogenous corpus; not live strength or100k qualification.",
+    "decision": "BOTH_FROZEN_ENDPOINTS_DEPLOYMENT_PARITY_PASS",
+    "next_step": "Require completed independent r4 training/evidence review before a separately preregistered balanced20k-per-arm Slumbot cohort."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 2,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2619,
+      "sha256": "4bc36b0e1818f85a0193f7b49c6c7108036413a686b66e717e7c4d36da4620ec"
+    },
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1363,
+      "sha256": "7d029a4bb41d1548756392926e398a01761b3f05ce0a62e6d69cc9b3d609f74a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1152,
+      "sha256": "b50eccadd90a8557c5824cc32dd0fe4238c189d8f88672fd607d90a7dd686df8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1848,
+      "sha256": "2312a824b1f9aeac024aab71b8cf158882149f65fb1a1abbfef1c6615faf9e1b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 2355,
+      "sha256": "23bc568146ba7f0666b12f05b0bcc7e521f1bda2178c493792cde793a464192f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\frozen\\control25.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "a3f4f21eb7a0eb0e6bcaeb4929f06951ed1ac0bd74c0afd1920f5320e386d553"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\frozen\\selfplay75.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "c3b6aaa07b5af62478c7bad651cec917ffaaf9dc3c9f7b4f0902f6cac31994be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 5401,
+      "sha256": "9a35d7a7e6c30b6291eb11fa1634eaf354805dc6049692133806fd8618fd54e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 1737,
+      "sha256": "8e584ec8268fdd31e5f639efccaf20804a27e5832ee3f0c1957ab4c5d7370df2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-deployment-parity-20260831\\parity.jsonl": {
+      "type": "file",
+      "bytes": 7805689,
+      "sha256": "bf5fca7060e852363747341ba207dffd17b7e96d65dba9f20dcd01ab2150b8f0"
+    },
+    "research/experiments/v6-selfplay-transfer-deployment-parity-20260831/post_finish_audit.json": {
+      "type": "file",
+      "bytes": 628,
+      "sha256": "681e0dac7393b5c561ce02d84a4f6eed737cb8ec0e4880644f23c167912a77ae"
+    }
+  }
+}

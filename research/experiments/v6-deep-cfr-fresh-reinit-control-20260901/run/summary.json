@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "config": {
+    "iterations": 3,
+    "traversals_per_player": 2,
+    "train_steps": 512,
+    "batch_size": 256,
+    "lr": 0.001,
+    "eval_pairs": 256,
+    "node_limit": 250000,
+    "seed": 60907,
+    "output_dir": "research\\experiments\\v6-deep-cfr-fresh-reinit-control-20260901\\run"
+  },
+  "common_decks": {
+    "path": "research\\experiments\\v6-deep-cfr-fresh-reinit-control-20260901\\run\\common_decks.json",
+    "sha256": "b2990a6885a3678d08ebb697de703ddd044c7e9a555132cbca12cd717683424c"
+  },
+  "accounting": {
+    "environment_training_hands": 24,
+    "evaluation_hands": 3072
+  },
+  "arms": {
+    "warm": {
+      "mode": "warm",
+      "initial_sha256": "916a6f0bd87f1f62f53d5369a680b20b7196d034a08ff2a68613f032f4f05269",
+      "iterations": [
+        {
+          "iteration": 1,
+          "players": [
+            {
+              "player": 0,
+              "loss": 86.73212356865406,
+              "mean_root_value_bb": 0.0,
+              "new_traverser_nodes": 668,
+              "buffer_size": 668,
+              "stats": {
+                "decision_nodes": 6002,
+                "traverser_nodes": 668,
+                "sampled_opponent_nodes": 5334,
+                "terminal_rollouts": 4668,
+                "max_depth": 9
+              }
+            },
+            {
+              "player": 1,
+              "loss": 56.70236250758171,
+              "mean_root_value_bb": -99.5,
+              "new_traverser_nodes": 364,
+              "buffer_size": 364,
+              "stats": {
+                "decision_nodes": 3071,
+                "traverser_nodes": 364,
+                "sampled_opponent_nodes": 2707,
+                "terminal_rollouts": 2396,
+                "max_depth": 11
+              }
+            }
+          ],
+          "log_imbalance": 0.6058867065457368
+        },
+        {
+          "iteration": 2,
+          "players": [
+            {
+              "player": 0,
+              "loss": 17.404908834025264,
+              "mean_root_value_bb": 0.5,
+              "new_traverser_nodes": 0,
+              "buffer_size": 668,
+              "stats": {
+                "decision_nodes": 2,
+                "traverser_nodes": 0,
+                "sampled_opponent_nodes": 2,
+                "terminal_rollouts": 2,
+                "max_depth": 1
+              }
+            },
+            {
+              "player": 1,
+              "loss": 80.49142543971539,
+              "mean_root_value_bb": 0.9502067565917969,
+              "new_traverser_nodes": 3825,
+              "buffer_size": 4189,
+              "stats": {
+                "decision_nodes": 22680,
+                "traverser_nodes": 3825,
+                "sampled_opponent_nodes": 18855,
+                "terminal_rollouts": 15169,
+                "max_depth": 15
+              }
+            }
+          ],
+          "log_imbalance": 8.249575150000199
+        },
+        {
+          "iteration": 3,
+          "players": [
+            {
+              "player": 0,
+              "loss": 35.30008630640805,
+              "mean_root_value_bb": -69.16077613830566,
+              "new_traverser_nodes": 261,
+              "buffer_size": 929,
+              "stats": {
+                "decision_nodes": 657,
+                "traverser_nodes": 261,
+                "sampled_opponent_nodes": 396,
+                "terminal_rollouts": 545,
+                "max_depth": 15
+              }
+            },
+            {
+              "player": 1,
+              "loss": 73.42600777745247,
+              "mean_root_value_bb": -6.910297393798828,
+              "new_traverser_nodes": 2825,
+              "buffer_size": 7014,
+              "stats": {
+                "decision_nodes": 10595,
+                "traverser_nodes": 2825,
+                "sampled_opponent_nodes": 7770,
+                "terminal_rollouts": 6778,
+                "max_depth": 16
+              }
+            }
+          ],
+          "log_imbalance": 2.378273059483376
+        }
+      ],
+      "stats": {
+        "decision_nodes": 43007,
+        "traverser_nodes": 7943,
+        "sampled_opponent_nodes": 35064,
+        "terminal_rollouts": 29558,
+        "max_depth": 16
+      },
+      "buffer_sizes": [
+        929,
+        7014
+      ],
+      "all_seat_iterations_covered": false,
+      "mean_log_imbalance": 3.7445783053431043,
+      "checkpoint": "research\\experiments\\v6-deep-cfr-fresh-reinit-control-20260901\\run\\warm\\snapshot_policy.pt",
+      "checkpoint_sha256": "6dcff94717fde8ce272f7126a4b419375eed8cc287af81e0f59084571aa77232",
+      "evaluations": [
+        {
+          "anchor": "call_station",
+          "pairs": 256,
+          "hands": 512,
+          "candidate_bb100": -39.765624999999986,
+          "candidate_ci95_bb100": [
+            -890.3708920015166,
+            810.8396420015165
+          ],
+          "mean_tv_from_passive": 0.6340562437274366
+        },
+        {
+          "anchor": "uniform",
+          "pairs": 256,
+          "hands": 512,
+          "candidate_bb100": 2.636718749999911,
+          "candidate_ci95_bb100": [
+            -912.3218132651601,
+            917.5952507651598
+          ],
+          "mean_tv_from_passive": 0.5763638990811996
+        },
+        {
+          "anchor": "min_bet",
+          "pairs": 256,
+          "hands": 512,
+          "candidate_bb100": -296.66015624999994,
+          "candidate_ci95_bb100": [
+            -934.8725835411502,
+            341.55227104115033
+          ],
+          "mean_tv_from_passive": 0.5137847675202357
+        }
+      ],
+      "anchor_mean_bb100": -111.26302083333333
+    },
+    "fresh": {
+      "mode": "fresh",
+      "initial_sha256": "916a6f0bd87f1f62f53d5369a680b20b7196d034a08ff2a68613f032f4f05269",
+      "iterations": [
+        {
+          "iteration": 1,
+          "players": [
+            {
+              "player": 0,
+              "loss": 39.44354070909321,
+              "mean_root_value_bb": 0.0,
+              "new_traverser_nodes": 668,
+              "buffer_size": 668,
+              "stats": {
+                "decision_nodes": 6002,
+                "traverser_nodes": 668,
+                "sampled_opponent_nodes": 5334,
+                "terminal_rollouts": 4668,
+                "max_depth": 9
+              }
+            },
+            {
+              "player": 1,
+              "loss": 45.76327403448522,
+              "mean_root_value_bb": -99.5,
+              "new_traverser_nodes": 568,
+              "buffer_size": 568,
+              "stats": {
+                "decision_nodes": 4800,
+                "traverser_nodes": 568,
+                "sampled_opponent_nodes": 4232,
+                "terminal_rollouts": 3897,
+                "max_depth": 15
+              }
+            }
+          ],
+          "log_imbalance": 0.1619036260018976
+        },
+        {
+          "iteration": 2,
+          "players": [
+            {
+              "player": 0,
+              "loss": 36.41182035766542,
+              "mean_root_value_bb": 0.0,
+              "new_traverser_nodes": 2,
+              "buffer_size": 670,
+              "stats": {
+                "decision_nodes": 4,
+                "traverser_nodes": 2,
+                "sampled_opponent_nodes": 2,
+                "terminal_rollouts": 4,
+                "max_depth": 2
+              }
+            },
+            {
+              "player": 1,
+              "loss": 65.15740902908146,
+              "mean_root_value_bb": -99.12966918945312,
+              "new_traverser_nodes": 339,
+              "buffer_size": 907,
+              "stats": {
+                "decision_nodes": 3013,
+                "traverser_nodes": 339,
+                "sampled_opponent_nodes": 2674,
+                "terminal_rollouts": 2347,
+                "max_depth": 11
+              }
+            }
+          ],
+          "log_imbalance": 4.7303333289420975
+        },
+        {
+          "iteration": 3,
+          "players": [
+            {
+              "player": 0,
+              "loss": 40.454982589930296,
+              "mean_root_value_bb": 0.0,
+              "new_traverser_nodes": 2,
+              "buffer_size": 672,
+              "stats": {
+                "decision_nodes": 4,
+                "traverser_nodes": 2,
+                "sampled_opponent_nodes": 2,
+                "terminal_rollouts": 4,
+                "max_depth": 2
+              }
+            },
+            {
+              "player": 1,
+              "loss": 45.95912688225508,
+              "mean_root_value_bb": -94.75613975524902,
+              "new_traverser_nodes": 4066,
+              "buffer_size": 4973,
+              "stats": {
+                "decision_nodes": 18292,
+                "traverser_nodes": 4066,
+                "sampled_opponent_nodes": 14226,
+                "terminal_rollouts": 10786,
+                "max_depth": 16
+              }
+            }
+          ],
+          "log_imbalance": 7.212048617239115
+        }
+      ],
+      "stats": {
+        "decision_nodes": 32115,
+        "traverser_nodes": 5645,
+        "sampled_opponent_nodes": 26470,
+        "terminal_rollouts": 21706,
+        "max_depth": 16
+      },
+      "buffer_sizes": [
+        672,
+        4973
+      ],
+      "all_seat_iterations_covered": true,
+      "mean_log_imbalance": 4.03476185739437,
+      "checkpoint": "research\\experiments\\v6-deep-cfr-fresh-reinit-control-20260901\\run\\fresh\\snapshot_policy.pt",
+      "checkpoint_sha256": "b6292bfa051c66c5b4ccc496a147c11fe3e6d66000c6dfeaed60386c2265e047",
+      "evaluations": [
+        {
+          "anchor": "call_station",
+          "pairs": 256,
+          "hands": 512,
+          "candidate_bb100": 539.9374999999999,
+          "candidate_ci95_bb100": [
+            -145.45571932595925,
+            1225.330719325959
+          ],
+          "mean_tv_from_passive": 0.8687743562129632
+        },
+        {
+          "anchor": "uniform",
+          "pairs": 256,
+          "hands": 512,
+          "candidate_bb100": 576.3144531249999,
+          "candidate_ci95_bb100": [
+            -259.2977702609728,
+            1411.9266765109726
+          ],
+          "mean_tv_from_passive": 0.7115814738504165
+        },
+        {
+          "anchor": "min_bet",
+          "pairs": 256,
+          "hands": 512,
+          "candidate_bb100": -475.025390625,
+          "candidate_ci95_bb100": [
+            -1259.9043099439837,
+            309.85352869398355
+          ],
+          "mean_tv_from_passive": 0.7103326643814373
+        }
+      ],
+      "anchor_mean_bb100": 213.74218749999991
+    }
+  },
+  "comparison": {
+    "anchors_better_for_fresh": 2,
+    "anchor_mean_delta_bb100": 325.00520833333326,
+    "imbalance_delta": 0.2901835520512659
+  },
+  "gates": {
+    "identical_initial_weights": true,
+    "fresh_covers_every_seat_iteration": true,
+    "fresh_snapshot_mean_better": true,
+    "at_least_two_fresh_anchors_better": true
+  },
+  "admit_fresh_reinit": true,
+  "decision": "ADMIT_PAPER_FRESH_REINIT"
+}

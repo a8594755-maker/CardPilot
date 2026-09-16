@@ -1,0 +1,108 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-regularized-full-hand-adapter-20260908",
+  "title": "Regularized return complete-hand capture and replay qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T15:10:31+00:00",
+  "updated_at": "2026-09-08T15:10:56+00:00",
+  "started_at": "2026-09-08T15:10:31+00:00",
+  "ended_at": "2026-09-08T15:10:56+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Both-player frozen policy and reference probabilities can be captured and verified without reconstructing missing opponent actions from legacy transitions.",
+  "material_change": "Isolated chronological physical-v6 collector and rejecting adapter,16 new fixture deals with deterministic replay and unsupported-input guards; no weight updates.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-regularized-return-kernel-20260908",
+  "command": "python research/experiments/v6-regularized-full-hand-adapter-20260908/qualify.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-regularized-full-hand-adapter-20260908/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:10:31+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-regularized-full-hand-adapter-20260908"
+    ],
+    "captured_at": "2026-09-08T15:10:31+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-regularized-full-hand-adapter-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-regularized-full-hand-adapter-20260908/source_manifest.json",
+    "source_manifest_sha256": "3041f5d91477a73fd3d0cf73a2f2293f19ced1c5f9df60d5a6fccad347e3756e",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 32,
+    "wall_time_seconds": 25.0,
+    "training_hands": 0
+  },
+  "metrics": {
+    "unique_fixture_decks": 16,
+    "captured_decisions": 96,
+    "rejecting_guard_cases": 80
+  },
+  "artifacts": [
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/code.patch",
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/source_manifest.json",
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/inputs.json",
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/hands.jsonl",
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/result.json"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "Complete-hand adapter passed16 collected deals plus16 deterministic replays,96 decisions and80 rejection cases; zero learned updates.",
+    "conclusion": "Both-player sampled probabilities and reference probabilities are reconstructed exactly on real retained-policy trajectories, chronology and terminal payoffs match, unsupported epsilon/replay/temperature/missing-binding/truncated inputs reject. Guards replay incomplete prefixes not counted as completed hands. No optimizer integration or poker-strength result.",
+    "decision": "Proceed to isolated retained-state actor/critic target integration, with explicit reward-unit conversion and fresh on-policy collection; do not reinterpret old replay as complete traces.",
+    "next_step": "Implement matched eta0/regularized-return PPO target adapter, preserve original Adam and all saved buffers/counters, validate real gradient updates and serialization before a bounded learned-weight pilot."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 523,
+      "sha256": "3041f5d91477a73fd3d0cf73a2f2293f19ced1c5f9df60d5a6fccad347e3756e"
+    },
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/inputs.json": {
+      "type": "file",
+      "bytes": 1156,
+      "sha256": "17664dcb385b52b1cd7b79ff1948df0d8cc20e5b9935accc6fea2fc94a4ccbe8"
+    },
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/hands.jsonl": {
+      "type": "file",
+      "bytes": 31927,
+      "sha256": "9ea39d16fbfdeedd001d3092404795d9023d784c240354ce03da680889379398"
+    },
+    "research/experiments/v6-regularized-full-hand-adapter-20260908/result.json": {
+      "type": "file",
+      "bytes": 502,
+      "sha256": "532a94e143fe560bf45411022e40d8b7b4aa48c07ae76ee7ca545fe511e5667a"
+    }
+  }
+}

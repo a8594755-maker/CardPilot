@@ -1,0 +1,225 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-sequence-residual-reach-development-20260831",
+  "title": "Position-aware sequence residual reach development",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T21:55:46+00:00",
+  "updated_at": "2026-08-31T22:01:10+00:00",
+  "started_at": "2026-08-31T21:59:34+00:00",
+  "ended_at": "2026-08-31T22:01:10+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An ordered action-sequence residual conditioned on frozen card/action features and seat can close fidelity errors left by the convolutional policy.",
+  "material_change": "Frozen3b335source plus2layer128dim sequence residual;directTV8epochs onoldstates;0newhands/network.",
+  "baseline": "Frozen explicit-position adapter heroTV0.171099 on known development cohort.",
+  "source": "research/experiments/v6-sequence-residual-reach-development-20260831/preregistration.md",
+  "parent_id": "v6-joint-position-reach-development-20260831",
+  "command": "python research/experiments/v6-sequence-residual-reach-development-20260831/run_development.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-sequence-residual-reach-development-20260831/run_development.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:55:46+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-sequence-residual-reach-development-20260831/test_development.py -q --junitxml=research/experiments/v6-sequence-residual-reach-development-20260831/admission_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:59:34+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-sequence-residual-reach-development-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:59:34+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-sequence-residual-reach-development-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:01:10+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-sequence-residual-reach-development-20260831"
+    ],
+    "captured_at": "2026-08-31T21:55:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-sequence-residual-reach-development-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-sequence-residual-reach-development-20260831/source_manifest.json",
+    "source_manifest_sha256": "82bcb0c5a47e96143a98bd12d912889c20d968f08ebe5b558fef3d3f84e21bff",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 96.0,
+    "slumbot_hands": 0,
+    "model_state_queries": 69644
+  },
+  "metrics": {
+    "wall_time_seconds": 69.54699999996228,
+    "review_wall_time_seconds": 1.1560000000172295
+  },
+  "artifacts": [
+    "research/experiments/v6-sequence-residual-reach-development-20260831/preregistration.md",
+    "research/experiments/v6-sequence-residual-reach-development-20260831/code.patch",
+    "research/experiments/v6-sequence-residual-reach-development-20260831/source_manifest.json",
+    "research/experiments/v6-sequence-residual-reach-development-20260831/run_development.py",
+    "research/experiments/v6-sequence-residual-reach-development-20260831/review_finish.py",
+    "research/experiments/v6-sequence-residual-reach-development-20260831/test_development.py",
+    "research/experiments/v6-sequence-residual-reach-development-20260831/admission_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\admission_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\development_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\run_development.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\test_development.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Source remains best adapter-only endpoint after independently reviewed joint-update regression. Development-only custom wrapper must pass frozen-source and CPU/GPU evidence before runtime integration.",
+    "Fixed custom sequence-residual implementation complete before training;3admission testsPASS. Frozen source,zero epoch0 residual,exact8epochs,and CPU/GPU custom parity required. Known development cohort only."
+  ],
+  "result": {
+    "summary": "Sequence-residual development completed: SEQUENCE_RESIDUAL_DEVELOPMENT_NOT_PROMISING.",
+    "conclusion": "Sequence residual was selected on a known development cohort and is not confirmatory strength evidence.",
+    "decision": "SEQUENCE_RESIDUAL_DEVELOPMENT_NOT_PROMISING",
+    "next_step": "Move from frozen residuals to a full sequence-policy architecture or return to reward training."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-sequence-residual-reach-development-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 1974,
+      "sha256": "3d69dc2cccefd500f2ef9b751ecd54bfd0a65adaefb0599d060cb9b6c1faf5fa"
+    },
+    "research/experiments/v6-sequence-residual-reach-development-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-sequence-residual-reach-development-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 543,
+      "sha256": "82bcb0c5a47e96143a98bd12d912889c20d968f08ebe5b558fef3d3f84e21bff"
+    },
+    "research/experiments/v6-sequence-residual-reach-development-20260831/run_development.py": {
+      "type": "file",
+      "bytes": 9547,
+      "sha256": "80c3aac8d1dbab265bf943159bc754b738b179dbd8209598876f2761b7ebb455"
+    },
+    "research/experiments/v6-sequence-residual-reach-development-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 4933,
+      "sha256": "92f4727c5430b200e78c47cdd4279dd24818e13bb6aafdd078383573ab10ed09"
+    },
+    "research/experiments/v6-sequence-residual-reach-development-20260831/test_development.py": {
+      "type": "file",
+      "bytes": 1409,
+      "sha256": "7c2cedfbcc6abc41c34e9986e56cf079079b7d8a4881fff19948b2e89dec0b4c"
+    },
+    "research/experiments/v6-sequence-residual-reach-development-20260831/admission_tests.xml": {
+      "type": "file",
+      "bytes": 694,
+      "sha256": "131817e128ff144def239878f65d8b50aa7aaf2b34a9e56e80a8b9599c95860b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\admission_tests.xml": {
+      "type": "file",
+      "bytes": 694,
+      "sha256": "131817e128ff144def239878f65d8b50aa7aaf2b34a9e56e80a8b9599c95860b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 1106,
+      "sha256": "6f43456dfa3807ec871f8b44c369db4a89c9abe9a0d6600e12aa1177c9cdb539"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\development_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "8d8085a7f645ab4c20f32af9c1d66ee540125f460399d08e25237f2fd603617e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 344,
+      "sha256": "30544466b6befec0f164e65dd21e0163cf0403fb8cb1b8fa0a30352cf1aa0d87"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 1604,
+      "sha256": "bdcab2eb13e258524d956f90a459e4975e5a3e53f495298bebcaa466b5712850"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\latest.pt": {
+      "type": "file",
+      "bytes": 4510578,
+      "sha256": "96913cf9ae4a0574ab2e5f95bc93abd4b39fdad43395a7882050cc95781172b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 1974,
+      "sha256": "3d69dc2cccefd500f2ef9b751ecd54bfd0a65adaefb0599d060cb9b6c1faf5fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\qualification.json": {
+      "type": "file",
+      "bytes": 106,
+      "sha256": "25765d49ec199377af73a6a45f0b169698aa54916fad35865da0bedaeba7b1a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 4933,
+      "sha256": "92f4727c5430b200e78c47cdd4279dd24818e13bb6aafdd078383573ab10ed09"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\run_development.py": {
+      "type": "file",
+      "bytes": 9547,
+      "sha256": "80c3aac8d1dbab265bf943159bc754b738b179dbd8209598876f2761b7ebb455"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\test_development.py": {
+      "type": "file",
+      "bytes": 1409,
+      "sha256": "7c2cedfbcc6abc41c34e9986e56cf079079b7d8a4881fff19948b2e89dec0b4c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 221188,
+      "sha256": "a08b56731848d9b321c3e1b7a25116be12af60951afbabae84935911ebf2cff4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1312,
+      "sha256": "88f7a3f88fd339f1a269efbdaf1becca75dc277b1eb95ddca7828c415abeaaef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-sequence-residual-reach-development-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 398,
+      "sha256": "af5343d699188003253546dd2eba2a4836d6a9024b1c0e64d658330c4e75b513"
+    }
+  }
+}

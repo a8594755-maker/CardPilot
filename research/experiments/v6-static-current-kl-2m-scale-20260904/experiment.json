@@ -1,0 +1,436 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-static-current-kl-2m-scale-20260904",
+  "title": "Static current-KL multi-seed 1M-to-2M geometric scale",
+  "status": "COMPLETED",
+  "created_at": "2026-09-04T05:58:46+00:00",
+  "updated_at": "2026-09-04T11:13:38+00:00",
+  "started_at": "2026-09-04T05:58:46+00:00",
+  "ended_at": "2026-09-04T11:11:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The preserved static current-to-Standard10 KL method will retain a positive median and at least two positive seed slopes from 1M to 2M without catastrophic source drift or replicated broad reversal.",
+  "material_change": "Resume all three frozen 1M endpoints without resetting weights, optimizer, replay buffer/RNG, league state, assignment evidence, or counters; extend each to at least 2,097,152 cumulative physical environment hands on disjoint fixed deal windows.",
+  "baseline": "At 262k-to-1M, pooled internal slope was +0.4358 bb/100 CI95 [-3.0908,3.9625], two of three seed slopes were positive, only seed3 met full breadth, and all drift gates passed. A subsequent high-pot critic audit found no replicated mechanism failure.",
+  "source": "Frozen seed1/2/3 endpoints from v6-static-current-kl-1m-scale-20260903 with checkpoint SHA256s fixed in preregistration and the same immutable Standard10/static league anchors.",
+  "parent_id": "v6-static-current-kl-highpot-critic-calibration-20260904",
+  "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-2m-scale-20260904/run_training.ps1",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-2m-scale-20260904/run_training.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T05:58:46+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-2m-scale-20260904/resume_after_log_conflict.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T06:04:50+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File research/experiments/v6-static-current-kl-2m-scale-20260904/run_evaluation.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T10:43:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py --experiment-dir research/experiments/v6-static-current-kl-2m-scale-20260904 --base models/baseline/standard10/latest.pt --min-environment-hands 2097152 --expected-archive-iteration 256 --expected-archive-iteration 320 --expected-archive-iteration 384 --schema cardpilot.static_current_kl_2m_training_audit.v1 --out research/experiments/v6-static-current-kl-2m-scale-20260904/training_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T11:11:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py --experiment-dir research/experiments/v6-static-current-kl-2m-scale-20260904 --prior-dir research/experiments/v6-static-current-kl-262k-scale-20260903 --prior-dir research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903 --prior-dir research/experiments/v6-static-current-kl-1m-scale-20260903 --expected-prior-raw-rows 98304 --eval-seed-base 20263180 --drift-seed-base 20263190 --scale-label 2M --schema cardpilot.static_current_kl_2m_aggregate.v1 --breadth-informational-only --out research/experiments/v6-static-current-kl-2m-scale-20260904/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T11:11:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "c9b5480965e52d94239d7e867a5aed5841a1ff6ab9604e468a79a5da73da474a",
+    "code_paths": [
+      "research/experiments/v6-static-current-kl-2m-scale-20260904",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/stage_v6_integrated_scale_resume.py"
+    ],
+    "captured_at": "2026-09-04T05:58:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-static-current-kl-2m-scale-20260904/code.patch",
+    "patch_sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252",
+    "source_manifest": "research/experiments/v6-static-current-kl-2m-scale-20260904/source_manifest.json",
+    "source_manifest_sha256": "89e71960d12ba081df99dd9c82dad93de3f5e79c64c5bc7a8244e025a72bd2b9",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 3143992,
+    "lineage_training_hands": 6296802,
+    "offline_samples": 0,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 18743.0,
+    "environment_training_hands": 3143992,
+    "slumbot_hands": 0,
+    "planned_new_training_hands": 3138646,
+    "target_lineage_training_hands": 6291456
+  },
+  "metrics": {
+    "seed1_current_iteration": 424,
+    "seed1_current_physical_hands": 2023877,
+    "seed1_final_iteration": 440,
+    "seed1_final_physical_hands": 2097356,
+    "seed2_current_iteration": 433,
+    "seed2_current_physical_hands": 2047460,
+    "seed2_final_iteration": 444,
+    "seed2_final_physical_hands": 2099786,
+    "seed3_current_iteration": 440,
+    "seed3_current_physical_hands": 2099660,
+    "seed3_final_physical_hands": 2099660,
+    "seed1_2m_minus_1m_pooled_bb100": -5.2093505859375,
+    "seed2_2m_minus_1m_pooled_bb100": 1.6632080078125,
+    "seed3_2m_minus_1m_pooled_bb100": 0.13427734375,
+    "combined_2m_minus_1m_bb100": -1.1372884114583335,
+    "combined_2m_minus_1m_ci95_low": -4.604041645069587,
+    "combined_2m_minus_1m_ci95_high": 2.3294648221529197,
+    "positive_slope_seeds": 2,
+    "broad_reversal_seeds": 1,
+    "max_standard10_mean_tv": 0.010826901870391129,
+    "max_standard10_greedy_disagreement": 0.01235
+  },
+  "artifacts": [
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/code.patch",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/source_manifest.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/preregistration.md",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/run_training.ps1",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/resume_stage_manifest.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/launcher_conflict_failure.log",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1_recovery_preflight.py",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/resume_after_log_conflict.ps1",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1_log_conflict_recovery_preflight.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/checkpoints/checkpoint_iter000256_hands000001054530.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/checkpoints/checkpoint_iter000320_hands000001318178.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/checkpoints/checkpoint_iter000384_hands000001581629.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/latest.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/checkpoints/checkpoint_iter000256_hands000001054342.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/checkpoints/checkpoint_iter000320_hands000001318016.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/checkpoints/checkpoint_iter000384_hands000001581754.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/latest.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed3/checkpoints/checkpoint_iter000320_hands000001317738.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1_resume_preflight_iter221.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/run_evaluation.ps1",
+    "research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed3\\checkpoints\\checkpoint_iter000384_hands000001581352.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed3/latest.pt",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/training_audit_pre_parent_lineage_inheritance.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/training_audit.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed1/summary.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed1/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed2/summary.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed2/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed3/summary.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed3/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/aggregate.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/aggregate_pre_interpretation_fix.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed1/drift_analysis.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed1/drift_raw.jsonl.gz",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed2/drift_analysis.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed2/drift_raw.jsonl.gz",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed3/drift_analysis.json",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed3/drift_raw.jsonl.gz",
+    "scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py",
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py"
+  ],
+  "notes": [
+    "Pre-start preflight: PowerShell launcher parse PASS; 26 trainer/resume regression tests PASS; all three parent checkpoint hashes match preregistration. The launcher repeats tests and exact-state staging before the first new hand.",
+    "Exact-state staging passed all 27 seed/gate checks. Seed1 first new boundary is contiguous at iter222: transition hands914394, cumulative physical1058423, new physical5729, replay2/2, reference KL0.0008, approx KL0.0001, max ratio1.09, finite health.",
+    "Initial launcher terminated after the first in-memory update because Tee-Object held latest_train.log open on Windows. Authoritative checkpoint and metrics remained exactly at parent iter221/physical1052694; zero new hands are committed. The pending applies-to-iter222 assignment is preserved and the same fixed deal start will replay the uncommitted worker batch.",
+    "A separate temp recovery preflight passed all 10 gates: current committed model/optimizer/replay/pool/adaptive state equals the parent exactly, replay has2 entries/1602078 cumulative rows, optimizer step882, pending assignment tail222 reconstructs exactly, and failure log SHA256 is a5db11baef59ff6abb8f55bfd2415840c80dea3c7608fc9003c3d173bd06163c.",
+    "Recovery committed successfully. At inspection seed1 checkpoint and latest metric were identical at iter223/hands918520/physical1063304; optimizer step890, replay2 entries/cumulative1615326 rows. Assignment evidence had one valid pending iter224 row. New committed environment hands=10610.",
+    "Verified live session37733 at seed1 iter228. Checkpoints are saving each boundary; recent reference KL0.0007-0.0008, approx KL near zero, max importance ratio1.31, replay2/2, and active pool IDs unchanged. New committed seed1 suffix=34445 physical hands.",
+    "Verified live session37733 through seed1 iter233/physical1110286. New committed suffix=57592 hands; checkpoints and metrics continue saving at each boundary with stable replay/KL/ratio health.",
+    "Verified live session37733 through seed1 iter239/physical1138803. New committed seed1 suffix=86109; latest three boundaries saved normally with reference KL0.0006-0.0007, max ratio1.16, and replay2/2.",
+    "Verified live session37733 through seed1 iter245/physical1168077. New committed suffix=115383; update health remains finite with max recent PPO KL0.0005, reference KL0.0011, ratio max1.21, replay2/2.",
+    "Verified live session37733 through seed1 iter253/physical1206581 after three bounded waits. New committed suffix=153887; all observed boundaries saved with replay2/2, reference KL<=0.0011, max ratio<=1.20, no KL stops or nonfinite metrics.",
+    "Verified live session37733 through seed1 iter263/physical1253096. New committed suffix=200402. Iter256 archive SHA256=32f067f11e7ae0e790f153c92c3ba0306ff3e1f6cd1d5a0c99200d166e6ccffa. Loss-K-best admitted snapshot132 at iter260 by the preregistered rule; active pool became[0,1,2,132,53].",
+    "Verified live session37733 through seed1 iter271/physical1292788. New suffix=240094. Snapshot132 remained active through the observation window; reference KL<=0.0010, ratio max<=1.24. The isolated iter269 value-loss increase remained finite and decreased over iter270-271 without intervention.",
+    "Verified live session37733 through seed1 iter280/physical1338247 after three bounded waits. New committed suffix=285553. Snapshot132 pool remained stable; max observed reference KL0.0014 reverted to0.0011, max ratio1.21, no KL stops or clipping pressure.",
+    "Verified live session37733 through seed1 iter287/physical1371481 after three bounded waits. New committed suffix=318787. All recent checkpoints saved; replay2/2, reference KL0.0007-0.0010, max ratio1.33 with immediate return to<=1.22, no KL stops.",
+    "Verified live session37733 through seed1 iter296/physical1415114 after three bounded waits. New suffix=362420. Recent checkpoints saved normally; reference KL0.0006-0.0011, PPO KL<=0.0003, max ratio1.20, replay2/2, pool[0,1,2,132,53].",
+    "Verified live session37733 through seed1 iter304/physical1452002 after three bounded waits. New committed suffix=399308. Checkpoints saved every boundary; replay2/2, reference KL0.0006-0.0012, PPO KL<=0.0002, max ratio1.16, no stop gate.",
+    "Verified live session37733 through seed1 iter313/physical1494667 after three bounded waits. New committed suffix=441973. Every boundary saved; reference KL0.0006-0.0013, PPO KL<=0.0004, ratio max1.25, replay2/2, no stop gate.",
+    "Verified live session37733 through seed1 iter324/physical1548847 after four bounded waits. New suffix=496153. Iter320 archive SHA256=8ccd2f1a0a5d6a3858ba5d1fb060f1eb52785bc927ab2404c2916fdb0e01ca11. Recent reference KL0.0008-0.0017, PPO KL<=0.0002, ratio max1.37 with clip fraction at most0.001 and immediate recovery; replay2/2.",
+    "Verified live recovery boundary: seed1 iteration 339, authoritative completed environment hands 1,622,419 (569,725-session suffix from frozen parent 1,052,694); checkpoint and metrics agree. Session 37733 remains live with original preregistered config, optimizer/replay continuation, and reconstructed pending assignment.",
+    "Verified later live boundary: seed1 iteration 347, authoritative completed environment hands 1,659,432; every observed boundary through 347 saved successfully. Reference KL remained 0.0007-0.0009, PPO clip fraction 0, replay 2/2, and loss-kbest active pool unchanged.",
+    "Verified live seed1 boundary iteration 361: authoritative completed environment hands 1,728,928 (676,234 added after frozen 1M endpoint). Saves remained continuous through iteration 361; no restart or configuration change.",
+    "Verified live seed1 boundary iteration 371: authoritative completed environment hands 1,775,830. Continuous checkpoint saves and stable replay/KL diagnostics remain intact.",
+    "Verified live seed1 boundary iteration 383: authoritative completed environment hands 1,832,773. All boundaries through 383 saved; transient iteration-377 loss/KL increase did not persist and no intervention was made.",
+    "Verified live seed1 boundary iteration 392: authoritative completed environment hands 1,876,518. Iteration-384 archive was created and added to artifact integrity; latest saves remain continuous.",
+    "Verified live seed1 boundary iteration 403: authoritative completed environment hands 1,928,864. Iteration-394 clipfrac 0.001 was isolated and returned to zero; all checkpoints through 403 saved normally.",
+    "Verified live seed1 boundary iteration 414: authoritative completed environment hands 1,978,796. Continuous saves, replay2/2, zero clip pressure, and stable reference KL persisted.",
+    "Verified live seed1 boundary iteration 424: authoritative completed environment hands 2,023,877. The run crossed 2M but correctly continues toward the preregistered 2,097,152 physical-hand target; all boundaries through 424 saved.",
+    "Seed1 completed naturally at iteration 440, authoritative physical 2,097,356 (target 2,097,152; suffix 1,044,662), final checkpoint SHA256 fba34e5690efc7faa6747adb84d29ff576382711dfcfee885c4728a67248868f. Launcher then resumed seed2 from staged parent iter222/physical1,049,409 with optimizer, replay2, league, and assignment RNG restored; first observed committed boundary iter223/physical1,054,666 (suffix5,257).",
+    "Verified seed2 resume through iteration 234/physical1,103,432 (54,023 new from frozen parent). All boundaries saved; replay2/2 and seed2-specific active pool [0,1,2,9,97] remained intact, excluding cross-seed state contamination.",
+    "Verified seed2 through iteration243/physical1,145,638 (96,229 new from frozen parent). At iter242 the preregistered loss-kbest rule selected snapshot121, changing seed2 active pool from [0,1,2,9,97] to [0,1,2,121,9]; checkpoint saved and subsequent iter243 remained finite/stable.",
+    "Verified seed2 through iteration255/physical1,202,051 (152,642 new). Loss-kbest selected snapshot122 at iter244, yielding active pool [0,1,2,122,121]; updates 245-255 remained stable with all checkpoints saved, replay2/2, ref-KL0.0006-0.0009, and zero clip pressure.",
+    "Verified seed2 through iteration267/physical1,256,743 (207,334 new). Iter256 archive added to artifact integrity. Active pool [0,1,2,122,121] remained stable; ref-KL transient 0.0015 at iter262 reverted, clip stayed zero, and all checkpoints saved.",
+    "Verified seed2 through iteration277/physical1,305,058 (255,649 new). Tiny clipfrac0.001 at iter270 and 273-274 reverted to zero by iter275-277, with ratios and KL remaining bounded; no stop/intervention gate fired and all checkpoints saved.",
+    "Verified seed2 through iteration291/physical1,372,800 (323,391 new). Iter288 critic loss 1,353 bb2 was finite and reverted to858/942/587 over iter289-291; clip stayed zero, KL remained low, and no intervention was made.",
+    "Verified seed2 through iteration302/physical1,423,873 (374,464 new). Updates 292-302 saved continuously; reference KL0.0005-0.0007, clipfrac0, replay2/2, and active pool [0,1,2,122,121] remained stable.",
+    "Verified seed2 through iteration312/physical1,472,328 (422,919 new). Iter306 and 310 critic-loss elevations reverted by iter311-312; ref-KL stayed <=0.0008, clip stayed zero, and checkpoints remained continuous.",
+    "Verified seed2 through iteration323/physical1,524,666 (475,257 new). Iter320 archive added to artifact integrity. Isolated ratio maxima up to1.36 did not produce clip pressure or KL stop; subsequent ratios returned near1.1 and all checkpoints saved.",
+    "Verified seed2 through iteration333/physical1,573,473 (524,064 new). Ref-KL briefly ranged0.0012-0.0015 during iter328-332 and returned to0.0011 at333; clip remained zero, ratios bounded, pool stable, and every checkpoint saved.",
+    "Verified seed2 through iteration344/physical1,624,828 (575,419 new). Iter341/344 ref-KL0.0014 and occasional ratio maxima remained below operational concern, with clip0, no KL stop, finite losses, stable pool, and continuous saves.",
+    "Verified seed2 through iteration357/physical1,688,461 (639,052 new). Iter355 high-risk-mix batch raised critic loss to1,551 bb2/ref-KL0.0017, then both declined at356-357; clip remained0, ratios bounded, checkpoints continuous. Continue observation without intervention.",
+    "Verified seed2 through iteration368/physical1,738,673 (689,264 new). Post-spike ref-KL stayed0.0008-0.0013 and ended0.0010; critic losses normalized, clip0, pool/replay stable, checkpoints continuous.",
+    "Verified seed2 through iteration379/physical1,789,949 (740,540 new). Higher critic-loss batches continued to co-occur descriptively with higher aggressive/high-risk mix, but reverted on following batches; no causal intervention, clip0, low KL, stable pool, continuous saves.",
+    "Verified seed2 through iteration390/physical1,841,993 (792,584 new). Iter384 archive added to artifact integrity. Updates380-390 showed stable ref-KL0.0007-0.0011, clip0, replay2/2, unchanged active pool, and continuous saves.",
+    "Verified seed2 through iteration401/physical1,895,043 (845,634 new). The iter392-394 critic-loss cluster normalized across395-401; ref-KL0.0007-0.0010, clip0, pool/replay stable, checkpoints continuous.",
+    "Verified seed2 through iteration412/physical1,946,759 (897,350 new). At iter412 the preregistered loss-kbest rule selected snapshot206, updating active pool to[0,1,2,122,206]. Selection boundary saved; prior high-risk loss spike had fully reverted, ref-KL0.0006, clip0.",
+    "Verified seed2 through iteration423/physical1,998,224 (948,815 new). Snapshot206 pool remained stable for11 updates; ref-KL0.0007-0.0011, clip0, finite losses, continuous checkpoint saves.",
+    "Verified seed2 through iteration433/physical2,047,460 (998,051 new). Snapshot206 pool stable for21 updates; clip0, ref-KL0.0008-0.0011, checkpoint saves continuous. Remaining to target49,692 physical hands.",
+    "Seed2 completed naturally at iteration444/physical2,099,786 (suffix1,050,377), final checkpoint SHA256 82f21bf84eb8c7acf90ff64321e17d79f467f6fa5aa8adbbe6ddcf09bb4514fe. Launcher resumed seed3 from staged parent iter219/physical1,050,707 with optimizer, replay2, league, assignment RNG, and seed3 pool [0,1,2,13,51] restored; verified committed through iter221/physical1,061,346 (suffix10,639).",
+    "Verified seed3 resume through iteration232/physical1,115,192 (64,485 new from frozen parent). All 13 observed resume boundaries saved; seed3-specific pool [0,1,2,13,51], replay2/2, ref-KL0.0007-0.0010, clip0, and bounded ratios confirm stable independent continuation.",
+    "Verified seed3 through iteration243/physical1,168,616 (117,909 new). Iter234-235 clipfrac0.001 reverted to zero from236 onward; high-risk iter242 batch remained finite and normalized at243. Ref-KL0.0007-0.0012, pool/replay stable, saves continuous.",
+    "Seed3 committed progress through iteration 264 / physical_hands 1,265,691. Resume invariants remain intact (replay 2/2, no KL stop/value-head catch, clipfrac 0); loss-kbest selected snapshot 131 at iteration 260 and active pool became [0,1,2,131,13].",
+    "Prepared a no-overwrite preregistered 2M evaluation/audit launcher. Parameterized the existing static-current-KL audit and aggregator backward-compatibly for 2M archives, seed/deck windows, prior-row evidence, and the preregistered informational-only breadth criterion. Added a normalized SHA-bound Seed1 preflight for the same-parent uncommitted iteration-222 replay; Python compile/help and PowerShell parse checks pass. No evaluation or Slumbot calls started while training remains active.",
+    "Seed3 committed through iteration 301 / physical_hands 1,439,272. Health remains stable: replay 2/2, no KL stop/value-head catch, clipfrac 0, reference KL about 0.0005-0.0010; active loss-kbest pool remains [0,1,2,131,13]. Backward-compatibility regressions passed on the completed 1M audit and aggregate.",
+    "Seed3 expected iteration-320 geometric archive committed at transition_hands 1,317,738 / physical_hands 1,530,237 (SHA256 976d80c01dfc21cc830c1d7c41cc841541d7f6b2aa56f7b1a98a1b965a4acdd0); latest committed iteration is 322 / physical_hands 1,539,720.",
+    "Seed3 committed through iteration 342 / physical_hands 1,636,214. The 2M audit now handles capped pool_candidate_history by reconstructing the suffix from monotonic candidate IDs; Seed1 validation found all 110 expected post-parent candidates sequential despite prefix eviction. No training state was modified.",
+    "Seed3 committed through iteration 360 / physical_hands 1,723,553. Reference KL stayed <= about 0.0013 in this interval, clipfrac remained zero, replay remained 2/2, and the loss-kbest pool stayed valid.",
+    "Seed3 expected iteration-384 geometric archive committed at transition_hands 1,581,352 / physical_hands 1,836,152 (SHA256 fae143a937945e4391a501641145d4706419501e0ace571442a67e8f9b4148c5); latest committed iteration is 385 / physical_hands 1,840,502. All three expected 2M-stage archive iterations 256,320,384 are now present.",
+    "Seed3 committed through iteration 401 / physical_hands 1,919,757. At iteration 362 loss-kbest validly selected snapshot 182, yielding active pool [0,1,2,182,131]. Subsequent replay/KL/ratio health remains stable; one isolated clipfrac 0.001 at iteration 378 immediately returned to zero.",
+    "All three continuations finished naturally and launcher exited 0. Final physical hands: seed1 2,097,356; seed2 2,099,786; seed3 2,099,660. Final SHA256: seed1 fba34e5690efc7faa6747adb84d29ff576382711dfcfee885c4728a67248868f; seed2 82f21bf84eb8c7acf90ff64321e17d79f467f6fa5aa8adbbe6ddcf09bb4514fe; seed3 3e24831fc240e26bafe5389dd84b0f65d00f283de74f1580a2b86ae67ce6a7b0. Every manifest is finished and checkpoint/manifest/metric iterations and hands agree; each assignments and metrics file ends at the checkpoint iteration.",
+    "First post-training audit safely stopped before evaluation: Seed2/3 alone failed corrected_legacy_contract_bound because their exact 1M parents contain older in-place resume self-links. Preserved that diagnostic audit. Audit now permits lineage inheritance only from the SHA-bound passing parent training audit for the same seed/checkpoint and validated bridge contract. Rerun passed 3/3 with all session-independence gates true and total_new_environment_hands 3,143,992. Zero evaluation hands and zero Slumbot hands were consumed by the stopped attempt.",
+    "Seed1 untouched matched evaluation completed 32,768 physical hands on seed 20263181. 2M-minus-1M pooled slope -5.2093505859375 bb/100 with CI half-width 5.299352473467193; both seat slopes negative and three of four anchor slopes negative, so Seed1 alone is a preregistered broad-reversal instance. Await independent Seed2/3 before any replicated-reversal conclusion.",
+    "Seed2 untouched matched evaluation completed 32,768 additional physical hands on seed 20263182. 2M-minus-1M pooled slope +1.6632080078125 bb/100 with CI half-width 6.082753405992847; two of four anchors positive and seats split +7.043/-3.718, so it is positive pooled and not a broad reversal. Seed3 remains required for the preregistered multi-seed gate.",
+    "Seed3 untouched matched evaluation completed 32,768 additional physical hands on seed 20263183. 2M-minus-1M pooled slope +0.13427734375 bb/100 with CI half-width 6.568115795088376; two of four anchors positive and seats split +7.654/-7.385, so it is positive pooled and not a broad reversal. Across seeds, pooled slopes are [-5.209,+1.663,+0.134]: two positive, positive median, one rather than two broad reversals. Drift and full integrity aggregation remain pending.",
+    "Post-finish scoped logger audit since experiment start reported 3 records and 0 warnings. Added the final executed audit and aggregate source files as SHA-bound artifacts because these generalized validators changed after the start-time dirty patch snapshot."
+  ],
+  "result": {
+    "summary": "Three exact-state static-current-KL lineages continued from approximately 1M to at least 2.097M physical environment hands, adding 3,143,992 new hands. A 98,304-hand untouched four-anchor both-seat evaluation and 60,000-state Standard10 drift audit completed with all integrity and deck-disjoint checks passing.",
+    "conclusion": "The preregistered 2M geometric gate passed: Seed2 and Seed3 slopes were positive (+1.663 and +0.134 bb/100), the median slope was positive, only Seed1 showed broad reversal, and Standard10 drift remained small. Combined slope was still -1.137 bb/100 with CI [-4.604,+2.329] and no seed met the stricter breadth-positive criterion, so this supports one further geometric observation rather than a claim of established strength.",
+    "decision": "PROMOTE_STATIC_CURRENT_KL_BEYOND_2M",
+    "next_step": "Stage exact-state 2M-to-4M continuations for all three lineages with preserved optimizer/replay/league state and disjoint deal windows; preregister the same fresh multi-anchor both-seat and Standard10-drift gates, while treating replicated reversal or worsening breadth as the stop condition."
+  },
+  "tags": [
+    "geometric-scale",
+    "multi-seed",
+    "no-slumbot",
+    "static-current-kl",
+    "training"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/code.patch": {
+      "type": "file",
+      "bytes": 292740,
+      "sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 1101,
+      "sha256": "89e71960d12ba081df99dd9c82dad93de3f5e79c64c5bc7a8244e025a72bd2b9"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/preregistration.md": {
+      "type": "file",
+      "bytes": 3490,
+      "sha256": "cb01b5e31aac5675812afe52ca2e542f654a64cccc81ccd3fc61efedffa9c699"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/run_training.ps1": {
+      "type": "file",
+      "bytes": 7274,
+      "sha256": "e6abaac258bc8b7e2c524037bb508528cb7f2f39b94b1759c6d1ffa919445306"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/resume_stage_manifest.json": {
+      "type": "file",
+      "bytes": 7151,
+      "sha256": "5dfc81ead90bab9886cc5a768b5f4a243a4f3222aefaa9c4f7fabbcfda2c6af7"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/launcher_conflict_failure.log": {
+      "type": "file",
+      "bytes": 3250,
+      "sha256": "a5db11baef59ff6abb8f55bfd2415840c80dea3c7608fc9003c3d173bd06163c"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1_recovery_preflight.py": {
+      "type": "file",
+      "bytes": 7033,
+      "sha256": "b3e49f6ffc3a304aacccb9c6c0daf0c6b50ed078266f5a8af420b3707e0145fe"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/resume_after_log_conflict.ps1": {
+      "type": "file",
+      "bytes": 4305,
+      "sha256": "5a4c7261db7d34d3f10c1f44c6fecced03c176e2d4c38cde45012e9ff51d11a2"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1_log_conflict_recovery_preflight.json": {
+      "type": "file",
+      "bytes": 2069,
+      "sha256": "ed25f0488d6a7224074f133eaeeb34bdc26e8d1831a9efbb1861e75515cd63cd"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/checkpoints/checkpoint_iter000256_hands000001054530.pt": {
+      "type": "file",
+      "bytes": 312196062,
+      "sha256": "32f067f11e7ae0e790f153c92c3ba0306ff3e1f6cd1d5a0c99200d166e6ccffa"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/checkpoints/checkpoint_iter000320_hands000001318178.pt": {
+      "type": "file",
+      "bytes": 307633758,
+      "sha256": "8ccd2f1a0a5d6a3858ba5d1fb060f1eb52785bc927ab2404c2916fdb0e01ca11"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/checkpoints/checkpoint_iter000384_hands000001581629.pt": {
+      "type": "file",
+      "bytes": 306262558,
+      "sha256": "af28ee2c25a247d8b00d8a65d07e590f0ee4ef9e9a8e9d2b3052d0e8a4a3f1f8"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1/latest.pt": {
+      "type": "file",
+      "bytes": 313575408,
+      "sha256": "fba34e5690efc7faa6747adb84d29ff576382711dfcfee885c4728a67248868f"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/checkpoints/checkpoint_iter000256_hands000001054342.pt": {
+      "type": "file",
+      "bytes": 315915614,
+      "sha256": "600490e832125aef7a940a515a549448e5b3d0752fdab8e381b91f45958f88ef"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/checkpoints/checkpoint_iter000320_hands000001318016.pt": {
+      "type": "file",
+      "bytes": 309461598,
+      "sha256": "523769bc59642672eccb1607a26122fcf5462ec41b64567c02c1da6409b04caa"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/checkpoints/checkpoint_iter000384_hands000001581754.pt": {
+      "type": "file",
+      "bytes": 306157342,
+      "sha256": "437ff8808dfc2e139790126e6750a078c5ce6ed556b01bf5428e3c0efe6ec286"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed2/latest.pt": {
+      "type": "file",
+      "bytes": 308554544,
+      "sha256": "82f21bf84eb8c7acf90ff64321e17d79f467f6fa5aa8adbbe6ddcf09bb4514fe"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed3/checkpoints/checkpoint_iter000320_hands000001317738.pt": {
+      "type": "file",
+      "bytes": 316166622,
+      "sha256": "976d80c01dfc21cc830c1d7c41cc841541d7f6b2aa56f7b1a98a1b965a4acdd0"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed1_resume_preflight_iter221.json": {
+      "type": "file",
+      "bytes": 1527,
+      "sha256": "bff7ee072b41170eb64c49f688d048af681beeb3494b89928312c31eb41367b2"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/run_evaluation.ps1": {
+      "type": "file",
+      "bytes": 4419,
+      "sha256": "31c5d59f16db53c9123763b1c374eaa546d1ca077a91a87484ee5ccb6bfe323d"
+    },
+    "research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed3\\checkpoints\\checkpoint_iter000384_hands000001581352.pt": {
+      "type": "file",
+      "bytes": 313940126,
+      "sha256": "fae143a937945e4391a501641145d4706419501e0ace571442a67e8f9b4148c5"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/seed3/latest.pt": {
+      "type": "file",
+      "bytes": 306207536,
+      "sha256": "3e24831fc240e26bafe5389dd84b0f65d00f283de74f1580a2b86ae67ce6a7b0"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/training_audit_pre_parent_lineage_inheritance.json": {
+      "type": "file",
+      "bytes": 21420,
+      "sha256": "5b586fe1fb4f805c4d271540accfb20c02f91c12522307317fbf2acc7a77926b"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/training_audit.json": {
+      "type": "file",
+      "bytes": 22720,
+      "sha256": "edf4f69f65beed6b3ed15c0ba0781fa44529c680649e8ce7f7c9bb825838812a"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed1/summary.json": {
+      "type": "file",
+      "bytes": 11247,
+      "sha256": "43f52a83f24db1c61b91f7cfc6989f3c74df4d9a78005c2faf1fb026f1c6e325"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed1/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 531707,
+      "sha256": "0173b071655b37743bc4283e4dbfd5c97276f1d4fc7a4e7181afe981d98d1913"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed2/summary.json": {
+      "type": "file",
+      "bytes": 11256,
+      "sha256": "ffedecc9b43d1803e18d791117522e78c3f7815d1ca3c50e08bec9fb5a136e62"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed2/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 531708,
+      "sha256": "e27007f1d8d6cf2ba324f829db80e59a1209336bb326ab33806374d9582fd822"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed3/summary.json": {
+      "type": "file",
+      "bytes": 11244,
+      "sha256": "c180de35213d6eed846d26ff93e96552096bb867befe6f3da86b485237b5c37c"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/eval_seed3/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 531443,
+      "sha256": "e6abc5c54d746acf6f61e7bb11804366696b30280dad52ddcf1f88fa2dc48a02"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/aggregate.json": {
+      "type": "file",
+      "bytes": 17809,
+      "sha256": "f852ccfae3fdf77dc204bb0b55eab9a52cc149e90f7b343d6139c0c76a08062d"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/aggregate_pre_interpretation_fix.json": {
+      "type": "file",
+      "bytes": 17760,
+      "sha256": "091db53d272549d1d76dae2105a2f479d8df3fe62f04c9ea5a9191cc6ce023e8"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed1/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4360,
+      "sha256": "23ee8732dc2b5cb584bffc0ed29c257a6e9b5988a4c22e7d148198230c826c8d"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed1/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319861,
+      "sha256": "6e9068c933a3bba9195dff56900f302f12d9017b2dfa2dde3d46255238b8ecd3"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed2/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4361,
+      "sha256": "f30f9fee01bedf225db281ab23967f93c2e5e471148457ecabce656fb52d0d28"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed2/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319320,
+      "sha256": "d882f7699f18aa5bdba9d7e528b8af5ca1833af6e160302146354b2448c0d708"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed3/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4359,
+      "sha256": "688bb82f1b8a0e1dd35453a9d1a9c2c0ded0f2cb01743c8d2d07b59a9224991b"
+    },
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/drift_seed3/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 320292,
+      "sha256": "899b543e9172293533d318d5a2073dc3bfa1e083650c6e33ca5871264a677259"
+    },
+    "scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py": {
+      "type": "file",
+      "bytes": 25723,
+      "sha256": "0175fbb11e99ae1e8465d94f05a83aeaaffc04be28194f1b32f8c90e9c7d2232"
+    },
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py": {
+      "type": "file",
+      "bytes": 12342,
+      "sha256": "d37b10e378daee4e0ec6e1fcdac940f100e32f157fa2c390d33f3dc30c9185b9"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-candidate-disagreement-bbflop-cvar-adaptive9",
+  "title": "candidate_disagreement_bbflop_cvar_adaptive9",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/candidate_disagreement_bbflop_cvar_adaptive9_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/candidate_disagreement_bbflop_cvar_adaptive9_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "Nine exact unstable BB-flop rows completed 16x16x3 sampling with 768 outcomes per legal action. Development/adaptive continuation-CVaR2of3 action agreement was 0.1111 and heldout/adaptive 0.3333. Heldout choices retained 3.36 bb mean adaptive marginal regret, 1/9 above 5 bb, and the adaptive selector introduced two highest-risk actions.",
+    "conclusion": "Do not train a hard BB-flop CVaR point label on these unstable rows or add more uniform-hole runouts expecting the two 8x8 labels to converge.",
+    "decision": "REJECT_CVAR_POINT_TARGET_NO_WEIGHT_TRAINING",
+    "next_step": "Use consensus with explicit training-time abstention on unstable rows, or change the hidden-hole posterior, continuation model, or distributional/pairwise objective."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

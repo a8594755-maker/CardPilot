@@ -1,0 +1,172 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-fresh-only-worker-smoke-20260907",
+  "title": "Two-seed retained-state fresh-only real-worker smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T03:24:29+00:00",
+  "updated_at": "2026-09-08T03:29:47+00:00",
+  "started_at": "2026-09-08T03:24:29+00:00",
+  "ended_at": "2026-09-08T03:29:47+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Ratio0 with rolling buffer2 can perform genuine current-regimen Adam updates while preserving all initial learned state, historical replay counters and nonoverlapping managed attempts.",
+  "material_change": "Bounded16384 additional physical hands per fixed parent; fresh-only ratio0 with preserved rolling replay2 and qualified in-memory guard.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-fresh-only-retained-buffer-qualification-20260907",
+  "command": "python -B -u research/experiments/v6-fresh-only-worker-smoke-20260907/run_smoke.py",
+  "commands": [
+    {
+      "command": "python -B -u research/experiments/v6-fresh-only-worker-smoke-20260907/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:24:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 15760911 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\latest.pt --seed 20263001 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:24:37+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 15763711 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\latest.pt --seed 20263003 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:26:14+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-fresh-only-worker-smoke-20260907/post_analysis/review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:29:17+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-fresh-only-worker-smoke-20260907"
+    ],
+    "captured_at": "2026-09-08T03:24:29+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-fresh-only-worker-smoke-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-fresh-only-worker-smoke-20260907/source_manifest.json",
+    "source_manifest_sha256": "a4e671dc62f89eacfe7e5c3966e50c836fd6e3b5afd9ae2cb5e642bc644af340",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 318.0,
+    "training_hands": 37755,
+    "transition_hands": 32991,
+    "replay_rows": 0
+  },
+  "metrics": {
+    "smoke_phase": "TRAINING_SEED3",
+    "smoke_complete": true,
+    "terminal_review_passed": true
+  },
+  "artifacts": [
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/protocol.md",
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/code.patch",
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\smoke_result.json",
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/post_analysis/review.py",
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/terminal_review.json"
+  ],
+  "notes": [
+    "Original controller exited0 after both seeds. Independent terminal review checks real initial/final state, first assignment replay, source/prefix/runtime/attempt hashes, zero replay use and preserved historical replay count."
+  ],
+  "result": {
+    "summary": "Both real fresh-only resumes completed37755 new physical hands,32991 transition hands and0 replay rows; independent terminal state/source/first-assignment audit passed.",
+    "conclusion": "Both initial model/Adam/replay states preserved; actual Adam steps advanced without resets, replay RNG and historical cumulative counts stayed unchanged while buffer2 rolled forward. All recorded processes exited cleanly. Statistical resume mechanism qualified,not unique training-deck coverage or poker strength.",
+    "decision": "Admit one preregistered two-seed matched replay0.5 versus fresh-only0 geometric trial from original flat parents,not smoke descendants. No strength promotion from smoke.",
+    "next_step": "Bind original parent hashes and exact commands, integrate explicit-panel evaluator and a pool-disjoint transfer panel, then fixed262k-to1M matched training with stage gates and raw terminal review."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/protocol.md": {
+      "type": "file",
+      "bytes": 1374,
+      "sha256": "ac38771d93682f1ba29b64bf8604e7d6568b48d92450426bda0931afd05fec72"
+    },
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 926,
+      "sha256": "a4e671dc62f89eacfe7e5c3966e50c836fd6e3b5afd9ae2cb5e642bc644af340"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\command.json": {
+      "type": "file",
+      "bytes": 3510,
+      "sha256": "a3ef972701c35bfa0a29e02f18aae5cc12bc2e78d5a0bed7a3084c26854ac509"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\verification.json": {
+      "type": "file",
+      "bytes": 8681,
+      "sha256": "7e994352cfc01f799c94d9ad68e5f07e1a3c5baee3b88a1bcf1f8e4d85b93f62"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed1_smoke_v3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 808,
+      "sha256": "996d44b48bfa9458bead3fafbaedaa201705f9a9c8bd94ec52930dddbb79c709"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\command.json": {
+      "type": "file",
+      "bytes": 3510,
+      "sha256": "16086944472525aae79962cdfb80d417fd1d3e1e2252ba9e8e2db1bc010d8696"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\verification.json": {
+      "type": "file",
+      "bytes": 8681,
+      "sha256": "1dc91d90da3d77fe7316671f6bb462dfb5136ab597356db2dc6298779996263d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\seed3_smoke_v3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 808,
+      "sha256": "352af24411475f264905383355196bdc132724c01f954b062ec70b0d5a7751a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-worker-smoke-20260907\\smoke_result.json": {
+      "type": "file",
+      "bytes": 21056,
+      "sha256": "993aa391240db498063298e5b798726b006ebc549d1a3bebb155c309874a7523"
+    },
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/post_analysis/review.py": {
+      "type": "file",
+      "bytes": 7874,
+      "sha256": "2451e106c73a9709e184faf7682848e8378817786d637d6ec30237024414f1fe"
+    },
+    "research/experiments/v6-fresh-only-worker-smoke-20260907/terminal_review.json": {
+      "type": "file",
+      "bytes": 14229,
+      "sha256": "172c76d2a5d2ea8db6dabaae4e2078770cf0d9f9728c3fa798eea53bc16d9be3"
+    }
+  }
+}

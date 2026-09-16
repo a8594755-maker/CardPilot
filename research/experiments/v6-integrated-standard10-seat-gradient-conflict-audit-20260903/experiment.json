@@ -1,0 +1,161 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-standard10-seat-gradient-conflict-audit-20260903",
+  "title": "Integrated 1M Standard10 and seat gradient-conflict audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T04:24:06+00:00",
+  "updated_at": "2026-09-03T04:33:55+00:00",
+  "started_at": "2026-09-03T04:24:06+00:00",
+  "ended_at": "2026-09-03T04:33:55+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Across both independent 1M integrated-policy lineages, frozen sampled on-policy gradients for six opponent-seat groups exhibit reproducible material conflict; provenance distinguishes this from simple Standard10 underexposure and identifies whether the ordinary actor direction conflicts with source-KL preservation.",
+  "material_change": "No weight updates. Collect 1,024 fresh internal sampled hands per opponent-seat group for each frozen Seed1/Seed2 checkpoint, compute exact policy-head gradients plus four deterministic folds, and reconcile all 220 assignment/metric rows per lineage.",
+  "baseline": "v6-integrated-alphaholdem-seed1-1m-deep-control-20260902",
+  "source": "v6-integrated-alphaholdem-seed2-1m-replication-20260902",
+  "parent_id": "v6-integrated-alphaholdem-seed2-1m-replication-20260902",
+  "command": "python scripts/alpha_holdem/audit_v6_integrated_gradient_conflict.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --opponent standard10=models/baseline/standard10/latest.pt --opponent legacy_anchor=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent cfr4=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --source models/baseline/standard10/latest.pt --assignments seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/opponent_assignments.jsonl --assignments seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/opponent_assignments.jsonl --metrics seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/h1_training_metrics.jsonl --metrics seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/h1_training_metrics.jsonl --hands-per-group 1024 --folds 4 --seed 20262200 --device cuda --out-dir research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_integrated_gradient_conflict.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --opponent standard10=models/baseline/standard10/latest.pt --opponent legacy_anchor=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent cfr4=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --source models/baseline/standard10/latest.pt --assignments seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/opponent_assignments.jsonl --assignments seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/opponent_assignments.jsonl --metrics seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/h1_training_metrics.jsonl --metrics seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/h1_training_metrics.jsonl --hands-per-group 1024 --folds 4 --seed 20262200 --device cuda --out-dir research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:24:06+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/finalize_v6_integrated_gradient_conflict.py --run-dir research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --input research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/opponent_assignments.jsonl --input research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/h1_training_metrics.jsonl --input research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/opponent_assignments.jsonl --input research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/h1_training_metrics.jsonl --out research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/finalization.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:32:19+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:33:55+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1f756c538a114f4a5f3a4d851528d604068f3e7a9e5c23cb6b15e00e1018b0ec",
+    "code_paths": [
+      "scripts/alpha_holdem/audit_v6_integrated_gradient_conflict.py"
+    ],
+    "captured_at": "2026-09-03T04:24:06+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/source_manifest.json",
+    "source_manifest_sha256": "2a6662568e61bd74d4397b0488bbfccb7ed94a7a20c9d2b01c2a301d585d9398",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 589.0,
+    "frozen_internal_hands": 12288,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "reconstructed_decisions": 27155
+  },
+  "metrics": {
+    "candidate_lineages": 2,
+    "opponent_seat_groups": 6,
+    "deterministic_folds": 4,
+    "audit_wall_time_seconds": 365.3534162044525,
+    "seed1_ordinary_worst_alignment": -0.31054981742918447,
+    "seed2_ordinary_worst_alignment": 0.07831414111414291,
+    "seed1_ordinary_vs_source_kl_cosine": -0.5021359122230564,
+    "seed2_ordinary_vs_source_kl_cosine": -0.7183627677693756,
+    "seed1_seven_objective_worst_alignment": 0.19967880257232817,
+    "seed2_seven_objective_worst_alignment": 0.1862298344159376,
+    "seed1_standard10_pool_share": 0.20779577543217057,
+    "seed2_standard10_pool_share": 0.2076651892016128,
+    "tests_passed": 319
+  },
+  "artifacts": [
+    "scripts/alpha_holdem/audit_v6_integrated_gradient_conflict.py",
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/code.patch",
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/source_manifest.json",
+    "scripts/alpha_holdem/finalize_v6_integrated_gradient_conflict.py",
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run/summary.json",
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run/frozen_training_hands.jsonl.gz",
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run/gradient_geometry.npz",
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/finalization.json"
+  ],
+  "notes": [
+    "Preregistered interpretation: call full-lineage conflict reproducible only if both candidates are material and at least 3/4 folds per candidate are material. Standard10 underexposure requires below 15% of pool-opponent hands in both lineages. This is mechanism evidence only, not poker-strength evidence.",
+    "Primary audit completed without updates. Both lineages: material conflict 4/4 folds and ordinary-vs-source-KL conflict 3/4 folds; Standard10 pool exposure ~20.8%, so the preregistered underexposure hypothesis is false.",
+    "No Slumbot calls and no policy weights were changed. Full alpha_holdem suite passed 319/319."
+  ],
+  "result": {
+    "summary": "Two frozen independent 1M integrated checkpoints reproduced material opponent-seat policy-gradient conflict in 4/4 deterministic folds each. Ordinary reward gradients also opposed the Standard10 forward-KL preservation gradient in 3/4 folds for both lineages. Standard10 received ~20.8% of pool hands and was the hardest fixed external anchor, rejecting simple underexposure as the primary mechanism.",
+    "conclusion": "This is a concrete optimization failure, not evidence that the learned-policy family is exhausted or undertrained. The deployed coefficient-1 sum still harms one CFR4 seat group in each lineage, while group-only MGDA conflicts with source preservation. A seven-objective normalized minimum-norm direction over six anchor-seat reward losses plus Standard10 KL exists for both checkpoints with strictly positive worst alignment (+0.200/+0.186). Seat-only conflict did not independently meet its replication gate, so do not add a seat-specific architectural rule.",
+    "decision": "ADMIT_SEVEN_OBJECTIVE_CONFLICT_AWARE_INTERVENTION_SMOKE",
+    "next_step": "Run one separately preregistered matched offline update smoke from both 1M checkpoints on the frozen cohort, comparing the deployed ordinary PPO+KL direction against normalized seven-objective common descent with identical data, optimizer dose, and untouched multi-anchor/two-seat evaluation. If translation is broad and Standard10 preservation remains within gate, implement the minimal on-policy trainer contract before geometric scaling."
+  },
+  "tags": [
+    "frozen-policy",
+    "gradient-conflict",
+    "seat-breadth",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "scripts/alpha_holdem/audit_v6_integrated_gradient_conflict.py": {
+      "type": "file",
+      "bytes": 29069,
+      "sha256": "eb472c7a08884de800099a0eabedb97b684d62fd5785be751c13bfe44d83df0e"
+    },
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 307,
+      "sha256": "2a6662568e61bd74d4397b0488bbfccb7ed94a7a20c9d2b01c2a301d585d9398"
+    },
+    "scripts/alpha_holdem/finalize_v6_integrated_gradient_conflict.py": {
+      "type": "file",
+      "bytes": 9564,
+      "sha256": "0715caf384fe7b634c55353eb409c5270fbd02775929810cfaf15a20e6406626"
+    },
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run/summary.json": {
+      "type": "file",
+      "bytes": 37652,
+      "sha256": "4da0ff694df303fd4ab55fea71602319a026e703c966d7ddc96f922ec209a351"
+    },
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run/frozen_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 1154066,
+      "sha256": "84d3686837b9c89e74fb2c9035baa03bb84ef1dba5551bb312a93e0ddbf82cc7"
+    },
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run/gradient_geometry.npz": {
+      "type": "file",
+      "bytes": 558977,
+      "sha256": "e23aacb5bdca8a9c96d423b45c25a348c342447300a85638b04fa81ac6c5a39d"
+    },
+    "research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/finalization.json": {
+      "type": "file",
+      "bytes": 7081,
+      "sha256": "cc200d737aca8ef975ef04ac34bb7bec06a0ac3d356b684db12ce24aebc2daf3"
+    }
+  }
+}

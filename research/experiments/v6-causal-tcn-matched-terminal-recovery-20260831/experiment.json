@@ -1,0 +1,148 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-causal-tcn-matched-terminal-recovery-20260831",
+  "title": "Matched causal-TCN terminal recovery",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T00:02:15+00:00",
+  "updated_at": "2026-09-01T00:02:36+00:00",
+  "started_at": "2026-09-01T00:02:15+00:00",
+  "ended_at": "2026-09-01T00:02:36+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The complete preserved raw matrix supports a valid preregistered matched decision despite parent wrapper failure after evaluation.",
+  "material_change": "Read-only hash/session/deck audit and raw recomputation; zero new training or evaluation hands.",
+  "baseline": "Parent has two audited terminal checkpoints and fifteen complete 4096-pair cells but failed atomic execution-state replacement before aggregation.",
+  "source": "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/preregistration.md",
+  "parent_id": "v6-causal-tcn-matched-reward-pilot-20260831",
+  "command": "python research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/run_recovery.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/run_recovery.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:02:15+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:02:36+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831",
+      "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-09-01T00:02:15+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/source_manifest.json",
+    "source_manifest_sha256": "2cfa886ec14fcb6bb948f52bff0243bade1443e8ee415941eea87502972415b9",
+    "source_files": 191
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 21.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "source_evaluation_hands": 122880,
+    "wall_time_seconds": 5.48399999999674,
+    "review_wall_time_seconds": 0.6720000000204891
+  },
+  "artifacts": [
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/preregistration.md",
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/run_recovery.py",
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/review_finish.py",
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/code.patch",
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Parent remains FAILED; all reused evidence is immutable and this recovery will generate zero hands."
+  ],
+  "result": {
+    "summary": "Read-only matched causal-TCN recovery completed: CAUSAL_TCN_MATCHED_REWARD_GATE_NOT_PASSED.",
+    "conclusion": "Read-only recovery validates complete parent evidence but does not retroactively complete the failed parent or establish external strength.",
+    "decision": "CAUSAL_TCN_MATCHED_REWARD_GATE_NOT_PASSED",
+    "next_step": "Close sequence-residual variants and test centralized-critic/EMA actor-critic training."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 1236,
+      "sha256": "290182f52bdafa21f3821112f0a12c8f52390aec2927bc7077cb1fd8faaf9ff9"
+    },
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/run_recovery.py": {
+      "type": "file",
+      "bytes": 5929,
+      "sha256": "8ecf868afb79650ce1ffda666d941b6e074669abfbbfd14d7ae46795fa862220"
+    },
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 5208,
+      "sha256": "1da6c203bf84dc258e58fff90d88da295e3270842f79e96149d7f4e8fa601119"
+    },
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-causal-tcn-matched-terminal-recovery-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 48664,
+      "sha256": "2cfa886ec14fcb6bb948f52bff0243bade1443e8ee415941eea87502972415b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 330,
+      "sha256": "0da7490e4b139d34b63a7596adb205c3b7788b991faa181440232066fab98ed8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 8276,
+      "sha256": "16ac89f3cdb2d24bc55c8229985dea57ea1ea36d431a3064271d5139bd1ce7c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 1885,
+      "sha256": "c95191c295451c03c65508eb6926d59dc80710ea0bcf4cd43c9bb044688df38d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1923,
+      "sha256": "11b437784dcdcb8e228cc7088e59d0346a61311e662c7b904334932e958c61c3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-terminal-recovery-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 365,
+      "sha256": "5dd135f501e614e09033371748a3532ea27b2b3d026c6976f3d6f477df687894"
+    }
+  }
+}

@@ -1,0 +1,712 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-parent-kl-conservative-tail-recovery-20260901",
+  "title": "Parent-KL conservative actor tail recovery",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T02:38:40+00:00",
+  "updated_at": "2026-09-01T02:52:39+00:00",
+  "started_at": "2026-09-01T02:38:40+00:00",
+  "ended_at": "2026-09-01T02:52:39+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A short optimizer-continuous actor tail regularized directly to the externally strongest parent at KL coefficient 0.1 can retain statistically reliable league improvement while avoiding destructive continuation drift.",
+  "material_change": "Unchanged zero-hand recovery of v6-parent-kl-conservative-tail-20260901 with the required experiment-local run_tail.py provenance path; resume parent to 196608 physical hands with parent KL reference 0.1 and all other training factors fixed.",
+  "baseline": "Zero-hand provenance capture failure in parent record; weakly regularized tail external failure -91.0228; parent point -9.4188",
+  "source": "parent raw sha256=9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4",
+  "parent_id": "v6-parent-kl-conservative-tail-20260901",
+  "command": "python research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/run_tail.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/run_tail.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:38:40+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\test_tail.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:39:14+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 196608 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026104200 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_actor_ema_terminal_smoke_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\latest.pt --seed 20261042 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:39:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train --expected-target-hands 99999999 --expected-target-environment-hands 196608 --expected-final-iteration 40 --expected-pool-size 5 --expected-archive-every 8 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor1.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:23+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor2.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:24+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor3.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:25+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor4.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:26+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:26+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor1.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:27+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor2.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:28+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor3.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:29+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor4.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:30+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:31+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor1.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:32+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor2.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor3.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:34+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor4.pt --pairs 1024 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:44:35+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T02:38:40+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/code.patch",
+    "patch_sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91",
+    "source_manifest": "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/source_manifest.json",
+    "source_manifest_sha256": "b0461eb39e721beb584ef643cb78040d6df8a6fa112267cee8a51c301aa060c6",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 65064,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 30720,
+    "wall_time_seconds": 839.0,
+    "slumbot_hands": 0,
+    "lineage_physical_hands": 197617
+  },
+  "metrics": {
+    "wall_time_seconds": 734.9850000000442,
+    "terminal_parent_kl": 0.0011853440664708614,
+    "tail_parent_bb100": 47.588964843750006,
+    "tail_parent_ci95_low": 8.604176157738387,
+    "tail_parent_ci95_high": 86.57375352976163,
+    "positive_tail_parent_anchors": 4
+  },
+  "artifacts": [
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/code.patch",
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\source_legacy.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\prefix_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\tail_raw.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\run_tail.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\test_tail.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\train_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\__pycache__\\run_tail.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\__pycache__\\test_tail.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\tail_audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000008_hands000000033021.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000016_hands000000066017.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000024_hands000000099005.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000032_hands000000131940.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000040_hands000000165083.pt",
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/result_summary.md",
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/reviewed_analysis.json",
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/frozen/tail_raw.pt"
+  ],
+  "notes": [
+    "Prior record produced zero hands and is not reused or overwritten. Design and gates unchanged."
+  ],
+  "result": {
+    "summary": "The unchanged zero-hand recovery completed a 65064-hand parent-KL actor tail, preserved continuity, and passed the internal greedy mechanism gate with independent review.",
+    "conclusion": "Direct parent KL coefficient 0.1 held terminal reference KL to 0.00119 while treatment beat parent by +47.59 bb/100 on the five training opponents with paired CI lower +8.60 and 4/5 positive anchors. This is not generalization evidence.",
+    "decision": "ADMIT_OUTCOME_FREE_PARENT_DRIFT_GATE",
+    "next_step": "Before any Slumbot allocation, replay the treatment and parent on an audited outcome-free state corpus; admit live testing only if greedy disagreement and TV remain substantially below the failed weak-KL tail while all identities pass."
+  },
+  "tags": [
+    "policy-preservation",
+    "recovery",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 19,
+    "command_count": 19
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12742975,
+      "sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91"
+    },
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "b0461eb39e721beb584ef643cb78040d6df8a6fa112267cee8a51c301aa060c6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13635,
+      "sha256": "7490ff2dc278b441b07f06a2e9935d5b4c276893351a8255d3b8893d40e539a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23597,
+      "sha256": "e26e9ee6c67d78def8c1fbf7e0b761df2cfdb458f076c334f56f6de819e2d88c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 372,
+      "sha256": "cc0ee2472df91f9bd86c2bd74614d5c7d20f4599c02b769e73438dd172dc7b53"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 26211,
+      "sha256": "b76ada207861ed4aa33d9a88c38e9b809f61ce3f4da2f2cbb9f7b4d1b5ac058d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\parent_raw.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\source_legacy.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\prefix_manifest.json": {
+      "type": "file",
+      "bytes": 512,
+      "sha256": "871984febe151ee9e949124d800f352f7fb0c73c4205db62f046585501fac1d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 713,
+      "sha256": "c2ebd1665b6b3e943f75e0edde074dbdda69273dba3349e33ae48eb6a45da207"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\frozen\\tail_raw.pt": {
+      "type": "file",
+      "bytes": 199404836,
+      "sha256": "1c050edb088eaaf4bdc653a7b7b4708191854a7ca216f913ca2b7c1c6cd412c4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 1897,
+      "sha256": "6469101a51b5fba0cfa7fab853cc6b54b2e27a2a20fa62104a18cad9b29c1f3a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 4404,
+      "sha256": "ec0857c6dcc1008a3f31fd3e796366ce62ddd96facc16b7954739ff2ba674286"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1646,
+      "sha256": "c1a5fbb77c69cdf26cbedee78d3a7ec900c1707302ddb5c81ae4d6b97655c223"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1649,
+      "sha256": "75a130cba02dd5ef64a469c87504a3f9609e2860efad7e0da457b6fe643dfeb2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1645,
+      "sha256": "0db28aa1a4b8fd99c28509f98515119e4930304397953042b01cbef6fec7961d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1647,
+      "sha256": "a548d543283ceaa3a91506c2d7ae5732fb6e4a40dbb1586a7042607a88f62e13"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\parent_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1646,
+      "sha256": "6ec4d151a22dbda55aac0be1aaaf5d29cc1d0a2aed873e0034516446de42e984"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\preregistration.md": {
+      "type": "file",
+      "bytes": 1227,
+      "sha256": "bf3d5b764325d37ef6025ea153197d3e20187f975a33e75c5cd6863c184371fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\run_tail.py": {
+      "type": "file",
+      "bytes": 1069,
+      "sha256": "3925a1414927d8b236a8ef1bd8c3e957f4c516a102456bf390d54892e10b2481"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1602,
+      "sha256": "c7f874b2ea738df6c943bddf4b73751389d42a65ecc99185427883f55cf80cb7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1645,
+      "sha256": "06469b66c7e47ae300fd642907196a2d9fcd0f356737eeed0caf2e618238fde8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1646,
+      "sha256": "cb26c2cd1b37695cb75575f5bec4fdb7ce5c05c32f69edb7dd8950c095c0ba8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1645,
+      "sha256": "2723d798e43e62222499356b2dd8e042db0836a701373d22d2faef944f3b45d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1645,
+      "sha256": "58a8f67f2abb42b201226e35cf1e24c72224c5f7f9de5fa266864179b26e2b3d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1645,
+      "sha256": "11aa6f95687c33987d142cc6445c38c912f7b5f081e25610559d92daf6075f50"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1643,
+      "sha256": "bf5cb740e90d53e3513527f58fc9648b9c74f3482abd50ce444d39670d4227c9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1637,
+      "sha256": "254f857933223561675ba6219eba7e0d7b7a90413d13a436b243bbf76bb995b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1643,
+      "sha256": "9fc5fec8d41908fa9c42eedda25e9d3a12c00347cbb3902ed8996ecc4625cae9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\tail_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1644,
+      "sha256": "763d1d44c500ab3c653133f0e4b64f4be340e2d1eb1e000e393788da4898483c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\test_tail.py": {
+      "type": "file",
+      "bytes": 627,
+      "sha256": "496168a7cd65ce18247a0fa2b4b575febdb7c4b9873e20e244e3a820ca1ce96f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\train_stdout.log": {
+      "type": "file",
+      "bytes": 10831,
+      "sha256": "e16ce6e77c7fe18db13cf26a68b2b45deea3d76163a2adc1a3e8d6dd9eab8ed6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\__pycache__\\run_tail.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 2098,
+      "sha256": "2f19f6a70cbd92d1a07949e28ad5c29fc984717ed9e96550c4802f26bb4e1fb4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\__pycache__\\test_tail.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 4643,
+      "sha256": "5d4d4a19f4c81dedd7c3dc325b5c50a6f0fff7a5b55dcbb2864f2809c4033faa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 286804,
+      "sha256": "3a56a02820093ae24c4e6f1c6db6bbf5892eeeac2ce0e746075cc7d1ec93c02c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1763,
+      "sha256": "9bfb7b5f287dda0400732b28f97cc60bd7948cee35ad7395d8a84e5f144f5a45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 283910,
+      "sha256": "a6257ec0e619a7333339c7b4299fa8207036a98b23336a944c8a2d6eb7c53da7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1766,
+      "sha256": "627872a6379641c03dfa362fd61be43dca30047d37dbea2393891132d5ed8dee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 285981,
+      "sha256": "308e7aa8e19c5023cbb07dcd1631c21d81e438473edc50dc5b514d5864305e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1762,
+      "sha256": "21204f0d2019a4bcdb35fc305c6ecb78fa529bd6e08755c4a3c399585513bcef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287098,
+      "sha256": "42b20eccf19da4f1fd5d0faa2c8db1ded677d31b8787c6fb0945f14181a1d853"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1764,
+      "sha256": "35c62fded3f510687871027541e55a1785f3b917886eaf788a609990367f803b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287163,
+      "sha256": "91aa41d925a59cd096e7c1f06d9b61cbe0863a3d2321267e0d2ac6ce81497b09"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\parent_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1763,
+      "sha256": "bbdca67d24c44bc067c6aaf409d3184d2f7de1299e389e5712b3a7f04885c3e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 286980,
+      "sha256": "a4c9ddba754f836adbce90322f2aa6622b0e879b1128adfd54ed625ff11b78a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1719,
+      "sha256": "ddc1edb93795aa163d5f35a198a412f19640235854e32d03168307847218c4d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 283993,
+      "sha256": "626de42a4f73af3a8b6c10a5afef5a9c2095b13cb33d4c9729367c891a912647"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1762,
+      "sha256": "b2f6fe75756ac924203ec5c0bca2545b1d1f0d23d5159f21d4c628366137f32a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 286089,
+      "sha256": "48b89532ad8d914cb412b4f924704280021011ba5d2657fa33a82190b960685e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1763,
+      "sha256": "cf0f99e13e84893faef76534753cb0dc4978bcb6431ccb00c7c23bbc39bdf959"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287261,
+      "sha256": "278a9fc99784c7f99ecc4787fdfed699eec51c76a465cd58e481fd8c3e1b26ae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1762,
+      "sha256": "ea4e1efde0ce9b254f5ead32d7f1785fd9c8152cd36d703174dcf76a9a315ff5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287198,
+      "sha256": "44a2097bbb4c50804e03981786f43c7228d5ed0a801b603950152315a28730ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1762,
+      "sha256": "db58d792946352f4ab977f000fcfb19ea2938ed0ee03c1462f1c94bb2b002cff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 286757,
+      "sha256": "b5f200b8d88cdf4bc3acefa686ddec3190bff3a1295c47714d6f8256fc19652f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1762,
+      "sha256": "11bc0974cea95827e1834bdae4822da8338db05b625fd10a1e48d5761d978e4b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 283894,
+      "sha256": "7a7571b30d28cd2415266fb4f75f54cd7122f69908c1559b14299de3a5ba75f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1760,
+      "sha256": "54d2219eb9969a10de98eed41bf19d1224dad437796d892f23d2cccf34708c96"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 285958,
+      "sha256": "f522f4f261da7509bdc778bd4bfe16f25e5cdde2f22f7979e40dfcfe54ba2aa8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1754,
+      "sha256": "972b0969ddcc0086d74bfd4bfa4e2acfba154e79fc3659c35540f9cfa74550ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287058,
+      "sha256": "18fa1b6382af2679f94bb45bee4768321030aa51ef1a6c83420109d5b98cc826"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1760,
+      "sha256": "ee3b0f724ec5d44c417c79aeb1ef8f7d42cdb6657eb04d6f40db1bbf965a4ec3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 287125,
+      "sha256": "e590ea9a5bcff8adb0d53d7f52de663c287d6b4bab339d04cd2f2be8d0bb91de"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\matrix\\tail_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1761,
+      "sha256": "a4593cf8561cd3c9150bfb5584e79666da97b787818888127309f61de1e35ac8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 6322,
+      "sha256": "495ce9bf705ff2de557979ee8934caaef9eae887094ec1065bf5ff74bde722ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1053585,
+      "sha256": "4ced44463108c8260ab721c63ed263ea747016c1f32796d7abc5dbaaff301ec2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\latest.pt": {
+      "type": "file",
+      "bytes": 199404836,
+      "sha256": "1c050edb088eaaf4bdc653a7b7b4708191854a7ca216f913ca2b7c1c6cd412c4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\latest_train.log": {
+      "type": "file",
+      "bytes": 17670,
+      "sha256": "5d5b7677f5014aa10b664fffb2d8d97f7538500272162b4d9866e924de76d8d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 107930,
+      "sha256": "eff10ece552ffe96af2ab10858469c3d3de8f68d6ecafaaa2b67f9c265b9ea87"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59370,
+      "sha256": "36e7f37a37b250d6f6d65f0e49a8a4a621d7e96ceb425b88a03378a4b2c4bb48"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\session_audit.json": {
+      "type": "file",
+      "bytes": 7141,
+      "sha256": "7b2fc073a89aedef19080fac01eb4d87db5b5bf115d2282dfa692425a7c9c512"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\tail_audit_stdout.log": {
+      "type": "file",
+      "bytes": 7141,
+      "sha256": "7b2fc073a89aedef19080fac01eb4d87db5b5bf115d2282dfa692425a7c9c512"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000008_hands000000033021.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "461d8c2ed0ade277abc8b06b036dcc3104d749b72f382f2a540e6e1b21fd298e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000016_hands000000066017.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "a2fa5233d4c8322d4f0644dcb09c9084942e419f0ff453d6e0bd2266fd3521a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000024_hands000000099005.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "c759cb1094e6125dea4efc7d8c1905ca9bfd6c75f2ce52d107da7b448f0e7eec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000032_hands000000131940.pt": {
+      "type": "file",
+      "bytes": 199430102,
+      "sha256": "2d4a819e1fad9c2bb4151ebb97a271b477dcdab90f10bb36b5ec31cf22533fcb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-conservative-tail-recovery-20260901\\production\\train\\checkpoints\\checkpoint_iter000040_hands000000165083.pt": {
+      "type": "file",
+      "bytes": 199430166,
+      "sha256": "61f669c247e2e9b60c35dede61b5f7e93cdf6667f9c191ccb63463f8ba8c0411"
+    },
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 611,
+      "sha256": "91b3f7434de74556fd928ba95d669f4617080ad1e9054cfda91cd40073944d8a"
+    },
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 750,
+      "sha256": "1e1f33bda75a253fe0ff32ceb12d3a943d4e2235d0bcac0d0d7375d59f0c950d"
+    },
+    "research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/frozen/tail_raw.pt": {
+      "type": "file",
+      "bytes": 199404836,
+      "sha256": "1c050edb088eaaf4bdc653a7b7b4708191854a7ca216f913ca2b7c1c6cd412c4"
+    }
+  }
+}

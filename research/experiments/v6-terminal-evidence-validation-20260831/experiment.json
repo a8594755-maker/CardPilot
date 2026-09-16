@@ -1,0 +1,173 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-terminal-evidence-validation-20260831",
+  "title": "Offline v6 terminal evidence validator",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T09:48:02+00:00",
+  "updated_at": "2026-08-31T09:54:39+00:00",
+  "started_at": "2026-08-31T09:48:02+00:00",
+  "ended_at": "2026-08-31T09:53:11+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Explicit physical terminal replay rejects malformed winnings and histories while preserving legitimate fold and showdown evidence.",
+  "material_change": "Add a standalone validator without modifying any source captured by the active training pilot; directed tests plus512fixed independent-oracle deals.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-external-evidence-protocol-audit-20260831",
+  "command": "python research/experiments/v6-terminal-evidence-validation-20260831/run_validation.py --attempt attempt01",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-terminal-evidence-validation-20260831/run_validation.py --attempt attempt01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T09:48:02+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-terminal-evidence-validation-20260831/run_validation.py --attempt attempt01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T09:53:02+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "56f8b3e0591abdb29d3e6ceeb2bfe342a1046ff42b19824ebd34ad2c850562f7",
+    "code_paths": [
+      "research/experiments/v6-terminal-evidence-validation-20260831/preregistration.md"
+    ],
+    "captured_at": "2026-08-31T09:48:02+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-terminal-evidence-validation-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-terminal-evidence-validation-20260831/source_manifest.json",
+    "source_manifest_sha256": "572ceebdf6ae42f353d942c6f7d2b75cd3eec2543a2583953104f0bc2d7d45db",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 309.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "planned_oracle_deals": 512,
+    "attempt01_oracle_deals": 512,
+    "directed_tests_passed": 19,
+    "independent_oracle_decisions": 4256,
+    "unique_oracle_deals": 512,
+    "accepted_seat_views": 1024,
+    "accepted_expanded_views": 182,
+    "corruptions_rejected": 2048,
+    "independently_verified_raw_hashes": 3
+  },
+  "artifacts": [
+    "research/experiments/v6-terminal-evidence-validation-20260831/preregistration.md",
+    "research/experiments/v6-terminal-evidence-validation-20260831/code.patch",
+    "research/experiments/v6-terminal-evidence-validation-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\directed_tests.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\oracle_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\terminal_views.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\execution_code\\source_manifest.json",
+    "research/experiments/v6-terminal-evidence-validation-20260831/result_summary.md",
+    "research/experiments/v6-terminal-evidence-validation-20260831/official_sample_api.txt",
+    "research/experiments/v6-source-kl-retention-pilot-20260831/execution_code/copy_manifest.json"
+  ],
+  "notes": [
+    "Additive standalone evidence component only; all live pilot source files remain unchanged. No client integration, poker API calls or policy-strength admission.",
+    "attempt01started;fixed512decks/seed20260922,no poker API requests or learned-weight changes.",
+    "attempt01endedPASS;preserve all evidence. Terminal module is not client integration,session evidence validation or strength evidence.",
+    "Post-run raw inspection confirmed512oracle rows/1024seat views,189folds/323showdowns/15ties,and all3raw hashes. Standalone component only; no poker requests/client integration/strength admission. Preserve attempt01 and keep live training source unchanged."
+  ],
+  "result": {
+    "summary": "Standalone terminal evidence validation passed directed tests and512fixed independent-oracle deals;0learned or external hands.",
+    "conclusion": "Exact terminal checks are validated offline; journaling,token-chain,session independence and live-client integration remain required.",
+    "decision": "STANDALONE_TERMINAL_VALIDATOR_VALIDATED",
+    "next_step": "Integrate this validator with a separately registered durable-journal client and validate complete offline multi-session evidence before any live qualification."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-terminal-evidence-validation-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 3147,
+      "sha256": "ad55e5acabaa5cf016f465eef81502cd02a725dd5e9f6a5b59abffffd8c327eb"
+    },
+    "research/experiments/v6-terminal-evidence-validation-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-terminal-evidence-validation-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 325,
+      "sha256": "572ceebdf6ae42f353d942c6f7d2b75cd3eec2543a2583953104f0bc2d7d45db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\analysis.json": {
+      "type": "file",
+      "bytes": 1382,
+      "sha256": "a60431f496c61ddee63526f63996ba4c8262508fb3a541ae5d20068802974f54"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\directed_tests.log": {
+      "type": "file",
+      "bytes": 2192,
+      "sha256": "9f8fe0677592b586b0e6fc6ca8784c4d7cb7f75f658074492567022193ef75a2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\oracle_hands.jsonl": {
+      "type": "file",
+      "bytes": 245146,
+      "sha256": "f0adeb624d7592eeceb84d7021de6793aabdf738cfb9a9fb81b5f682f5edf58c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\terminal_views.jsonl": {
+      "type": "file",
+      "bytes": 771241,
+      "sha256": "c8c25109076831e998f3211dbe288fb7092d635994657d34160c83f9046414b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 31392,
+      "sha256": "6cf87bbbeda5af405fa242dca9ef0c9ed5c8610841a714d38acfe57ba6586957"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 8268,
+      "sha256": "f199295270614af5f3260393fa9ee680d4e0b366c030358a305f99cd15e84fbc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-terminal-evidence-validation-20260831\\attempt01\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 4700,
+      "sha256": "e6f22d79d031280b522de7e1b40d7ce8a87a3006b191a3d19905c1fd92af31d0"
+    },
+    "research/experiments/v6-terminal-evidence-validation-20260831/result_summary.md": {
+      "type": "file",
+      "bytes": 2325,
+      "sha256": "a0d6085d7a4543bf5bf8e08f940a1bc6d751f1159b039c1486ba7503d6e82f7a"
+    },
+    "research/experiments/v6-terminal-evidence-validation-20260831/official_sample_api.txt": {
+      "type": "file",
+      "bytes": 13462,
+      "sha256": "17ab1f6c1a25db1822cef7f34ed67b6516ac65ea24897adcc92d8f2db8f71505"
+    },
+    "research/experiments/v6-source-kl-retention-pilot-20260831/execution_code/copy_manifest.json": {
+      "type": "file",
+      "bytes": 22225,
+      "sha256": "77760c7935d71e793c39f22d4c047ef8e4551852408cf749ac36c502566b214a"
+    }
+  }
+}

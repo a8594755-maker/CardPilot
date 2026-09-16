@@ -1,0 +1,194 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-dual-contract-deployment-feasibility-20260901",
+  "title": "MGDA dual-contract frozen deployment feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T18:40:00+00:00",
+  "updated_at": "2026-09-01T18:48:37+00:00",
+  "started_at": "2026-09-01T18:40:00+00:00",
+  "ended_at": "2026-09-01T18:48:37+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The strongest frozen six-objective MGDA seed0 12k residual can be deployed under the journaled Slumbot protocol with an exact two-artifact frozen identity, deterministic greedy dual-contract decisions, and independent decision replay identical to the training contract.",
+  "material_change": "Add a dual-contract execution adapter and minimally extend journal/audit frozen-artifact verification; run offline contract, mock-session, replay, base-hash rejection, and checkpoint parity checks without contacting Slumbot.",
+  "baseline": "Seed0 12k checkpoint SHA 7831a754 has the strongest internal 8k-to-12k slope; current journaled runner supports native-v6 and legacy-v4 only, and its frozen identity covers one checkpoint.",
+  "source": "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt",
+  "parent_id": "v6-mgda-seed1-12k-continuation-replication-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --residual-checkpoint research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt --out-dir research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --residual-checkpoint research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt --out-dir research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:40:00+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_v6_session.py --session-dir research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_1 --session-dir research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_2 --model research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/dual_contract_seed0_12k_deployment.pt --base-model models/baseline/standard10/latest.pt --observation-bridge dual-contract",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:48:37+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:48:37+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "735aaa2b786dbea35133d5c0cc91095b287dc1f4848bc2b69596ea3e8bc5ed0c",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T18:40:00+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/source_manifest.json",
+    "source_manifest_sha256": "ddd180a97819dfcd4210b9ab0122d207c02fdd43287cdd10c4f5c846f1692f56",
+    "source_files": 135
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 12288,
+    "offline_samples": 4096,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 517.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "reachable_states": 4096,
+    "greedy_action_matches": 4096,
+    "sampled_action_matches": 4096,
+    "max_abs_logit_error": 0,
+    "offline_protocol_hands": 8,
+    "offline_decision_replays": 29,
+    "tests_passed": 236
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/code.patch",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/summary.json",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/dual_contract_seed0_12k_deployment.pt",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_1/journal.jsonl",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_1/hands.jsonl",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_1/summary.json",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_2/journal.jsonl",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_2/hands.jsonl",
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_2/summary.json",
+    "scripts/alpha_holdem/dual_contract_execution_v6.py",
+    "scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py",
+    "scripts/alpha_holdem/test_dual_contract_execution_v6.py",
+    "scripts/alpha_holdem/play_slumbot_v6_journaled.py",
+    "scripts/alpha_holdem/audit_slumbot_v6_session.py"
+  ],
+  "notes": [
+    "No external Slumbot hands are authorized by this feasibility record. Admission to a fresh directional gate requires exact base/residual hashes, deterministic CPU greedy parity, journal completion, independent replay, and rejection on either artifact mutation.",
+    "The 12k continuation checkpoint omitted hidden/cap fields. The deployment bundle recovered hidden=128 and policy_delta_cap=0.25 only from its SHA-bound 8k parent de70dd34, copied the residual tensors unchanged, and records source residual SHA 7831a754 plus base SHA 91b0c587.",
+    "The frozen deployment identity is bundle SHA 78a23886 plus Standard10 base SHA 91b0c587. Mock hands are protocol fixtures only and are not counted as evaluation hands or strength evidence."
+  ],
+  "result": {
+    "summary": "A self-contained dual-contract deployment bundle was derived without changing learned tensors. Across 4,096 reachable states, source and bundle logits were bit-exact and both greedy and sampled actions matched 4,096/4,096. Two four-hand mock sessions produced 29 decisions; journal, raw-hand evidence, two-artifact frozen identity, disjoint token chains, and independent CLI replay all passed. Full suite: 236 passed.",
+    "conclusion": "The strongest seed0 12k six-objective MGDA policy is deployable under the exact journaled CPU contract. The missing architecture fields in the continuation checkpoint were repaired transparently through a hash-bound, weight-identical deployment bundle. This is contract evidence, not poker-strength evidence.",
+    "decision": "ADMIT_FRESH_DIRECTIONAL_GATE",
+    "next_step": "Preregister a small eight-session fresh Slumbot greedy directional gate on the exact bundle SHA 78a23886 and Standard10 base SHA 91b0c587. Use raw hand JSONL for bb/100 and CI, audit session independence, and stop or scale based on external alignment with the internal positive learning curve."
+  },
+  "tags": [
+    "deployment",
+    "dual-contract",
+    "frozen-identity",
+    "replay"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 25254,
+      "sha256": "ddd180a97819dfcd4210b9ab0122d207c02fdd43287cdd10c4f5c846f1692f56"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 5522,
+      "sha256": "5a1fc972124255898c3388a7a1266c94c73c42fd28a827524d2b08ac0180d55d"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/dual_contract_seed0_12k_deployment.pt": {
+      "type": "file",
+      "bytes": 463666,
+      "sha256": "78a238868fb19bb225423f9ad7b143cb06b01bc19c6bf1294489d4789b6ed33b"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_1/journal.jsonl": {
+      "type": "file",
+      "bytes": 51902,
+      "sha256": "6d02f4fe864ed7b728108044913659bc480abf5ae8ef980a5d489e48ed26cc10"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_1/hands.jsonl": {
+      "type": "file",
+      "bytes": 27331,
+      "sha256": "a2db7f7eaab7e73809b9598fd542fd7d89134c9bd1bf3ec46859c5a3a85a9baf"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_1/summary.json": {
+      "type": "file",
+      "bytes": 5284,
+      "sha256": "e92ddcae86fb833a3ed7a26221d7e34ac96ad70b66386b0570698303c09a9d6a"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_2/journal.jsonl": {
+      "type": "file",
+      "bytes": 44360,
+      "sha256": "75f4dd4bddde7df39cb252cce22722b85271b07ae39ff37856db03d8dd0e05c4"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_2/hands.jsonl": {
+      "type": "file",
+      "bytes": 23193,
+      "sha256": "747ee19233ff46c0e4b963931efd17ab6b8683ab01df586894e029fb8121ec85"
+    },
+    "research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/mock_session_2/summary.json": {
+      "type": "file",
+      "bytes": 5285,
+      "sha256": "56fb4a807858a9777f9604ff8cd72b3cf43da774fd9285b5501ce3f62bb92fa8"
+    },
+    "scripts/alpha_holdem/dual_contract_execution_v6.py": {
+      "type": "file",
+      "bytes": 11619,
+      "sha256": "ace2696923e0a52dbd5ff4cbd2e292f782cb9ed742b8a9c6c15336cc3d006645"
+    },
+    "scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py": {
+      "type": "file",
+      "bytes": 10885,
+      "sha256": "72405d0ead8de75abfa3056fd4db4cf28a487c411e45238c24f840e205e50e4b"
+    },
+    "scripts/alpha_holdem/test_dual_contract_execution_v6.py": {
+      "type": "file",
+      "bytes": 3752,
+      "sha256": "040da8c411a638546a515265be3a055d2864c4faa560ec2566e139cc67a81576"
+    },
+    "scripts/alpha_holdem/play_slumbot_v6_journaled.py": {
+      "type": "file",
+      "bytes": 15079,
+      "sha256": "5489a05039fdc98e718e4c2c9792a489fd589fdc3323e0bf557bf1bf38498c92"
+    },
+    "scripts/alpha_holdem/audit_slumbot_v6_session.py": {
+      "type": "file",
+      "bytes": 20714,
+      "sha256": "5d00bd18fa4008501377500a9fecf85da6bd59b1ca4bc9a850337d822d5e74f5"
+    }
+  }
+}

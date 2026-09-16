@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "config": {
+    "iterations": 2,
+    "traversals_per_player": 2,
+    "train_steps": 32,
+    "batch_size": 256,
+    "lr": 0.001,
+    "eval_pairs": 256,
+    "node_limit": 250000,
+    "seed": 60902,
+    "output_dir": "research\\experiments\\v6-deep-cfr-neural-regret-smoke-20260901\\run"
+  },
+  "accounting": {
+    "root_traversals": 8,
+    "environment_training_hands": 8,
+    "decision_nodes": 29093,
+    "terminal_rollouts": 22667,
+    "evaluation_hands": 2048
+  },
+  "training": {
+    "metrics": [
+      {
+        "iteration": 1,
+        "players": [
+          {
+            "player": 0,
+            "mean_root_value_bb": 0.0,
+            "loss": 152.30823612213135,
+            "buffer_size": 668,
+            "stats": {
+              "decision_nodes": 6002,
+              "traverser_nodes": 668,
+              "sampled_opponent_nodes": 5334,
+              "terminal_rollouts": 4668,
+              "max_depth": 9
+            }
+          },
+          {
+            "player": 1,
+            "mean_root_value_bb": 0.0,
+            "loss": 152.89338397979736,
+            "buffer_size": 668,
+            "stats": {
+              "decision_nodes": 6002,
+              "traverser_nodes": 668,
+              "sampled_opponent_nodes": 5334,
+              "terminal_rollouts": 4670,
+              "max_depth": 11
+            }
+          }
+        ]
+      },
+      {
+        "iteration": 2,
+        "players": [
+          {
+            "player": 0,
+            "mean_root_value_bb": 1.0,
+            "loss": 190.27624988555908,
+            "buffer_size": 1336,
+            "stats": {
+              "decision_nodes": 6002,
+              "traverser_nodes": 668,
+              "sampled_opponent_nodes": 5334,
+              "terminal_rollouts": 4668,
+              "max_depth": 9
+            }
+          },
+          {
+            "player": 1,
+            "mean_root_value_bb": 0.5,
+            "loss": 133.91259217262268,
+            "buffer_size": 2277,
+            "stats": {
+              "decision_nodes": 11087,
+              "traverser_nodes": 1609,
+              "sampled_opponent_nodes": 9478,
+              "terminal_rollouts": 8661,
+              "max_depth": 16
+            }
+          }
+        ]
+      }
+    ],
+    "buffer_sizes": [
+      1336,
+      2277
+    ],
+    "stats": {
+      "decision_nodes": 29093,
+      "traverser_nodes": 3613,
+      "sampled_opponent_nodes": 25480,
+      "terminal_rollouts": 22667,
+      "max_depth": 16
+    },
+    "elapsed_seconds": 12.815630674362183
+  },
+  "checkpoint": {
+    "path": "research\\experiments\\v6-deep-cfr-neural-regret-smoke-20260901\\run\\checkpoint.pt",
+    "sha256": "a38c59fce2b323871a5075a10ed906140220e9d9dd53985eb33042e5096093fd",
+    "reload_exact": true
+  },
+  "evaluations": [
+    {
+      "anchor": "call_station",
+      "mode": "sampled",
+      "pairs": 256,
+      "hands": 512,
+      "candidate_bb100": -83.36328124999997,
+      "candidate_ci95_bb100": [
+        -387.9744047829134,
+        221.24784228291338
+      ],
+      "decisions": 4119,
+      "candidate_decisions": 2021,
+      "argmax_not_passive_fraction": 0.0,
+      "mean_tv_from_passive": 0.08273035007676885
+    },
+    {
+      "anchor": "call_station",
+      "mode": "greedy",
+      "pairs": 256,
+      "hands": 512,
+      "candidate_bb100": 0.0,
+      "candidate_ci95_bb100": [
+        0.0,
+        0.0
+      ],
+      "decisions": 4096,
+      "candidate_decisions": 2048,
+      "argmax_not_passive_fraction": 0.0,
+      "mean_tv_from_passive": 0.08156731724739075
+    },
+    {
+      "anchor": "uniform",
+      "mode": "sampled",
+      "pairs": 256,
+      "hands": 512,
+      "candidate_bb100": 23.976562500000043,
+      "candidate_ci95_bb100": [
+        -733.7286629197641,
+        781.6817879197642
+      ],
+      "decisions": 3772,
+      "candidate_decisions": 2144,
+      "argmax_not_passive_fraction": 0.0,
+      "mean_tv_from_passive": 0.07995323283570026
+    },
+    {
+      "anchor": "uniform",
+      "mode": "greedy",
+      "pairs": 256,
+      "hands": 512,
+      "candidate_bb100": 243.97070312499997,
+      "candidate_ci95_bb100": [
+        -490.6626507593575,
+        978.6040570093573
+      ],
+      "decisions": 3877,
+      "candidate_decisions": 2256,
+      "argmax_not_passive_fraction": 0.0,
+      "mean_tv_from_passive": 0.08158343306458588
+    }
+  ],
+  "gates": {
+    "planned_root_traversals_complete": true,
+    "finite_positive_losses": true,
+    "both_buffers_nonempty": true,
+    "checkpoint_reload_exact": true,
+    "behavior_moved_from_passive": false,
+    "evaluation_complete": true
+  },
+  "admit_larger_pilot": false,
+  "decision": "REJECT_OR_REVISE_EXACT_V6_NEURAL_REGRET_SMOKE"
+}

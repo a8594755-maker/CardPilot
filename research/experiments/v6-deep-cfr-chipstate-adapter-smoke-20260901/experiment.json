@@ -1,0 +1,113 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-chipstate-adapter-smoke-20260901",
+  "title": "Exact-v6 ChipState Deep CFR adapter smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:47:38+00:00",
+  "updated_at": "2026-09-01T14:50:29+00:00",
+  "started_at": "2026-09-01T14:47:38+00:00",
+  "ended_at": "2026-09-01T14:50:29+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A minimal external-sampling CFR traversal can operate directly on the audited physical-v6 ChipState/action table with stable nine-slot information sets, no opponent-hole leakage, exact zero-sum payoffs, and bounded deterministic smoke traversals.",
+  "material_change": "Add a physical-v6 56D information-set encoder and nine-slot external-sampling traversal that use ChipState and policy_contract_v6.action_table directly; do not modify the legacy Deep CFR rules engine.",
+  "baseline": "The readiness audit rejected the legacy HUNL integration on all five contract gates while confirming tabular Leduc convergence to 26.1112 mbb/game.",
+  "source": "v6-deep-cfr-physical-readiness-audit-20260901",
+  "parent_id": "v6-deep-cfr-physical-readiness-audit-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_adapter_smoke.py --root-traversals 16 --seed 60901 --output research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/smoke.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_adapter_smoke.py --root-traversals 16 --seed 60901 --output research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/smoke.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:47:38+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "d72eff7df8f2d578e6219b5d53bb682b73140fa496c2bc7e88ce5e19445257d8",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T14:47:38+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "98b3dcfb49450d83b0d2ef18ce8ee27ab798c102f741c29aa288f13170d92166",
+    "source_files": 113
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 171.0,
+    "environment_training_hands": 0,
+    "sampled_root_traversals": 16,
+    "decision_nodes": 48016,
+    "terminal_rollouts": 37352
+  },
+  "metrics": {
+    "traverser_samples_per_seat": 2672,
+    "max_depth": 11
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/smoke.json",
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/analysis.md"
+  ],
+  "notes": [
+    "Adapter/mechanism smoke only. Root traversals are not claimed as environment training hands and no weights are optimized.",
+    "smoke.json sha256=bbff21d9c6f46b6b69266652d40e3bf7352ef1d3a57ce66fd684617ca12f88e8; alpha_holdem suite 209 passed."
+  ],
+  "result": {
+    "summary": "The direct ChipState external-sampling adapter passed every mechanism gate on 16 unique alternating-seat roots: 48,016 decisions, 37,352 terminal rollouts, 2,672 finite masked targets per traverser, exact shared action slots/transitions, zero-sum BB payoffs, and opponent-hole encoding invariance.",
+    "conclusion": "Exact physical-v6 CFR traversal is feasible without the legacy HUNL rules engine. The evidence admits a bounded neural regret optimization smoke, but does not yet establish learning quality or count as environment training hands.",
+    "decision": "ADMIT_BOUNDED_EXACT_V6_NEURAL_REGRET_SMOKE",
+    "next_step": "Run a deterministic small neural-regret optimization with explicit root-deal/node accounting; require healthy target/loss distributions, checkpoint reload parity, nontrivial behavioral movement, and untouched evaluation against fixed exact-v6 policies before scaling."
+  },
+  "tags": [
+    "adapter",
+    "deep-cfr",
+    "smoke",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 20592,
+      "sha256": "98b3dcfb49450d83b0d2ef18ce8ee27ab798c102f741c29aa288f13170d92166"
+    },
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/smoke.json": {
+      "type": "file",
+      "bytes": 1735,
+      "sha256": "bbff21d9c6f46b6b69266652d40e3bf7352ef1d3a57ce66fd684617ca12f88e8"
+    },
+    "research/experiments/v6-deep-cfr-chipstate-adapter-smoke-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1499,
+      "sha256": "1651459e861321b8590c4cb2483d7cfdb7ebe9513e661fdba0632219a0287850"
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.0,
+      "greedy_disagreements": 0,
+      "max_tv": 0.004062179010361433,
+      "mean_tv": 0.0008233772819968948,
+      "p95_tv": 0.0018617926398292184,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.001,
+      "greedy_disagreements": 5,
+      "max_tv": 0.003575110575184226,
+      "mean_tv": 0.0007600361655407597,
+      "p95_tv": 0.001978491444606334,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.0006,
+      "greedy_disagreements": 3,
+      "max_tv": 0.0036718938499689102,
+      "mean_tv": 0.0009028737799619194,
+      "p95_tv": 0.0020849744207225743,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.0012,
+      "greedy_disagreements": 6,
+      "max_tv": 0.003776653902605176,
+      "mean_tv": 0.0009923241443120787,
+      "p95_tv": 0.0023947736597619957,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt",
+    "--parent-sha256",
+    "43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251",
+    "--treatment",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p125.pt",
+    "--out-dir",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/drift_0p125",
+    "--states",
+    "20000",
+    "--seed",
+    "20262054",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "0.03",
+    "--greedy-disagreement-max",
+    "0.05"
+  ],
+  "created_at": "2026-09-03T06:16:34.117300+00:00",
+  "design": {
+    "greedy_disagreement_max": 0.05,
+    "outcome_blind": true,
+    "seed": 20262054,
+    "source_tv_max": 0.03,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 1079121,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.0007,
+    "greedy_disagreements": 14,
+    "max_tv": 0.004062179010361433,
+    "mean_tv": 0.0008696528429529131,
+    "p95_tv": 0.0020646579680033026,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-mgda-matched-smoke-20260903\\control\\latest.pt",
+    "sha256": "43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-mgda-realized-dose-audit-20260903\\drift_0p125\\drift_raw.jsonl.gz",
+  "raw_sha256": "b99b7b2eb5549c40da180f7c28fd3056de36aca21443cb028e2b962a99176016",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 4,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 82
+  },
+  "training_marker_hands": 930989,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-mgda-realized-dose-audit-20260903\\interpolations\\alpha_0p125.pt",
+    "sha256": "0e7eabbb66bdf3226b09e3201d983a9249d9cd0b91a7b040d84abc08dcae22cc"
+  },
+  "wall_time_seconds": 4.752319812774658
+}

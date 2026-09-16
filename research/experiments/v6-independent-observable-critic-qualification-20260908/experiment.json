@@ -1,0 +1,433 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-independent-observable-critic-qualification-20260908",
+  "title": "Independent observable-state critic architecture qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T10:18:33+00:00",
+  "updated_at": "2026-09-08T10:41:27+00:00",
+  "started_at": "2026-09-08T10:18:33+00:00",
+  "ended_at": "2026-09-08T10:41:27+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A cloned independently optimized legal-information value encoder can learn value features without moving actor weights through value gradients.",
+  "material_change": "Isolated architecture implementation and actual-path qualification; no production restart.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-post-2m-learning-method-selection-20260908",
+  "command": "python -m pytest research/experiments/v6-independent-observable-critic-qualification-20260908/test_encoder.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/v6-independent-observable-critic-qualification-20260908/test_encoder.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:18:33+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-independent-observable-critic-qualification-20260908/test_encoder.py research/experiments/v6-independent-observable-critic-qualification-20260908/test_forward_optimizer.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:22:46+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/check_parents.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:22:46+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/check_ppo.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:25:40+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_trainer.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:28:47+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-independent-observable-critic-qualification-20260908/test_resume_contract.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:28:47+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/train_candidate.py --help",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:28:47+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:33:43+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/review_first_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:33:43+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/run_restart.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:37:32+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/review_restart.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:37:32+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_seed3.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:41:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/run_seed3.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:41:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_seed3_capture_v2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:41:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/run_seed3_v2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:41:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-observable-critic-qualification-20260908/review_seed3.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:41:27+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/candidate/scripts/alpha_holdem/network_hybrid_h1.py"
+    ],
+    "captured_at": "2026-09-08T10:18:33+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-independent-observable-critic-qualification-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-independent-observable-critic-qualification-20260908/source_manifest.json",
+    "source_manifest_sha256": "08791d4fef3b9f8caf27ded4e920ce1015026ce7cc712c03fd27c87e048121cc",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1374.0,
+    "training_hands": 18158
+  },
+  "metrics": {
+    "smoke_transition_hands": 16474,
+    "smoke_replay_rows": 30987
+  },
+  "artifacts": [
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/code.patch",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/source_manifest.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/observable_critic.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/test_encoder.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/progress.md",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_network.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/candidate_network.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/test_forward_optimizer.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/check_parents.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/real_parent_checks.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/check_ppo.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/ppo_checks.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/resume_contract.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_trainer.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/candidate_train.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/test_resume_contract.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/train_candidate.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/run_smoke.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/smoke_protocol.md",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/runtime_sources.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/review_first_smoke.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/final_review.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/command.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/input_contract.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/terminal_process.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/train_capture.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/run_restart.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/review_restart.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/restart_review.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/initial_capture.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/capture_contract.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/command.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/decision.md",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_seed3.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_seed3_capture_v2.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/derive_capture_check_v2.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/train_capture_derivation_v2.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/run_seed3_v2.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/review_seed3.py",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture/terminal_process.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture_v2/derivation_review.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture_v2/initial_capture.json",
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture_v2/capture_contract.json"
+  ],
+  "notes": [
+    "10 isolated actual-hybrid-class encoder tests passed. Synthetic states only; production forward and optimizer/replay integration pending. No training launch authorized by these unit tests.",
+    "16 tests and both actual fixed2M parents passed initial forward/Adam checks; old hashes retained. Production PPO/worker/replay serialization integration remains incomplete; zero new hands.",
+    "Both actual retained-parent production PPO-function fixtures passed on64 old complete hand blocks174 rows. Diagnostic one-epoch CPU, no reference KL, no saved model and no new environment hands. Trainer serialization/worker integration remains outstanding.",
+    "Six new resume boundary tests passed; isolated candidate trainer and wrapper import successfully with new CLI flag. Worker and full real replay/counter roundtrip still pending. No new hands.",
+    "First real worker run exit0:9007 physical8246 transition15468 replay rows; final hashes/prefixes/namespace/162 Adam states pass. Reviewer initially assumed4 steps but fresh+replay gives2 minibatches per epoch; corrected to derive8 from policy_rows and epochs. Initial save overwritten normally, so no actual initial-payload audit claimed; extended resume must retain initial snapshot. All frozen inputs unchanged.",
+    "Extended worker resume exit0 and independent saved-initial review passed:162 Adam states plus model/replay/RNG/pool preserved;4603 new physical hands. Total13610 qualification hands, no strength evaluation. Seed3 captured real-worker derivation still pending.",
+    "Seed3 first attempt failed before workers due dict-versus-OrderedDict comparison; preserved and corrected in separate v2 checker/attempt. No training rerun or evidence discarded."
+  ],
+  "result": {
+    "summary": "Independent observable critic qualified:22 tests, real-parent PPO and three completed worker runs18158 physical hands, captured initial derivation and extended resume verified.",
+    "conclusion": "New value encoder learns without direct actor value gradients; existing Adam and replay continuity verified. No strength evidence yet.",
+    "decision": "Proceed to one matched two-seed geometric learning curve from original fixed2M parents, not smoke descendants.",
+    "next_step": "Preregister commands, actual-hand doses262k/1M and matched heterogeneous two-seat fresh evaluations; retain initial payload capture."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 16,
+    "command_count": 16
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 370,
+      "sha256": "08791d4fef3b9f8caf27ded4e920ce1015026ce7cc712c03fd27c87e048121cc"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/observable_critic.py": {
+      "type": "file",
+      "bytes": 3499,
+      "sha256": "18b57a25e4ff14dd11e0cc7b1d27dfc1c6c8986964736e168ca3916d2795be84"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/test_encoder.py": {
+      "type": "file",
+      "bytes": 3945,
+      "sha256": "0dde6eaf80d5247513b67a8ee85c72d57fc5d033cdfc69c30acc262f4c00fea8"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/progress.md": {
+      "type": "file",
+      "bytes": 7740,
+      "sha256": "5833fb0ef69bdd6f19bc914bd395cdd98196b6c8ef9fbac6c2d0adee07e4fbd0"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_network.py": {
+      "type": "file",
+      "bytes": 1795,
+      "sha256": "26267974a68871ce5f208138f407c3d71e3393eaac015227cacf83cf5f36626e"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/candidate_network.py": {
+      "type": "file",
+      "bytes": 41632,
+      "sha256": "d8c668b76f3f378348e416e77d4b91ae31e7efac98401de488e78ace9cccc7a2"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/test_forward_optimizer.py": {
+      "type": "file",
+      "bytes": 3698,
+      "sha256": "f59d04a8b2c80be6e7aa87e4c159d65e812cafd86e8106de86d3f176940f0f81"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/check_parents.py": {
+      "type": "file",
+      "bytes": 4162,
+      "sha256": "eb3f43146e57d177de48cd248b1be672001146e56babcc5c98596c51cd19d935"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/real_parent_checks.json": {
+      "type": "file",
+      "bytes": 11182,
+      "sha256": "dcadf29fa64a848554b4db416e18c7d2881376526f7c51a497441255c781fc38"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/check_ppo.py": {
+      "type": "file",
+      "bytes": 3942,
+      "sha256": "b0ab33a104db6144e35fe0924beebead0197211c227dc0bf4a53cb200dcf5ab6"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/ppo_checks.json": {
+      "type": "file",
+      "bytes": 25607,
+      "sha256": "80d97ea9ac647ed44535465d580e638efce53940186c640fc899e26805c2c0a5"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/resume_contract.py": {
+      "type": "file",
+      "bytes": 2772,
+      "sha256": "8829327580ecef1f98d40cfc745ac19685831da5e1b6928b6ab653189e8db0dc"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_trainer.py": {
+      "type": "file",
+      "bytes": 2909,
+      "sha256": "0aecc3d12296883e183ba49d0d7457b6fe68c6c268e82d55e5001856e1c1986e"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/candidate_train.py": {
+      "type": "file",
+      "bytes": 499899,
+      "sha256": "77047cf6c38ee7bc41254c776bcae7732d36315199bc3d0be752003bfe48ee3e"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/test_resume_contract.py": {
+      "type": "file",
+      "bytes": 3080,
+      "sha256": "19e71056e1a3b5a0d64c5a4b3220766b4a40be7a1a2d45f52037bcb841040891"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/train_candidate.py": {
+      "type": "file",
+      "bytes": 1618,
+      "sha256": "eb10de572f50d221f294a6b6d6791b1d9c639a3c288a915b59524b4b2d3e554c"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/run_smoke.py": {
+      "type": "file",
+      "bytes": 4205,
+      "sha256": "566fc750e3060d6f959e741ae0e9dc9b96abbe7ee6dc2da80d65bc5a60e7f12e"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/smoke_protocol.md": {
+      "type": "file",
+      "bytes": 2188,
+      "sha256": "1177cc8c12b76d43df06f36f1037e2da32416266d7eff1c2e043c56e8ff394dd"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/runtime_sources.json": {
+      "type": "file",
+      "bytes": 2628,
+      "sha256": "8b8a17ab07c6ceeb711baa6fdc388f2f2eda9ffaf11e4b4f0153005a430921ae"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/review_first_smoke.py": {
+      "type": "file",
+      "bytes": 4232,
+      "sha256": "6893822c5a5e76133b411e11f851789f4faa23395067179682083fb6580018bf"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/final_review.json": {
+      "type": "file",
+      "bytes": 1858,
+      "sha256": "ba928c868092a3513ce0f67a6b4d60e144f5690559ee4462153f12e08b2bb9f6"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/command.json": {
+      "type": "file",
+      "bytes": 3604,
+      "sha256": "1924ef9ba5790f279c1d05d3d4a7ced0a486a604f085225449f2b037d9d8c3a8"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/input_contract.json": {
+      "type": "file",
+      "bytes": 3341,
+      "sha256": "554059c89f5fffe8feba751d540f8e24d897635d2e3267056009b58b2eff3740"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_first_smoke/terminal_process.json": {
+      "type": "file",
+      "bytes": 74,
+      "sha256": "eab157b7a3d300aa92994dfd507e1670e9ed9876b5c9e7996260985a28f3317e"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/train_capture.py": {
+      "type": "file",
+      "bytes": 3084,
+      "sha256": "a8f02390eabe021bdf66014802ecd68967534f69d236450f67d0a228f2c7254e"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/run_restart.py": {
+      "type": "file",
+      "bytes": 3296,
+      "sha256": "1a20776ddbf6bfd8d9116d2bd4ecf7f4f7af7e6ccc700eb93b4dbbedaca93961"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/review_restart.py": {
+      "type": "file",
+      "bytes": 3679,
+      "sha256": "571f63ccfaa354146bf52a7181fd139baa6fd1896e249feb6e8e1eafdfbf5670"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/restart_review.json": {
+      "type": "file",
+      "bytes": 891,
+      "sha256": "b207fb27568667977159d502993705af8a0a0b7512efa1c9355b928d2c5df510"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/initial_capture.json": {
+      "type": "file",
+      "bytes": 519,
+      "sha256": "78e3d4163c868b890e47e2b0cb2900daf72786e0e4b794b54b142998191a3734"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/capture_contract.json": {
+      "type": "file",
+      "bytes": 3885,
+      "sha256": "40152d8b29bed84f2fa5dbe0d4d4429e04eb24e13f464623ae21c5c72e931e1d"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed1_extended_restart/command.json": {
+      "type": "file",
+      "bytes": 3632,
+      "sha256": "f82e5f71762608ae3169ae140378193234b4b0de2a1a090041702a6a609047be"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/decision.md": {
+      "type": "file",
+      "bytes": 3006,
+      "sha256": "d56b75807f1d9103739bf2174874e0b509d42583de9e3ad58c38bb4e058d5007"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_seed3.py": {
+      "type": "file",
+      "bytes": 1961,
+      "sha256": "7c659098ac5c6f5b63d5fe3f89836c334f2849d2c70421845741a59039ff8a41"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/prepare_seed3_capture_v2.py": {
+      "type": "file",
+      "bytes": 1147,
+      "sha256": "86e30fcffb577b00b2fc1cc3ece9b2337d2f55895fcd8cf1c4475007f2671ab3"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/derive_capture_check_v2.py": {
+      "type": "file",
+      "bytes": 1558,
+      "sha256": "fd70958c6493ef7c8ac6bc759aec16a3996a71cfa5a7e3a4645a390a90d2d661"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/train_capture_derivation_v2.py": {
+      "type": "file",
+      "bytes": 2471,
+      "sha256": "e73840057ff99fa796684310f805acc8810e7b08c8317f5cf31439f5cad45dbb"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/run_seed3_v2.py": {
+      "type": "file",
+      "bytes": 3705,
+      "sha256": "6723e3f659ad378815f576c3793b2fccf58ff760a6974e08efc0cd5e880459c9"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/review_seed3.py": {
+      "type": "file",
+      "bytes": 3396,
+      "sha256": "3b6d6683b21f478865a1f825e204247927dae6044c06d8091878538c33e87ecd"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture/terminal_process.json": {
+      "type": "file",
+      "bytes": 74,
+      "sha256": "8b2f9848b11ec10be1b2fc223c4a67115a1a5b5decb162f60af0ebb3a28be05a"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture_v2/derivation_review.json": {
+      "type": "file",
+      "bytes": 435,
+      "sha256": "16deb4159b1907e2f9a76d5e1a726d2dd1273d7e4d592b472c3dbe7bad4d7f0c"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture_v2/initial_capture.json": {
+      "type": "file",
+      "bytes": 487,
+      "sha256": "40ec14ef4f1e084e870c381d1189ac4604b77e6519f138ba524d3b4417a30bb0"
+    },
+    "research/experiments/v6-independent-observable-critic-qualification-20260908/seed3_first_capture_v2/capture_contract.json": {
+      "type": "file",
+      "bytes": 5752,
+      "sha256": "9ceb950c1e42472be6a9cf441d17fe8bf12d8e4b4d4fc6700d457016708f82d8"
+    }
+  }
+}

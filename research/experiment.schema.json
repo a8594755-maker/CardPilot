@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cardpilot.experiment.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "id", "title", "status", "created_at", "updated_at", "started_at",
+    "ended_at", "benchmark",
+    "hypothesis", "material_change", "baseline", "source", "parent_id", "command",
+    "code", "runtime", "accounting", "metrics", "artifacts", "notes", "result", "tags"
+  ],
+  "properties": {
+    "schema": { "const": "cardpilot.experiment.v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$" },
+    "title": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["PLANNED", "RUNNING", "COMPLETED", "FAILED", "STOPPED"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "started_at": { "type": ["string", "null"], "format": "date-time" },
+    "ended_at": { "type": ["string", "null"], "format": "date-time" },
+    "benchmark": { "type": "string" },
+    "hypothesis": { "type": "string", "minLength": 1 },
+    "material_change": { "type": "string", "minLength": 1 },
+    "baseline": { "type": "string" },
+    "source": { "type": "string" },
+    "parent_id": { "type": ["string", "null"] },
+    "command": { "type": "string" },
+    "code": { "type": "object" },
+    "runtime": { "type": "object" },
+    "accounting": { "type": "object" },
+    "metrics": { "type": "object" },
+    "artifacts": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "result": {
+      "type": "object",
+      "required": ["summary", "conclusion", "decision", "next_step"]
+    },
+    "tags": { "type": "array", "items": { "type": "string" } }
+  }
+}

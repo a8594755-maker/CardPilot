@@ -1,0 +1,138 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-kl-temperature-disagreement-leverage-20260901",
+  "title": "Outcome-blind leverage profile of source-KL-temperature argmax flips",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T07:50:04+00:00",
+  "updated_at": "2026-09-01T07:51:15+00:00",
+  "started_at": "2026-09-01T07:50:04+00:00",
+  "ended_at": "2026-09-01T07:51:15+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The treatment's small 2.487% greedy disagreement from rebound Standard10 may be disproportionately concentrated in large-pot or fold/all-in decisions, explaining catastrophic transfer despite low aggregate TV.",
+  "material_change": "Join all 15,078 outcome-free treatment-vs-Standard10 state metrics to their audited public action prefixes, reconstruct v6 chip states, and measure pot/to-call/stack leverage, physical action transitions, pot-weighted disagreement, and street/seat partitions. Explicitly exclude winnings and outcomes; no model or network calls.",
+  "baseline": "Fresh5k treatment -142.7232 bb/100 with evidence PASS. Prior state replay found overall TV0.019754, greedy disagreement2.487%, largest partition TV0.029551.",
+  "source": "Reviewed state_metrics.jsonl from v6-source-kl-temperature-slumbot-state-drift-20260901 and audited parent hands; hashes captured at execution.",
+  "parent_id": "v6-source-kl-temperature-slumbot-state-drift-20260901",
+  "command": "python research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/run_diagnostic.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/run_diagnostic.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:50:04+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:50:19+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/run_diagnostic.py",
+      "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/review_finish.py"
+    ],
+    "captured_at": "2026-09-01T07:50:04+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/source_manifest.json",
+    "source_manifest_sha256": "72faca2fafd64bfa2cabec1fc4c80af042ccbdd6d1167d9518544b67074318a3",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 71.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 1.5160000000032596,
+    "states": 15078,
+    "disagreements": 375,
+    "greedy_disagreement_rate": 0.02487067250298448,
+    "pot_weighted_disagreement_rate": 0.0362892127095459
+  },
+  "artifacts": [
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/code.patch",
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-disagreement-leverage-20260901\\leverage_rows.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-disagreement-leverage-20260901\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-disagreement-leverage-20260901\\input_manifest.json",
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/reviewed_analysis.json",
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/result_summary.md"
+  ],
+  "notes": [
+    "High leverage is preregistered as pot-weighted disagreement at least twice the raw disagreement rate OR fold/all-in involvement in at least half of flips. This is descriptive and cannot infer action value.",
+    "No outcomes were included in diagnostic rows; no network, training, evaluation, or new Slumbot hands were used."
+  ],
+  "result": {
+    "summary": "Outcome-blind v6 state reconstruction characterized all 375 treatment-versus-rebound-Standard10 argmax flips across 15,078 audited Slumbot decisions.",
+    "conclusion": "Flips were not sufficiently high-leverage concentrated: 2.487% raw versus 3.629% pot-weighted mass; 109 involved fold and only5 involved all-in. The dominant shifts were Standard10 passive to treatment small raise (213) and Standard10 fold to treatment passive (98), indicating diffuse over-continuation/aggression. However no current-v6 greedy external baseline exists for rebound Standard10, so causal attribution remains premature.",
+    "decision": "NO_HIGH_LEVERAGE_FLIP_CONCENTRATION",
+    "next_step": "Calibrate exact rebound Standard10 under the current v6 generic-greedy journaled contract on one fresh5k cohort. This determines whether historical -11.4275 is portable or whether the action-contract migration itself invalidates the preservation target."
+  },
+  "tags": [
+    "diagnostic",
+    "leverage",
+    "outcome-blind",
+    "policy-preservation",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 567,
+      "sha256": "72faca2fafd64bfa2cabec1fc4c80af042ccbdd6d1167d9518544b67074318a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-disagreement-leverage-20260901\\leverage_rows.jsonl": {
+      "type": "file",
+      "bytes": 5755362,
+      "sha256": "86373ecc777b92c26b4b5932558b043b92c4b529002e5dee42c6a849f8fa612d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-disagreement-leverage-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 6456,
+      "sha256": "8599e0d47aebb69959d797ed84941eb335212ef2b4042493f6430ff0b22b7ed7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-disagreement-leverage-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 488,
+      "sha256": "dbfe0573ff241925750b1212c172ace2061d9f8090b3e0442e1b20ef96b5d722"
+    },
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 769,
+      "sha256": "deefe48c39222fbd0a2ae2fde6ef7a6045b8843f7f051603e260052a6480552f"
+    },
+    "research/experiments/v6-source-kl-temperature-disagreement-leverage-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 409,
+      "sha256": "d067c7017098d2b2f15739b8b1de4012264bd3efea5b4e552d42b8ca181b1778"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "workspace-research-reset-20260829",
+  "title": "Research workspace reset and experiment-memory migration",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T17:12:17+00:00",
+  "updated_at": "2026-08-29T21:38:50+00:00",
+  "started_at": "2026-08-29T17:12:17+00:00",
+  "ended_at": "2026-08-29T17:12:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A minimal active workspace plus normalized experiment memory will reduce route confusion without losing expensive reusable assets.",
+  "material_change": "Replace thousands of legacy reports/scripts/checkpoints with one fixed experiment index, one baseline, one compact teacher, and cold storage for expensive evidence.",
+  "baseline": "4294 reports, 2687 AlphaHoldem files, 294.9 GiB models, and 227.0 GiB data",
+  "source": "research/cleanup_20260829_pre.json",
+  "parent_id": null,
+  "command": "research/cleanup_legacy_research.ps1",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": null
+  },
+  "metrics": {
+    "permanently_deleted_bytes": 384221846251,
+    "archive_bytes": 175291584587,
+    "final_active_model_bytes": 197406397,
+    "final_active_data_bytes": 959897016,
+    "post_cleanup_smoke_hands": 100,
+    "post_cleanup_weights_changed": true
+  },
+  "artifacts": [
+    "research/cleanup_20260829.json",
+    "C:\\Users\\a8594\\CardPilot_legacy_20260829"
+  ],
+  "notes": [
+    "Post-cleanup train_v5 smoke completed 100 environment hands, performed one PPO update, wrote a finished checkpoint, and changed weights; smoke artifacts were then removed."
+  ],
+  "result": {
+    "summary": "Normalized 37 historical records, retained one exact Standard10 baseline and one compact 200bb teacher, cold-stored 163.2 GiB, and permanently removed about 357.8 GiB of redundant research data.",
+    "conclusion": "The active research surface is small, reproducible, and no longer exposes legacy route clutter by default.",
+    "decision": "RETAIN_NEW_WORKSPACE_LAYOUT",
+    "next_step": "Begin future learned-policy experiments through the fixed experiment log."
+  },
+  "tags": [
+    "infrastructure"
+  ]
+}

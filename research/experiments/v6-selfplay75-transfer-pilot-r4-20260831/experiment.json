@@ -1,0 +1,730 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-selfplay75-transfer-pilot-r4-20260831",
+  "title": "Matched v6 self-play share transfer pilot corrected argv",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T14:42:32+00:00",
+  "updated_at": "2026-08-31T15:31:29+00:00",
+  "started_at": "2026-08-31T14:42:32+00:00",
+  "ended_at": "2026-08-31T15:31:29+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Increasing current-policy self-play from25 to75 percent assignment groups may improve external transfer; fixed-pool specialization remains an unproven hypothesis.",
+  "material_change": "Correct pre-environment argv builder by preserving interpreter -u and replacing actual captured script token; assert layout. Same matched original-source full-network PPO,1048576 actual hands per arm,25 versus75 percent self-play groups, fixed3 pool,122880 descriptive internal hands.",
+  "baseline": "v6-physical1m-fresh20k-slumbot-20260831",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-selfplay75-transfer-pilot-r3-20260831",
+  "command": "python research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:42:32+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:42:35+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1048576 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026100500 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_selfplay_share_r4_control25_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\latest.pt --seed 20261005 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:42:39+00:00"
+    },
+    {
+      "command": "python -c \"import json, torch; from pathlib import Path; torch.set_num_threads(1); base=Path('research/experiments/v6-selfplay75-transfer-pilot-r4-20260831'); p=sorted((base/'production/control25/checkpoints').glob('checkpoint_iter000004_*.pt'))[0]; c=torch.load(p,map_location='cpu',weights_only=False); s=torch.load('models/baseline/standard10/latest.pt',map_location='cpu',weights_only=False); a=c['environment_hand_accounting']; assert c['iteration']==4 and a['prefix_complete'] and a['unknown_prefix_training_marker_hands']==0; assert a['origin_run_id']=='v6_selfplay_share_r4_control25_20260831'; assert len(c['model'])==86 and all(torch.isfinite(v).all() for v in c['model'].values()); changed=sum(not torch.equal(v,s['model'][k]) for k,v in c['model'].items()); assert changed==86; steps=[float(v['step']) for v in c['optimizer']['state'].values()]; assert len(steps)==86 and min(steps)>0; assert not c.get('ppo_replay_entries'); print(json.dumps(dict(archive=str(p),iteration=c['iteration'],physical_hands=a['completed_hands'],legacy_markers=c['total_hands'],changed_finite_tensors=changed,adam_step_range=[min(steps),max(steps)],prefix_complete=True)))\"",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:44:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25 --expected-target-hands 99999999 --expected-target-environment-hands 1048576 --expected-final-iteration 218 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:01:17+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1048576 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .75 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026100500 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_selfplay_share_r4_selfplay75_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\latest.pt --seed 20261005 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:01:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75 --expected-target-hands 99999999 --expected-target-environment-hands 1048576 --expected-final-iteration 230 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:03+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:23+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:24+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:25+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\control25.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:25+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\control25.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:26+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\control25.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:27+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\control25.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:28+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\control25.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:29+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\selfplay75.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:30+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\selfplay75.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:31+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\selfplay75.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:31+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\selfplay75.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:32+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\selfplay75.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261006 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:17:33+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:31:28+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831",
+      "scripts/alpha_holdem",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T14:42:32+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/code.patch",
+    "patch_sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4",
+    "source_manifest": "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/source_manifest.json",
+    "source_manifest_sha256": "5ce6cf8fef00b3ca442cb6a29d6378ee786dded5d68200f5baba62d875f33326",
+    "source_files": 75
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 2102762,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 122880,
+    "wall_time_seconds": 2937.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_arm": "selfplay75",
+    "active_iteration": 230
+  },
+  "artifacts": [
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/preregistration.md",
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/code.patch",
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\anchor_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen_inputs.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor4.pt",
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/startup_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\training_health.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\control25.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\training_health.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\selfplay75.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "R1/R2 pretests and R3 argparse failure generated zero environment hands; all prior evidence preserved and records FAILED. R4 is pre-environment infrastructure correction with unconsumed seeds/new IDs, no stream replay. Both healthy fixed endpoints later externally tested regardless of internal scores; no Slumbot actions enter training.",
+    "Production control25 truly started after13passing pretests. First checkpoint iteration1 has5740actual physical hands,4104legacy markers, complete new prefix and unknown-prefix0. Verified76original/captured pairs unchanged. Startup audit covers4new records with0warnings; historical known inline-command audit false positive is not claimed repaired. Running12workers x8environments from captured trainer, no concurrent poker evaluation.",
+    "Read-only immutable iteration4 archive verified:20699actual physical hands versus16547legacy markers,86changed finite tensors, all86Adam steps109, complete new prefix, zero replay entries. Training continued uninterrupted; checkpoint not modified.",
+    "control25 training completed with passing health/session audit; final frozen.",
+    "selfplay75 training completed with passing health/session audit; final frozen.",
+    "Both new finals frozen before all15fixed diagnostic cells; both healthy endpoints receive the prespecified external transfer pair irrespective of internal scores.",
+    "Fixed two-arm training/internal diagnostic complete; independent evidence review required. Internal scores cannot filter either external arm.",
+    "Independent raw arithmetic, regenerated deal sequence and full source/session review passed; no internal strength selection."
+  ],
+  "result": {
+    "summary": "Matched self-play share completed2102762physical training and122880internal hands;ADMIT_FIXED_EXTERNAL_TRANSFER_PAIR.",
+    "conclusion": "Internal diagnostics cannot select external arms; both fixed healthy endpoints admitted, no external or Nash-strength conclusion.",
+    "decision": "ADMIT_FIXED_EXTERNAL_TRANSFER_PAIR",
+    "next_step": "Verify candidate-specific deployment parity then preregister20k fresh external hands per frozen arm, balanced/interleaved total concurrency8; no checkpoint rescue."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 23,
+    "command_count": 23
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 7193,
+      "sha256": "b8988adbc4c467e0dafe23a681dac4cba99ca4afb74c3b57effe389bebba0dc1"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/code.patch": {
+      "type": "file",
+      "bytes": 12702916,
+      "sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 13941,
+      "sha256": "5ce6cf8fef00b3ca442cb6a29d6378ee786dded5d68200f5baba62d875f33326"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14043,
+      "sha256": "5bcf31c05f2c33fb63476a7b34f97519de643d9b0c72254e1f227ec9d6ac0886"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23707,
+      "sha256": "581f9d93f47ba3b596bf50324841f30788529cb1da07bce27c1e3862c503ee53"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2279,
+      "sha256": "c5ab1a06761d266412e05931a6c474e4c930c77035db6a78c0ada77696ab6ff7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\anchor_manifest.json": {
+      "type": "file",
+      "bytes": 1818,
+      "sha256": "8c87c42010147bd6a1b8b31d4ef7505d1c687ee3af39ac9f921d7e0f280808d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen_inputs.json": {
+      "type": "file",
+      "bytes": 1818,
+      "sha256": "8c87c42010147bd6a1b8b31d4ef7505d1c687ee3af39ac9f921d7e0f280808d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-r4-20260831/startup_audit.json": {
+      "type": "file",
+      "bytes": 491,
+      "sha256": "c72cf3b0b1f9de5aeaa9c4c184c1c24f90e454e69a32ad33e1aa9e7993c02c9e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_stdout.log": {
+      "type": "file",
+      "bytes": 139563,
+      "sha256": "d64ce0aa30130643b4996a5460dc9f273304c8f94488809df805992a7de963a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\latest.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "a3f4f21eb7a0eb0e6bcaeb4929f06951ed1ac0bd74c0afd1920f5320e386d553"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\run_manifest.json": {
+      "type": "file",
+      "bytes": 58327,
+      "sha256": "84859a7b48cb9813e2e6077030805b594bc266619f26eed136c2f7b1d253a10e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 5873460,
+      "sha256": "5faa8fa828ab46f8d75284c67a867206204532c233120ece19d6917b0ee814c9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 547742,
+      "sha256": "247a66ec59dfa7c2d52701107be69b1c4a4e4969784d65a563fd662d266fbd91"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\latest_train.log": {
+      "type": "file",
+      "bytes": 96426,
+      "sha256": "eed321cd3ea9ce18f756619eb9fad038f80250c412aef8f2911cea6c3bda7f5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\session_audit.json": {
+      "type": "file",
+      "bytes": 24461,
+      "sha256": "ba8b0959f9d86de3ffb5a1633aaa723e3fd3628508defdfd319d348885f962c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\training_health.json": {
+      "type": "file",
+      "bytes": 2686,
+      "sha256": "d12ae674f8820ee187ef7fe03bdfb9d8a127860b8ec96370b756d3de01dce75d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\control25\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 24461,
+      "sha256": "ba8b0959f9d86de3ffb5a1633aaa723e3fd3628508defdfd319d348885f962c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\control25.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "a3f4f21eb7a0eb0e6bcaeb4929f06951ed1ac0bd74c0afd1920f5320e386d553"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_stdout.log": {
+      "type": "file",
+      "bytes": 147471,
+      "sha256": "1b6ea4aefbab0b281243b5a5439cfb32845c382611051bfedfc025d19901c0ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\latest.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "c3b6aaa07b5af62478c7bad651cec917ffaaf9dc3c9f7b4f0902f6cac31994be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\run_manifest.json": {
+      "type": "file",
+      "bytes": 58674,
+      "sha256": "e323b211df7bf2b8b1d3f7deee6108ef57c0f21949065d9d6354cfeea4a1f3c2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 6109049,
+      "sha256": "c240da15cbd00744ab1b5b37965db389b4e31b789d67ebeefee9af15444cd901"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 494005,
+      "sha256": "c63ce72b85bc63fdc3fd8b730afaf0e50e1908f2647b064e5dd046a0410fa86c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\latest_train.log": {
+      "type": "file",
+      "bytes": 101787,
+      "sha256": "eedd42b11a33445f4a37ac5065fce967ab59238efa6b33d9f7dea4b550359211"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\session_audit.json": {
+      "type": "file",
+      "bytes": 25610,
+      "sha256": "2a64e1d0d05534dd974e2c70353e3987b13312f92d115e4c9f3cc779ab3fd768"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\training_health.json": {
+      "type": "file",
+      "bytes": 2846,
+      "sha256": "c64bb86c583b600b4f3710b24057a92f810640e33d4fee25c1a1ed011d4a3fca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\production\\selfplay75\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 25610,
+      "sha256": "2a64e1d0d05534dd974e2c70353e3987b13312f92d115e4c9f3cc779ab3fd768"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\frozen\\selfplay75.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "c3b6aaa07b5af62478c7bad651cec917ffaaf9dc3c9f7b4f0902f6cac31994be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 699,
+      "sha256": "a0053fc20d5f91a26d93c789e78350f28f27981a63064991db0f6cd1c9454c1c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1623,
+      "sha256": "e6ee5d75f16102cf5a8d7e5b33ba6e09107674f029dc87a69993af9189fdf7d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148270,
+      "sha256": "afb80de9ec4b99dd13200848f158bd39bbfb0825dd7dc73925f6c191371971be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1666,
+      "sha256": "b316ac99afe0fa514369649f2a6fa717092c14d65de26bbc12a63c828b11e987"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1665,
+      "sha256": "caa6c050ee2d0aabd82d28bae328f60dd5492cdc6ee93dd94a0d5851cfe4f37f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139191,
+      "sha256": "26284c6453178a7ea3e0d9abb7f77ae633456269e0830601349b428486c42f2c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1708,
+      "sha256": "a4407a7f74c8f8b9a071931f493a0c85bce27c4d7aeb5e1c5a40368d30e84526"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1666,
+      "sha256": "37af537cad8618811efb938501fa3176e88753aa27741fc4fcd919573a9298a9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146612,
+      "sha256": "8a96bf2526e53c9c9d434e37e081f6fefeac5bed5f0c19ba11d256633cb53c33"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1709,
+      "sha256": "6c62217212b83d36ce6ee08df2b526f553b9dd32faa4a4b1680daba6dd392a65"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1666,
+      "sha256": "5f53378ca946a3c4fd403ae323c244c11a97b148b9ae4023881108abc03ce852"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149983,
+      "sha256": "debcc6d7e71299fc22a7553dc7c7d009b6d4e809965b38536a8555ed35bb4330"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1709,
+      "sha256": "64f127a27b128d4e6204623f5e61528688ed23495a607d29ef6a281bab5b6e1a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1667,
+      "sha256": "02f3ec2e25cf1e41fe24e92d47cd5c2123fdc9384e7ae4688019441cda9c3db6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150697,
+      "sha256": "fce3eeb10fb29600736b772708f5c18d550c1275242afe78a5bfb34753b638dc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1710,
+      "sha256": "2f0b168227bafe529b82bdd5013e1f9f11cd45cebd515c09efe2e31c1dc822f5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1671,
+      "sha256": "26df4c9b13c4b41aef18b2fce676dfcfc168a74a7e8820deffd11dabb9963797"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1143772,
+      "sha256": "23c4f02df5e6dff00baaac43eeaf965a6161764a0b2dbed8e3f1dcf88533eb44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1714,
+      "sha256": "0db4b210933b44a7cfb0f66dab52db7911aa66d763bd5520460ebd79b34a8153"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1670,
+      "sha256": "7214c47e8e6c77bdc7ca1a3bfccfc5fdae3f582db6618940c0169fabab634fbd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1138952,
+      "sha256": "e7c462b6c0e1f3ddc25fcaa03e4695aa332aa0315d4f5f0d65f439a794f5f629"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1713,
+      "sha256": "966f2ee265601e86d82db4bf7690b88441c71bde2fedfe32c6aa3e7e39168ee6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1666,
+      "sha256": "709d6f5dd76d091e6a8adf2185e5e6c191ca53ebbee8e238c271330960f99f46"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1144005,
+      "sha256": "be9dee20fd7f091345f58d178ac9bae09d740a70b6371d865f7d6a0885aa616f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1709,
+      "sha256": "4c97ecbaf98ac83aadf5432c7fef11ee00967234571861fbe5c00452572fe387"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1671,
+      "sha256": "2fca2664d9865dd3e1826b6a26ef782c9b3c653fa26779dac3e5eb0f1e84cc61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145365,
+      "sha256": "ba23f31b9f0b58b2b6ba6d95b0892eeab10038014185765581e4130c3893cd3a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1714,
+      "sha256": "e5f3264ba27e1d7b4ac15486b3baf0d7dbf2fac99d658e7649090ebc2b2f510a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1671,
+      "sha256": "fb6c887bdc424e66d46e308ff02cf49d6ce024d61a478c7da5266bde91eb89cf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\control25_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146348,
+      "sha256": "19b6d3fb7409bc90b38821d470babda34dfc6a9209f251a5ac4176867e5f6752"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\control25_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1714,
+      "sha256": "a514e7a1c1af456b789b786f7a4afb589db26ef78cf27209ee37b105770c030d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "f6fc43f3064ba661af089be3b4cd79fc97a8c23436e6847a78697cec32012b3e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148036,
+      "sha256": "d56051fcadc505546a2d4830e8ef3fff46ac3834ba13df7752bcd069b32ae038"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "901fa47003a8813596384614052a4cb4ca5a2decb38ad2d76603aa7e0d118852"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "61ac6fbe578648cfcdd4763e7f59f15c46a54a69ce8b0088a8778fa5774cfeb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139413,
+      "sha256": "44403ca06e8d93ab3ac2f24d51012eb0dc6bcc1f6a2b749df656f78e66f77b64"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "4f20eccac973fb929ef9ad441d86065f18df13b772562efd3c2c7ac91b06b941"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1670,
+      "sha256": "b9e23ae1ed5b35ec9da8b06cc8e0456d685eb6af2a0bd0c91e71513edbcfddc8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146721,
+      "sha256": "dbeebb2a5ab24bf4ee34fd91c9d6d940e82611742d7f4dec207300d068006b2e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1713,
+      "sha256": "305599857b92391ff90694b048b42d4e52f94a839036e0262727e3f94dcfd290"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1672,
+      "sha256": "8be63e6303fae4e0ff2d543a97b228304c5ae0ab701bf96e0fd80cce541975b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150132,
+      "sha256": "a6445c71fb0cec3a1beb385fca1ab2885552964130cecac13a3c8e8a43799863"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1715,
+      "sha256": "c7cc4cce0571c5222a051f731674717943e28c6880a9ff7ac94a04b0dff3454a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "1ad77865766739738a69f3c5ec38c2c3fcee748c9dd37d27e9b1a90b3ed8254f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\matrix\\selfplay75_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150428,
+      "sha256": "6fec65f2a0126e320e3bd2c57873c910cd0e18a29386a7e8c0535767d9871038"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\selfplay75_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "c075e05a4ec211e35c486396d3e7bc0b641eef7e9d0aeb597f3507ed4d128983"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 2011,
+      "sha256": "0d0037681f3ecc13bec8fb6e7b3a065de1839af86e4f5959335644547e7953bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 22249,
+      "sha256": "b2c28ad9f6022face75ec58d3aac7fde85f549893b745c491766deede62dd554"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 13966,
+      "sha256": "121d1974ecdf82683a73c726ee42dcfa59c592e9fa5bded90ba97640f7e2558b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r4-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1370,
+      "sha256": "bef78b68b70933270959a68bd56b6d67902485b15ada47db18517423de29e526"
+    }
+  }
+}

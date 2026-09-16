@@ -1,0 +1,319 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "hand-group-gradient-noise-diagnostic-20260830",
+  "title": "Fixed-weight whole-hand-group actor-gradient noise diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T22:01:49+00:00",
+  "updated_at": "2026-08-30T22:20:23+00:00",
+  "started_at": "2026-08-30T22:01:49+00:00",
+  "ended_at": "2026-08-30T22:20:23+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The unchanged1M configuration may have weak within-batch actor signal relative to whole-hand sampling noise despite non-suppressed PPO gradients; grouping full hands at identical weights can quantify whether an optimizer-batch experiment is justified.",
+  "material_change": "Add opt-in non-mutating pre-update whole-hand-group gradient probes. Two bounded fresh diagnostic cohorts from original Standard10 and the frozen1M final:16 disjoint equal-hand groups per collected batch,4 approximate PPO updates each,actual physical target16384 per cohort,original production objectives unchanged.",
+  "baseline": "models/baseline/standard10/latest.pt",
+  "source": "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt",
+  "parent_id": "physical1m-sampled-independent-confirmation-20260830",
+  "command": "python -m py_compile scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/train_v5.py",
+  "commands": [
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/train_v5.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:01:49+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/ppo_hand_gradient_noise.py scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/train_v5.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:14:43+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_ppo_hand_gradient_noise.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_train_v5_replay.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:14:43+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_ppo_hand_gradient_noise.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_environment_hand_accounting.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:14:43+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/hand-group-gradient-noise-diagnostic-20260830/run_cohorts.py research/experiments/hand-group-gradient-noise-diagnostic-20260830/analyze.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:14:43+00:00"
+    },
+    {
+      "command": "python research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\run_cohorts.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:14:45+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 16384 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --gradient-noise-hand-groups 16 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089500 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id hand_gradient_source_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\latest.pt --seed 20260895 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:14:45+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source --expected-target-hands 99999999 --expected-target-environment-hands 16384 --expected-final-iteration 4 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:16:31+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 16384 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --gradient-noise-hand-groups 16 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id hand_gradient_mature_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\latest.pt --seed 20260896 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\final.pt --allow-resume --reset-hand-counter --no-reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:16:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature --expected-target-hands 99999999 --expected-target-environment-hands 16384 --expected-final-iteration 4 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:18:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\analyze.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T22:18:26+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "48b4ed7cb33dcfadfc467f338b0ca08eef1b054440919436a88cb3d380b5516c",
+    "code_paths": [
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-30T22:01:49+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/hand-group-gradient-noise-diagnostic-20260830/code.patch",
+    "patch_sha256": "3ac09339e92d2bd0044036dd2d03a51552f3a51148b79a9d2a34cfffe3d85224",
+    "source_manifest": "research/experiments/hand-group-gradient-noise-diagnostic-20260830/source_manifest.json",
+    "source_manifest_sha256": "da2cde0508b22890b24e271e0bc1af3d619685be8b7b2976814f9089d2395514",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 40155,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1114.0
+  },
+  "metrics": {
+    "source_seed": 20260895,
+    "mature_seed": 20260896,
+    "diagnostic_hand_groups": 16,
+    "planned_physical_hands_per_cohort": 16384,
+    "preflight_tests_passed": 27,
+    "source_pid": 40664,
+    "source_latest_iteration": 4,
+    "source_physical_hands": 19688,
+    "source_exit_code": 0,
+    "source_complete": 1,
+    "mature_pid": 46324,
+    "mature_latest_iteration": 4,
+    "mature_physical_hands": 20467,
+    "mature_exit_code": 0,
+    "mature_complete": 1,
+    "diagnostic_complete": 1,
+    "source_noisy_update_fraction": 1,
+    "mature_noisy_update_fraction": 1,
+    "mature_optimizer_input_step": 6048,
+    "mature_optimizer_output_step": 6162
+  },
+  "artifacts": [
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/code.patch",
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/source_manifest.json",
+    "scripts/alpha_holdem/ppo_hand_gradient_noise.py",
+    "scripts/alpha_holdem/test_ppo_hand_gradient_noise.py",
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/run_cohorts.py",
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/analyze.py",
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source_process_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature_process_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\gradient_noise_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\result_summary.md"
+  ],
+  "notes": [
+    "Mechanism study, not strength evaluation. Source cohort resets Adam/local counter; mature cohort loads unchanged1M final Adam and resets only its new-experiment local counter. Historical checkpoint and completed record must never be resumed or overwritten. Fresh deal streams and same3 fixed anchors,25percent selfplay,all-policy-heads training,sourceKL1,lr3e-5. No newSlumbot or internalstrength games.",
+    "Probe holds weights fixed across groups and uses a private deterministic grouping RNG; preserve model,Adam,global RNG and actual PPO update bitwise in integration tests. Keep all trajectories from one physical decision-bearing hand together via hand markers. Equal-hand groups use globally normalized transition weighting; report group row counts and excluded remainder hands. Inspect PPO-only and regularized-actor gradients separately,including each policy head.",
+    "Report between-group covariance trace,mean gradient squared norm,signal estimate minus group-variance/num_groups,cosine agreement,and noise-to-signal at observed group size. Nonpositive estimated signal is unresolved,not infinite certainty. Diagnostic admission to a bounded optimizer-batch treatment requires PPO noise-to-signal>1 or unresolved signal in >=75percent of observed updates in BOTH cohorts; otherwise do not infer small-batch noise as the primary mechanism. Finite batch/global advantage normalization and league dependence limit IID/critical-batch interpretations. No optimal batch size or poker gain is claimed by these probes.",
+    "Implementation/tests complete. Initial test collection failed because train_v5 direct helper imports need the same local path used by existing tests; test setup fixed and all27 tests pass. Before any production data, clarified that unresolved-signal admission requires positive covariance, so identically zero gradients are not treated as noise. Source/mature training has not yet started.",
+    "Full Python source snapshot made before either cohort. Live source hashes checked before and after each cohort. Original model files and prior experiments remain immutable.",
+    "Both physical-budget diagnostic cohorts and full session audits completed. Analyze mechanism evidence and finish same record before any batch-size training treatment. No strength evaluation performed."
+  ],
+  "result": {
+    "summary": "Completed40155 measured physical hands in two4-update cohorts. All8 PPO whole-hand probes meet the prespecified noise criterion; source/mature median noise-to-signal26.48/36.54. Both session audits and Gram recomputation PASS.",
+    "conclusion": "Fixed-weight native actor gradients are noise dominated at approximately256 decision-bearing hands per group. The mature Adam state advanced6048to6162 without reset. This is pre-Adam,clustered descriptive evidence with global-advantage/league dependencies,not an optimal batch estimate or poker-strength result.",
+    "decision": "WHOLE_HAND_NOISE_SUPPORTS_BOUNDED_BATCH_TREATMENT",
+    "next_step": "Preregister one bounded matched optimizer-regimen pilot from original Standard10: common8192-marker collection batches and131072 physical-hand budgets,small optimizer batch1024/lr3e-5 control versus16384/lr3e-4 treatment. Profile memory before production,keep all other objectives/anchors fixed,record actual Adam steps/physical work,then frozen independent multi-anchor evaluation. Treat this as a joint batch/LR regimen,not a pure causal batch ablation; no paper-scale expansion without reproduced poker gains."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/code.patch": {
+      "type": "file",
+      "bytes": 246975,
+      "sha256": "3ac09339e92d2bd0044036dd2d03a51552f3a51148b79a9d2a34cfffe3d85224"
+    },
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 621,
+      "sha256": "da2cde0508b22890b24e271e0bc1af3d619685be8b7b2976814f9089d2395514"
+    },
+    "scripts/alpha_holdem/ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 8114,
+      "sha256": "be1117bc9740ccf916c0d9ccda0c3f58182872578e436a2eded3ff3594557d5c"
+    },
+    "scripts/alpha_holdem/test_ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 10004,
+      "sha256": "435f63652a3855c3b91fefb6e167cd12bb4daa3c2877f29f88729d880d826863"
+    },
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/run_cohorts.py": {
+      "type": "file",
+      "bytes": 9732,
+      "sha256": "1ec297a3cbab591c5717347a739b45cabce9e258b97cad2bbc1bef0a23a8bd29"
+    },
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/analyze.py": {
+      "type": "file",
+      "bytes": 7952,
+      "sha256": "522a046e9d3f546eaf1734b1acb692006710e0f46b387e3035a2e01f6ee79dc2"
+    },
+    "research/experiments/hand-group-gradient-noise-diagnostic-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 4878,
+      "sha256": "b308f952d6de95126dadb8962c688f267cc0d39f3c30dfdc2884aa7595f0151f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 18631,
+      "sha256": "c425159c8798a6ae443b8992cf8d7fd7c418da4b16942f37464de3b96520d478"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 10721,
+      "sha256": "49dc721a4f6755e2c64589d6dc37bb98735b39ff873f54c2aa2f8e115bdee4aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 354247,
+      "sha256": "365fe4c62a9189f0ebc0e34997b2d33bda00ce513268b7b0960a9b58415ac2f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source_process_stdout.log": {
+      "type": "file",
+      "bytes": 5208,
+      "sha256": "d1cf671fd7d8e4a234c7f1efb6ab6c0dc6af60c50915b42a2a0ebb666a5d1e09"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source_audit.json": {
+      "type": "file",
+      "bytes": 5978,
+      "sha256": "26e01af15195371a3b842b8c5bd37f0ea9c9dc3148d59c3db017a265be1e3b8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\latest.pt": {
+      "type": "file",
+      "bytes": 133305012,
+      "sha256": "53e2127e11b5fca282c114774313a33c9db3dc548530eb04afd10d6e347b58d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\run_manifest.json": {
+      "type": "file",
+      "bytes": 326857,
+      "sha256": "dd3531ebe6bebf98ae497cfc68c38796967b44d50225518ac47b70ca0f50759b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 539792,
+      "sha256": "4c26e6100beed23beb7af7907ec3be0ad8e3ba1368ae2837ee885a1e44db37f7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 10238,
+      "sha256": "565afe5249ebf0503524c805793a956659d030880512ea44f92bf83a63be1ab9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\source\\latest_train.log": {
+      "type": "file",
+      "bytes": 1748,
+      "sha256": "c9b4e72ca21a89739c3ddd40237f950e76d0b355b5eba139aab1e55fc32d93ac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature_process_stdout.log": {
+      "type": "file",
+      "bytes": 5205,
+      "sha256": "e023b1d43d6a7cbf500654e1459c02894c272cbc8eb4cc59e12f908a143cc017"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature_audit.json": {
+      "type": "file",
+      "bytes": 5978,
+      "sha256": "f0a930dc16a01e7fa80948591c7f663eb7583d1eeffac34f81da6f8c59b953fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\latest.pt": {
+      "type": "file",
+      "bytes": 133305268,
+      "sha256": "272cada64bcebdd0ced7141407cae90b3f5de45ca8144e3962a39d93ae6aa916"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\run_manifest.json": {
+      "type": "file",
+      "bytes": 326847,
+      "sha256": "9bfd40d16b2aa9e816c4fb51e993b272999569ce7a568dc69255059476b03f99"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 538673,
+      "sha256": "3f3852f5f8ad8664ac4394ff4fd304b22359470e2b5ac270171e355e41f9a923"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 10304,
+      "sha256": "df4625fe42f48f3bb6ad2a9c02c4a297816adf7eb9578345fb67f4c1408afcd7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\mature\\latest_train.log": {
+      "type": "file",
+      "bytes": 1748,
+      "sha256": "53a1f5fa30d0ab3fd7b66e61f7c8547393858e796af19b59000617215c94f596"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\gradient_noise_analysis.json": {
+      "type": "file",
+      "bytes": 12184,
+      "sha256": "4bbb674ccc38872329fc96952a28168862cc3017a42e358f0ba0e0d7ae717876"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\hand-group-gradient-noise-diagnostic-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 1522,
+      "sha256": "59617217f954b33fad7981000691f89f51df71a6b53f0415542a4b129cb9fa78"
+    }
+  }
+}

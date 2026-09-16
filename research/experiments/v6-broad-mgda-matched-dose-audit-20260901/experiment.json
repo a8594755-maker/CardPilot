@@ -1,0 +1,157 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-mgda-matched-dose-audit-20260901",
+  "title": "Broad MGDA matched 256-step dose audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T02:50:21+00:00",
+  "updated_at": "2026-09-02T02:52:54+00:00",
+  "started_at": "2026-09-02T02:50:21+00:00",
+  "ended_at": "2026-09-02T02:52:54+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At equal 256 optimizer steps, doubling environment diversity from full-dose 32,768 hands to half-dose 65,536 hands is not a uniform repair: the aggregate two-of-three positive seed differences will decompose into material seed/opponent/seat heterogeneity, consistent with holding the current broad-MGDA recipe rather than scaling it.",
+  "material_change": "Read and hash-verify the existing full-dose and half-dose run summaries and raw paired evaluation JSONL. Match full-dose chunk4 to half-dose chunk8 by seed, holdout identity, pair index, and exact deck; require identical base/spec/holdout/control evidence. Report paired half-minus-full estimates and 95% intervals per seed, holdout, and seat. Generate no new environment hands or policy queries and do not alter either source run.",
+  "baseline": "Summary-level equal-step comparison gave half-minus-full pooled deltas +7.05, -52.53, and +1.76 bb/100 across seeds, while the half-dose preregistered 16k-to-65k curve gate failed at one of three positive slopes.",
+  "source": "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz and research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz",
+  "parent_id": "v6-broad-mgda-half-update-65k-three-seed-curve-20260901",
+  "command": "python scripts/alpha_holdem/v6_broad_mgda_matched_dose_audit.py --half-run-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run --full-run-dir research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run --out-dir research/experiments/v6-broad-mgda-matched-dose-audit-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_mgda_matched_dose_audit.py --half-run-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run --full-run-dir research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run --out-dir research/experiments/v6-broad-mgda-matched-dose-audit-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T02:50:21+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_v6_broad_mgda_matched_dose_audit.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T02:52:54+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/v6_broad_mgda_matched_dose_audit.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T02:52:54+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T02:52:54+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "38aa6a6f9ad659e21ddb4abc17974102a741114547906031070221a57dbddafb",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T02:50:21+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/source_manifest.json",
+    "source_manifest_sha256": "812687767b8c5e76f47c55d4222186823203a3b3193256c0f67f85339521f9a9",
+    "source_files": 154
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 65536,
+    "offline_samples": 9216,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 153.0
+  },
+  "metrics": {
+    "matched_pairs": 4608,
+    "seed0_half_minus_full_bb100": 7.048828125,
+    "seed1_half_minus_full_bb100": -52.532877604166664,
+    "seed2_half_minus_full_bb100": 1.7620442708333368,
+    "seed1_ci95_high_bb100": -1.27,
+    "median_seed_half_minus_full_bb100": 1.76204427083334,
+    "positive_seed_point_estimates": 2,
+    "nonnegative_seed_holdout_partitions": 4,
+    "total_seed_holdout_partitions": 9,
+    "nonnegative_seed_seat_partitions": 2,
+    "total_seed_seat_partitions": 6,
+    "full_suite_tests_passed": 252
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/code.patch",
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/source_manifest.json",
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/run",
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/run/summary.json",
+    "scripts/alpha_holdem/v6_broad_mgda_matched_dose_audit.py",
+    "scripts/alpha_holdem/test_v6_broad_mgda_matched_dose_audit.py",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz"
+  ],
+  "notes": [
+    "Diagnostic only: this audit cannot override the failed preregistered half-dose curve admission. Uniform improvement requires all three seed point estimates nonnegative plus at least two-thirds of seed-holdout and seed-seat partitions nonnegative; otherwise the current recipe remains closed to scaling."
+  ],
+  "result": {
+    "summary": "Hash-verified and exactly aligned 4,608 untouched paired deals between the half-dose 65k endpoints and full-dose 32k endpoints at equal 256 optimizer steps. Seed differences were +7.05 CI[-43.57,+57.67], -52.53 CI[-103.79,-1.27], and +1.76 CI[-50.73,+54.25] bb/100. Only 4/9 seed-holdout and 2/6 seed-seat partitions were nonnegative; all identity, evidence-hash, control-reward, deck, and pair-count checks passed. All 252 tests passed.",
+    "conclusion": "Extra environment diversity at fixed optimizer dose did not uniformly improve the learned policy. Seed1 degraded across all three holdouts and had a significantly negative seat0 paired difference; weak-KL transfer was negative in two of three seeds. This corroborates the failed preregistered learning-curve gate and closes the current half-update broad-MGDA schedule to geometric scaling, while leaving broader long-horizon learned-weight methods open.",
+    "decision": "CLOSE_BROAD_HALF_DOSE_RECIPE",
+    "next_step": "Select a materially different scalable learned-weight intervention that addresses seed/domain instability while preserving Standard10. Favor a geometric multi-seed learning curve with broad holdouts and explicit source retention; do not spend Slumbot hands until internal proxy direction is reproducible."
+  },
+  "tags": [
+    "audit",
+    "matched-dose",
+    "mgda"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 28911,
+      "sha256": "812687767b8c5e76f47c55d4222186823203a3b3193256c0f67f85339521f9a9"
+    },
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-broad-mgda-matched-dose-audit-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 7846,
+      "sha256": "f8294dd08aa8348bc34bef19c2b75e157a224455963fbe5345b59202ec8a7270"
+    },
+    "scripts/alpha_holdem/v6_broad_mgda_matched_dose_audit.py": {
+      "type": "file",
+      "bytes": 9313,
+      "sha256": "52ee64860083c57a2fb30bbd9f9f0e65308ed61039c2c54e6be673b763d6818c"
+    },
+    "scripts/alpha_holdem/test_v6_broad_mgda_matched_dose_audit.py": {
+      "type": "file",
+      "bytes": 2068,
+      "sha256": "912b97547d3e6b4c7b2e4f84e3c0cd0b6ed4a08a7d043acbd63fc10771ab50a2"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 940951,
+      "sha256": "ba34835ce16371fb822aa51f456aff15cd7c61d691f3dc40838473e1a78af8e9"
+    },
+    "research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 949990,
+      "sha256": "b38f5f65115df9748403f1ba5250b28744b658c004f82cb4ec3b556d04f0612b"
+    }
+  }
+}

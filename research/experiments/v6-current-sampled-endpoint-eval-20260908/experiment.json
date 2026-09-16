@@ -1,0 +1,155 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-current-sampled-endpoint-eval-20260908",
+  "title": "Retained two-seed sampled policy endpoint comparison",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T14:47:45+00:00",
+  "updated_at": "2026-09-08T15:05:44+00:00",
+  "started_at": "2026-09-08T14:47:45+00:00",
+  "ended_at": "2026-09-08T15:05:44+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Current retained learned policies may improve under their sampled execution objective despite inconclusive greedy deployment curves.",
+  "material_change": "Frozen original fixed2M parents versus latest control endpoints; sampled both sides temperature1, eight fixed anchors, both seats, 65536 executions.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-sampled-physical-evaluator-qualification-20260908",
+  "command": "python research/experiments/v6-current-sampled-endpoint-eval-20260908/run.py prepare",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-current-sampled-endpoint-eval-20260908/run.py prepare",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:47:45+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-current-sampled-endpoint-eval-20260908/run.py run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:48:13+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-current-sampled-endpoint-eval-20260908/test_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:05:44+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-current-sampled-endpoint-eval-20260908/review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:05:44+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-current-sampled-endpoint-eval-20260908"
+    ],
+    "captured_at": "2026-09-08T14:47:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-current-sampled-endpoint-eval-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-current-sampled-endpoint-eval-20260908/source_manifest.json",
+    "source_manifest_sha256": "ba5b059e1ff66f190963370d44a6cb10c71f7e52b8ea207c7036945d652c775f",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 65536,
+    "wall_time_seconds": 1079.0,
+    "training_hands": 0
+  },
+  "metrics": {
+    "unique_decks": 16384,
+    "evaluation_wall_seconds": 971.4071752
+  },
+  "artifacts": [
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/protocol.md",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/code.patch",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/source_manifest.json",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/contract.json",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/review.py",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/test_review.py",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/hands.jsonl",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/raw_review.json",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/terminal.json",
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/result.md"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "Fixed sampled endpoint comparison completed65536 executions on16384 decks; immutable-input and ordered raw review passed.",
+    "conclusion": "Endpoint-parent Seed1 -4.0466 CI[-24.2870,16.1939], Seed3 +2.6855 CI[-16.6303,22.0013]. Directional support false, no demonstrated hidden sampled gain; small effects unresolved. Zero new training/Slumbot hands.",
+    "decision": "Do not promote endpoints or automatically scale unchanged training; retain all evidence and stop execution-mode diagnostic expansion.",
+    "next_step": "Select and implement one substantive policy-improvement signal/objective control, using bounded relevant prior gradient/replay/KL/margin/counterfactual evidence to avoid repetition, then qualify real retained-state updates."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/protocol.md": {
+      "type": "file",
+      "bytes": 2198,
+      "sha256": "623ede4ded7c1981051f874aecbf3693e8e86a4f1cf7ea2f054f4795dc1a6e42"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 728,
+      "sha256": "ba5b059e1ff66f190963370d44a6cb10c71f7e52b8ea207c7036945d652c775f"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/contract.json": {
+      "type": "file",
+      "bytes": 89335,
+      "sha256": "9e603d19b0d10d6369f29f4ebba84aeed9aa95ae399e769ca2e78324fe22866f"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/review.py": {
+      "type": "file",
+      "bytes": 4577,
+      "sha256": "a47e35090a6471a9548b261818fcc55b607a9dbdee236570e9ddda94bccdbfc7"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/test_review.py": {
+      "type": "file",
+      "bytes": 1269,
+      "sha256": "45af6e61d10f0f547142c427afa1ed9ca39a48315d433a67faed4d8ccf4ea23a"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/hands.jsonl": {
+      "type": "file",
+      "bytes": 20214662,
+      "sha256": "9f79b194142c8e0195a5e9121cfab70352b8795343b3da64dfedbfb85b2c9bf0"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/raw_review.json": {
+      "type": "file",
+      "bytes": 5759,
+      "sha256": "d6b44a16252fd47528ce078c9a14ab3a17570ab90346fcff10e5f941afc63ad4"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/terminal.json": {
+      "type": "file",
+      "bytes": 179,
+      "sha256": "8cf74a1e808faafe91462e3acec2242497be5c1cd1b11f6386ab4aa46bd62ef7"
+    },
+    "research/experiments/v6-current-sampled-endpoint-eval-20260908/result.md": {
+      "type": "file",
+      "bytes": 2270,
+      "sha256": "ef1fd2e061134e493c1b04d2b7ae840aca31c806d6cb984a77498184823053f4"
+    }
+  }
+}

@@ -1,0 +1,346 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-greedy-bias-coordinate-smoke-20260901",
+  "title": "Direct exact-greedy actor-bias coordinate search smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:05:56+00:00",
+  "updated_at": "2026-09-01T14:14:07+00:00",
+  "started_at": "2026-09-01T14:05:56+00:00",
+  "ended_at": "2026-09-01T14:14:07+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Exact multi-opponent greedy tournament utility can directly optimize 18 shared actor-head bias weights from Standard10 and transfer better than sampled-PPO or ELO selection.",
+  "material_change": "Add mixed observation-contract physical-v6 cross-play and run a fixed one-pass derivative-free coordinate search over preflop/postflop policy-head biases; search outcomes count as environment training hands.",
+  "baseline": "models/baseline/standard10/latest.pt",
+  "source": "Standard10 SHA91b0c587... legacy-v4 bridge",
+  "parent_id": "v6-legacy-standard10-curriculum-elo-survivor-selection-20260901",
+  "command": "python scripts/alpha_holdem/v6_bias_coordinate_search.py --source models/baseline/standard10/latest.pt --source-observation-style legacy_v4 --anchor standard10=models/baseline/standard10/latest.pt --anchor freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --anchor raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor-style standard10=legacy_v4 --anchor-style freshzero=legacy_v4 --anchor-style raw_actor=v6 --anchor-style slumbot_free=legacy_v4 --pairs 64 --seed-base 2026130100 --step .05 --passes 1 --dispersion-weight .5 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_bias_coordinate_search.py --source models/baseline/standard10/latest.pt --source-observation-style legacy_v4 --anchor standard10=models/baseline/standard10/latest.pt --anchor freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --anchor raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor-style standard10=legacy_v4 --anchor-style freshzero=legacy_v4 --anchor-style raw_actor=v6 --anchor-style slumbot_free=legacy_v4 --pairs 64 --seed-base 2026130100 --step .05 --passes 1 --dispersion-weight .5 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:05:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/candidate.pt --anchor models/baseline/standard10/latest.pt --pairs 512 --seed 2026131001 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/candidate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate models/baseline/standard10/latest.pt --anchor models/baseline/standard10/latest.pt --pairs 512 --seed 2026131001 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/source",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/candidate.pt --anchor research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --pairs 512 --seed 2026131101 --candidate-observation-style legacy_v4 --anchor-observation-style v6 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/candidate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate models/baseline/standard10/latest.pt --anchor research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --pairs 512 --seed 2026131101 --candidate-observation-style legacy_v4 --anchor-observation-style v6 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/source",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/candidate.pt --anchor research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs 512 --seed 2026131201 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/candidate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate models/baseline/standard10/latest.pt --anchor research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs 512 --seed 2026131201 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/source",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/candidate.pt --anchor research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt --pairs 512 --seed 2026131301 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/candidate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate models/baseline/standard10/latest.pt --anchor research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt --pairs 512 --seed 2026131301 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/source",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/candidate.pt --anchor research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt --pairs 512 --seed 2026131401 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/candidate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate models/baseline/standard10/latest.pt --anchor research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt --pairs 512 --seed 2026131401 --candidate-observation-style legacy_v4 --anchor-observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/source",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:10:17+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/analyze_results.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:14:07+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:14:07+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "355343496a10505bf8adbd358f36b6b339da9e0f5a5deb9bef131a15746f14ea",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_elo_eval.py",
+      "scripts/alpha_holdem/v6_contract_mirror_eval.py",
+      "scripts/alpha_holdem/v6_bias_coordinate_search.py",
+      "scripts/alpha_holdem/test_v6_elo_eval.py",
+      "scripts/alpha_holdem/test_v6_bias_coordinate_search.py",
+      "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/preregistration.md"
+    ],
+    "captured_at": "2026-09-01T14:05:56+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "cdb62349364211573700309b88d44e50abee75df39abc03a7173d671e8fc7583",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 18944,
+    "lineage_training_hands": 18944,
+    "offline_samples": 0,
+    "evaluation_hands": 10240,
+    "wall_time_seconds": 491.0,
+    "target_environment_training_hands": 18944
+  },
+  "metrics": {
+    "mixed_observation_tests_passed": 14,
+    "search_gate_pass": 1,
+    "search_nonzero_biases": 4,
+    "search_robust_score": 6.72454263347079,
+    "alpha_holdem_tests_passed": 195,
+    "validation_gate_pass": 0,
+    "changed_bias_weights": 4,
+    "validation_positive_delta_points": 2,
+    "validation_positive_delta_lcbs": 0,
+    "pooled_delta_bb100": -7.5015625,
+    "pooled_delta_ci95_low": -25.917234042183125,
+    "pooled_delta_ci95_high": 10.914109042183126
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/preregistration.md",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/code.patch",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/search_summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/evaluation_summaries.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/raw_pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/candidate.pt",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/analyze_results.py",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/analysis.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/candidate/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/candidate/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/source/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/source/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/candidate/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/candidate/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/source/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/source/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/candidate/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/candidate/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/source/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/source/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/candidate/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/candidate/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/source/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/source/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/candidate/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/candidate/pairs.jsonl",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/source/summary.json",
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/source/pairs.jsonl"
+  ],
+  "notes": [
+    "Direct exact-greedy search completed all 18,944 preregistered environment training hands and passed the mechanism gate; candidate frozen before validation.",
+    "Frozen candidate and untouched source validation raw streams align on every pair index and deck; only the two actor bias tensors differ."
+  ],
+  "result": {
+    "summary": "A one-pass exact-greedy coordinate search used 18,944 physical environment training hands and selected four Standard10 actor-bias offsets with positive robust search score. On 10,240 untouched validation hands, only 2/5 paired deltas were positive, none had a positive lower bound, and pooled candidate-minus-source was -7.5016 bb/100 (95% CI [-25.9172,10.9141]).",
+    "conclusion": "Direct tournament outcomes can change deployed learned weights and greedy behavior without PPO, but this 18-dimensional bias-only objective overfit its 64-pair search streams and did not generalize to unseen policies/deals. The failure is not an execution or optimizer ambiguity: mixed observation contracts, hashes, raw pairs, tensor scope, and training-hand accounting all passed. Increasing coordinate passes or tuning only step size would amplify the same weak objective and is not justified.",
+    "decision": "REJECT_BIAS_ONLY_DIRECT_GREEDY_SEARCH",
+    "next_step": "Retire global bias coordinate search. The remaining high-information route is a state-conditioned objective with reliable alternative-action credit and broad independent data, or a materially broader/deeper solver teacher; do not reuse fixed internal anchor panels as a promotion proxy and do not allocate Slumbot to this candidate."
+  },
+  "tags": [
+    "black-box",
+    "greedy",
+    "learned-weights",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 13,
+    "command_count": 13
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 3420,
+      "sha256": "ed3f03349b9f91d60502823730cc728419dcba48e22998491274822a7a19b0d0"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 1237,
+      "sha256": "cdb62349364211573700309b88d44e50abee75df39abc03a7173d671e8fc7583"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/search_summary.json": {
+      "type": "file",
+      "bytes": 21711,
+      "sha256": "8577f5b4ca8232898eaf0e69f4b3497680aa112b12d1574a5cbdbdb3cd657d7f"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/evaluation_summaries.jsonl": {
+      "type": "file",
+      "bytes": 102066,
+      "sha256": "9f224d911f52e6d6954450f47c415a3ba3d0f77b8b917a8528a0ecaa292962ca"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/raw_pairs.jsonl": {
+      "type": "file",
+      "bytes": 4028024,
+      "sha256": "3f93b13899a87745b0b8e1f83ae8c6573b3d51896c74f16017f00ab632ec8973"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/search/candidate.pt": {
+      "type": "file",
+      "bytes": 197082746,
+      "sha256": "b9d430708cf034b4c7de5ea18de73513bfe53e5ae8a1a1aa85abdfd2830f31fc"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/analyze_results.py": {
+      "type": "file",
+      "bytes": 7191,
+      "sha256": "3216ec0a3b1d82b9a08fc48d30f5b5dbbd115b4fea65deea5b419e70b69e0ed1"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 6787,
+      "sha256": "c1ba255a72b3dbe307f7a10665f3a3f0e7257e4419e0d4409abc1d8b6ce49369"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/candidate/summary.json": {
+      "type": "file",
+      "bytes": 1894,
+      "sha256": "a25ded32fa340e484afb9205c75d732e713c1d9f05dad051ba661e8cb6df8916"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/candidate/pairs.jsonl": {
+      "type": "file",
+      "bytes": 162408,
+      "sha256": "27fb1891f1ca8451a43ddb4b9e171e684c0f44ec1c797bdfd0c682681b0a183d"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/source/summary.json": {
+      "type": "file",
+      "bytes": 1761,
+      "sha256": "d01ad7fd205c38901a1416a1ba72702809759c80be71b15a454dbbd8f9e9f7f1"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/standard10/source/pairs.jsonl": {
+      "type": "file",
+      "bytes": 162402,
+      "sha256": "d3605656bf83e552a4b18a69970ece6c38ccd50a2b68a1f83f642f078390f7ca"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/candidate/summary.json": {
+      "type": "file",
+      "bytes": 2011,
+      "sha256": "6021bb13e61c933aa59fd931d38258ca6f30c58a6e3053c0f6e7d0b7ab498f00"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/candidate/pairs.jsonl": {
+      "type": "file",
+      "bytes": 165045,
+      "sha256": "3bdfed62d92d7fdd4b65b03d427806ee294ddd2846caaae81b9a5b7e45000ffa"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/source/summary.json": {
+      "type": "file",
+      "bytes": 1887,
+      "sha256": "a27f5033e5137f3342d292ef5ce682ec935f67edbe39324fb6fb3d77cddf3299"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/procedural_soup/source/pairs.jsonl": {
+      "type": "file",
+      "bytes": 165000,
+      "sha256": "c671b158eccf03fbdfc92eac3e980e2f4c96c5f01b398d11251545872c6a8419"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/candidate/summary.json": {
+      "type": "file",
+      "bytes": 2013,
+      "sha256": "efab15dabbb7c9ffdc2a0499bef6c2e28f2082aff60eee0d1b5f5583b1839f9f"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/candidate/pairs.jsonl": {
+      "type": "file",
+      "bytes": 162477,
+      "sha256": "3a2fdd8f73d3026ba3c1017fe8c330da9c474bcce8fdba77eeff8f7301733800"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/source/summary.json": {
+      "type": "file",
+      "bytes": 1897,
+      "sha256": "00e1d919618f8ac2fe6dd9d6221277445e94a1cbd21f69bf90ccdef620c8aaf8"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/mixed_iter16/source/pairs.jsonl": {
+      "type": "file",
+      "bytes": 162462,
+      "sha256": "254b94d49d20a85ad246d20452bc181c6629fca26f907fe42925c2613ca6a26f"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/candidate/summary.json": {
+      "type": "file",
+      "bytes": 1988,
+      "sha256": "47849ec950f303782d56dad8aaafe784d7d55db5e2413c7e0ae6198b6d5440fc"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/candidate/pairs.jsonl": {
+      "type": "file",
+      "bytes": 162418,
+      "sha256": "bbb687451bdb73861fbcb946c3cd7da7249e446a902c2a862be6a34959ecd9e5"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/source/summary.json": {
+      "type": "file",
+      "bytes": 1871,
+      "sha256": "4086dd999288ea71926f77be4f3ad438e9be945bc481d5c7ce6646c32115f957"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/physical1m/source/pairs.jsonl": {
+      "type": "file",
+      "bytes": 162411,
+      "sha256": "b9acd98cb8fc1253bfa03f9b879268dd1555352876853104f760a33697e92d04"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/candidate/summary.json": {
+      "type": "file",
+      "bytes": 1999,
+      "sha256": "a369ee024fcd7b0115f56f855fc776a8eb699219a71868f2c6ed121a300f49f9"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/candidate/pairs.jsonl": {
+      "type": "file",
+      "bytes": 164434,
+      "sha256": "8b729a7f4652261d03eb4ae9d4208721af5af2aff1a5987ed015caac9ac42ee7"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/source/summary.json": {
+      "type": "file",
+      "bytes": 1878,
+      "sha256": "3e6d461e55b6b9f156b1405d937a9c0163f87fa21feb330d7a5f4d66d1e5c244"
+    },
+    "research/experiments/v6-standard10-greedy-bias-coordinate-smoke-20260901/validation/freshzero_kl/source/pairs.jsonl": {
+      "type": "file",
+      "bytes": 164413,
+      "sha256": "1845c00210f268292b5b5fdd0482c8d319d0f73c93430b55de28e9b0e2c95ecd"
+    }
+  }
+}

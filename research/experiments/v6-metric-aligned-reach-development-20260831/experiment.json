@@ -1,0 +1,285 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-metric-aligned-reach-development-20260831",
+  "title": "Metric-aligned reach-target development fit",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T21:29:18+00:00",
+  "updated_at": "2026-08-31T21:39:13+00:00",
+  "started_at": "2026-08-31T21:32:46+00:00",
+  "ended_at": "2026-08-31T21:39:13+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Direct probability-TV and hand-seat-balanced objectives can reduce the localized reach-target fitting gap relative to CE.",
+  "material_change": "Three fixed8epoch development arms on sameold reservoir/targets;0newhands/network;parent8192 cohort used only for selection.",
+  "baseline": "Frozen parent epoch08 reach-target model TV0.21055 on development cohort.",
+  "source": "research/experiments/v6-metric-aligned-reach-development-20260831/preregistration.md",
+  "parent_id": "v6-reach-target-gap-decomposition-r3-20260831",
+  "command": "python research/experiments/v6-metric-aligned-reach-development-20260831/run_development.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-metric-aligned-reach-development-20260831/run_development.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:29:18+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-metric-aligned-reach-development-20260831/test_development.py -q --junitxml=research/experiments/v6-metric-aligned-reach-development-20260831/admission_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:32:46+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-metric-aligned-reach-development-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:32:46+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-metric-aligned-reach-development-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:39:12+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-metric-aligned-reach-development-20260831"
+    ],
+    "captured_at": "2026-08-31T21:29:18+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-metric-aligned-reach-development-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-metric-aligned-reach-development-20260831/source_manifest.json",
+    "source_manifest_sha256": "8c6299cd83b51e4db545a5b1ae2668943984178cb50bfcef3da0d393ca0b3272",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 387.0,
+    "slumbot_hands": 0,
+    "model_state_queries": 208548
+  },
+  "metrics": {
+    "wall_time_seconds": 357.98499999998603,
+    "review_wall_time_seconds": 2.7810000000172295
+  },
+  "artifacts": [
+    "research/experiments/v6-metric-aligned-reach-development-20260831/preregistration.md",
+    "research/experiments/v6-metric-aligned-reach-development-20260831/code.patch",
+    "research/experiments/v6-metric-aligned-reach-development-20260831/source_manifest.json",
+    "research/experiments/v6-metric-aligned-reach-development-20260831/run_development.py",
+    "research/experiments/v6-metric-aligned-reach-development-20260831/review_finish.py",
+    "research/experiments/v6-metric-aligned-reach-development-20260831/test_development.py",
+    "research/experiments/v6-metric-aligned-reach-development-20260831/admission_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\admission_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce_development_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce_development_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv_development_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv_development_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\hand_seat_weights.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\retained_actors.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\run_development.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\test_development.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv_development_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv_development_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Development-set selection explicitly cannot admit strategic/Slumbot testing. Only a later untouched native cohort may confirm the selected frozen endpoint.",
+    "Fixed3arm development design fully implemented before training; admission3testsPASS. Same development cohort only; all endpoints preserved and no confirmatory/strength inference."
+  ],
+  "result": {
+    "summary": "Fixed metric-aligned development completed: METRIC_ALIGNED_DEVELOPMENT_NOT_PROMISING, selected unweighted_tv.",
+    "conclusion": "Development-set objective selection only; descriptive intervals are selection-biased and cannot admit strength evaluation.",
+    "decision": "METRIC_ALIGNED_DEVELOPMENT_NOT_PROMISING",
+    "next_step": "Prioritize sequence representation before further loss tuning."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-metric-aligned-reach-development-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 1826,
+      "sha256": "5dcd5d4aab3cff707fcb501d21d0e0aeb03aded1c86e2a237c5563c5fe7b87a0"
+    },
+    "research/experiments/v6-metric-aligned-reach-development-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-metric-aligned-reach-development-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 537,
+      "sha256": "8c6299cd83b51e4db545a5b1ae2668943984178cb50bfcef3da0d393ca0b3272"
+    },
+    "research/experiments/v6-metric-aligned-reach-development-20260831/run_development.py": {
+      "type": "file",
+      "bytes": 9036,
+      "sha256": "dab341be12213f492fda8c46d699e35375ef568f901e481d9f51e3c22fb06ba2"
+    },
+    "research/experiments/v6-metric-aligned-reach-development-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 5010,
+      "sha256": "124745a6b3660a70cf4bd1f0ff895efbc62652b132640ca6bcc92876db633368"
+    },
+    "research/experiments/v6-metric-aligned-reach-development-20260831/test_development.py": {
+      "type": "file",
+      "bytes": 643,
+      "sha256": "cdc9ed0b10c540774db1bad1804b89bb7d719519f903436488df3a1bd29c3e1e"
+    },
+    "research/experiments/v6-metric-aligned-reach-development-20260831/admission_tests.xml": {
+      "type": "file",
+      "bytes": 700,
+      "sha256": "9a59a4d4ef7c89a4bc80865a6addc5934f7416cb926c3d417f809c8709fcb5a6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\admission_tests.xml": {
+      "type": "file",
+      "bytes": 700,
+      "sha256": "9a59a4d4ef7c89a4bc80865a6addc5934f7416cb926c3d417f809c8709fcb5a6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 1688,
+      "sha256": "7470449f4962d64dde4bc7b3d026aa395ac7a4fbd4678b4a9396639b0c0ee8ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce.pt": {
+      "type": "file",
+      "bytes": 98357266,
+      "sha256": "5285c511296b84b2e75294d8eb7026e27ef57aab7864e1227ecfaa8a79f716c1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce_development_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "ce182aaa01a3931211b5a4ade13a3dae8c2f81f5cfeae4696a7d27a77412648d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce_development_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "97a316954456e3b0a3a5c1f5b1a18de3bf31364a1749d74bcb5bc212867b2624"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_ce_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 262485,
+      "sha256": "116e08f0a03fe0cf73b458929d7b117501a13e638e521ec8f2fcd25ee84e147d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv.pt": {
+      "type": "file",
+      "bytes": 98357266,
+      "sha256": "b36ff78562aa638f01dab95a27f562fd72449e633dc66a03d34945d2d8836eda"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv_development_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "43855747a489c807e595ba131f2d4d2e624d6ee109bb9feae6107214822e0f0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv_development_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "c173b8df3c75bf7d8e815deaaf761602f667ab4c122600613fbb5dd0da4710b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\balanced_tv_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 264719,
+      "sha256": "b75c9b12ea17dc96d99eb0313e1988b6b49505e45f063d4b1f828f24608ae55b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 371,
+      "sha256": "f7ec57415e4ffc9825ddcee4522658f92c376b4481752a9bc8672f7d76b359ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\hand_seat_weights.npy": {
+      "type": "file",
+      "bytes": 2097280,
+      "sha256": "5e639316e5db5492f52d1709cc9e1857de9f7414ed4bbed87537e42bfcb67289"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 1583,
+      "sha256": "9f11c56febafcb40f530da2ffd48d61cb1e1fd9fc0771ba6168507c85a067604"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 1826,
+      "sha256": "5dcd5d4aab3cff707fcb501d21d0e0aeb03aded1c86e2a237c5563c5fe7b87a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\retained_actors.npy": {
+      "type": "file",
+      "bytes": 262272,
+      "sha256": "06e65cd7305bf7746035f36aea2e872b57e7447ed703033b7bf011403e7d9b26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 5010,
+      "sha256": "124745a6b3660a70cf4bd1f0ff895efbc62652b132640ca6bcc92876db633368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\run_development.py": {
+      "type": "file",
+      "bytes": 9036,
+      "sha256": "dab341be12213f492fda8c46d699e35375ef568f901e481d9f51e3c22fb06ba2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\test_development.py": {
+      "type": "file",
+      "bytes": 643,
+      "sha256": "cdc9ed0b10c540774db1bad1804b89bb7d719519f903436488df3a1bd29c3e1e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv.pt": {
+      "type": "file",
+      "bytes": 98357930,
+      "sha256": "01049fb680c2f675193e7e73b1bd08d8283ecbfcb21d34f20e49428cf4f05697"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv_development_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "0730efdf5daa921713f505c1cfa1abdac0c910c138e6bc98d3d2ca86b5a553b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv_development_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "7775fce41400dcc36800699d5c4eeb63eea8fa9f2314ae33bdddb4387d2ac37d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\unweighted_tv_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 268846,
+      "sha256": "9cae3a3712c0b21058de699c93f1006b6e55008beda2d1e62014b68e88b7aa99"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1758,
+      "sha256": "648f656e96ee4b10b8c56c53d513cc44679d8a64d6cfa97224f1869972986f77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-metric-aligned-reach-development-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 310,
+      "sha256": "eaa324f8a480781db53c50d5250c5ddf3c7648ea154dbf10ac007b48c6848a27"
+    }
+  }
+}

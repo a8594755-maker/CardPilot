@@ -1,0 +1,140 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-mgda-dose-boundary-audit-20260901",
+  "title": "Broad MGDA checkpoint dose and preservation boundary audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T22:21:40+00:00",
+  "updated_at": "2026-09-01T22:55:29+00:00",
+  "started_at": "2026-09-01T22:21:40+00:00",
+  "ended_at": "2026-09-01T22:55:29+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The adverse 16k-to-65k slopes and seed2 preservation miss arise after a coherent earlier checkpoint boundary because 64 updates per 8,192 hands saturate the residual cap; the 32,768-hand dose should retain stronger source agreement and show a more reproducible holdout direction than 65,536.",
+  "material_change": "Read the exact 24 frozen checkpoints and existing 55,296-trajectory evaluation evidence only. Recompute Standard10 greedy agreement and residual-cap metrics on the same 4,096 balanced states at every 8,192-hand checkpoint. Compute paired per-seed, holdout, and seat slope CIs across 16k-to-32k, 32k-to-65k, and 16k-to-65k using identical deck keys. Identify the last preservation-safe checkpoint and whether halving updates/chunk is evidence-supported. No training or new poker hands.",
+  "baseline": "At 65,536 hands all 1,536 MGDA steps were positive, but only 1/3 seed 16k-to-65k slopes was positive; seed2 source agreement was 94.5557%, and all seeds reached residual cap 0.25. Final median holdout and seat deltas remained positive.",
+  "source": "research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run",
+  "parent_id": "v6-broad-mgda-65k-three-seed-curve-20260901",
+  "command": "python scripts/alpha_holdem/v6_broad_mgda_boundary_audit.py --run-dir research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --device cuda --out-dir research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_mgda_boundary_audit.py --run-dir research/experiments/v6-broad-mgda-65k-three-seed-curve-20260901/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --device cuda --out-dir research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T22:21:40+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T22:55:29+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "af7c6e26a78bfcc67358637515a99f63238dc78fd2fa22f8375c0d3f217abacd",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T22:21:40+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/source_manifest.json",
+    "source_manifest_sha256": "5c23baf7cc8e411b3407339ec2461bd29811d5b5888bb23da11c93d5f33cca02",
+    "source_files": 152
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 112128,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 2029.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "checkpoint_source_queries": 98304,
+    "evaluation_rows_reused": 13824,
+    "dose16_median_holdout_delta_bb100": 18.21,
+    "dose32_median_holdout_delta_bb100": 31.05,
+    "dose65_median_holdout_delta_bb100": 12.1103515625,
+    "dose16_median_seat_delta_bb100": 21.05,
+    "dose32_median_seat_delta_bb100": 26.86,
+    "dose65_median_seat_delta_bb100": 6.51790364583334,
+    "positive_seed_slopes_16k_to_32k": 2,
+    "positive_seed_slopes_32k_to_65k": 0,
+    "seed0_slope_16k_to_32k_bb100": 21.34,
+    "seed1_slope_16k_to_32k_bb100": 7.33,
+    "seed2_slope_16k_to_32k_bb100": -8.54,
+    "seed0_slope_32k_to_65k_bb100": -42.79,
+    "seed1_slope_32k_to_65k_bb100": -7.11,
+    "seed2_slope_32k_to_65k_bb100": -16.81,
+    "seed0_first_cap_saturation_hands": 32768,
+    "seed1_first_cap_saturation_hands": 24576,
+    "seed2_first_cap_saturation_hands": 24576,
+    "full_suite_tests_passed": 249
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/code.patch",
+    "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/source_manifest.json",
+    "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/run/summary.json",
+    "scripts/alpha_holdem/v6_broad_mgda_boundary_audit.py",
+    "scripts/alpha_holdem/test_v6_broad_mgda_boundary_audit.py"
+  ],
+  "notes": [
+    "A lower-update-dose replication is admitted only if the audit locates a pre-65k checkpoint where all three seeds meet >=95% overall and >=90% partition agreement, at least 2/3 seeds have positive paired slope from 16k to that checkpoint, and median holdout/seat breadth is nonnegative. Thresholds are not relaxed after viewing results.",
+    "All poker trajectories were reused from the exact SHA-bound 65k run; evaluation_hands remains zero. Paired slope confidence intervals are wide, so admission is based on preregistered multi-seed direction plus preservation/breadth, not a claim that any slope CI excludes zero."
+  ],
+  "result": {
+    "summary": "The audit verified all 24 checkpoint hashes and 13,824 prior evaluation rows, then made 98,304 frozen source-panel queries. All three seeds were preservation-safe at 32,768 hands; 16k-to-32k pooled holdout slopes were +21.34, +7.33, and -8.54 bb/100, satisfying 2/3 positive. At 32k, median seed-holdout delta was +31.05 and median seed-seat delta +26.86. From 32k to 65k every seed slope turned negative (-42.79,-7.11,-16.81), residual cap saturation began at 24,576-32,768 hands, and seed0/2 crossed the 95% overall boundary at 57,344. All 249 tests passed.",
+    "conclusion": "A coherent optimizer-dose boundary exists: the 32k-equivalent update dose passes all preregistered preservation and breadth gates, whereas the second half of the unchanged 64-step schedule degrades untouched holdouts in 3/3 seeds and exhausts source margin. This is specific evidence for halving updates per chunk at fixed 65k environment hands; it does not justify raising the residual cap or scaling the saturated schedule.",
+    "decision": "ADMIT_HALF_UPDATE_DOSE_65K_REPLICATION",
+    "next_step": "Run the same three seeds, six training identities, three untouched holdouts, 65,536 hands/seed, and evaluation contract with 32 rather than 64 MGDA steps per 8,192-hand chunk. Compare its 65k endpoints to the old 32k-equivalent dose and require 2/3 positive slopes, nonnegative median breadth, and source preservation before any 262k scale."
+  },
+  "tags": [
+    "dose",
+    "mgda",
+    "offline-audit",
+    "preservation"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 28533,
+      "sha256": "5c23baf7cc8e411b3407339ec2461bd29811d5b5888bb23da11c93d5f33cca02"
+    },
+    "research/experiments/v6-broad-mgda-dose-boundary-audit-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 60794,
+      "sha256": "0ae5ca43d147937a90cf9d8d9378eeb8a08cc70e3c91b85f62849f1794613e5c"
+    },
+    "scripts/alpha_holdem/v6_broad_mgda_boundary_audit.py": {
+      "type": "file",
+      "bytes": 9739,
+      "sha256": "294195c78007e9ba75d6be2c660d05f5e4c73e4c766a13d0c882b8c83bc0b5ec"
+    },
+    "scripts/alpha_holdem/test_v6_broad_mgda_boundary_audit.py": {
+      "type": "file",
+      "bytes": 802,
+      "sha256": "91cc626d42f0c643e82c6492c942ecb1b715fe77ff47037a0e89f6d875f2f2e8"
+    }
+  }
+}

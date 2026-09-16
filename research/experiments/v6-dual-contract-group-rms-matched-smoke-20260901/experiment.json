@@ -1,0 +1,148 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-dual-contract-group-rms-matched-smoke-20260901",
+  "title": "Dual-contract group-RMS matched advantage smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T17:10:25+00:00",
+  "updated_at": "2026-09-01T17:19:47+00:00",
+  "started_at": "2026-09-01T17:10:25+00:00",
+  "ended_at": "2026-09-01T17:19:47+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Opponent-seat centering and RMS scaling will prevent one high-variance stratum from dominating bounded residual PPO, converting the prior Slumbot-free-only gain into broader learned-anchor improvement while preserving the frozen Standard10 base.",
+  "material_change": "Collect one new 4,096-hand zero-residual dataset. Starting from identical residual weights, apply identical PPO minibatches to a global-normalized control and an opponent-seat centered/RMS-scaled treatment. Freeze both and evaluate on 1,024 untouched mirrored pairs per each of three anchors.",
+  "baseline": "Prior global smoke improved only Slumbot-free +10.323 bb/100; its Slumbot-free seat1 stratum contributed 39.87% of squared advantage mass from 14.51% of decisions.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-dual-contract-advantage-balance-diagnostic-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_group_rms_matched.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-hands 4096 --pairs-per-anchor 1024 --seed 20261400 --device cuda --out-dir research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_group_rms_matched.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-hands 4096 --pairs-per-anchor 1024 --seed 20261400 --device cuda --out-dir research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:10:25+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:19:47+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "3a22669dadacabce2dcdf814540bb6478e65680849d4601cbbadb4ef3d287eb7",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T17:10:25+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "896a4adc845657aec6666b15f6e7c5a674c7f3f5ad566850a4900b6f9f73ec98",
+    "source_files": 121
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4096,
+    "lineage_training_hands": 4096,
+    "offline_samples": 9026,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 562.0,
+    "planned_environment_training_hands": 4096,
+    "planned_evaluation_hands": 12288
+  },
+  "metrics": {
+    "transition_rows": 9026,
+    "control_update_rows": 36104,
+    "treatment_update_rows": 36104,
+    "pooled_delta_bb100": -0.5040690104166664,
+    "pooled_delta_ci95_low_bb100": -16.183979651396143,
+    "pooled_delta_ci95_high_bb100": 15.175841630562811,
+    "standard10_delta_bb100": -6.25,
+    "slumbot_free_delta_bb100": 7.272949218750001,
+    "cfr96_delta_bb100": -2.53515625,
+    "positive_anchor_count": 1,
+    "pooled_seat0_delta_bb100": -2.36328125,
+    "pooled_seat1_delta_bb100": 1.3551432291666672,
+    "control_max_abs_residual_logit": 0.17625164985656738,
+    "treatment_max_abs_residual_logit": 0.1921229362487793,
+    "tests_passed": 224
+  },
+  "artifacts": [
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/code.patch",
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/summary.json",
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz",
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/control_residual.pt",
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/treatment_residual.pt"
+  ],
+  "notes": [
+    "Admission to independent replication only requires treatment-control point delta >0 on >=2/3 anchors, pooled delta >0, Standard10 delta >=0, both pooled seat deltas >=0, exact shared dataset/minibatch ordering, frozen base SHA, residual caps <=0.25, and raw common-deck evidence. No Slumbot.",
+    "Independent recomputation from immutable evaluation_pairs.jsonl.gz confirmed 3,072 pairs / 12,288 hands, SHA256 b28c698c627ea9299f1f17992dfea209b4f9a324ce6fc57cc1fec03a326a422e, pooled delta -0.504069 bb/100 and raw normal 95% CI [-16.183980, 15.175842].",
+    "Full AlphaHoldem test suite passed: 224 passed in 12.10 seconds."
+  ],
+  "result": {
+    "summary": "Matched group-RMS treatment completed on one shared 4,096-hand dataset and 12,288 untouched evaluation hands. It improved only the Slumbot-free anchor (+7.273 bb/100) while regressing Standard10 (-6.250) and CFR96 (-2.535); pooled delta was -0.504 bb/100 with 95% CI [-16.184, 15.176].",
+    "conclusion": "Opponent-seat centering and RMS scaling did not broaden the bounded residual PPO gain. The exact frozen base and residual caps were preserved, but only 1/3 anchors improved and pooled seat0 was negative. This rejects normalization imbalance as the principal explanation for the prior narrow Slumbot-free gain.",
+    "decision": "REJECT_GROUP_RMS_ADVANTAGE_AND_CLOSE_LOCAL_NORMALIZATION_ROUTE",
+    "next_step": "Stop local advantage-normalization and dose variants. Select a materially different learned-weight objective with explicit cross-opponent robustness, or perform a frontier audit before spending additional environment hands."
+  },
+  "tags": [
+    "advantage-normalization",
+    "matched",
+    "residual",
+    "self-play"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22537,
+      "sha256": "896a4adc845657aec6666b15f6e7c5a674c7f3f5ad566850a4900b6f9f73ec98"
+    },
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 5558,
+      "sha256": "58a2b7d43c03c735f20cacd965da1d2073dc0128d9d745bc37be4426452aeaee"
+    },
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 273937,
+      "sha256": "64c41580e4c7df56ff0bedc8e00e1d2496b5cb848993868e95353e62d270e563"
+    },
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 195017,
+      "sha256": "b28c698c627ea9299f1f17992dfea209b4f9a324ce6fc57cc1fec03a326a422e"
+    },
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/control_residual.pt": {
+      "type": "file",
+      "bytes": 1388074,
+      "sha256": "e261c50a4cedf4e3083fab9ea40eaca4145aa9974ce5651f4d6fb10cc0f80e21"
+    },
+    "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/treatment_residual.pt": {
+      "type": "file",
+      "bytes": 1388162,
+      "sha256": "585b053ed354e0f438e8d9f28459523486ce1ce9f4270462a574e604e141244f"
+    }
+  }
+}

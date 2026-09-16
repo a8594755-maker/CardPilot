@@ -146,6 +146,18 @@ class GameConfig:
         )
 
     @staticmethod
+    def full_200bb() -> 'GameConfig':
+        """Full game (preflop→river), 200bb stacks — matches Slumbot."""
+        return GameConfig(
+            starting_pot=1.5,
+            effective_stack=200.0,
+            bet_sizes=EXPANDED_BET_SIZES_WITH_PREFLOP,
+            raise_cap_per_street=1,
+            raise_cap_preflop=4,
+            include_preflop=True,
+        )
+
+    @staticmethod
     def expanded_srp_50bb() -> 'GameConfig':
         """SRP 50bb with expanded 6-size bet grid (for 9-slot network)."""
         return GameConfig(
@@ -482,6 +494,57 @@ class HUNLGameState:
             # This is approximate — we include all actions on the current street
             result.append((player, action))
         return result
+
+    def get_actions_by_street(self) -> list[list[tuple[int, "Action"]]]:
+        """
+        Return self.actions_history grouped by the street each action was taken on.
+
+        Replays street-advance rules from apply() in pure logic (no state cloning):
+          - CHECK advances when num_actions_this_street reaches 2 (both players checked)
+          - CALL advances unconditionally (the bettor's bet was matched)
+          - BET / RAISE / ALLIN do not advance (opponent must respond)
+          - FOLD ends the hand
+
+        Result is a list of length 4: [preflop, flop, turn, river].
+        Actions on SHOWDOWN never appear (advance from river goes straight to SHOWDOWN
+        with is_done=True, which means no further player actions).
+
+        Cost: O(N) where N = len(actions_history). Cache at call site if needed
+        in a hot loop.
+        """
+        by_street: list[list[tuple[int, "Action"]]] = [[] for _ in range(4)]
+        if not self.actions_history:
+            return by_street
+
+        # Determine starting street: if config skips preflop, start at FLOP=1.
+        start_street = 0 if getattr(self.config, "include_preflop", True) else int(Street.FLOP)
+        current_street = start_street
+        num_actions_this_street = 0
+
+        for who, action in self.actions_history:
+            # Clamp into 0..3 to avoid IndexError if a corrupt history overshoots.
+            if 0 <= current_street <= 3:
+                by_street[current_street].append((who, action))
+
+            atype = action.type
+            if atype == ActionType.FOLD:
+                break
+            elif atype == ActionType.CHECK:
+                num_actions_this_street += 1
+                if num_actions_this_street >= 2:
+                    current_street += 1
+                    num_actions_this_street = 0
+            elif atype == ActionType.CALL:
+                num_actions_this_street += 1
+                current_street += 1
+                num_actions_this_street = 0
+            elif atype in (ActionType.BET, ActionType.RAISE, ActionType.ALLIN):
+                num_actions_this_street += 1
+                # No street advance; opponent responds. ALLIN edge cases are
+                # absorbed by the engine running out the board, so post-ALLIN
+                # actions in history terminate naturally.
+
+        return by_street
 
     def to_info_key(self) -> str:
         """

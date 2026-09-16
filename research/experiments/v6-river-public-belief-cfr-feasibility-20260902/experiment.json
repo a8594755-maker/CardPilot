@@ -1,0 +1,155 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-river-public-belief-cfr-feasibility-20260902",
+  "title": "River public-belief CFR feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T13:05:52+00:00",
+  "updated_at": "2026-09-02T13:30:44+00:00",
+  "started_at": "2026-09-02T13:05:52+00:00",
+  "ended_at": "2026-09-02T13:30:44+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A posterior-range, exact-terminal river CFR solver will produce reproducible low-regret strategy targets across independent solver seeds, avoiding the unstable point-action labels and from-zero whole-game approximation that failed earlier.",
+  "material_change": "Add a read-only Standard10-reach river public-state sampler and tabular external-sampling CFR solver over private-hand information sets; test geometric iteration convergence and cross-seed strategy stability before changing any learned weights.",
+  "baseline": "No river belief solver; prior posterior one-step action targets had 26.6% dev/confirm agreement and current from-zero Deep CFR lost 473.5 bb/100 to Standard10.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-posterior-counterfactual-target-reliability-smoke-20260901",
+  "command": "python -m alpha_holdem.v6_river_public_belief_cfr_feasibility --standard10 models/baseline/standard10/latest.pt --states 6 --range-hands 48 --iterations 128,512,2048 --trajectory-seed 6090201 --solver-seeds 6090211,6090221,6090231 --output-dir research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run",
+  "commands": [
+    {
+      "command": "python -m alpha_holdem.v6_river_public_belief_cfr_feasibility --standard10 models/baseline/standard10/latest.pt --states 6 --range-hands 48 --iterations 128,512,2048 --trajectory-seed 6090201 --solver-seeds 6090211,6090221,6090231 --output-dir research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T13:05:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_feasibility.py --standard10 models/baseline/standard10/latest.pt --states 6 --range-hands 48 --iterations 128,512,2048 --trajectory-seed 6090201 --solver-seeds 6090211,6090221,6090231 --output-dir research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T13:07:36+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_feasibility.py --standard10 models/baseline/standard10/latest.pt --states 2 --range-hands 4 --iterations 4,8 --trajectory-seed 6090191 --solver-seeds 6090192,6090193 --output-dir research/experiments/v6-river-public-belief-cfr-feasibility-20260902/preflight",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T13:11:55+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_audit.py --run-dir research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run --output research/experiments/v6-river-public-belief-cfr-feasibility-20260902/corrected_gate_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T13:29:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "a5133ede95e8b126853496036e3e71e9f1a41f0ba16d13ae95c8194b643bbca7",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T13:05:52+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/source_manifest.json",
+    "source_manifest_sha256": "e2e0fbf19b1c7c77052d738661b6ad23ba74940a721df9af1c583e0f51b6d998",
+    "source_files": 209
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 73728,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1492.0,
+    "planned_solver_states": 6,
+    "planned_solver_seeds": 3,
+    "planned_max_iterations": 2048,
+    "trajectory_sampling_hands": 5,
+    "solver_terminal_nodes": 3429739,
+    "solver_final_infosets": 1527171
+  },
+  "metrics": {
+    "mean_initial_root_regret_proxy_bb": 116.69188127588814,
+    "mean_final_root_regret_proxy_bb": 26.40740054299761,
+    "root_regret_proxy_ratio": 0.22630023832218507,
+    "pooled_cross_seed_mean_total_variation": 0.3975966412912641,
+    "pooled_cross_seed_greedy_agreement": 0.39699074074074076,
+    "final_root_range_coverage": 1.0
+  },
+  "artifacts": [
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run",
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/code.patch",
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/source_manifest.json",
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run/summary.json",
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run/states.jsonl",
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run/solver_snapshots.jsonl",
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/corrected_gate_audit.json"
+  ],
+  "notes": [
+    "Preregistered gates: exact zero-sum payoff symmetry; no illegal actions; mean external-regret proxy decreases from 128 to 2048; cross-seed root-strategy mean TV <=0.10 and greedy agreement >=0.80 at 2048; no policy training unless all integrity and stability gates pass.",
+    "The preregistered python -m form was rejected before execution because alpha_holdem is not installed at repo root; corrected to the project-standard direct script command. No solver output or hands existed when corrected.",
+    "Checkpoint-backed contract preflight only; its outputs are excluded from the preregistered six-state statistics.",
+    "Post-run raw audit corrects only the coverage gate scope from all geometric snapshots to the final 2048 checkpoint; original summary remains immutable. Stability TV/agreement thresholds and all solver evidence are unchanged."
+  ],
+  "result": {
+    "summary": "Six balanced frozen-Standard10 river public states, 48 history-consistent private hands per player, three independent solver seeds, and 73,728 external-sampling traversals completed with exact zero-sum and legality integrity. Mean root regret proxy fell from 116.69 at 128 iterations to 61.02 at 512 and 26.41 at 2,048, but final cross-seed root strategies remained unstable: pooled TV 0.3976 and greedy agreement 0.3970. A hash-bound post-run audit corrected an overly broad coverage bookkeeping gate and confirmed all 18 final cells covered 48/48 root hands; the stability failure was unchanged.",
+    "conclusion": "The belief-correct exact-terminal river CFR mechanism shows a strong geometric regret-convergence signal but is materially underconverged at 2,048 iterations. No target may be distilled from this run. This is insufficient solver dose, not a demonstrated mechanism collapse.",
+    "decision": "HOLD_RIVER_BELIEF_CFR_UNDERCONVERGED_NO_DISTILLATION",
+    "next_step": "Run one separately preregistered deeper convergence control on the immutable six public states and selected ranges, extending solver checkpoints geometrically to 8,192 and 32,768 iterations with restartable per-state/seed evidence. Continue only if cross-seed TV and greedy agreement improve monotonically toward the original thresholds; otherwise close this solver configuration as too sample-inefficient on current hardware."
+  },
+  "tags": [
+    "public-belief",
+    "river",
+    "solver",
+    "zero-training-hands"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 39596,
+      "sha256": "e2e0fbf19b1c7c77052d738661b6ad23ba74940a721df9af1c583e0f51b6d998"
+    },
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 3141,
+      "sha256": "7e6181257f13c4ec3b25ed25a039149b314d056f2e236607194a443f349e413a"
+    },
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run/states.jsonl": {
+      "type": "file",
+      "bytes": 10038,
+      "sha256": "4b595e4d22cffb3156702cb4b597de854514a49f9cf0d43bbc967fdddc8ed474"
+    },
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run/solver_snapshots.jsonl": {
+      "type": "file",
+      "bytes": 438004,
+      "sha256": "30ef2d23d8ef9c1d41654547c86f2b18ddaa773dc1cc845e7290b9df03365eec"
+    },
+    "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/corrected_gate_audit.json": {
+      "type": "file",
+      "bytes": 3253,
+      "sha256": "1ca53ce393f63569ec7cc1bbfefebbb4c3b64407f1ab9b7d869dda9998bf80b1"
+    }
+  }
+}

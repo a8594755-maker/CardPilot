@@ -1,0 +1,402 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-preflop-actor-trunk-route-qualification-20260906",
+  "title": "Preflop actor-to-trunk opt-in and exact retained-state qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-06T06:12:32+00:00",
+  "updated_at": "2026-09-06T06:27:19+00:00",
+  "started_at": "2026-09-06T06:12:32+00:00",
+  "ended_at": "2026-09-06T06:27:18+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Current teacher-isolated preflop features may limit full-scope RL adaptation; a default-preserving actor-gradient control can be isolated without changing critic routing or initial policy behavior.",
+  "material_change": "Stage an opt-in backward-only preflop actor route, fail-closed resume contract and metadata-only treatment parents; verify both retained original-LR seeds before any production trial.",
+  "baseline": "v6-full-step-size-two-seed-external-fresh80k-20260906",
+  "source": "",
+  "parent_id": "v6-full-step-size-1m-continuation-20260905",
+  "command": "python -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/prepare_candidate.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/prepare_candidate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:12:32+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/test_route.py --junitxml=research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/focused_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:20:19+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/run_regressions.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:20:19+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/prepare_dependencies.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:20:19+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/run_regressions_v2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:20:19+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:22:49+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualify_v2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:23:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\train_v5.py --help",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:27:16+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\train_v5.py --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:27:16+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\train_v5.py --preflop-trunk-gradient --separate-preflop-head --preflop-teacher-coef 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:27:16+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/finish_record.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T06:27:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906"
+    ],
+    "captured_at": "2026-09-06T06:12:32+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/source_manifest.json",
+    "source_manifest_sha256": "47d185941ab8548810a12c70e268f6f37af5112c41aa604392b8cfff9a7393a9",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 886.0,
+    "slumbot_hands": 0,
+    "final_qualification_hands": 0
+  },
+  "metrics": {
+    "focused_tests_passed": 43,
+    "candidate_regressions_passed": 375,
+    "qualified_parents": 2,
+    "goal_achieved": false
+  },
+  "artifacts": [
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/protocol.md",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/code.patch",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/source_manifest.json",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/preparation.json",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/dependency_preparation.json",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/focused_tests.xml",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/regression_tests.xml",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualify.py",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/route_transfer.py",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/test_route.py",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/regression_report_v2.json",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/regression_tests_v2.xml",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualification_failure.json",
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualify_v2.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate_delta.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\dependency_preparation.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\finish_record.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\focused_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\preparation.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\prepare_candidate.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\prepare_dependencies.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\protocol.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\protocol_initial.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualification_failure.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualification_v2.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualify.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualify_v2.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_output.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_output_v2.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_report_v2.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_tests_v2.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\route_transfer.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\run_regressions.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\run_regressions_v2.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\seed1_connected_unstepped.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\seed3_connected_unstepped.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\test_route.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\train_v5.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\network_hybrid_h1.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\preflop_gradient_contract.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\post_finish_audit.json"
+  ],
+  "notes": [
+    "43 focused tests passed. Initial isolated regression attempt failed collection with73 errors because deep_cfr package was omitted from the staging copy; no training/Slumbot ran. Original runner and outputs retained. Added unchanged23-file dependency snapshot and a distinct V2 regression runner that preserves failure reports; no candidate algorithm change.",
+    "Complete isolated candidate regressions375/375 passed with candidate module import bindings verified. Now qualify both actual retained original-LR parents on64 outcome-unselected internal replay states each; metadata-only serialization and diagnostic updates never count as new training hands.",
+    "Qualification V1 stopped before model loading or output checkpoint creation: default cp950 decoding failed while producing a source diff. Preserved source/failure; V2 uses explicit UTF-8 for source text and distinct result/failure paths. Candidate algorithm and passing tests unchanged; explicit infrastructure recovery, not rerunning completed poker work."
+  ],
+  "result": {
+    "summary": "Both retained original-LR parents passed metadata-only actor-route derivation,64-state per-seed forward parity, street-specific gradients and exact86-state Adam/replay/counter restoration;43 focused plus375 runtime tests passed.",
+    "conclusion": "The opt-in route changes preflop actor backward connectivity without changing initial inference, critic routing or retained training state. This qualifies a matched learned-weight experiment, not stronger poker or actual worker resume equivalence.",
+    "decision": "Retain production and all failed qualification artifacts; complete this record with zero new environment hands and use both original-LR lineages in one connected-versus-detached training control.",
+    "next_step": "Preregister the two-seed geometric pilot, reuse established execution helpers, and verify actual initial GPU optimizer/replay/pool/RNG/counters plus route provenance before admitting further training cells."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/protocol.md": {
+      "type": "file",
+      "bytes": 3195,
+      "sha256": "d399c35b97b26104e63810dee35277029c67851fdbaba0ca1810e8bb823b9d14"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/source_manifest.json": {
+      "type": "file",
+      "bytes": 772,
+      "sha256": "47d185941ab8548810a12c70e268f6f37af5112c41aa604392b8cfff9a7393a9"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/preparation.json": {
+      "type": "file",
+      "bytes": 33373,
+      "sha256": "26d1315114abd018b2edc0a73db5b5d1282e8fb205197878264e0de42126b5fb"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/dependency_preparation.json": {
+      "type": "file",
+      "bytes": 2858,
+      "sha256": "8ee08d86552460e3b0d51a6d7a0d8b571810125e1b83466421dfe63c6f127816"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/focused_tests.xml": {
+      "type": "file",
+      "bytes": 7471,
+      "sha256": "710901d59d3bab3d8d03f176f94b0be39203a48d3cb2180984f41367b69e5e9f"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/regression_tests.xml": {
+      "type": "file",
+      "bytes": 89205,
+      "sha256": "a5a35f6aa87532b32cbde6b7febcc2e021917e759b8081ce545b4c78edce89c9"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualify.py": {
+      "type": "file",
+      "bytes": 13467,
+      "sha256": "c963a688a4f6975cb00e1d2709a2bbd078af5732d6f9bbcb0abcb3b18687274e"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/route_transfer.py": {
+      "type": "file",
+      "bytes": 2893,
+      "sha256": "abce93419f9c4856aba214cf197970bf0a00113a49792480215a0204e9af050d"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/test_route.py": {
+      "type": "file",
+      "bytes": 6947,
+      "sha256": "e5740cb18697b25c1b1e5ede28e6a99610ac8c77661167a5e072542913afae1d"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/regression_report_v2.json": {
+      "type": "file",
+      "bytes": 75640,
+      "sha256": "f783f379c49c3548e93f3cfc28c98b74cafdcd06eb7a49a5513fcc4696668e79"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/regression_tests_v2.xml": {
+      "type": "file",
+      "bytes": 57239,
+      "sha256": "d458d35746172d56e098cea7446ace392df05bee83de046aefd3b008817cbfa1"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualification_failure.json": {
+      "type": "file",
+      "bytes": 44045,
+      "sha256": "d890c3852885d0871333fbe1390ef6b9208e5a05dc05e89735e08eb55714e29c"
+    },
+    "research/experiments/v6-preflop-actor-trunk-route-qualification-20260906/qualify_v2.py": {
+      "type": "file",
+      "bytes": 13505,
+      "sha256": "1aeda9e759bf1e561e924265f688b2e25b0e963317cca08ecf1dea66daf46f41"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate_delta.patch": {
+      "type": "file",
+      "bytes": 5631,
+      "sha256": "c68073d30c2bfc7bacc6d16c8af45dce24897a0b1d157239056050a372764e39"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\dependency_preparation.json": {
+      "type": "file",
+      "bytes": 2858,
+      "sha256": "8ee08d86552460e3b0d51a6d7a0d8b571810125e1b83466421dfe63c6f127816"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\finish_record.py": {
+      "type": "file",
+      "bytes": 3662,
+      "sha256": "0ec21580f783793ca8b9974eeb392f0436afc84cf083ef059717eac080753ced"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\focused_tests.xml": {
+      "type": "file",
+      "bytes": 7471,
+      "sha256": "710901d59d3bab3d8d03f176f94b0be39203a48d3cb2180984f41367b69e5e9f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\preparation.json": {
+      "type": "file",
+      "bytes": 33373,
+      "sha256": "26d1315114abd018b2edc0a73db5b5d1282e8fb205197878264e0de42126b5fb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\prepare_candidate.py": {
+      "type": "file",
+      "bytes": 1918,
+      "sha256": "a3be58f92e3f4e7c6a4d3fe06837f9bac9ec819be1eed9437514a0f530b8e01c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\prepare_dependencies.py": {
+      "type": "file",
+      "bytes": 1433,
+      "sha256": "b9e77e6c66138a9144f7faa548e3d397fe0ab219d30bda7dcf479923111e9d27"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\protocol.md": {
+      "type": "file",
+      "bytes": 3195,
+      "sha256": "d399c35b97b26104e63810dee35277029c67851fdbaba0ca1810e8bb823b9d14"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\protocol_initial.md": {
+      "type": "file",
+      "bytes": 2960,
+      "sha256": "602235fa41b84f9ba7e2afec396223c35b6c09ce49ad63dacbe9e703d938fbf3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualification_failure.json": {
+      "type": "file",
+      "bytes": 44045,
+      "sha256": "d890c3852885d0871333fbe1390ef6b9208e5a05dc05e89735e08eb55714e29c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualification_v2.json": {
+      "type": "file",
+      "bytes": 166844,
+      "sha256": "a5f6cfce6bc32535cc4f43231b69f30cd1d7e2ab748da175af4f65f7d88a705c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualify.py": {
+      "type": "file",
+      "bytes": 13467,
+      "sha256": "c963a688a4f6975cb00e1d2709a2bbd078af5732d6f9bbcb0abcb3b18687274e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\qualify_v2.py": {
+      "type": "file",
+      "bytes": 13505,
+      "sha256": "1aeda9e759bf1e561e924265f688b2e25b0e963317cca08ecf1dea66daf46f41"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_output.log": {
+      "type": "file",
+      "bytes": 87440,
+      "sha256": "da92213d79b94b220fd978f9203960a0cfe4991876595a06c0bf5b1ee5d70ff5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_output_v2.log": {
+      "type": "file",
+      "bytes": 655,
+      "sha256": "d7f179169e94be5a4fab6465b68c28a78ae155d0f5a55148f966352a5c467a71"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_report_v2.json": {
+      "type": "file",
+      "bytes": 75640,
+      "sha256": "f783f379c49c3548e93f3cfc28c98b74cafdcd06eb7a49a5513fcc4696668e79"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_tests.xml": {
+      "type": "file",
+      "bytes": 89205,
+      "sha256": "a5a35f6aa87532b32cbde6b7febcc2e021917e759b8081ce545b4c78edce89c9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\regression_tests_v2.xml": {
+      "type": "file",
+      "bytes": 57239,
+      "sha256": "d458d35746172d56e098cea7446ace392df05bee83de046aefd3b008817cbfa1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\result_summary.md": {
+      "type": "file",
+      "bytes": 4745,
+      "sha256": "e3ab0f429d35d5a30b8f420ebbcce86a0fa75e17f2021b7618285957934b9700"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\route_transfer.py": {
+      "type": "file",
+      "bytes": 2893,
+      "sha256": "abce93419f9c4856aba214cf197970bf0a00113a49792480215a0204e9af050d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\run_regressions.py": {
+      "type": "file",
+      "bytes": 2608,
+      "sha256": "def85370cecfca332e1a579a1660d86ccbdc1ee0a29596d39fa3242a472819aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\run_regressions_v2.py": {
+      "type": "file",
+      "bytes": 2955,
+      "sha256": "0244c619f604e3951a50d2fdb5a2ccc510066381e983a478ecc7b0b9691a9769"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\seed1_connected_unstepped.pt": {
+      "type": "file",
+      "bytes": 385037906,
+      "sha256": "799057d2d117302304e0c57bc6162840f2920c31623f8712b0c2125e26cceff5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\seed3_connected_unstepped.pt": {
+      "type": "file",
+      "bytes": 376550802,
+      "sha256": "8c78563b97681c4af9b526fdeebcde704acee4e50cc0768cb9804e007e965c9c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\test_route.py": {
+      "type": "file",
+      "bytes": 6947,
+      "sha256": "e5740cb18697b25c1b1e5ede28e6a99610ac8c77661167a5e072542913afae1d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\train_v5.py": {
+      "type": "file",
+      "bytes": 499302,
+      "sha256": "bcce947477fdcf6593b7a88ce6845bf5638ce6698b9462deeecf4133b05472e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\network_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 41307,
+      "sha256": "07350adfc79db5e81d5d978751492aad443aa72d493ff4f9c3cec5774c2840f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\candidate\\scripts\\alpha_holdem\\preflop_gradient_contract.py": {
+      "type": "file",
+      "bytes": 2462,
+      "sha256": "ff5d15ad75bcfbee411fcacf35d5341e198f6a625eac54f4fc1971bbcd70458f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-route-qualification-20260906\\post_finish_audit.json": {
+      "type": "file",
+      "bytes": 235,
+      "sha256": "444f8a1763b6630fb3d79ab985a9dbbb69589e127a43a93c42e011192d2b466d"
+    }
+  }
+}

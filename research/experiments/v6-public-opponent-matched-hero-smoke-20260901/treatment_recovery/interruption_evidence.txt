@@ -1,0 +1,11 @@
+The first recovery attempt was rejected before producing a PPO iteration.
+
+At broader state coverage, multiple workers raised:
+
+  RuntimeError: public opponent selected an illegal action slot
+
+The opponent model had sampled from PhysicalV6Encoder.legal_mask(state), while
+the v6legacyv4obs environment's executable legal mask can be stricter after
+deduplicating abstract raise slots that map to the same bet.  The initial
+checkpoint at zero hands is retained.  No learned candidate from this attempt
+was admitted.

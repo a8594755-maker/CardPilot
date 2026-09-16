@@ -1,0 +1,131 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-neural-regret-smoke-20260901",
+  "title": "Exact-v6 bounded neural regret optimization smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:51:48+00:00",
+  "updated_at": "2026-09-01T14:56:40+00:00",
+  "started_at": "2026-09-01T14:51:48+00:00",
+  "ended_at": "2026-09-01T14:54:54+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The admitted ChipState adapter can generate learnable counterfactual targets and optimize a reloadable nine-action physical-v6 policy without numerical failure or unbounded traversal growth, producing measurable behavior change from passive initialization.",
+  "material_change": "Train two seat-specific physical-v6 advantage networks for two iterations with two exact root traversals per player per iteration, 32 warm optimizer steps, hard fail-only node limits, and untouched 256-pair call-station/uniform sampled and greedy evaluations.",
+  "baseline": "Passive nine-action networks choose check/call at every live state; adapter mechanism smoke passed on 48,016 nodes with zero optimized weights.",
+  "source": "v6-deep-cfr-chipstate-adapter-smoke-20260901",
+  "parent_id": "v6-deep-cfr-chipstate-adapter-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_neural_smoke.py --iterations 2 --traversals-per-player 2 --train-steps 32 --batch-size 256 --eval-pairs 256 --seed 60902 --output-dir research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_neural_smoke.py --iterations 2 --traversals-per-player 2 --train-steps 32 --batch-size 256 --eval-pairs 256 --seed 60902 --output-dir research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:51:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "a064677429718ba39fd073d7bf260d6ced6e103538b412f017f6001511f8f9ea",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T14:51:48+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "a3ff0a9b54a288bbcc8c94e7a035785bc3765c4b331758d31c46be728616559e",
+    "source_files": 116
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 2048,
+    "wall_time_seconds": 186.0,
+    "planned_root_traversals": 8,
+    "planned_evaluation_hands": 4096,
+    "environment_training_hands": 8,
+    "root_traversals": 8,
+    "decision_nodes": 29093,
+    "terminal_rollouts": 22667
+  },
+  "metrics": {
+    "final_loss_p0": 190.27624988555908,
+    "final_loss_p1": 133.91259217262268,
+    "max_greedy_argmax_movement_fraction": 0,
+    "max_mean_tv_from_passive": 0.08273035007676885
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run/checkpoint.pt",
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run/metrics.jsonl",
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/analysis.md"
+  ],
+  "notes": [
+    "Root traversals, branched terminal rollouts, and untouched evaluation hands are accounted separately. A node limit only aborts; it never truncates a target.",
+    "Preregistered planned_evaluation_hands=4096 was an arithmetic mistake: 256 pairs*2 hands*4 cells=2048. Exact config and completed cells were unchanged; corrected before interpreting outcomes.",
+    "checkpoint sha256=a38c59fce2b323871a5075a10ed906140220e9d9dd53985eb33042e5096093fd; metrics sha256=e6ddf16096d2ce7889aece4b1b001c0234e74e16161960b68e745a6310a2e863; summary sha256=d91e78804434bd6a61c7741109b187059c0eb5ea3c5fbc5f50604e45927061d4; alpha_holdem suite 211 passed.",
+    "Post-close implementation audit before the next experiment found that the smoke's passive initializer zeroed every network parameter. This preserved passive behavior but created a dead/symmetry-limited ReLU feature stack, so the zero argmax movement cannot isolate optimizer dose. The next matched control uses seeded random hidden features with only the final outputs set passive; the original checkpoint/result/decision remain unchanged."
+  ],
+  "result": {
+    "summary": "The bounded learned-weight run completed 8 roots and 29,093 exact-v6 nodes with finite losses and exact checkpoint reload, but 32 optimizer steps produced only about 0.08 TV probability movement and zero greedy argmax flips across 2,048 untouched evaluation hands.",
+    "conclusion": "The adapter and serialization remain healthy, but this optimization dose does not establish meaningful learned behavior. Wide 512-hand anchor returns are non-decisive and are not used to admit scaling.",
+    "decision": "REJECT_OR_REVISE_EXACT_V6_NEURAL_REGRET_SMOKE",
+    "next_step": "Freeze and serialize one first-iteration target corpus, then compare 32/128/512 optimizer-step arms from identical passive weights using held-out target loss and frozen-state argmax/TV movement before adding traversal volume."
+  },
+  "tags": [
+    "deep-cfr",
+    "neural-regret",
+    "smoke",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 21129,
+      "sha256": "a3ff0a9b54a288bbcc8c94e7a035785bc3765c4b331758d31c46be728616559e"
+    },
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run/checkpoint.pt": {
+      "type": "file",
+      "bytes": 2931382,
+      "sha256": "a38c59fce2b323871a5075a10ed906140220e9d9dd53985eb33042e5096093fd"
+    },
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run/metrics.jsonl": {
+      "type": "file",
+      "bytes": 964,
+      "sha256": "e6ddf16096d2ce7889aece4b1b001c0234e74e16161960b68e745a6310a2e863"
+    },
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 4840,
+      "sha256": "d91e78804434bd6a61c7741109b187059c0eb5ea3c5fbc5f50604e45927061d4"
+    },
+    "research/experiments/v6-deep-cfr-neural-regret-smoke-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1707,
+      "sha256": "35d4595aec4a080e9f00469a7fd4e77ea75255f3539137af420cdbd444de7d9a"
+    }
+  }
+}

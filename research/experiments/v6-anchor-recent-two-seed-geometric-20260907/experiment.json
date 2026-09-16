@@ -1,0 +1,604 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-anchor-recent-two-seed-geometric-20260907",
+  "title": "Matched two-seed anchor-preserving recent opponent geometric trial",
+  "status": "COMPLETED",
+  "created_at": "2026-09-07T05:51:55+00:00",
+  "updated_at": "2026-09-07T10:59:22+00:00",
+  "started_at": "2026-09-07T05:51:55+00:00",
+  "ended_at": "2026-09-07T10:59:22+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Current learned opponents can improve broad continued learning over nearly static historical loss-ranked pools; recency alone is not strength evidence.",
+  "material_change": "Only pool strategy anchor-latest versus loss-kbest; same original connected2M parents, retained full state and training regimen.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-anchor-recent-trainer-integration-20260907",
+  "command": "python -B research/experiments/v6-anchor-recent-two-seed-geometric-20260907/prepare.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-anchor-recent-two-seed-geometric-20260907/prepare.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T05:51:55+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-anchor-recent-two-seed-geometric-20260907/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T05:57:37+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-anchor-recent-two-seed-geometric-20260907/run_trial.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T05:58:42+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-anchor-recent-two-seed-geometric-20260907/run_trial.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T05:58:46+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12857813 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T05:58:49+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12857813 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T07:22:00+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12854112 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T07:52:03+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12854112 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T08:00:48+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265011 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T08:09:11+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265011 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T08:18:13+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265031 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T08:27:11+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265031 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T08:35:50+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 13640544 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T08:44:33+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 13640544 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T09:07:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 13644245 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T09:30:13+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-trainer-integration-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 13644245 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T09:52:47+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265012 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T10:16:17+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265012 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T10:25:19+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265032 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T10:34:22+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20265032 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T10:43:35+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-anchor-recent-two-seed-geometric-20260907/post_analysis/terminal_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T10:59:22+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-anchor-recent-two-seed-geometric-20260907"
+    ],
+    "captured_at": "2026-09-07T05:51:55+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/source_manifest.json",
+    "source_manifest_sha256": "5014ee70448066513f052478041e7ada84bd81c01fb3744375da2aef29eedfc3",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4204843,
+    "lineage_training_hands": 13648768,
+    "offline_samples": 0,
+    "evaluation_hands": 262144,
+    "wall_time_seconds": 18447.0,
+    "training_hands": 4204843,
+    "transition_hands": 3730572,
+    "final_qualification_hands": 0,
+    "new_transition_hands": 3730572,
+    "new_no_decision_hands": 472198,
+    "residual_worker_tail_hands": 2073,
+    "new_replay_rows": 6575421,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "parent_source_preparation_passed": true,
+    "training_started": false,
+    "controller_qualified": true,
+    "controller_phase": "FIXED_1M_COMPLETE_NEEDS_EXTERNAL_CALIBRATION",
+    "training_subprocess_wall_seconds": 13195.009539899998,
+    "controller_wall_seconds": 17641.47940099996
+  },
+  "artifacts": [
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/protocol.md",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/code.patch",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/source_manifest.json",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/preparation.json",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/run_trial.py",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/test_trial.py",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/qualify.py",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_recent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_recent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\stage1_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_recent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_recent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\stage2_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\controller_result.json",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/post_analysis/terminal_review.py",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/post_terminal_review.json",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/result_summary.md",
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/post_analysis/resource_observation_20260907T060159Z.md"
+  ],
+  "notes": [
+    "Preregistered paired seed arms at +262144 and +1048576 actual physical hands. Controller not yet qualified; no training allocation until preflight. Smoke checkpoints excluded to maintain matched starting state.",
+    "Preparation command exited0; both original connected2M parent SHA and completed integration evidence hashes verified. Preregistered doses/control/evaluation remain frozen. Next implement and qualify controller with live current-job accounting; no training launched.",
+    "Seven controller tests passed; first preflight stopped before qualification/ownership/training due to torch synthetic module __file__ _ops.py resolving to nonexistent local path. Source inventory now includes only existing physical files; actual runtime files remain hash-bound. No poker execution or old evidence changed.",
+    "Seven tests and full preflight passed; all32768 planned internal evaluation decks unique and absent from inventoried historical common-deck corpus. Launch fixed two-stage controller, one logger owner, no automatic retry. Qualification binds parent/runtime/controller/evaluator/anchor hashes. All old endpoints and smoke artifacts remain immutable.",
+    "Preserved initial inline read-only audit in tool trace; reusable terminal review added and passed without new poker executions. Statistical continuation only; unique training-deck coverage not proven. Canonical new_training_hands and new_transition_hands accounting populated at terminal review; live controller used training_hands and transition_hands aliases."
+  ],
+  "result": {
+    "summary": "Fixed two-seed recent-pool versus control trial complete: 4204843 new physical training executions and 262144 internal evaluations; 16 jobs cleanly terminal and independent raw/state audit passed.",
+    "conclusion": "Pool turnover functions, but recent-minus-control at 1M is -6.3751 and +2.6215 bb/100, both CIs crossing zero; no replicated own-parent positive slope. No preregistered broad collapse. Strength remains unproven.",
+    "decision": "Complete fixed allocation; no promotion or automatic larger scale. Proceed with preregistered four frozen endpoint external development calibration.",
+    "next_step": "Separate fixed fresh80k external record: all four policies 20k each in eight2500 sessions; freeze full execution contract, qualify and audit before requests."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 21,
+    "command_count": 21
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/protocol.md": {
+      "type": "file",
+      "bytes": 3615,
+      "sha256": "4832983c159945253b46604b0d62ac407d842d23cf36fe906ebf2056899e35d6"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 741,
+      "sha256": "5014ee70448066513f052478041e7ada84bd81c01fb3744375da2aef29eedfc3"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/preparation.json": {
+      "type": "file",
+      "bytes": 2095,
+      "sha256": "55600ddd50ed2d97ee0909d640c5f5b2598c79199b13aebddddef7a21fddddb5"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/run_trial.py": {
+      "type": "file",
+      "bytes": 17337,
+      "sha256": "0a8eff522ac1b541912173d8c2dee3d60c5096ecf470e5894867ed0b4c1b2377"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/test_trial.py": {
+      "type": "file",
+      "bytes": 2010,
+      "sha256": "641ab4a9dc7250e604b48a5a8c753cb4a4ef0495e0044d0f3c7890ef0b3ac90d"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/qualify.py": {
+      "type": "file",
+      "bytes": 3171,
+      "sha256": "d5d9113794f50c31239c186e3b4604436dd533a2354a8f8bc3660b4f3037a463"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/qualification.json": {
+      "type": "file",
+      "bytes": 73151,
+      "sha256": "58fee374bacb317cbcb05c8bda70803c31a80e60465dc8f1307719e886a895d2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\ownership.json": {
+      "type": "file",
+      "bytes": 314,
+      "sha256": "c3344f5a102e54b81b74e937af7cabc32c50a97e9c306354b98a18d31c6b2f24"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\input_contract.json": {
+      "type": "file",
+      "bytes": 47775,
+      "sha256": "1a26ae58b8ac91341e9ab7b9b2f914a15a71188adcc9e1f706d822d26f5c80fb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3533,
+      "sha256": "d689a9d3e00fb16e5f193d628e8a04e9fbdb4cf905d69ef1d0d40730e46f5a04"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1172646,
+      "sha256": "8a5e8bc06457a792e37d430c33f1df0bfc54b9d1f6206fd74e4e80fd4c834ae4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "11e9b750d61ab0207b4ea696709e8e0faa33c37e1dfa387636275574cf1601b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3533,
+      "sha256": "1b280a0737a23c3022c3b20f4e336594253e7c998f27d41d88d6a0712cb7ddca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1132850,
+      "sha256": "bfa5f1947dfbced08c1dfd4dad751f20e68e3bfe677138e38c9f257fd426445b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "c43ac0326ae186a1f71d36b6a6eedf407b9b79a8cd1eaaad3e0e247fd950fa08"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3533,
+      "sha256": "655a4b65fe1b9eaf1ca5b8fe057110b6f9b0a0a25e4c4d19b042c9f0e6fa18b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1132703,
+      "sha256": "ac4084eb5dd7382b05e57b8259162dfe0a52309e83fef06da89093b7cd1e3c8e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "d5c2c91f04bb9bd2ea479f98bfff5c85d8b28ad688e641da6812888b0e52a31e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3533,
+      "sha256": "a03bd5d30a500761f6e9c7078ee78924d66264cfce35814acc05d58a2622fe8a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1176479,
+      "sha256": "3a3d68940ad3c603613f321628282697c20fd6c596f0b597ba0c36f458ec6d46"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "237126a80b6bc3198dbbba62cd8215f8e787a73316640787e1f83e5623c71ab3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1293,
+      "sha256": "8d9a0e2f74349940f87f7d3f5d44a364a352e15fe8bd28ce43a3130197d6bc2f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11645,
+      "sha256": "fff3c8b0692788edfeb9ac7e4f94177459b21697ceefa53b69e59a30051d8d2a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 543641,
+      "sha256": "6d9dc56ce4bfc24c9aa86eea6108450c59cf07b3b72230f7c703f38ac71ed9de"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_recent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1291,
+      "sha256": "db023112b68c680c66dc11273f7cb824ac9463643591707de364baf24b02e7e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11645,
+      "sha256": "38384697fa97103887f129cf83078472668f8f432a5efc94f109f35e986e9dad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 544465,
+      "sha256": "134b28e80800b9a9449e80e2246758755b9c0169a7f77d85a913572afa059ee0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1293,
+      "sha256": "76490f3d8a8497090a8eefe045f6a50fc94c47be703dbaaef2cd339f5b3aa450"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11639,
+      "sha256": "cc94b9d6e9f00e67e30e521c7e259329798b19656c93b7162d7a25a2aea803a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 542540,
+      "sha256": "73578a611011a53bbc1c6357302986220e663b5b197b0a49cff53969d64353de"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_recent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1291,
+      "sha256": "b2916c558dee2649373a6946c7dd9c32167316db17812917178e498a232de96d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11616,
+      "sha256": "eff47a06c6226362cd043675739b1a16c2260fd6bb67a5a2b703b68c2e6d933e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 542565,
+      "sha256": "4f8f5ffa051f8472a70f546202739bd22be5e3cb5d2e6c972cf9017bd7f276fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\stage1_analysis.json": {
+      "type": "file",
+      "bytes": 22176,
+      "sha256": "50fdf80e44b4fe3d3a44c6e5a8aa10119b05f002fc3981d1aec7ffb8fe04ec45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3528,
+      "sha256": "8f7b7a85ce2948582e8190360d2e387f44a621fbdd49a6e965851cc2ddc0944f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3421297,
+      "sha256": "f62455ecf37cc3c98fbf988e2bf186ab5c5a0f2cfcca8f8511369e77e7946a90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_control_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "0280131aa366573148c22f86e02a21c552c4bf2a3041437b6ed631a10e97e417"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3527,
+      "sha256": "a00da9550747d944fe19940c8fc6f48f97aeb8708376621b771feb3c3fc29670"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3420148,
+      "sha256": "6473b8468c03bdb2f80020aed8f1f0098a9f0ee6affbf9da24c2b40f9ee2969c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "24d40d03b8ece6bb3beca1b3fa9a593086cb1f437474337c7335c1606ad2bc86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3527,
+      "sha256": "57cfd1e724a52567fbefd93afad9a3435119f7b221505bc2c90cb5ad471041d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3421587,
+      "sha256": "11d128393378f479a082feecdd1cfd04ddf221d04eca8c97ee05d07532721c6a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "f17026eacd30214381375e6d57ea2fb0875ad60f645c5145831795ebded02585"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3528,
+      "sha256": "4fd9f31613c64e74de16bc38bd8cae44f1b35baef1e6d9cd2004c6933c937e6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3382174,
+      "sha256": "d2291c0f6ef817a0acddc8a1b4ffeaf160a560dddd426542122cd34da323642b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_control_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "82f991eeda0afe49d96bac629365f60e0002b8183949e962cfd84da1dd283a85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1293,
+      "sha256": "6b3cbde7cf2aec3252a915b54456bf67e1b6e558c7d90493a246f8a83c7946a1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11623,
+      "sha256": "5deca15fd2c3f7c120c61e25547229d26fa4051b6b68b50449764c16cf0325fe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_control_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 543348,
+      "sha256": "fd5b5d43a98dc0fb2db8b8c4369e91cd6f3effc1e7ee40e023088079f02845bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed1_recent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1291,
+      "sha256": "060f6ca6c2b382139c312379e16aece6acf301751d90cb7a78877bfba044ac4f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11644,
+      "sha256": "1ef5f1db19bc021175b7c7cdf08033009c8603af0f1607878e56c0de3d01dd81"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed1_recent_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 543409,
+      "sha256": "7c28bc4ad3f9943976b4cacd6fc963262542bb9f695748263d30301546257ee1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1293,
+      "sha256": "f62b48de2a7cb6e45d208dcf8bcae10c440920b03f223fe8e50194c4e966adf6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11642,
+      "sha256": "ae26206e1fbb2a04eb5c3d624ce92222a8ff8a80dfe9853b9435107fcf49533c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_control_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 543166,
+      "sha256": "e5cc7f08e7e2733a3b46128b2d5634f24d4bf13567e5a56286682f370cc7186e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\job_eval_seed3_recent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1291,
+      "sha256": "ae20242154e3ea646166c7a013c94b6c52c5cf3cab8bd40e111907956b1fecea"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11598,
+      "sha256": "d4e97214fc9ad412bed927876fe1e944a33dbef6a2ca690ad1fe40296469285b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\eval_seed3_recent_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 542274,
+      "sha256": "bbf4500b020a032a10371f4a10f6dd9fe99d52392e047774a05ff0483ccdcc22"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\stage2_analysis.json": {
+      "type": "file",
+      "bytes": 22193,
+      "sha256": "c1affb68cfa1ca36f9c3c92de251bb4ab1eda3f9a5c9c16d5514211fb1f8f969"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\controller_result.json": {
+      "type": "file",
+      "bytes": 20366464,
+      "sha256": "a4728c1b9f911b8b4321a475277483fcf929656fe59ef1e8b558f4a070c04940"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/post_analysis/terminal_review.py": {
+      "type": "file",
+      "bytes": 10618,
+      "sha256": "dea780e35295c0e2c1da1cc1ee9af0403c39575fa03dda054bb5128a21146b14"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/post_terminal_review.json": {
+      "type": "file",
+      "bytes": 168542,
+      "sha256": "634715b9e0c8cc1cac4fbfc64ca09886f4a99ad246880e4212bc3a7e8ec4cda4"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/result_summary.md": {
+      "type": "file",
+      "bytes": 3356,
+      "sha256": "eba61f59f7e7c042b4664296db244148f85d93ae01064d089a4db8dde93b33bf"
+    },
+    "research/experiments/v6-anchor-recent-two-seed-geometric-20260907/post_analysis/resource_observation_20260907T060159Z.md": {
+      "type": "file",
+      "bytes": 1983,
+      "sha256": "bc382bfdf2538a59dbb359ff60fbccaeb50ba59597c43b87eec5228e2091fdfe"
+    }
+  }
+}

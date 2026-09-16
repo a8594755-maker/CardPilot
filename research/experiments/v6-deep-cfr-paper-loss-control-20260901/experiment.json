@@ -1,0 +1,135 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-paper-loss-control-20260901",
+  "title": "Exact-v6 Deep CFR paper loss and LCFR weighting control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:18:54+00:00",
+  "updated_at": "2026-09-01T15:22:27+00:00",
+  "started_at": "2026-09-01T15:18:54+00:00",
+  "ended_at": "2026-09-01T15:22:27+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At fixed fresh-reinit K4 training, paper-style masked MSE with linear-CFR iteration weights and fixed-LR Adam will improve weighted-snapshot transfer versus the repository SmoothL1 and bounded DCFR-like weighting surrogate.",
+  "material_change": "Run matched surrogate and paper-loss three-iteration K4 arms with identical decks/seeds/fresh initializations/512 steps; treatment uses per-sample iteration/T weights, masked squared error, fixed 0.001 Adam, and grad clip1.",
+  "baseline": "K8 improved coverage but failed transfer while the current optimizer used SmoothL1 and t^1.5/(t^1.5+1) weights, unlike Brown et al. MSE and LCFR weighting.",
+  "source": "v6-deep-cfr-traversal-k-scale-control-20260901",
+  "parent_id": "v6-deep-cfr-traversal-k-scale-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_paper_loss_control.py --iterations 3 --traversals-per-player 4 --train-steps 512 --batch-size 256 --eval-pairs 256 --seed 60909 --output-dir research/experiments/v6-deep-cfr-paper-loss-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_paper_loss_control.py --iterations 3 --traversals-per-player 4 --train-steps 512 --batch-size 256 --eval-pairs 256 --seed 60909 --output-dir research/experiments/v6-deep-cfr-paper-loss-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:18:54+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "2c11358d22912f9d3b6114bc229e01787498aa9f68213524bc652e70615345ea",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T15:18:54+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-paper-loss-control-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-paper-loss-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "a009a5be959b53eca2ac49b41942afa44b9141ed7ec9a32475995c71d14ef7e8",
+    "source_files": 125
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 3072,
+    "wall_time_seconds": 213.0,
+    "planned_environment_training_hands": 48,
+    "planned_evaluation_hands": 3072,
+    "environment_training_hands": 48
+  },
+  "metrics": {
+    "surrogate_snapshot_anchor_mean_bb100": 217.15169270833337,
+    "paper_snapshot_anchor_mean_bb100": 63.2109375,
+    "paper_anchor_mean_delta_bb100": -153.94075520833334,
+    "paper_anchors_better": 1,
+    "paper_mean_log_imbalance": 2.609519542760401
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/common_decks.json",
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/surrogate/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/paper/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "Paper-loss treatment changes loss, iteration weighting, and scheduler removal as one contract bundle; all other training and evaluation surfaces are matched.",
+    "summary sha256=b67e33a567184f2d1fc6e5dca47fb065d77ef693a87a3a2787cb75da7a8a809c; decks sha256=af9936e0f8c5ce82afd09c434833ca9184f0d6b8eccf789cde9721dad8e17107; surrogate sha256=4025a4d4eae00147befbd9067fa9ec6195ae9e06fb58c137b5a570fb55339d94; paper sha256=bcb9d9a053562b5cb9d55942820524dc383fbbfc25d7b65dc6189ed88b653b05; alpha_holdem suite216 passed."
+  ],
+  "result": {
+    "summary": "At matched fresh-reinit K4 and512 steps, paper MSE/LCFR retained coverage but improved only one anchor; its weighted-snapshot three-anchor mean was153.94 bb/100 below the surrogate and imbalance slightly worse.",
+    "conclusion": "Literal paper loss/weighting is rejected at bounded compute. Fresh reinit remains active, while the K4 surrogate snapshot bundle is frozen as the strongest internal candidate for direct Standard10 comparison.",
+    "decision": "REJECT_PAPER_LOSS_AT_BOUNDED_BUDGET",
+    "next_step": "Run a large paired exact-v6 candidate snapshot-policy versus frozen Standard10 legacy-bridge evaluation before any Slumbot spend."
+  },
+  "tags": [
+    "deep-cfr",
+    "lcfr",
+    "matched-control",
+    "mse",
+    "paper-contract",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22814,
+      "sha256": "a009a5be959b53eca2ac49b41942afa44b9141ed7ec9a32475995c71d14ef7e8"
+    },
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 11322,
+      "sha256": "b67e33a567184f2d1fc6e5dca47fb065d77ef693a87a3a2787cb75da7a8a809c"
+    },
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/common_decks.json": {
+      "type": "file",
+      "bytes": 53638,
+      "sha256": "af9936e0f8c5ce82afd09c434833ca9184f0d6b8eccf789cde9721dad8e17107"
+    },
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/surrogate/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 12939810,
+      "sha256": "4025a4d4eae00147befbd9067fa9ec6195ae9e06fb58c137b5a570fb55339d94"
+    },
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/run/paper/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 13979618,
+      "sha256": "bcb9d9a053562b5cb9d55942820524dc383fbbfc25d7b65dc6189ed88b653b05"
+    },
+    "research/experiments/v6-deep-cfr-paper-loss-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1329,
+      "sha256": "f74ae2d0cce704674a85eea79ec80dfc2e49c75161c6de4c6e7d96c97de02346"
+    }
+  }
+}

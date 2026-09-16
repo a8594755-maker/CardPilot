@@ -1,0 +1,223 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-standard10-curriculum-elo-survivor-selection-20260901",
+  "title": "Outcome-blind top ELO survivor deployment diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T13:48:43+00:00",
+  "updated_at": "2026-09-01T13:56:14+00:00",
+  "started_at": "2026-09-01T13:48:43+00:00",
+  "ended_at": "2026-09-01T13:56:14+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The tournament top-rated historical survivor, selected without new endpoint outcomes, has a materially different and broader greedy physical-v6 policy than the terminal actor.",
+  "material_change": "Freeze and evaluate the parent terminal ELO winner snapshot id2 instead of the terminal main actor; perform no training and reuse matched deal streams for paired comparison.",
+  "baseline": "v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901",
+  "source": "terminal K5 ELO pool; snapshot id2 selected by max pre-existing selection_score",
+  "parent_id": "v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901",
+  "command": "python research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/audit_selection.py --source-final research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt --archive research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/training/checkpoints/checkpoint_iter000002_hands000000008256.pt --out research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/selection_audit.json",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/audit_selection.py --source-final research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt --archive research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/training/checkpoints/checkpoint_iter000002_hands000000008256.pt --out research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/selection_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:48:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/frozen/top_survivor.pt --anchor models/baseline/standard10/latest.pt --pairs 4096 --seed 20261210 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/standard10",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:49:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/frozen/top_survivor.pt --anchor research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --pairs 4096 --seed 21261213 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_no_stop",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:49:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/frozen/top_survivor.pt --anchor research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt --pairs 4096 --seed 22261216 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_kl_stop",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:49:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/frozen/top_survivor.pt --anchor research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/final.pt --pairs 4096 --seed 23261219 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_lr1e4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:49:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/analyze_results.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:56:14+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:56:14+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "3dcdd5dc506d9921bd18f07c7f612c1a196596ba6f18dd04d42431ad2f698081",
+    "code_paths": [
+      "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/preregistration.md",
+      "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/audit_selection.py",
+      "scripts/alpha_holdem/v6_contract_mirror_eval.py",
+      "scripts/alpha_holdem/paired_mirror_treatment_delta.py"
+    ],
+    "captured_at": "2026-09-01T13:48:44+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/source_manifest.json",
+    "source_manifest_sha256": "984437b48fe04d8746a61999dff5ba06aa21fac73628ffe96cee49d15767dc78",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 34780,
+    "offline_samples": 0,
+    "evaluation_hands": 32768,
+    "wall_time_seconds": 451.0
+  },
+  "metrics": {
+    "selected_snapshot_id": 2,
+    "selected_terminal_elo": 1568.1509667100256,
+    "alpha_holdem_tests_passed": 190,
+    "selection_audit_pass": 1,
+    "outcome_changed_pairs": 3851,
+    "standard10_bb100": -153.325439453125,
+    "pure_no_stop_bb100": -118.4010009765625,
+    "pure_kl_stop_bb100": -39.0709228515625,
+    "pure_lr1e4_bb100": -152.196044921875,
+    "pooled_delta_bb100": -51.302734375,
+    "pooled_delta_ci95_low": -88.11595126134404,
+    "pooled_delta_ci95_high": -14.489517488655963
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/preregistration.md",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/code.patch",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/selection_audit.json",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/frozen/top_survivor.pt",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/analyze_results.py",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/analysis.json",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/standard10/summary.json",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/standard10/pairs.jsonl",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_no_stop/summary.json",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_no_stop/pairs.jsonl",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_kl_stop/summary.json",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_kl_stop/pairs.jsonl",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_lr1e4/summary.json",
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_lr1e4/pairs.jsonl"
+  ],
+  "notes": [
+    "Outcome-blind max-terminal-ELO selection audit PASS; archived iteration2 checkpoint and terminal snapshot id2 model states are bit-identical.",
+    "All four treatment raw pair streams hash-validated and aligned exactly to the parent terminal-control decks."
+  ],
+  "result": {
+    "summary": "The outcome-blind top ELO survivor was bit-identical across archive and terminal pool evidence and behaviorally differed from the terminal actor, but all four breadth estimates were negative. Its paired pooled delta versus terminal was -51.3027 bb/100 (95% CI [-88.1160,-14.4895]).",
+    "conclusion": "Terminal-actor deployment was not the cause of the fresh-zero curriculum failure. Historical snapshot id2 improved the point estimate against the in-training Standard10 anchor without significance, while significantly degrading against every untouched fresh-zero learned anchor. Terminal ELO ratings are exploitative/in-family and not a general-strength selector at this scale.",
+    "decision": "REJECT_HISTORICAL_ELO_SURVIVOR_DEPLOYMENT",
+    "next_step": "Stop fresh-zero PPO/ELO hyperparameter and selection variants. Design the smallest experiment where heldout cross-play or tournament utility directly changes learned weights, rather than only choosing opponents or a checkpoint; preserve Standard10 as a reference while avoiding imitation-only and average-policy routes already disproven."
+  },
+  "tags": [
+    "elo",
+    "learned-weights",
+    "selection",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 7,
+    "command_count": 8
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 2900,
+      "sha256": "b031496e30a9b0b2361cad137327c24c9af3f67c7aa606344447da749dc5e7a7"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 956,
+      "sha256": "984437b48fe04d8746a61999dff5ba06aa21fac73628ffe96cee49d15767dc78"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/selection_audit.json": {
+      "type": "file",
+      "bytes": 1403,
+      "sha256": "442e53568446ce3acac285f079f14082dbb457ca0af3b165edfd6cf2083eabc0"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/frozen/top_survivor.pt": {
+      "type": "file",
+      "bytes": 196426426,
+      "sha256": "3e77d44f6d2cabf5b20b79f438deef973588124017487b0421b2465a940a6567"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/analyze_results.py": {
+      "type": "file",
+      "bytes": 5484,
+      "sha256": "9034d0c3fdf5948d9d1f125eed87071add27107cd865713a64a7a15a2d26a5c5"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 4551,
+      "sha256": "9fd8cbc9f196f0016bd6c190aee5d2457b26affa966c0827b55fb6e9b0485ab5"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/standard10/summary.json": {
+      "type": "file",
+      "bytes": 1804,
+      "sha256": "90a6e70aca42cd019abe6fcb4edb2d70578ee3334c54d89e3eee56f8a70db9bb"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/standard10/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1316234,
+      "sha256": "55502e4b4590eb8b1068ac1bbf68cd51ee17068b7bdc1893bb41d8433e9fff41"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_no_stop/summary.json": {
+      "type": "file",
+      "bytes": 1884,
+      "sha256": "57e6905ba06d3fa0a78197fc64a089747469771dca47d2b0ff8f9b64d5ac0f53"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_no_stop/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1317329,
+      "sha256": "b293610991ab32bd7c55cb6f1fa45b687ed11942b926684921616d5f43b4a5fe"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_kl_stop/summary.json": {
+      "type": "file",
+      "bytes": 1894,
+      "sha256": "fbbc2a6478dece6484866b16d5ea6490da5c9fd6fc75ed0280979d620ca1e18c"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_kl_stop/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1317126,
+      "sha256": "d2f512d5462215baf296cd5c2d3272f88ed166f0db237828f7e10c7439a66af4"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_lr1e4/summary.json": {
+      "type": "file",
+      "bytes": 1888,
+      "sha256": "b6bbeb9b9ad0c982042e069e3888de3e6724b1046493debfd809e1a03738d878"
+    },
+    "research/experiments/v6-legacy-standard10-curriculum-elo-survivor-selection-20260901/eval/pure_lr1e4/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1317078,
+      "sha256": "d20379f65691590242bf4ace375be477b7f81cd8a9651333589f6150decb8289"
+    }
+  }
+}

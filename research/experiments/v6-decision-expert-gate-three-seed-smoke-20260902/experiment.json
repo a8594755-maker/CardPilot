@@ -1,0 +1,193 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-decision-expert-gate-three-seed-smoke-20260902",
+  "title": "Decision-level frozen-expert gate three-seed smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T11:18:27+00:00",
+  "updated_at": "2026-09-02T11:50:34+00:00",
+  "started_at": "2026-09-02T11:18:27+00:00",
+  "ended_at": "2026-09-02T11:50:34+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A low-capacity gate trained from full-hand returns across the six-policy broad league can learn when to mix a frozen alternate expert into Standard10 at individual decisions, while preserving at least 75% of Standard10 greedy actions and improving paired greedy outcomes across three SHA-disjoint holdout opponents, both seats, and multiple seeds.",
+  "material_change": "Freeze Standard10 and diverse_league5 tensors. Train only a small gate on legal current-state observations and the two experts' detached action distributions, using balanced opponent-seat PPO updates from 4096 on-policy hands per each of three seeds. Evaluate every endpoint against Standard10 on 512 common decks per holdout opponent, both seats; no Slumbot data or benchmark-specific rule enters training.",
+  "baseline": "Frozen Standard10 greedy under identical holdout opponent/deck/seat cells.",
+  "source": "v6-state-conditioned-expert-router-opportunity-audit-20260902",
+  "parent_id": "v6-state-conditioned-expert-router-opportunity-audit-20260902",
+  "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --out-dir research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --out-dir research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T11:18:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --out-dir research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T11:24:29+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --out-dir research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T11:25:56+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "15c1ac2fc63785ecd62ded4951f7d3a83a7bbb3fc1a50074c0a6883f89ae42c0",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_broad_mgda_curve.py"
+    ],
+    "captured_at": "2026-09-02T11:18:27+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/source_manifest.json",
+    "source_manifest_sha256": "4de622d641c901c02515c7b8cd88f3b1d5632d1b076689f4e3ad3dfdfff272b5",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 12288,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 18432,
+    "wall_time_seconds": 1927.0,
+    "planned_environment_training_hands": 12288,
+    "planned_evaluation_hands": 18432,
+    "preflight_failed_attempts": 2,
+    "preflight_environment_hands": 0
+  },
+  "metrics": {
+    "pooled_delta_bb100": -2.0258246527777786,
+    "pooled_ci95_lower": -15.563452878509871,
+    "pooled_ci95_upper": 11.511803572954314,
+    "pooled_greedy_disagreement": 0.008314526665874808,
+    "pooled_alternate_weight": 0.04984647816669244,
+    "positive_seed_deltas": 1,
+    "seed0_delta_bb100": -0.693359375,
+    "seed1_delta_bb100": -11.770833333333334,
+    "seed2_delta_bb100": 6.38671875
+  },
+  "artifacts": [
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/code.patch",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/source_manifest.json",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/summary.json",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed0_gate.pt",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed1_gate.pt",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed2_gate.pt",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed0_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed1_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed2_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed0_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed1_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed2_evaluation.jsonl.gz",
+    "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py",
+    "scripts/alpha_holdem/test_v6_decision_expert_gate_smoke.py"
+  ],
+  "notes": [
+    "Preregistered admission requires exact hand counts, finite nonzero gate gradients, endpoint alternate mean weight 1-50%, 0.5-25% greedy disagreement from Standard10, positive pooled paired delta, positive median seed delta, at least two of three seed deltas positive, all three holdout-opponent deltas positive, and both seat deltas positive. Passing is only admission to a geometric learned-gate curve, not external-strength evidence.",
+    "Initial run stopped before the first hand because legacy-v4 places physical b200 at slot3 while native-v6 places it at slot2. The legal physical-action sets and probabilities were valid. Recovery aligns detached alternate probabilities by physical action string into the Standard10 canonical table; a targeted permutation test was added. Empty run/ is preserved; recovery1 is fresh.",
+    "Recovery1 stopped before evidence/checkpoint output when a reachable state exposed different legal bet-size sets across legacy-v4 and native-v6. Recovery2 mixes detached distributions on an 18-wide physical-action union, preserving every expert probability and using engine-validated action strings. Added a distinct-action-set union test; run/ and recovery1/ remain preserved.",
+    "Two preserved preflights generated zero completed hands: run/ exposed the legacy/native min-raise slot permutation; recovery1/ exposed state-dependent legal bet-size set differences. Recovery2 aligned experts on an 18-wide physical-action union and completed cleanly. Five targeted tests and the full 304-test AlphaHoldem suite passed."
+  ],
+  "result": {
+    "summary": "Three independent decision-gate seeds completed exactly 12,288 on-policy training hands and 18,432 common-deck evaluation hands. Gradients were finite/nonzero and Standard10 preservation held (4.98% alternate weight, 0.831% greedy disagreement), but pooled paired delta was -2.03 bb/100 CI [-15.56,+11.51]; seed deltas were -0.69, -11.77, and +6.39, with only one positive seed and negative point deltas on two holdout opponents and both seats.",
+    "conclusion": "The current low-dose gate is mechanically valid and preserves Standard10, but it does not establish broad reward improvement and must not be scaled. Because endpoint alternate weights remained essentially at the 5% initialization (4.974-4.998%), this rejects the current optimizer dose and frozen 5% mixture result, not a fully learned decision-level router or long-horizon training.",
+    "decision": "REJECT_CURRENT_DECISION_GATE_DOSE_FOR_SCALE",
+    "next_step": "Before any new environment hands, audit exact initial-to-final gate parameter movement and output sensitivity from the three checkpoints. If updates are genuinely negligible, run at most one preregistered optimizer-dose calibration/rerun with saved transition evidence; require material gate movement plus multi-seed holdout direction before a geometric curve. Otherwise close the route."
+  },
+  "tags": [
+    "mixture-of-experts",
+    "policy-gradient",
+    "standard10-preservation",
+    "three-seed"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 289,
+      "sha256": "4de622d641c901c02515c7b8cd88f3b1d5632d1b076689f4e3ad3dfdfff272b5"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/summary.json": {
+      "type": "file",
+      "bytes": 7857,
+      "sha256": "307c1a0324c2a6ad53a63e9adb409f924e3c39fa6a10f933976661f58402b553"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed0_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "e6bd9d45dbc028a409c126a81ac972607ebe016c14a9c7b548c14cab4f5cc09b"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed1_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "895eab71b8a854b336afd06f20413780fdcd870c1fb847119d0c5c0fb8d5c22d"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed2_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "dabe03c24a12704a70d9bd99c5c382fa6fe69ee5ce2aed7d064480588ad0bd09"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed0_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 47651,
+      "sha256": "a10132147908129385b2d33e909ce3d54c2318e37af58aabd982cadb1b415d6b"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed1_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 48085,
+      "sha256": "3d869bda637593f275f3aaa1e24c327f5d4941b7378c6cd9317f6c1aa7af0407"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed2_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 47680,
+      "sha256": "98e623e9c2fb9de8b54612a2ed57350ad2d3b6adbc2fef3ef647550ed30f8bbd"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed0_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 47512,
+      "sha256": "431a74bd21028c2745e357cd85a86a9f136708821ce54124ba0dd418d97410d9"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed1_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 47682,
+      "sha256": "783ecca364e3ea8fba19eb7e703a00c2692f5ac8786224482de72a7701fc3d3c"
+    },
+    "research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2/seed2_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 47088,
+      "sha256": "d090bd7dc3e2a173984a4e99dbccfbe09a163ecc5c61acf8205374d3c64cec8d"
+    },
+    "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py": {
+      "type": "file",
+      "bytes": 20524,
+      "sha256": "da47a3585887efff36022468f5e86a6143d841ac12765c3997391508a0427e6f"
+    },
+    "scripts/alpha_holdem/test_v6_decision_expert_gate_smoke.py": {
+      "type": "file",
+      "bytes": 2160,
+      "sha256": "96753ed1729665ffb3b3d75cbd7047f14bf671700249243da4bc602f1d826c18"
+    }
+  }
+}

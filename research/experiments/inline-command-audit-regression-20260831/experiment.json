@@ -1,0 +1,149 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "inline-command-audit-regression-20260831",
+  "title": "Isolated inline Python command audit regression",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T12:58:40+00:00",
+  "updated_at": "2026-08-31T13:00:25+00:00",
+  "started_at": "2026-08-31T12:58:40+00:00",
+  "ended_at": "2026-08-31T12:58:44+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "AST-aware triage of narrowly quoted literal inline Python can remove comparator false positives without admitting placeholder inputs or changing non-inline classifications.",
+  "material_change": "Isolated candidate only;fixed regression fixtures plus snapshotted active command corpus;no production logger or active evidence mutation.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-physical1m-learning-curve-20260831",
+  "command": "python research/experiments/inline-command-audit-regression-20260831/run_regression.py",
+  "commands": [
+    {
+      "command": "python research/experiments/inline-command-audit-regression-20260831/run_regression.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:58:40+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\test_candidate.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:58:42+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/inline-command-audit-regression-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T12:58:40+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/inline-command-audit-regression-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/inline-command-audit-regression-20260831/source_manifest.json",
+    "source_manifest_sha256": "0b3aad36ca3beed200cc60efaab6349cd8e05c390e5f037180043500c763747a",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 4.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/inline-command-audit-regression-20260831/preregistration.md",
+    "research/experiments/inline-command-audit-regression-20260831/code.patch",
+    "research/experiments/inline-command-audit-regression-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\command_corpus.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\execution_code\\copy_manifest.json",
+    "research/experiments/inline-command-audit-regression-20260831/post_regression_legacy_audit.json"
+  ],
+  "notes": [
+    "Post-regression legacy audit inspected:14records,only the previously identified active physical1m command-classifier warning remains. No new warning in this isolated regression record;production logger was not replaced."
+  ],
+  "result": {
+    "summary": "Isolated AST classifier corrected2known false positives across27actual commands without modifying active sources.",
+    "conclusion": "Narrow literal Python syntax triage qualified; production logger unchanged and legacy warning retained.",
+    "decision": "ISOLATED_LITERAL_PYTHON_CLASSIFIER_QUALIFIED",
+    "next_step": "After the current matrix final review, consider separately recorded integration preserving original command evidence."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/inline-command-audit-regression-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 1748,
+      "sha256": "8cb9c6387e4f753f6adfe6c625dc425c8187f20d279e1e62301934eab0ac3950"
+    },
+    "research/experiments/inline-command-audit-regression-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/inline-command-audit-regression-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1328,
+      "sha256": "0b3aad36ca3beed200cc60efaab6349cd8e05c390e5f037180043500c763747a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\command_corpus.json": {
+      "type": "file",
+      "bytes": 18541,
+      "sha256": "aa95d534783d337d890dc753124a662502fa0fa704f9afe68891d35498676961"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 10111,
+      "sha256": "597fd2dace88b8f5691a3f0e9beaa536a567b9529525d6a24058c7aab6af7258"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 437,
+      "sha256": "9a393daeb1dc58ba7ca73fa8c1bab2b1d131f3502d843f0a3a697354eff74b76"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 6331,
+      "sha256": "714a25e71fb06c01971bfb91507460bef8788ff810f5d72813bf0b85af6a25a5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1124,
+      "sha256": "dadcdb1e2e064fd0549113c490a7c36f9d781ced7d13c3c9c94185af3a89dede"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\inline-command-audit-regression-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1786,
+      "sha256": "ef78ba1f70171d059db3f7b9e656b27b97e1c8508700a3da09c2811cd704321e"
+    },
+    "research/experiments/inline-command-audit-regression-20260831/post_regression_legacy_audit.json": {
+      "type": "file",
+      "bytes": 1569,
+      "sha256": "e4c417322200a9d219064d5c0a57f686078e27456af25519a745f3400e4d2274"
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-river-belief-cfr-multisample-variance-control-20260902",
+  "title": "River belief-CFR opponent multisample variance control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T15:52:27+00:00",
+  "updated_at": "2026-09-02T16:11:38+00:00",
+  "started_at": "2026-09-02T15:52:27+00:00",
+  "ended_at": "2026-09-02T16:11:38+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At matched terminal-node compute on the unstable state0/2/4 cohort, averaging two independent opponent-action continuations per opponent node will reduce cross-seed root-strategy TV and improve greedy agreement relative to the single-path8,192 control.",
+  "material_change": "Add a default-preserving opponent_samples parameter to RiverCFRSolver and a restartable K=2 treatment runner. Stop each treatment cell at its exact single-path8k terminal-node budget and compare frozen root strategies on the same states, ranges, and seeds.",
+  "baseline": "Single-path8k worst-cohort state TVs were0.446/0.525/0.553 with agreements0.194/0.097/0.132; combined control terminal budget6,530,938.",
+  "source": "research/experiments/v6-river-belief-cfr-8192-control-20260902/run",
+  "parent_id": "v6-river-belief-cfr-32768-control-20260902",
+  "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_multisample_control.py --parent-run research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run --control-run research/experiments/v6-river-belief-cfr-8192-control-20260902/run --states 0,2,4 --opponent-samples 2 --output-dir research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_multisample_control.py --parent-run research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run --control-run research/experiments/v6-river-belief-cfr-8192-control-20260902/run --states 0,2,4 --opponent-samples 2 --output-dir research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T15:52:27+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7c945996aeabad170688b48e90639095445d1ab5aaa9cd9a0c6b346a12f678a5",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T15:52:27+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/source_manifest.json",
+    "source_manifest_sha256": "e54b197b2d71ebde07b667eaf143303fa00fef9031236d202fdcd032169cf88f",
+    "source_files": 215
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 21984,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1151.0,
+    "planned_cells": 9,
+    "planned_terminal_nodes": 6530938,
+    "treatment_terminal_nodes": 6535388,
+    "treatment_outer_iterations": 10992,
+    "completed_cells": 9
+  },
+  "metrics": {
+    "control_pooled_tv": 0.5080125862545667,
+    "treatment_pooled_tv": 0.5614755448533616,
+    "relative_tv_improvement": -0.1052394370638771,
+    "control_pooled_greedy_agreement": 0.1412037037037037,
+    "treatment_pooled_greedy_agreement": 0.13657407407407407
+  },
+  "artifacts": [
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run",
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/code.patch",
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/source_manifest.json",
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run/summary.json",
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run/cells"
+  ],
+  "notes": [
+    "Admission gates: all control SHA and state reconstruction checks pass; treatment terminal overshoot <=0.5% per cell; pooled worst-cohort TV improves by >=10% relative and greedy agreement increases; no state TV worsens by >0.05; terminal payoffs/legal probabilities remain exact. No policy distillation in this smoke."
+  ],
+  "result": {
+    "summary": "Nine K=2 treatment cells completed at the exact three-state single-path8k terminal-node budgets (6,535,388 actual terminals, every overshoot below0.5%). Integrity and control hashes passed, but treatment required only10,992 outer iterations versus73,728 control iterations. Pooled TV worsened from0.5080 to0.5615 (-10.52% relative improvement), agreement fell0.1412 to0.1366, and state0 TV worsened+0.0743 beyond the preregistered bound. Regret was roughly2-3x worse in every matched cell.",
+    "conclusion": "Opponent-action K=2 averaging is less sample-efficient per terminal node because it sacrifices chance-deal/root-hand breadth. This is a direct matched-compute mechanism failure, not an undertraining result.",
+    "decision": "REJECT_OPPONENT_MULTISAMPLING_PER_TERMINAL_COMPUTE",
+    "next_step": "Do not test larger K. Close the current river solver implementation for target production: single-path converges too slowly on hard states and multisampling worsens compute efficiency. Return to the learned-policy portfolio and choose a mechanism that creates broad environment training hands with a trustworthy external-alignment control; retain the solver artifacts only as future infrastructure."
+  },
+  "tags": [
+    "matched-compute",
+    "solver",
+    "variance-reduction",
+    "zero-environment-hands"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 40788,
+      "sha256": "e54b197b2d71ebde07b667eaf143303fa00fef9031236d202fdcd032169cf88f"
+    },
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 11014,
+      "sha256": "d0a49fe51069dcf399b50f06bf042e2af0ce6a18534c61dcf898781eb78f9c2d"
+    },
+    "research/experiments/v6-river-belief-cfr-multisample-variance-control-20260902/run/cells": {
+      "type": "directory",
+      "sha256": null
+    }
+  }
+}

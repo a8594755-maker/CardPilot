@@ -1,0 +1,64 @@
+{
+  "admitted": true,
+  "claim_scope": "OUTCOME_BLIND_OOD_SHRINKAGE_NOT_POLICY_STRENGTH",
+  "classifier_sha256": "03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_context_reliability_feasibility.py",
+    "--features",
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/run/session_features.jsonl",
+    "--expected-features-sha256",
+    "32186f482c62afca936e66c779231181274964393ce796563951b398d70ca49f",
+    "--classifier",
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt",
+    "--expected-classifier-sha256",
+    "03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07",
+    "--train-sessions-per-policy",
+    "8",
+    "--out-dir",
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/run"
+  ],
+  "completed_at": "2026-09-02T06:33:43.215020+00:00",
+  "decision": "ADMIT_ENTROPY_SHRINKAGE_FRESH_CONTROL",
+  "features_sha256": "32186f482c62afca936e66c779231181274964393ce796563951b398d70ca49f",
+  "gates": {
+    "artifact_hashes_exact": true,
+    "holdout_median_reliability_at_most_40pct": true,
+    "seen_median_reliability_at_least_40pct": true,
+    "seen_minus_holdout_mean_at_least_15pct": true,
+    "seen_vs_holdout_auc_at_least_75pct": true
+  },
+  "new_environment_hands": 0,
+  "proposed_delta_multiplier": "1 - posterior_entropy/log(6)",
+  "schema": "cardpilot.context_reliability_feasibility.v1",
+  "seen_test_reliability": {
+    "count": 24,
+    "maximum": 0.9528542597984694,
+    "mean": 0.5825134172659153,
+    "median": 0.5843939499904659,
+    "minimum": 0.17691347458251427,
+    "q25": 0.43157085408604,
+    "q75": 0.6880989648709981
+  },
+  "seen_vs_holdout_auc": 0.7986111111111112,
+  "selection_reliability": {
+    "count": 48,
+    "maximum": 0.9446139479059518,
+    "mean": 0.6345600320400503,
+    "median": 0.6026277472016235,
+    "minimum": 0.2648070114411395,
+    "q25": 0.4770349383267014,
+    "q75": 0.8053640103133999
+  },
+  "status": "COMPLETED",
+  "unseen_holdout_reliability": {
+    "count": 12,
+    "maximum": 0.7003844618978444,
+    "mean": 0.3488537437843224,
+    "median": 0.2962747134814092,
+    "minimum": 0.1349728407843871,
+    "q25": 0.24856808130211952,
+    "q75": 0.41896861099664273
+  },
+  "wall_time_seconds": 0.011007308959960938
+}

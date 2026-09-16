@@ -1,0 +1,186 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-mgda-trainer-contract-smoke-20260901",
+  "title": "Broad mixed-contract MGDA trainer and resume smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T19:47:26+00:00",
+  "updated_at": "2026-09-01T19:57:55+00:00",
+  "started_at": "2026-09-01T19:47:26+00:00",
+  "ended_at": "2026-09-01T19:57:42+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The bounded Standard10 residual can optimize twelve opponent-seat policy objectives from six mixed legacy/native learned opponents while preserving exact optimizer and hand-prefix resume semantics, and can evaluate only against three SHA-disjoint holdouts under one physical-v6 action contract.",
+  "material_change": "Implement a new restart-safe broad MGDA curve driver using the admitted recovery domain spec. Run one seed for two 2,048-hand chunks, eight MGDA steps per chunk, twelve balanced opponent-seat groups, and 64 matched pairs per untouched holdout at both checkpoints. Verify exact hand counts, checkpoint/optimizer resume fields, frozen source hashes, residual cap, mixed observation inference, and holdout exclusion from training evidence.",
+  "baseline": "The prior two-seed MGDA driver supported only three legacy opponents, had no gradient-untouched holdout set, and was not designed for restart-safe 65k-per-seed scaling.",
+  "source": "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json",
+  "parent_id": "v6-broad-league-domain-feasibility-20260901",
+  "command": "python scripts/alpha_holdem/v6_broad_mgda_curve.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20261620 --seeds 1 --hands-per-chunk 2048 --chunks 2 --steps-per-chunk 8 --group-batch-size 32 --evaluation-chunk 1 --evaluation-chunk 2 --pairs-per-holdout 64 --device cuda --out-dir research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_mgda_curve.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20261620 --seeds 1 --hands-per-chunk 2048 --chunks 2 --steps-per-chunk 8 --group-batch-size 32 --evaluation-chunk 1 --evaluation-chunk 2 --pairs-per-holdout 64 --device cuda --out-dir research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:47:26+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_mgda_curve.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20261620 --seeds 1 --hands-per-chunk 2048 --chunks 2 --steps-per-chunk 8 --group-batch-size 32 --evaluation-chunk 1 --evaluation-chunk 2 --pairs-per-holdout 64 --device cuda --out-dir research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:57:42+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:57:42+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1cb8267291a4d08b02f59693620d06911ffcc641ea372b43f40c420dec5aef98",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T19:47:26+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "cfb36cedbbd22f94b783d7d19be04e5dee37ebac8d9bfe631d1b151f41aed331",
+    "source_files": 150
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4096,
+    "lineage_training_hands": 4096,
+    "offline_samples": 8192,
+    "evaluation_hands": 1536,
+    "wall_time_seconds": 616.0,
+    "planned_environment_training_hands": 4096,
+    "planned_evaluation_hands": 1536
+  },
+  "metrics": {
+    "transition_rows": 11097,
+    "mgda_positive_geometry_steps": 16,
+    "mgda_total_steps": 16,
+    "source_overall_agreement": 1.0,
+    "source_minimum_partition_agreement": 1.0,
+    "maximum_observed_residual_logit": 0.0213432312011719,
+    "first_holdout_delta_bb100": -2.6041666666666665,
+    "final_holdout_delta_bb100": 0.0,
+    "resumed_chunks_verified": 2,
+    "full_suite_tests_passed": 247
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/code.patch",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/run_manifest.json",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/summary.json",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk001_hands.jsonl.gz",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk001_schedule.jsonl.gz",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk001_hands000002048.pt",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk002_hands.jsonl.gz",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk002_schedule.jsonl.gz",
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk002_hands000004096.pt",
+    "scripts/alpha_holdem/v6_broad_mgda_curve.py",
+    "scripts/alpha_holdem/test_v6_broad_mgda_curve.py"
+  ],
+  "notes": [
+    "This smoke is an infrastructure/mechanism gate only. Its 4,096 training hands and 1,536 matched control+treatment evaluation trajectories are far below the research-scale threshold and will not be used to reject longer-horizon learning based on poker score.",
+    "The exact training command was rerun twice after initial completion. Both reruns resumed two complete chunks, retained exactly 4,096 training hands, verified nonempty optimizer state and checkpoint-bound evidence/schedule hashes, and did not regenerate checkpoints.",
+    "The 4,096-hand score is not an algorithm-rejection gate. It showed no greedy drift by the final checkpoint and is used only to establish stability and contract correctness.",
+    "Corrected the rounded maximum-observed-residual metric to the exact final summary value 0.0213432312011719; artifact and conclusion were already correct."
+  ],
+  "result": {
+    "summary": "The broad trainer completed exactly 4,096 actual environment hands over twelve balanced opponent-seat MGDA objectives and 1,536 matched holdout trajectories. All 16 updates had positive worst-group alignment. Three exact reruns verified two-chunk resume with unchanged hand count, nonempty optimizer state, and matching evidence hashes. Holdouts were absent from gradients, source agreement was 100% overall and in every seat/street partition, residual cap/base integrity passed, and 247 tests passed.",
+    "conclusion": "Mixed legacy-v4/native-v6 opponent training, SHA-disjoint holdout evaluation, and restart-safe optimizer/hand-prefix recovery are operational. The short smoke contains no poker-strength evidence sufficient to reject or validate long-horizon learning; it authorizes the preregistered three-seed 65,536-hand first geometric level.",
+    "decision": "ADMIT_BROAD_MGDA_3SEED_65K",
+    "next_step": "Run three independent 65,536-hand broad-MGDA seeds in eight restart-safe 8,192-hand chunks, freeze 16k/32k/65k checkpoints, and evaluate all against the three untouched holdouts plus Standard10 preservation before any external Slumbot gate."
+  },
+  "tags": [
+    "mgda",
+    "mixed-contract",
+    "resume",
+    "trainer-smoke"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 28171,
+      "sha256": "cfb36cedbbd22f94b783d7d19be04e5dee37ebac8d9bfe631d1b151f41aed331"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/run_manifest.json": {
+      "type": "file",
+      "bytes": 578,
+      "sha256": "2fffc97a1f3a810d768ab49eabac134c39ebb2ced80b168ce50e9a844a3f2485"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 9001,
+      "sha256": "a32d2b7a1dab18a90a2a35a7a78725e83b9b285f59181c9d7dc727cc42d39849"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 27030,
+      "sha256": "2744bbd40cf9e9dd9445a856a484bde6728aa8221dd2c7c970a5c9f626fdcc4b"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk001_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 145970,
+      "sha256": "b2017dc6942b528b17f145fce18f109dd874bdffbaef43b40436166f21deef52"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk001_schedule.jsonl.gz": {
+      "type": "file",
+      "bytes": 7471,
+      "sha256": "159104902de0157ccf9be6293d2e89235047a3c3fff100df11b85f943c03dc28"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk001_hands000002048.pt": {
+      "type": "file",
+      "bytes": 1391530,
+      "sha256": "246ad0a75217d62cc057ede14cd94878ff9594f996dd28cc11e3acdbe38f1637"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk002_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 146048,
+      "sha256": "8e4fe334ed058c7241ed8d415a1c2003ac9f57c714bf1206d749efa2400d9199"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk002_schedule.jsonl.gz": {
+      "type": "file",
+      "bytes": 7437,
+      "sha256": "51d02b57d58ed1618a7e95828a398e9c2ed8e695467b106168c18d7519e88194"
+    },
+    "research/experiments/v6-broad-mgda-trainer-contract-smoke-20260901/run/seed0_chunk002_hands000004096.pt": {
+      "type": "file",
+      "bytes": 1391530,
+      "sha256": "f32cebdd1d67c4aed37f2e4d3c991b91658b97691c0ead64ff76153079761014"
+    },
+    "scripts/alpha_holdem/v6_broad_mgda_curve.py": {
+      "type": "file",
+      "bytes": 30012,
+      "sha256": "e311e9a0cf62c444d2cfa2d8d94170d41791ebbe0d6ac9f4455d11b7d66986e2"
+    },
+    "scripts/alpha_holdem/test_v6_broad_mgda_curve.py": {
+      "type": "file",
+      "bytes": 791,
+      "sha256": "d9b253669e3054e15e377261118a58998b42c1240b96c3edd1e6d4691e655c48"
+    }
+  }
+}

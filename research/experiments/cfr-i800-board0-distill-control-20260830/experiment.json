@@ -1,0 +1,207 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "cfr-i800-board0-distill-control-20260830",
+  "title": "i800 board0 teacher replacement distillation control",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T13:19:12+00:00",
+  "updated_at": "2026-08-30T13:27:46+00:00",
+  "started_at": "2026-08-30T13:19:12+00:00",
+  "ended_at": "2026-08-30T13:27:46+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Replacing only the unstable board0 SRP and 3BP i200 compact targets with exact matched i800 targets will improve the learned epoch2 adapter against the untouched i200 epoch2 control across Standard10, slumbot_free, and corrected_cfr96 anchors.",
+  "material_change": "Convert the exact i800 board0 SRP and 3BP artifacts with the same full-conversion sampling contract, substitute only those two compact files into the existing boards0-3 teacher, and retrain the same Standard10 H64/source-KL1/residual-L2=.01 adapter for three epochs at seed 20260829. Freeze epoch2 a priori to match the prior promoted control.",
+  "baseline": "Untouched sharded-cfr4-teacher-recovery-20260830 epoch2 SHA256 571a9c413834247c80b63a797548689ea745878c060f265876d00bddcc3ff2db; board0 used i200 targets and fresh4999 was -9.4359 bb/100 CI95 [-51.3721,+32.5003].",
+  "source": "cfr-oneboard-i800-convergence-20260830 decision REJECT_I200_CONFIDENCE_WEIGHTING_RETAIN_I800_TEACHER.",
+  "parent_id": "cfr-oneboard-i800-convergence-20260830",
+  "command": "node --max-old-space-size=32768 --import tsx packages/cfr-solver/src/scripts/cfr-to-training-data.ts --cfr-dir research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800 --output research/experiments/cfr-i800-board0-distill-control-20260830/compact_srp_i800_board0 --config deployment_v55_srp_200bb --samples-per-bucket 1 --river-samples 1 --min-divergence 0 --selection-seed 20260829 --output-format v55-compact --flop-output-sample-rate 1 --turn-output-sample-rate 0.1 --river-output-sample-rate 0.01 --workers 1",
+  "commands": [
+    {
+      "command": "node --max-old-space-size=32768 --import tsx packages/cfr-solver/src/scripts/cfr-to-training-data.ts --cfr-dir research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800 --output research/experiments/cfr-i800-board0-distill-control-20260830/compact_srp_i800_board0 --config deployment_v55_srp_200bb --samples-per-bucket 1 --river-samples 1 --min-divergence 0 --selection-seed 20260829 --output-format v55-compact --flop-output-sample-rate 1 --turn-output-sample-rate 0.1 --river-output-sample-rate 0.01 --workers 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:19:12+00:00"
+    },
+    {
+      "command": "node --max-old-space-size=16384 --import tsx packages/cfr-solver/src/scripts/cfr-to-training-data.ts --cfr-dir research/experiments/cfr-oneboard-i800-convergence-20260830/threebet_i800 --output research/experiments/cfr-i800-board0-distill-control-20260830/compact_3bp_i800_board0 --config deployment_v55_3bp_200bb --samples-per-bucket 1 --river-samples 1 --min-divergence 0 --selection-seed 20260829 --output-format v55-compact --flop-output-sample-rate 1 --turn-output-sample-rate 0.1 --river-output-sample-rate 0.01 --workers 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:20:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/validate_compact_v55_bridge.py --input research/experiments/cfr-i800-board0-distill-control-20260830/compact_srp_i800_board0/flop_0000.jsonl research/experiments/cfr-i800-board0-distill-control-20260830/compact_3bp_i800_board0/flop_0000.jsonl --out research/experiments/cfr-i800-board0-distill-control-20260830/bridge_i800_board0.json --raise-action-mapping preflop_pot_fraction_v2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:20:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/distill_cfr_v55_compact.py --source models/baseline/standard10/latest.pt --data research/experiments/cfr-i800-board0-distill-control-20260830/compact_3bp_i800_board0/flop_0000.jsonl research/experiments/sharded-cfr8-teacher-recovery-20260830/compact_3bp8_i200_full/flop_0001.jsonl research/experiments/sharded-cfr8-teacher-recovery-20260830/compact_3bp8_i200_full/flop_0002.jsonl research/experiments/sharded-cfr8-teacher-recovery-20260830/compact_3bp8_i200_full/flop_0003.jsonl research/experiments/cfr-i800-board0-distill-control-20260830/compact_srp_i800_board0/flop_0000.jsonl research/experiments/sharded-cfr8-teacher-recovery-20260830/compact_srp8_i200_full/flop_0001.jsonl research/experiments/sharded-cfr8-teacher-recovery-20260830/compact_srp8_i200_full/flop_0002.jsonl research/experiments/sharded-cfr8-teacher-recovery-20260830/compact_srp8_i200_full/flop_0003.jsonl --out research/experiments/cfr-i800-board0-distill-control-20260830/adapter_cfr4_i800board0_h64_skl1_l2p01.pt --device cuda --adapter-hidden 64 --epochs 3 --batch-size 2048 --lr 0.0003 --source-kl 1 --residual-l2 0.01 --samples-per-epoch 0 --val-split board --val-board-ids 2 --test-board-ids 3 --street-weights 0.34,0.33,0.33 --seed 20260829 --obs-version auto",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:21:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/cfr-i800-board0-distill-control-20260830/adapter_cfr4_i800board0_h64_skl1_l2p01_epoch02.pt --candidate-label i800board0_epoch2 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 2048 --starting-stack 200 --include-pair-outcomes --seed 20260855 --device cuda --priority below-normal --out-json research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855.json --out-md research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855.md --execution-json research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:22:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/sharded-cfr4-teacher-recovery-20260830/adapter_cfr4_full_h64_skl1_l2p01_epoch02.pt --candidate-label i200_control_epoch2 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 2048 --starting-stack 200 --include-pair-outcomes --seed 20260855 --device cuda --priority below-normal --out-json research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855.json --out-md research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855.md --execution-json research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:25:00+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855.json --treatment research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855.json --out research/experiments/cfr-i800-board0-distill-control-20260830/eval/paired_delta_seed20260855.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:27:24+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e1b5ad2c718abbaa2147026b841090c4afe87848010d565c06e41b3cc21905f5",
+    "code_paths": [
+      "packages/cfr-solver/src/scripts/cfr-to-training-data.ts",
+      "scripts/alpha_holdem/distill_cfr_v55_compact.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/paired_mirror_treatment_delta.py"
+    ],
+    "captured_at": "2026-08-30T13:19:12+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/cfr-i800-board0-distill-control-20260830/code.patch",
+    "patch_sha256": "a4058524203b261c27f9e38f164c45682de9eb5a1622318d9f88dea8dbd8a87b",
+    "source_manifest": "research/experiments/cfr-i800-board0-distill-control-20260830/source_manifest.json",
+    "source_manifest_sha256": "091293578207b84f7c3eb4ac1106990578c6b75fffc21e68bb6febf18b5c69db",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 10283876,
+    "offline_samples": 870044,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 514.0
+  },
+  "metrics": {
+    "epoch2_validation_target_kl": 0.28448527041824734,
+    "epoch3_final_test_target_kl": 0.3423851839150125,
+    "standard10_delta_bb100": 0.83837890625,
+    "standard10_delta_ci95": 1.306885667228487,
+    "slumbot_free_delta_bb100": -1.712402343750001,
+    "slumbot_free_delta_ci95": 1.9394787732448255,
+    "corrected_cfr96_delta_bb100": -4.432060546874999,
+    "corrected_cfr96_delta_ci95": 13.539507005144648,
+    "three_anchor_mean_delta_bb100": -1.7686946614583334
+  },
+  "artifacts": [
+    "research/experiments/cfr-i800-board0-distill-control-20260830/code.patch",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/source_manifest.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/compact_srp_i800_board0/manifest.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/compact_3bp_i800_board0/manifest.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/bridge_i800_board0.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/adapter_cfr4_i800board0_h64_skl1_l2p01_epoch02.pt",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/adapter_cfr4_i800board0_h64_skl1_l2p01_epoch03.pt",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/paired_delta_seed20260855.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855_execution.json",
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855_execution.json"
+  ],
+  "notes": [
+    "Preregistered selection/evaluation: freeze epoch2, matching the prior control. Run treatment and untouched control on the same fresh seed 20260855 with 2048 mirrored pairs per Standard10, slumbot_free, and corrected_cfr96 anchor and preserve pair outcomes. External Slumbot is authorized only if treatment deltas are positive for Standard10 and slumbot_free, aggregate mean delta is positive, and corrected_cfr96 has no clearly adverse lower-confidence result. Strategy-drift evidence is not treated as exploitability or calibrated confidence.",
+    "Exact SRP i800 board0 conversion completed: 186,610 compact rows under the matched full-conversion sampling contract.",
+    "Exact 3BP i800 board0 conversion completed: 36,990 compact rows; total new offline compact rows 223,600.",
+    "Full Python bridge passed all 223,600 new rows with zero replay failures, zero state-field mismatches, and zero target failures. Deployment masks are a legal superset on 46.0% of rows as expected from the dual-mask contract.",
+    "Matched distillation loaded 870,044 unique rows: 425,588 train, 269,019 untouched board2 validation, 175,437 untouched board3 final test. Epoch2 remains frozen a priori. Its validation target KL 0.28449 modestly improves the old epoch2 0.29000, while final epoch3 test KL 0.34239 is worse than old 0.32651; gameplay control decides.",
+    "Treatment completed 2,048 mirrored pairs against each of three anchors with zero OOD nodes and pair outcomes preserved; starting untouched control on the identical deals.",
+    "Untouched control completed the identical 6,144 paired deals; cumulative evaluation is 24,576 hands. Computing paired treatment-minus-control deltas from preserved outcomes.",
+    "Pre-registered external gate failed: Standard10 treatment delta was positive, but slumbot_free and corrected_cfr96 were negative and the three-anchor mean was -1.769 bb/100. No Slumbot hands were spent."
+  ],
+  "result": {
+    "summary": "Substituting exact i800 board0 targets into the matched four-board adapter slightly improved untouched validation fit but failed matched gameplay: treatment-minus-i200-control deltas were +0.838 Standard10, -1.712 slumbot_free, and -4.432 corrected_cfr96 bb/100; three-anchor mean -1.769.",
+    "conclusion": "Higher-iteration supervision on a single board is not a general learned-policy improvement under this CFR distillation architecture. The result rejects scaling CFR solve depth alone and confirms that heldout teacher-fit changes are not reliable gameplay selectors.",
+    "decision": "REJECT_I800_BOARD0_DISTILL_NO_GENERAL_GAIN",
+    "next_step": "Retire the current CFR depth/distillation branch. Return to genuine environment training and test a mainline change that improves opponent/state diversity or value learning rather than teacher depth, using the repaired exact-resume/accounting infrastructure and matched multi-anchor evaluation."
+  },
+  "tags": [
+    "cfr",
+    "distillation",
+    "matched-control"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 7,
+    "command_count": 7
+  },
+  "artifact_integrity": {
+    "research/experiments/cfr-i800-board0-distill-control-20260830/code.patch": {
+      "type": "file",
+      "bytes": 36000,
+      "sha256": "a4058524203b261c27f9e38f164c45682de9eb5a1622318d9f88dea8dbd8a87b"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 846,
+      "sha256": "091293578207b84f7c3eb4ac1106990578c6b75fffc21e68bb6febf18b5c69db"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/compact_srp_i800_board0/manifest.json": {
+      "type": "file",
+      "bytes": 576,
+      "sha256": "eb67ce457745967630a0ad43befed7b0dc604ac751ce80f7dbf37657f316265a"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/compact_3bp_i800_board0/manifest.json": {
+      "type": "file",
+      "bytes": 575,
+      "sha256": "0a93008dcfa5d34fe2872a35c74cccb55bd8d37177ab1ee46df65138f5d34d77"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/bridge_i800_board0.json": {
+      "type": "file",
+      "bytes": 3909,
+      "sha256": "eac8cca1a1947fa75d3b41f4c0eae1d1a12d2649b92ae17c4a21a89e188cc833"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/adapter_cfr4_i800board0_h64_skl1_l2p01_epoch02.pt": {
+      "type": "file",
+      "bytes": 197186816,
+      "sha256": "ca01353defdcb483802465ab900389f63c1b04b9e6dd7593d0ef0e2f7f8c808f"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/adapter_cfr4_i800board0_h64_skl1_l2p01_epoch03.pt": {
+      "type": "file",
+      "bytes": 197187200,
+      "sha256": "956b7238f1c378af886529ef3123d2ea73c545246da73196df6e793770dba053"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855.json": {
+      "type": "file",
+      "bytes": 333403,
+      "sha256": "c7b1dbc74ded3280fbf70089533ce25f730bf1d2a6285ccf0b30b2b8de9facec"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855.json": {
+      "type": "file",
+      "bytes": 333913,
+      "sha256": "3a09d13af40b25f5c843b74077e9d6b344bdb1c4adbe6156e2729cd228d532e7"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/paired_delta_seed20260855.json": {
+      "type": "file",
+      "bytes": 4994,
+      "sha256": "fcfa2dd17cb2f197407fce3353a2cc01ac1152182a838ef5f77b88d06f438501"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/treatment_seed20260855_execution.json": {
+      "type": "file",
+      "bytes": 1879,
+      "sha256": "b8dd707b109d729cb1d6af4d1b8736d0a15191eddea56e158c10b163f8c1600a"
+    },
+    "research/experiments/cfr-i800-board0-distill-control-20260830/eval/control_seed20260855_execution.json": {
+      "type": "file",
+      "bytes": 1855,
+      "sha256": "a6140e010182f7698b0e940cf5fd1f27ea2d3dbfd7e52f39b4b1e6bd1c460169"
+    }
+  }
+}

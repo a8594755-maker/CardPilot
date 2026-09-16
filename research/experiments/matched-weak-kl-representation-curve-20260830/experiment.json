@@ -1,0 +1,829 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "matched-weak-kl-representation-curve-20260830",
+  "title": "Matched weak-KL representation-scope learning curve",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T01:53:08+00:00",
+  "updated_at": "2026-08-31T07:06:26+00:00",
+  "started_at": "2026-08-31T01:53:08+00:00",
+  "ended_at": "2026-08-31T05:12:02+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Allowing shared representation learning improves multi-opponent generalization beyond weak-KL heads-only updates at matched learning settings.",
+  "material_change": "New matched heads versus full-network arms; same source-KL0.01,LR3e-5,seeds,three-anchor league and524288physical-hand budgets; fixed262k/final curves and fourth training-excluded learned opponent.",
+  "baseline": "Frozen weak-KL external20k finished -55.869bb/100 CI95[-93.60892586,-18.12907414]; no extension. Prior full-network pilot jointly changed LR/KL and scope.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "weak-kl-strict-sampled-slumbot20k-20260830",
+  "command": "python -m pytest research/experiments/matched-weak-kl-representation-curve-20260830/test_pilot.py -q --junitxml=research/experiments/matched-weak-kl-representation-curve-20260830/prerun_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/matched-weak-kl-representation-curve-20260830/test_pilot.py -q --junitxml=research/experiments/matched-weak-kl-representation-curve-20260830/prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:53:08+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/profile_memory.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:53:17+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/matched-weak-kl-representation-curve-20260830/test_pilot.py -q --junitxml=research/experiments/matched-weak-kl-representation-curve-20260830/prerun_tests_v2.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:54:17+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:54:36+00:00"
+    },
+    {
+      "command": "python research\\experiments\\matched-weak-kl-representation-curve-20260830\\run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:54:38+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 524288 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 0.01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026091100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id representation_heads_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\latest.pt --seed 20260911 --max-runtime-seconds 10800 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --all-policy-heads-only-training",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:54:39+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/matched-weak-kl-representation-curve-20260830/test_completed_report.py -q --junitxml=research/experiments/matched-weak-kl-representation-curve-20260830/report_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:57:48+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/matched-weak-kl-representation-curve-20260830/test_completed_report.py -q --junitxml=research/experiments/matched-weak-kl-representation-curve-20260830/report_tests_v2.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:59:12+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/matched-weak-kl-representation-curve-20260830/finish_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:59:12+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/review_archived_prefix.py --arm heads --iteration 12",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T02:01:39+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/matched-weak-kl-representation-curve-20260830/test_throughput.py -q --junitxml=research/experiments/matched-weak-kl-representation-curve-20260830/throughput_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T02:06:15+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/summarize_throughput.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T02:06:15+00:00"
+    },
+    {
+      "command": "nvidia-smi --query-gpu=utilization.gpu,temperature.gpu,clocks.current.sm,power.draw,pstate,memory.used --format=csv",
+      "exact": false,
+      "reasons": [
+        "not_an_executable_command"
+      ],
+      "recorded_at": "2026-08-31T02:19:31+00:00"
+    },
+    {
+      "command": "nvidia-smi -q -d PERFORMANCE,POWER,CLOCK",
+      "exact": false,
+      "reasons": [
+        "not_an_executable_command"
+      ],
+      "recorded_at": "2026-08-31T02:19:31+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads --expected-target-hands 99999999 --expected-target-environment-hands 524288 --expected-final-iteration 107 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T02:57:01+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 524288 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 0.01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026091100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id representation_full_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\latest.pt --seed 20260911 --max-runtime-seconds 10800 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T02:57:14+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/review_archived_prefix.py --arm full --iteration 4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T03:04:39+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/review_archived_prefix.py --arm full --iteration 52",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T03:31:24+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full --expected-target-hands 99999999 --expected-target-environment-hands 524288 --expected-final-iteration 105 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T04:11:20+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\evaluate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T04:11:35+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --candidate-label representation_curve_source --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260912 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --anchor heldout_weak=C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T04:11:36+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\heads_mid.pt --candidate-label representation_curve_heads_mid --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260912 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --anchor heldout_weak=C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T04:21:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\heads.pt --candidate-label representation_curve_heads_final --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260912 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --anchor heldout_weak=C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T04:33:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\full_mid.pt --candidate-label representation_curve_full_mid --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260912 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --anchor heldout_weak=C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T04:44:38+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\full.pt --candidate-label representation_curve_full_final --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260912 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --anchor heldout_weak=C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T04:56:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_heads_final.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:04+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:06+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:08+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_vs_heads_mid.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:14+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_full_mid.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_vs_heads_mid.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:18+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/report_completed_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:49+00:00"
+    },
+    {
+      "command": "python research/experiments/matched-weak-kl-representation-curve-20260830/finish_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T05:11:49+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "b4a1f91840acaec8bfc295aa8ea67caa3b3f15b04c1474b55727b7820e88e756",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr/game_state.py",
+      "scripts/deep_cfr/hand_eval.py",
+      "research/experiments/matched-weak-kl-representation-curve-20260830"
+    ],
+    "captured_at": "2026-08-31T01:53:08+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/matched-weak-kl-representation-curve-20260830/code.patch",
+    "patch_sha256": "47108d4a90a5ee09fdb8b37e662a06329d69f26572171b364ce254dc03dbb135",
+    "source_manifest": "research/experiments/matched-weak-kl-representation-curve-20260830/source_manifest.json",
+    "source_manifest_sha256": "da9219eba02de017da610f95c8aef39e8d4af1e45b3f790d67a75262fc38417a",
+    "source_files": 67
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 1054555,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 163840,
+    "wall_time_seconds": 11934.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "prerun_tests_passed": 24,
+    "memory_profile_pass": 1,
+    "full_network_peak_allocated_bytes": 395562496,
+    "scratch_changed_representation_tensors": 76,
+    "heads_pid": 8864,
+    "heads_latest_iteration": 107,
+    "heads_physical_hands": 526534,
+    "postprocessing_tests_passed": 27,
+    "heads_iter12_prefix_review_pass": 1,
+    "heads_iter12_adam_steps": 338,
+    "early_heads_physical_hands_per_second": 224.70924831217198,
+    "early_heads_projected_2_7b_days": 139.0685974641626,
+    "throughput_arithmetic_tests_passed": 5,
+    "known_command_audit_false_positive_entries": 2,
+    "heads_exit_code": 0,
+    "heads_complete": 1,
+    "full_pid": 48256,
+    "full_latest_iteration": 105,
+    "full_physical_hands": 528021,
+    "full_iter4_prefix_review_pass": 1,
+    "full_iter4_adam_steps": 86,
+    "full_iter52_prefix_review_pass": 1,
+    "full_iter52_adam_steps": 959,
+    "full_iter52_max_reference_kl": 0.9537539482116699,
+    "full_exit_code": 0,
+    "full_complete": 1,
+    "training_complete": 1,
+    "pilot_evaluation_complete": 1,
+    "admits_independent_confirmation": 1,
+    "independent_review_pass": 1,
+    "full_adam_steps": 2531,
+    "full_unchanged_representation_tensors": 0,
+    "full_optimizer_state_tensors": 86,
+    "full_max_reference_kl": 1.091584373922909,
+    "full_max_clip_fraction": 0.16300388482900768,
+    "heads_adam_steps": 3096,
+    "heads_unchanged_representation_tensors": 76,
+    "heads_optimizer_state_tensors": 10,
+    "heads_max_reference_kl": 0.2176196915762765,
+    "heads_max_clip_fraction": 0.00226856635085174
+  },
+  "artifacts": [
+    "research/experiments/matched-weak-kl-representation-curve-20260830/preregistration.md",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/code.patch",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/source_manifest.json",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/prerun_tests.xml",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/memory_profile.json",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/prerun_tests_v2.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads_process_stdout.log",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/report_tests.xml",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/report_completed_pilot.py",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/test_completed_report.py",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/report_tests_v2.xml",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/finish_review.py",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/review_archived_prefix.py",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/heads_iter000012_prefix_review.json",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/summarize_throughput.py",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/test_throughput.py",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/throughput_tests.xml",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/heads_prefix_throughput.json",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/conditional_throughput_followup.md",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/heads_midrun_gpu_observation.txt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\heads_mid.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\heads.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full_process_stdout.log",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/full_iter000004_prefix_review.json",
+    "research/experiments/matched-weak-kl-representation-curve-20260830/full_iter000052_prefix_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\full_mid.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\full.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\checkpoint_selection.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_heads_final.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_vs_heads_mid.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_full_mid.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_vs_heads_mid.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\pilot_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\report_completed_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\test_completed_report.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\finish_review.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\postprocessing_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\postprocessing_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\result_summary.md",
+    "research/experiments/native-state-contract-audit-20260831/interpretation_addendum.md"
+  ],
+  "notes": [
+    "No source or historical evidence changed. Run synthetic zero-hand memory check before both new arms; preserve all state on terminal failure and never restart automatically.",
+    "Synthetic scratch full-network pass,zero poker hands. Added read-only integration checking six existing archived checkpoint counters versus historical metrics before live training; no historical source/evidence edits.",
+    "24 prelaunch tests passed, including six historical archive-counter read-only checks. Exact full-network synthetic profile passed at395562496allocated bytes with all86parameter tensors updated,76representation tensors; scratch discarded. Start original fixed-budget wrapper once,heads then full,with no source edits while live.",
+    "Full execution snapshot frozen before both arms. Same source/deal seeds/collection/physical budgets; only parameter scope and output identity differ. No live source edits allowed during this wrapper.",
+    "Created postprocessing-only independent reviewer and synthetic fixtures after the execution snapshot. These are not imported by the live runner/trainer/evaluator; captured source files unchanged. No poker hands or GPU work in these CPU fixtures.",
+    "Postprocessing synthetic end-to-end and corruption tests passed27; finish helper py_compile passed. All are post-run-only modules outside execution snapshot. Report will independently validate76frozen versus76updated representation tensors,10versus86Adam states,full/partial step accounting,fixed counter-selected midpoints and all raw contrasts. No current hands reset/replayed.",
+    "Supplemental CPU-only health review uses already immutable heads iteration12,not live latest.pt. It does not play games,select a candidate or change gates; no extra training/evaluation accounting. Live execution sources remain frozen.",
+    "Immutable heads iteration12 physical prefix61127,legacy49383 passed actual model/Adam/counter checks:10head tensors changed,76representation unchanged,338Adam steps per state including24partial steps,no KL early stops. This read-only check adds zero hands and is not a strength estimate.",
+    "Read-only physical-throughput arithmetic on the already preserved iteration12 prefix review. No live source/checkpoint edits or new poker hands; paper-scale extrapolation is conditional and not evidence of learning strength.",
+    "Early heads physical throughput224.709hands/s measured over55110new terminal hands between saved updates1and12 (245.250s),not legacy marker h/s. Unchanged nonstop2.7Bextrapolation139.07days excludes startup/evaluation/interruptions and is not a full-network measurement. Preserve current bounded run; future paper-scale commitment requires learning evidence and separately validated throughput work.",
+    "Read-only scale-up source review found current run already uses v5 batched shared-memory inference; older run_inference_kbest is not its serving path. Existing optional multi-env batching may be a future profiling candidate,not proven faster/correct and not activated. Current single-mode matched experiment and fixed gate remain unchanged; no next experiment launched.",
+    "Read-only operational observation: heads updates54/55 collect59.9/58.1s and PPO1.2/1.1s,slower than early ~24s/0.5s. Trainer8864 remains live/Normal priority with all32CPU affinity; only this poker trainer found,system CPU12.1percent and ~98.5GB RAM available at snapshot. NVIDIA snapshot showed idle clock reason active,no active thermal/HW slowdown or power cap. This does not prove a causal bottleneck; no OS/GPU/training setting changed and no restart. Early225physical-hands/s extrapolation remains explicitly conditional,not full-run throughput.",
+    "Clarification of two point-in-time GPU observations: console22:19:02ET showedP3/IdleActive/1395MHz,whereas the preserved heads_midrun_gpu_observation.txt at22:19:31ET showsP2/IdleNotActive/2805MHz. Both show no active thermal/HW slowdown or power cap. Clocks vary; neither snapshot isolates the cause of slower collection.",
+    "Audit now reports1warning from2genuine executed nvidia-smi commands. Source inspection of command_audit shows its executable whitelist only accepts python/py/node/npm/npx/pwsh/powershell/path prefixes,so nvidia-smi is classified not_an_executable_command despite successful captured output. Preserve exact historical commands and warning; do not relabel/delete evidence or edit captured logger while live. All67execution source pairs still match. Earlier plan text saying zero warnings was stale and is superseded by this finding. This metadata classification limitation is not a training/source/raw-evidence failure.",
+    "Read-only CPU integrity review of the already completed full-network iteration4 immutable archive. No new poker hands, performance selection, trainer restart, configuration change or execution-source modification. Verify all86 Adam states and actual76 representation-tensor movement against the source, with optimizer steps reconstructed from completed PPO epochs including registered KL stops.",
+    "Full iteration4 immutable-prefix CPU review PASS:19901 physical hands versus16524 legacy markers; all10 native-head and76 shared-representation tensors changed;86 finite Adam states with86 steps each exactly reconstructed,6 partial-minibatch steps. Four epoch-boundary KL-stop flags are recorded; flags at the last allowed epoch do not necessarily imply shortened updates. Original67 execution-copy/source pairs and source checkpoint hash unchanged. This audit adds zero training/evaluation hands and leaves original wrapper71650/PID22800 plus full trainerPID48256 untouched.",
+    "Read-only CPU health review of completed scheduled full iteration52 archive, selected by update index before it existed, not performance. This is not early evaluation or formal curve selection; the original runner still selects the registered midpoint only after full training finishes. No additional games, changes to captured execution sources, reset, restart or training interruption.",
+    "Scheduled iteration52 prefix review PASS at266797 physical hands/214114 legacy markers. All86 finite Adam states have959 steps exactly matching completed PPO epochs/minibatches; all10 heads and76 representation tensors changed. Max sourceKL0.9537539482,approxKL0.0382501185,clipfraction0.1630038848; all52 updates record existing epoch-boundary KL-stop flags, not52 truncated or failed updates. These health observations neither change the registered training budget/settings nor establish strength. Source checkpoint, immutable archive and all67 captured execution original/copy pairs verified unchanged; original wrapper71650 and trainer48256 remain live. No new games generated by this review.",
+    "Both preregistered final and first262144-crossing archive endpoints frozen by counters only; original source hash unchanged. Starting fixed independent sampled evaluation.",
+    "Five preregistered frozen curve candidates evaluated on four opponents after both matched scope arms. Fourth anchor excluded from this training pool, not an unseen historical family. Complete raw evidence and independent CI recomputation passed. Inspect numerical/Adam health and result before finish; no claim of Slumbot success.",
+    "Original training/evaluation wrapper is terminal. Capture independent postprocessing source, then review without changing raw evidence; no additional poker hands.",
+    "Post-completion interpretation addendum: native-state-contract-audit-20260831 reproduced5 contract discrepancies and matched6 relevant runtime files/copies from this experiment. Mirror root slot7 executes2bb instead of trainer/Slumbot4bb; SB-limp transition,min-bet/min-raise,and all-in encoding differ. Legacy internal statistics remain unchanged but cannot establish improvement of the same Slumbot-executed native policy. The completed external20k -81.251bb/100 remains valid; no100k admission or extension. No raw hands,checkpoints,counts,primary analyses or original terminal status changed. See immutable addendum for scope; loss attribution is not quantified."
+  ],
+  "result": {
+    "summary": "Matched weak-KL heads/full scopes completed1054555physical training hands and163840frozen internal hands. Independent raw,curve,source,session,scope and Adam reviews passed; REPRESENTATION_SCOPE_ADMITS_CONFIRMATION.",
+    "conclusion": "standard10:+134.1957bb/100 adjustedCI[+21.7647,+246.6268]; slumbot_free:+349.9419bb/100 adjustedCI[+232.6244,+467.2593]; corrected_cfr96:+561.2466bb/100 adjustedCI[+409.2648,+713.2283]; heldout_weak:+262.8925bb/100 adjustedCI[+140.5565,+385.2285]. Only final endpoints determine admission; fixed midpoints descriptive. Fourth opponent excluded from this training run but historically related; no claim of unseen-family or Slumbot strength.",
+    "decision": "REPRESENTATION_SCOPE_ADMITS_CONFIRMATION",
+    "next_step": "Preregister separate independent confirmation of the exact final endpoints; do not pool discovery data or promote directly to Slumbot."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 33,
+    "command_count": 35
+  },
+  "artifact_integrity": {
+    "research/experiments/matched-weak-kl-representation-curve-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 5694,
+      "sha256": "48789c0d3201e327831da7762f4d93e44bdb55242687b47640c52e63ed13c34b"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/code.patch": {
+      "type": "file",
+      "bytes": 12699405,
+      "sha256": "47108d4a90a5ee09fdb8b37e662a06329d69f26572171b364ce254dc03dbb135"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 12594,
+      "sha256": "da9219eba02de017da610f95c8aef39e8d4af1e45b3f790d67a75262fc38417a"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/prerun_tests.xml": {
+      "type": "file",
+      "bytes": 4187,
+      "sha256": "f17492fbeac85c4ed4cac6112424cb1aeeff57673d40125626ceb6cbbd5b7c26"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/memory_profile.json": {
+      "type": "file",
+      "bytes": 3657,
+      "sha256": "bf4f2c8a85aaa8f04a88cdd88a1ff32974ce835b7a878651a87a1864e67958e8"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/prerun_tests_v2.xml": {
+      "type": "file",
+      "bytes": 4378,
+      "sha256": "a5bf62c61b929bfb8dfcbe71f3831b8bf27a9329bfe2f1ededba5f23aa1f10b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 21831,
+      "sha256": "10d432262bc0049402463b9755667712c76e04580134ea90e689f62ef64b597b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 12523,
+      "sha256": "ef0c7ac6d632bca50ed0cc64c7c5922d905a2f5b8af3b3e82b6335494e15fb5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 365811,
+      "sha256": "dcf1fcedcc541e02df426691edb19e21c6a18d4c264cfaaf0d2326eaae63b57d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads_process_stdout.log": {
+      "type": "file",
+      "bytes": 67983,
+      "sha256": "2303a7024d4c6e2fa5aa4a7c9636575931d651cb3595df854bb4fb50a5477b2d"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/report_tests.xml": {
+      "type": "file",
+      "bytes": 5255,
+      "sha256": "311396565584988204c92f6e48b9352b2eefaabad141f484b054320af6c2f2ba"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/report_completed_pilot.py": {
+      "type": "file",
+      "bytes": 19384,
+      "sha256": "f2434c74335f53ad3001804990b21080017adad04461f9b8fd520aff2cd15edb"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/test_completed_report.py": {
+      "type": "file",
+      "bytes": 11924,
+      "sha256": "1ba28a0471a47b0eb9d075c8e2f2cb4c3687229c2fa9f328432525c2d25995ff"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/report_tests_v2.xml": {
+      "type": "file",
+      "bytes": 5255,
+      "sha256": "4bc1173442fb71071cfeead03211a748c88a90ef3ff71c399a5314124cd92091"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/finish_review.py": {
+      "type": "file",
+      "bytes": 4097,
+      "sha256": "e33665db0ba4ee9b642f44ca54d1d99cae5f5ac47e649a315beab1d2fa0ab98f"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/review_archived_prefix.py": {
+      "type": "file",
+      "bytes": 5819,
+      "sha256": "af2ea1ba82f4ce1300e17618e61624774ea6cbed310c9a410f5999297a32e07a"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/heads_iter000012_prefix_review.json": {
+      "type": "file",
+      "bytes": 486398,
+      "sha256": "3a79ca89e5bb33ef9ab588e55b20afb561d8fc9cdddbd471baf29335fb84a310"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/summarize_throughput.py": {
+      "type": "file",
+      "bytes": 3003,
+      "sha256": "f44088b12ef34a3ccd2365497b0465001ddce1b182545d86f9bb143425cd63f8"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/test_throughput.py": {
+      "type": "file",
+      "bytes": 1117,
+      "sha256": "441a5472e71e89deddd9b5ccb82db93c8455d973f76ae6ae9ac7eb004bf11401"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/throughput_tests.xml": {
+      "type": "file",
+      "bytes": 1027,
+      "sha256": "e01926f6a6c30b49d20ce059fba991556443f27bc9432a919dab1b5a6fe76009"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/heads_prefix_throughput.json": {
+      "type": "file",
+      "bytes": 1675,
+      "sha256": "c769d6411c8049eae066893df60295cc33a48f60af52213fb278b6d074cc9bfd"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/conditional_throughput_followup.md": {
+      "type": "file",
+      "bytes": 4085,
+      "sha256": "40cc387327862c7cbe25013609a547e886849fb490eb5648a441f291b111952c"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/heads_midrun_gpu_observation.txt": {
+      "type": "file",
+      "bytes": 3879,
+      "sha256": "99b983208eb572bc5ca79ffd0f248a62811e7dc313e57006dd7f3656fc022fa6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\heads_mid.pt": {
+      "type": "file",
+      "bytes": 133324214,
+      "sha256": "f586d1afe9592fe40b50fa45436127062004841973468b375b6e5ae6d4299d28"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\heads.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "ebfc850cb8ed92c07103bbb92a8b473433a63c6df173c0f002741c560b84e63b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads_audit.json": {
+      "type": "file",
+      "bytes": 13830,
+      "sha256": "eb15a59bb45af613c30da072e5121ee2eeeef11ac8950ca6311d6a61274b4718"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\latest.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "ebfc850cb8ed92c07103bbb92a8b473433a63c6df173c0f002741c560b84e63b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57446,
+      "sha256": "067c9762e5fd30de65438bd95dbc44602d9f55c4a3ed78474b9e1f18e33e7a13"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 2786748,
+      "sha256": "98920031bedde36f49bcfea1fb049b75ca6ae82ed3284e5530065f3eabe997a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 277440,
+      "sha256": "57d56c122738f6f41182f871ad98ce42fa2a101cd0696e4b4e04a3a98c1b007a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\heads\\latest_train.log": {
+      "type": "file",
+      "bytes": 47095,
+      "sha256": "7eeceb59345264907b09b19f64761a3268f7e3f2ecf67abb47f7ee5beecb4d81"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full_process_stdout.log": {
+      "type": "file",
+      "bytes": 66548,
+      "sha256": "be10db7c732f4c9d3a9d946b96c67ada8594d1f9b7dbfea5ca70ab43e6a6dee8"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/full_iter000004_prefix_review.json": {
+      "type": "file",
+      "bytes": 165684,
+      "sha256": "58de1e33a24818f2fa4fb473d07b4f16cd840c558f408a3e701fb16a2f8dc8de"
+    },
+    "research/experiments/matched-weak-kl-representation-curve-20260830/full_iter000052_prefix_review.json": {
+      "type": "file",
+      "bytes": 2126743,
+      "sha256": "5acab5fa03ec73be60c02d402726a9596052a718caade65b39331d795d884ce4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\full_mid.pt": {
+      "type": "file",
+      "bytes": 198593390,
+      "sha256": "ead7027ce1d0f820442a3464dcca18cead8e26487a917a190750e2968386d426"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\frozen\\full.pt": {
+      "type": "file",
+      "bytes": 198566984,
+      "sha256": "ff2b9e6fe188ac89aa3ff4b632b70a195a46e8e6a73f1b94a75fcfbbf543c17e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full_audit.json": {
+      "type": "file",
+      "bytes": 13803,
+      "sha256": "47c4725416a5bd5e53f2952ccd305efdaa83b605f19587020d5c6f0360bfb449"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\latest.pt": {
+      "type": "file",
+      "bytes": 198566984,
+      "sha256": "ff2b9e6fe188ac89aa3ff4b632b70a195a46e8e6a73f1b94a75fcfbbf543c17e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57681,
+      "sha256": "1d901b4682434d43ffd8f2dcd5bd62e3ad7186679006b2c3a061aee11a3bad98"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 2754164,
+      "sha256": "56a327e6b8085d30eb4c28419e3c80fa414a47bc43c34282a8503f1af10d0239"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 272570,
+      "sha256": "0f426bb9b854b7d338463a1c45c6e9123b742db77f3003b6d18db0ea6aeecc56"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\full\\latest_train.log": {
+      "type": "file",
+      "bytes": 46174,
+      "sha256": "bd8de8ca9d6d002ab812a70e1dbd3aacbc28138992c876382c2ff950bdc26412"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\checkpoint_selection.json": {
+      "type": "file",
+      "bytes": 1772,
+      "sha256": "3ad6b07b5a30549137370ba254e4df2db3081ba57b5e6f56827d6d413b09b9ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.json": {
+      "type": "file",
+      "bytes": 864664,
+      "sha256": "0a509a2c62c2a8ca5e0589bdd671c89bf6521ec3f41c057f427c10a39808de77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source.md": {
+      "type": "file",
+      "bytes": 1620,
+      "sha256": "5bf065a569b637624af1e7c0101688d26718b1cae7dc9d189812b330d12d9161"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source_execution.json": {
+      "type": "file",
+      "bytes": 2278,
+      "sha256": "a69f7d9bae62251779d7f6764373a041e9cd206763aad5cdf7372da4cb878a03"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\source_stdout.log": {
+      "type": "file",
+      "bytes": 864664,
+      "sha256": "0a509a2c62c2a8ca5e0589bdd671c89bf6521ec3f41c057f427c10a39808de77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.json": {
+      "type": "file",
+      "bytes": 875827,
+      "sha256": "ce53a55798caa8fcfbe9b9379b2204a2fe0f0267f0764d8a11121cebb05a397f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid.md": {
+      "type": "file",
+      "bytes": 1681,
+      "sha256": "692c470471344ce4dbb3ac9d5429636727849883d52819335eb6149a785e21d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_execution.json": {
+      "type": "file",
+      "bytes": 2341,
+      "sha256": "2246cecc39c5f31eb58b84f28b79fd0d4251b56817fb77d114f9b7d4de36f255"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_stdout.log": {
+      "type": "file",
+      "bytes": 875827,
+      "sha256": "ce53a55798caa8fcfbe9b9379b2204a2fe0f0267f0764d8a11121cebb05a397f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.json": {
+      "type": "file",
+      "bytes": 872947,
+      "sha256": "48279693c2ed9acbe409a5018d6996bd992fef47ddcf8b7aa20b5a4e7bf6437e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final.md": {
+      "type": "file",
+      "bytes": 1683,
+      "sha256": "5cf9826a5af954251e5dbf660546a05337c4d55682fa4acb92d4cca21f515a53"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_execution.json": {
+      "type": "file",
+      "bytes": 2344,
+      "sha256": "dcaf69ab11be5abca8e7b2c46c52bbf04115aa541b0961cc3bf81fa0f8f14f1a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_stdout.log": {
+      "type": "file",
+      "bytes": 872947,
+      "sha256": "48279693c2ed9acbe409a5018d6996bd992fef47ddcf8b7aa20b5a4e7bf6437e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.json": {
+      "type": "file",
+      "bytes": 881005,
+      "sha256": "d05c9fd7e69bf076b99b556000d2daaeaba244aff214d16e5ef11ad20ab1af7d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid.md": {
+      "type": "file",
+      "bytes": 1693,
+      "sha256": "151c4eebbdf0db518d6701e6fed31ad3ed2c9d7f0b7a072419d29226f514ad31"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_execution.json": {
+      "type": "file",
+      "bytes": 2336,
+      "sha256": "855d7e9e45bb51b787a36b1e11b7bd662539b6efc871ff187d9afc0bad9bf2c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_stdout.log": {
+      "type": "file",
+      "bytes": 881005,
+      "sha256": "d05c9fd7e69bf076b99b556000d2daaeaba244aff214d16e5ef11ad20ab1af7d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.json": {
+      "type": "file",
+      "bytes": 894285,
+      "sha256": "dbffba791290f69d334b3a0dbcb9354424fe060e1ba4813373a9a2207b6f1ce8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final.md": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "56590583a4a4efd4c2b3a65c0e015d44b53199ae5e2b51fd6a45b84aaa1fdabb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_execution.json": {
+      "type": "file",
+      "bytes": 2340,
+      "sha256": "76b0cb00ab36aa61e292a6e584a7d049a0657ca5173d7ea001484c5f78e963be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_stdout.log": {
+      "type": "file",
+      "bytes": 894285,
+      "sha256": "dbffba791290f69d334b3a0dbcb9354424fe060e1ba4813373a9a2207b6f1ce8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_heads_final.json": {
+      "type": "file",
+      "bytes": 5603,
+      "sha256": "e6cd8d71b5f024913669d287bfd5e46367c67b7d1cc4ce3010af54ab34d5cbf6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_source.json": {
+      "type": "file",
+      "bytes": 5558,
+      "sha256": "a7644e622f5fd4ce7aeff04a6c1c1f6dec3532bc385afc3a93ded4a7fe6b87b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_vs_source.json": {
+      "type": "file",
+      "bytes": 5556,
+      "sha256": "aedce172496428f8c931599445623b9c14a10ae02db65bdc5c57ef65b84584cc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_vs_heads_mid.json": {
+      "type": "file",
+      "bytes": 5611,
+      "sha256": "b10a6f69ee5685cb7b20179c344f16afe68bf97ec956ba0f4842a92c5d054d0a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_mid_vs_source.json": {
+      "type": "file",
+      "bytes": 5574,
+      "sha256": "db621b714918ad54d68ae16579f29d187649cee1bf10abe9d77ce6f76a0b8ab1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_mid_vs_source.json": {
+      "type": "file",
+      "bytes": 5561,
+      "sha256": "ea8c50cbbb614a05f549783af200a9ab7c0e90c5a1c4760c6acbb896fc96c5db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\full_final_vs_full_mid.json": {
+      "type": "file",
+      "bytes": 5610,
+      "sha256": "e1d94ae0ed374ccd0fc15a19704ec578e0dbd6110ebcbcb30e8ad80deec83c51"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\matrix\\heads_final_vs_heads_mid.json": {
+      "type": "file",
+      "bytes": 5613,
+      "sha256": "62284f5b1f1ede57f8ecbf4be2f842ddacce839db5db2179c9bc4b45306e30e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\pilot_analysis.json": {
+      "type": "file",
+      "bytes": 12348,
+      "sha256": "0c33ea9040eb060ffe2395b0a99f91e4f1fed07e5716b6686865bfe2b97af8b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\report_completed_pilot.py": {
+      "type": "file",
+      "bytes": 19384,
+      "sha256": "f2434c74335f53ad3001804990b21080017adad04461f9b8fd520aff2cd15edb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\test_completed_report.py": {
+      "type": "file",
+      "bytes": 11924,
+      "sha256": "1ba28a0471a47b0eb9d075c8e2f2cb4c3687229c2fa9f328432525c2d25995ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\finish_review.py": {
+      "type": "file",
+      "bytes": 4097,
+      "sha256": "e33665db0ba4ee9b642f44ca54d1d99cae5f5ac47e649a315beab1d2fa0ab98f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\postprocessing_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 783,
+      "sha256": "65fd128ab467cc9a3580b2e15237e4422ee29fcdf362c9ed9863298e91092d0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\postprocessing_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 90000,
+      "sha256": "6604dc6f9b827b475c15e8e41e49b20740de974c35b071dc0e65aa623a9df690"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\matched-weak-kl-representation-curve-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 3515,
+      "sha256": "45aa1a0f95a38aa606ea2bc9f43b2bfd8cb9f344c994955274bfcdfc6de78fdc"
+    },
+    "research/experiments/native-state-contract-audit-20260831/interpretation_addendum.md": {
+      "type": "file",
+      "bytes": 3720,
+      "sha256": "5279ce816e600e7bf9b79b4d11c4dbeaa2059b7ca216ea1218c6cd843869179d"
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-contract-curve-independent-replication-20260901",
+  "title": "Legacy-contract iter08/iter16 independent curve replication",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T11:31:22+00:00",
+  "updated_at": "2026-09-01T11:33:55+00:00",
+  "started_at": "2026-09-01T11:31:22+00:00",
+  "ended_at": "2026-09-01T11:33:55+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "On 4,096 entirely fresh mirrored pairs per anchor, at least one of the exact frozen iter08 or iter16 policies will reproduce its discovery-panel improvement over untouched Standard10 with a two-candidate Bonferroni 97.5% pooled lower bound above zero, at least 3/4 positive anchor points, and nonnegative pooled points in both candidate seats.",
+  "material_change": "Do not train or alter weights. Freeze only parent, iter08, and iter16; replay four untouched anchors on new deterministic deal seeds disjoint from discovery, quadrupling pairs per cell to 4,096. Apply a two-candidate multiplicity correction and select at most one checkpoint by highest adjusted lower bound.",
+  "baseline": "Discovery-only evidence: iter08 +26.8157 bb/100 with 98.75% lower -0.0145; iter16 +30.2183 with lower -0.2125; both positive on 3/4 anchors and neither eligible. Internal proxy evidence is not Slumbot strength.",
+  "source": "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/checkpoints/checkpoint_iter000008_hands000000033016.pt",
+  "parent_id": "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evidence_audit.json",
+  "command": "python research/experiments/v6-legacy-contract-curve-independent-replication-20260901/run_replication.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-legacy-contract-curve-independent-replication-20260901/run_replication.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:31:22+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-contract-curve-independent-replication-20260901/audit_replication.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:33:55+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8d2c324af911558f2475eaede281f252d61f9df50b25e0ef083da10aac14ff2b",
+    "code_paths": [
+      "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/run_replication.py",
+      "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evaluate_panel.py",
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T11:31:22+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/code.patch",
+    "patch_sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2",
+    "source_manifest": "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/source_manifest.json",
+    "source_manifest_sha256": "8812fb520f8641b775a34f38a2c8002b939c8a9f28fb3e79c1e3c11a7fe1b13e",
+    "source_files": 79
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 69288,
+    "offline_samples": 0,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 153.0,
+    "target_evaluation_hands": 98304,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "bonferroni_confidence": 0.975,
+    "iter08_delta_bb100": 6.75543212890625,
+    "iter08_bonferroni_lower": -2.56547283529906,
+    "iter16_delta_bb100": 14.93756103515625,
+    "iter16_bonferroni_lower": 2.3310636602999875,
+    "iter16_positive_anchors": 3,
+    "evidence_audit_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/code.patch",
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/run_replication.py",
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/replication",
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/replication_analysis.json",
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/audit_replication.py",
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/replication_audit.json"
+  ],
+  "notes": [
+    "No optional extension of discovery hands. Seeds begin at 2026090301 and differ for each anchor. No Slumbot unless the full replication gate and independent raw audit pass.",
+    "Independent audit verified 12 raw 4096-pair cells, all hashes, common decks within anchor, zero overlap with discovery decks, both-seat recomputation, and exact iter16 selection."
+  ],
+  "result": {
+    "summary": "Fresh-seed 98,304-hand internal replication rejected iter08 but confirmed exact frozen iter16: +14.9376 bb/100 versus parent across four anchors with two-candidate Bonferroni 97.5% CI [2.3311,27.5441], 3/4 positive anchors, and positive point estimates in both mirrored candidate seats.",
+    "conclusion": "Exact iter16 passes the preregistered independent internal promotion gate with audited raw evidence. The bridge-smoke anchor remains negative, so the result is not universal dominance and internal proxy performance is not external strength. The evidence is sufficient only for a bounded fresh5k Slumbot calibration of this one frozen checkpoint.",
+    "decision": "ADMIT_EXACT_ITER16_GREEDY_FRESH5K_SLUMBOT",
+    "next_step": "Freeze exact SHA256 0b1b58a87637f620ae580754bc940ec7aca246d94762d77717c9b578aac9f290 and run eight independent fresh625 Slumbot sessions through the generic legacy-v4 observation bridge, with raw hand JSONL CI, replay, token/evidence and session-independence audits. Do not continue to 20k unless fresh5k evidence justifies it."
+  },
+  "tags": [
+    "evaluation",
+    "learned-weights",
+    "replication",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795616,
+      "sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2"
+    },
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 14687,
+      "sha256": "8812fb520f8641b775a34f38a2c8002b939c8a9f28fb3e79c1e3c11a7fe1b13e"
+    },
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/run_replication.py": {
+      "type": "file",
+      "bytes": 6205,
+      "sha256": "349f8045daf243e46fd8edc3f9fb58dfbc7bc3a1206735f831673a854455e15c"
+    },
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/replication": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/replication_analysis.json": {
+      "type": "file",
+      "bytes": 5115,
+      "sha256": "cfb0deb85956b706c725d22073e791afc2901d79a811a070385624984eda3145"
+    },
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/audit_replication.py": {
+      "type": "file",
+      "bytes": 6007,
+      "sha256": "7028e27cd4605d1f79b9920a1e54bebbb3b9d6e1f85a59c5511398eaf160033f"
+    },
+    "research/experiments/v6-legacy-contract-curve-independent-replication-20260901/replication_audit.json": {
+      "type": "file",
+      "bytes": 7130,
+      "sha256": "4165b31b09621be7478cc49f06b5af76597abc02898c6c8bbe790c69c9b6c388"
+    }
+  }
+}

@@ -1,0 +1,265 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-decision-expert-gate-mgda-matched-smoke-20260902",
+  "title": "Matched MGDA decision-expert gate smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T12:26:48+00:00",
+  "updated_at": "2026-09-02T12:56:13+00:00",
+  "started_at": "2026-09-02T12:26:48+00:00",
+  "ended_at": "2026-09-02T12:56:13+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Replacing only equal-average policy-gradient aggregation with minimum-norm MGDA will keep every opponent-seat training gradient nonnegative at every step and convert the ordinary gate's partial +8.78 bb/100 signal into consistent positive holdout direction across three seeds, all holdout opponents, and both seats.",
+  "material_change": "Repeat the exact high-dose decision-gate experiment with frozen experts, six training opponents, three holdouts, seeds, decks, 4096 hands/seed, 512 eval pairs/cell, lr0.01, eight epochs/chunk, PPO clip, and KL coefficient unchanged. The sole treatment is MGDA aggregation of the twelve opponent-seat policy-loss gradients before adding the same reference-KL gradient.",
+  "baseline": "v6-decision-expert-gate-highdose-calibration-20260902 ordinary equal-average gate.",
+  "source": "v6-decision-gate-gradient-conflict-audit-20260902",
+  "parent_id": "v6-decision-gate-gradient-conflict-audit-20260902",
+  "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --learning-rate .01 --epochs 8 --reference-kl-coef .1 --robust-mgda --save-transition-audit --out-dir research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_decision_expert_gate_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --train-hands 4096 --eval-pairs 512 --seeds 3 --seed 20266001 --device cuda --learning-rate .01 --epochs 8 --reference-kl-coef .1 --robust-mgda --save-transition-audit --out-dir research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T12:26:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e776fe033cf580b1310f90c47065d5bcf2315089273e7481fe19c75fcd086663",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py"
+    ],
+    "captured_at": "2026-09-02T12:26:48+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/source_manifest.json",
+    "source_manifest_sha256": "768493ec32f2f3b8e5de68ba1b423f1dbb0f5a6bf63eeec2c25dbe04ef4580c4",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 12288,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 18432,
+    "wall_time_seconds": 1765.0,
+    "planned_environment_training_hands": 12288,
+    "planned_evaluation_hands": 18432,
+    "saved_training_transitions": 32702
+  },
+  "metrics": {
+    "pooled_delta_bb100": -10.50065104166667,
+    "pooled_ci95_lower": -34.47430687829537,
+    "pooled_ci95_upper": 13.473004794962035,
+    "positive_seed_deltas": 1,
+    "fictitious_average_delta_bb100": -37.749674479166664,
+    "fictitious_response_delta_bb100": -31.019856770833332,
+    "weak_kl_full_delta_bb100": 37.26757812499999,
+    "seat0_delta_bb100": 7.463975694444443,
+    "seat1_delta_bb100": -28.465277777777782,
+    "replay_endpoint_max_abs_error": 0,
+    "replay_minimum_applied_worst_alignment": 0.03958522750015096,
+    "replay_optimizer_steps": 96
+  },
+  "artifacts": [
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/code.patch",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/source_manifest.json",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/summary.json",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/replay_audit.json",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_gate.pt",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_gate.pt",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_gate.pt",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_training_hands.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_evaluation.jsonl.gz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk00000_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk01024_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk02048_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk03072_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk00000_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk01024_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk02048_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk03072_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk00000_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk01024_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk02048_transitions.npz",
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk03072_transitions.npz",
+    "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py",
+    "scripts/alpha_holdem/test_v6_decision_expert_gate_smoke.py",
+    "scripts/alpha_holdem/v6_decision_gate_replay_audit.py"
+  ],
+  "notes": [
+    "Admission requires exact hands/replay evidence, finite gradients, positive MGDA worst-group alignment at every optimizer step, >=1pct probe movement every seed, preservation weight/disagreement gates, positive pooled and median seed delta, >=2/3 positive seeds, all holdout opponents positive, and both seats positive. Failure closes this gate/expert-pair route; no dose or checkpoint rescue.",
+    "All gzip counts and SHA256 values matched; all 12 NPZ shards were finite with exact expert probability mass. Replay reconstructed all three endpoints exactly and emitted all 96 optimizer metrics; applied worst alignment was positive at every step. Full AlphaHoldem suite: 308 passed."
+  ],
+  "result": {
+    "summary": "Matched MGDA gate training completed exactly 12,288 training and 18,432 paired evaluation hands. MGDA achieved positive worst-group alignment on all 96 exactly replayed steps and all three gates moved materially, but pooled holdout delta was -10.50 bb/100 CI [-34.47,+13.47], seed deltas +0.03/-6.39/-25.14, two holdout opponents were negative (-37.75 and -31.02), and seat1 was -28.47.",
+    "conclusion": "Conflict-averse optimization solved the measured training-gradient conflict but worsened untouched holdout generalization relative to the ordinary high-dose gate. This is explicit proxy reversal, not a failure inferred from too few hands or failure to beat Slumbot. The Standard10/diverse_league5 decision-gate route is closed without further dose, checkpoint, or scale rescue.",
+    "decision": "CLOSE_DECISION_GATE_EXPERT_PAIR_PROXY_REVERSAL",
+    "next_step": "Return to the broader research portfolio. Do not scale PSRO selectors, whole-hand routers, or this decision-gate pair. Prioritize a learned policy-improvement target whose small-scale proxy has demonstrated external directional alignment with the Standard10 greedy contract; retain Standard10 as the only reproducible frontier parent and require early exact-contract 20k evidence before million-hand expansion."
+  },
+  "tags": [
+    "matched-smoke",
+    "mgda",
+    "mixture-of-experts",
+    "three-seed"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 299,
+      "sha256": "768493ec32f2f3b8e5de68ba1b423f1dbb0f5a6bf63eeec2c25dbe04ef4580c4"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 10627,
+      "sha256": "727edc83a6ca8969d1fc1e30f46e509cc8c3ba3b3123f5da1dd0d57a38f0a41f"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/replay_audit.json": {
+      "type": "file",
+      "bytes": 96723,
+      "sha256": "2a81439d62b59aaebb3ba21187326178e480a622b63f71fae74fddb086d84a3c"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "19339ca8b52ea1d84388a1cb6cbf8aca7c3d6484075540bf3e6f367adb83d177"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "7e7265d334bc14fa5b1ea6f11d384fccf8163ac8dbe897de6d0c2fa3a9d4cec8"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_gate.pt": {
+      "type": "file",
+      "bytes": 108136,
+      "sha256": "876d223c6c5d525332d53619e9c496880b4a1a53823c9808530c4221c1479016"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 53078,
+      "sha256": "8989dd040f07580a127519385735d7b4324075dad969cbfa6e100587894123cc"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 53567,
+      "sha256": "d4fa4200541eece64b804951c2b84acc4635ff02af11a032baefe9de7e0748df"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 53326,
+      "sha256": "ebe8537bd3c0a1ea1dae2109e1a662ffe282240d01a2f211207da26cb90bd037"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 53643,
+      "sha256": "5acb530c3df400dae2325300dd99a3575d4087bb4be29654485e944d720c4d00"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 53680,
+      "sha256": "4b8e337b62e6f7e7cd428886a492a85d1bcafb28d5c3453eefd14e9791063d39"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 54763,
+      "sha256": "16d3b726d533735e279f47fe3a7eec6aa609902553244f9c3b9b7ebd8ef1fff4"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk00000_transitions.npz": {
+      "type": "file",
+      "bytes": 293225,
+      "sha256": "6f17b4c6887a71c20a88d5ac5e1781353546681154b7dedb36141ad4d3c7cff1"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk01024_transitions.npz": {
+      "type": "file",
+      "bytes": 291215,
+      "sha256": "cfb9132a5dfc2444963bccb91c4a4c37abebb4d3edd4f70f3d319d2d9f558939"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk02048_transitions.npz": {
+      "type": "file",
+      "bytes": 281209,
+      "sha256": "9a20db45133ed07036100972251fc7be21fc69e962da3e036f87436c4c717cce"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed0_chunk03072_transitions.npz": {
+      "type": "file",
+      "bytes": 287264,
+      "sha256": "84ef11a939c3c1121b6767ecc9f17c6e51acd6276476b7ff6e5f1111f9ecb1b8"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk00000_transitions.npz": {
+      "type": "file",
+      "bytes": 298593,
+      "sha256": "ba0a94b552bfa394eeb3b6064858af4706f5dbbbd717d498e51bea3bf6d612e6"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk01024_transitions.npz": {
+      "type": "file",
+      "bytes": 287865,
+      "sha256": "395c3618dc5fabadeaaa3eac5dcec54f35dd1af78f6f54d4d3135f30fc7c3cac"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk02048_transitions.npz": {
+      "type": "file",
+      "bytes": 280691,
+      "sha256": "1def88c3c18a9a3a0181222c66a72d1fe46a7a8b1cf462128a2cabe95eec4ce6"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed1_chunk03072_transitions.npz": {
+      "type": "file",
+      "bytes": 289708,
+      "sha256": "6299422c696ab83fb816a68f81028306eb2697d1611e7fd0a4d552aef274fb39"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk00000_transitions.npz": {
+      "type": "file",
+      "bytes": 297752,
+      "sha256": "8e5332a83f2a03560b652344fcb480f77328df46a9ca4b89263ce5acbd248dac"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk01024_transitions.npz": {
+      "type": "file",
+      "bytes": 283635,
+      "sha256": "db0bb9c8d815aa613feeeef285c676027e5a9ff30aef92653f31035d7adc3a5f"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk02048_transitions.npz": {
+      "type": "file",
+      "bytes": 288114,
+      "sha256": "4133d51adcd0ff3b588863751f5945e714684549b407265cabf4e569771f7d9c"
+    },
+    "research/experiments/v6-decision-expert-gate-mgda-matched-smoke-20260902/run/seed2_chunk03072_transitions.npz": {
+      "type": "file",
+      "bytes": 283259,
+      "sha256": "aa5e8b7e980b71153d4c99257a8c18accb1136bcd0e8e17a356525ef0a3a18f8"
+    },
+    "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py": {
+      "type": "file",
+      "bytes": 26220,
+      "sha256": "b26767fbbfe63bbf26bd90940b7dd6b91336c5e66e850abf8f25cbdec2aff4ba"
+    },
+    "scripts/alpha_holdem/test_v6_decision_expert_gate_smoke.py": {
+      "type": "file",
+      "bytes": 3668,
+      "sha256": "5a031aec3fb3836c9a099e487102bc7a7a4a6ad4b43b358f18fe15193e3aab21"
+    },
+    "scripts/alpha_holdem/v6_decision_gate_replay_audit.py": {
+      "type": "file",
+      "bytes": 4549,
+      "sha256": "ebc7502a2f2f86244451341325af15c30698696818d6484cd32dc0c17a882d44"
+    }
+  }
+}

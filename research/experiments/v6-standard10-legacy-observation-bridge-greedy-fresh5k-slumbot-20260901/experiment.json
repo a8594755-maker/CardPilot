@@ -1,0 +1,1285 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901",
+  "title": "Frozen Standard10 legacy-observation bridge greedy fresh5k",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T10:24:54+00:00",
+  "updated_at": "2026-09-01T10:38:09+00:00",
+  "started_at": "2026-09-01T10:24:54+00:00",
+  "ended_at": "2026-09-01T10:38:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Exact restoration of the historical Standard10 v4 observation contract on repaired v6 physical state will materially recover external greedy performance versus naive v6 rebinding; a fresh5k point estimate above -40 bb/100 with CI upper bound above zero is sufficient to admit a fresh20k confirmation, but is not qualification.",
+  "material_change": "Add a default-off legacy-v4 observation bridge mode to the strict journaled v6 client, freeze the exact Standard10 checkpoint and prepared runtime, then run eight independent fresh625 generic-greedy Slumbot sessions. Use raw hands only for bb/100 and CI; require full session/evidence audit.",
+  "baseline": "Naive current-v6 rebound of identical learned tensors scored -96.6832 bb/100 in fresh5k. Historical old-contract Standard10 greedy fresh20k scored -11.4275 CI[-28.7124,5.8574]. Prior single imitation-teacher fresh20k -18.5025 remains negative evidence and is not this treatment.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/analysis.json",
+  "command": "python research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:24:54+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/run_recovery.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:32+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\test_pilot.py C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\test_bridge_client.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:39+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112101 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112102 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112103 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112104 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112105 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112106 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112107 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026112108 --session-id v6_standard10_legacy_bridge_greedy_fresh5k_20260901_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:32:46+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\audit_bridge_cli.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:35:14+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:38:09+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/make_independence_dumps.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:38:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_session_independence.py --dump research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s01_dump.jsonl research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s02_dump.jsonl research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s03_dump.jsonl research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s04_dump.jsonl research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s05_dump.jsonl research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s06_dump.jsonl research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s07_dump.jsonl research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independence_dumps/s08_dump.jsonl --out-json research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/session_independence_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:38:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "bece912c95b2a18b2150a359eabcd52aa8f8121e28daa053bd06f4c7481d097e",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T10:24:54+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/code.patch",
+    "patch_sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9",
+    "source_manifest": "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/source_manifest.json",
+    "source_manifest_sha256": "97555260fcf44febbd356eac6888911365811b744bc6f95dbe8cdcc1b71a4e81",
+    "source_files": 76
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 5000,
+    "wall_time_seconds": 795.0,
+    "target_sessions": 8,
+    "target_hands": 5000,
+    "slumbot_hands": 5000,
+    "sessions": 8
+  },
+  "metrics": {
+    "fresh20k_admission_point_bb100": -40,
+    "fresh20k_admission_ci_upper": 0,
+    "wall_time_seconds": 256.0929999999935,
+    "bb_per_100": -15.79,
+    "ci95_lower_bb_per_100": -46.78018686558506,
+    "ci95_upper_bb_per_100": 15.20018686558506,
+    "positive_sessions": 4,
+    "delta_vs_naive_v6_rebound_bb_per_100": 80.8932,
+    "delta_vs_historical_old_contract_bb_per_100": -4.3625
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/code.patch",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/source_manifest.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/execution.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/execution_code/source_manifest.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/execution_code/code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\interruption_report.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\ec\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\ec\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\ec\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\session_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\audit_bridge_cli.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\pilot_stats.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\run_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\run_recovery.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s08_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\test_bridge_client.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\test_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\audit_bridge_cli.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\pilot_stats.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\run_pilot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\run_recovery.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\test_bridge_client.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\analyze_dump.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_allin_runout_ev_log.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_policy_replay_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_replay_dataset.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_mirrored_selfplay_log.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_paired_seat_average_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_hand_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_session_independence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_dynamic_pool_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_elo_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_replay_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\combine_slumbot_logs.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\counterfactual_q_replay.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\distill_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v55.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\execution_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\legacy_observation_bridge_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network_hybrid_h1.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\policy_contract_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\ppo_hand_gradient_noise.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\rules_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_ci_from_hands.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_journal_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_terminal_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_transport.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\teacher_live_coverage_audit.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_counterfactual_policy_only.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_distill_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_environment_hand_accounting.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_greedy_advantage_margin.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_hero_policy_temperature.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_legacy_observation_bridge_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_paired_seat_actor_returns.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_diagnostics.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_update_equivalence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_hand_gradient_noise.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_preflop_context_action_priors.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_sampled_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_ci_from_hands.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_execution_telemetry.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_transport.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_greedy_margin_preservation.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_policy_kl_temperature.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_stochastic_slumbot_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_teacher_live_coverage_audit.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_allin_ev.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_dynamic_pool.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_elo_pool.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_mirror_deals.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_procedural_opponent.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_replay.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_v5.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_exp_w1_value_warmup.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h1_critic.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h2_targets.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_loss_report.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_promotion_gate.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_training_curve_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v6_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_compact_v55_bridge.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_train_v5_replay_resume.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__init__.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\auto_converge.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\batched_traversal.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\check_encoding_collisions.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\compare_strategies.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\distill.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\encoding.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\eval_agent.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_fresh_buffer.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_fast.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_improved.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_policy_net.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_tabular_sdcfr.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\export.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\game_state.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\hand_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\networks.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\reservoir.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\run_hunl.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr_leduc.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\train.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\validate_fixes.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__init__.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\audit_slumbot_v6_session.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment_v55.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\execution_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\legacy_observation_bridge_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\network.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot_v6_journaled.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\policy_contract_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\rules_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_journal_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_terminal_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_transport.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\v5_mirror_eval.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\__init__.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\game_state.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\hand_eval.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\__init__.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\summary.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/reviewed_analysis.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/result_summary.md",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/session_independence_audit.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independent_raw_ci.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/combined_audit.json"
+  ],
+  "notes": [
+    "One calibration allocation only. Same frozen learned checkpoint across all sessions; no tactical overrides, nearest-action repair, retry, resume, failed-hand replacement, or outcome-conditioned changes.",
+    "Initial run_pilot stopped in provenance copy before frozen checkpoint creation, child launch, network, or hands because the long nested execution_code path exceeded the Windows legacy path limit. Safe same-record recovery preserves all preregistered inputs and cohort identities.",
+    "Zero-hand preflight recovery after Windows path-length failure; checkpoint, runtime, commands, seeds, sessions, and evidence contract unchanged."
+  ],
+  "result": {
+    "summary": "The exact frozen Standard10 legacy-v4 observation bridge completed eight independent fresh625 generic-greedy sessions: -15.79 bb/100, raw 95% CI [-46.7802,15.2002], session-t7 CI [-39.8746,8.2946], and 4/8 positive sessions. This improved +80.8932 bb/100 versus the identical tensors naively rebound to v6 and reproduced the historical old-contract point within -4.3625 bb/100. Bridge-aware frozen-model replay, raw-hand CI, token/evidence, and observable deal-stream independence audits passed.",
+    "conclusion": "The Standard10 clue was actionable: most of the naive v6 transfer loss came from observation-contract drift, especially preflop, not physical action sizing. Exact generic contract preservation recovered the historical near-zero regime but did not establish positive strength. The prior -18.5025 imitation-teacher evidence remains negative; no imitation learning occurred here.",
+    "decision": "ADMIT_BRIDGE_GREEDY_FRESH20K",
+    "next_step": "Run one independent eight-session fresh2500 greedy confirmation with the same exact checkpoint and bridge contract. Continue toward 100k only if its fixed fresh20k evidence supports it; otherwise use the bridge as a preserved initialization/reference for learned-weight improvement."
+  },
+  "tags": [
+    "execution-contract",
+    "fresh5k",
+    "slumbot",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 15,
+    "command_count": 15
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795324,
+      "sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 14032,
+      "sha256": "97555260fcf44febbd356eac6888911365811b744bc6f95dbe8cdcc1b71a4e81"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/execution.json": {
+      "type": "file",
+      "bytes": 9069,
+      "sha256": "ce7a9de0c9cad857d93094ed2495a4c5e64aefe4abd136bbfecc9fb6c1c380be"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "614580626b55abce990b63898e17781dee120c8ef388aba57c3208b3a2692eac"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/execution_code/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\interruption_report.json": {
+      "type": "file",
+      "bytes": 1399,
+      "sha256": "900d974de84cc7e4f939afc040881d1a3dfd11c07ada4f472bd9e00e8d84a53e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime_manifest.json": {
+      "type": "file",
+      "bytes": 17229,
+      "sha256": "63ba23bad5aa1f51581ca672c2645bfc5773db3eb3365b61fd8aa5c34995a440"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\ec\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1978,
+      "sha256": "81e1b38a1674f42857d15ff4a5b5c0bbfe286c8233da723c826ec5f9609ad97d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\ec\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\ec\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2765,
+      "sha256": "0809accd9e2e00a1b60139125c666ca6d174e72cf17a36b97cee98fc5b2257f7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 5351,
+      "sha256": "56187d45f957eb399f928f900e2f7a483752abc394c083c5b495226140e7c989"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 803,
+      "sha256": "4f1a5293b89fdb757941b0d124fa4755e84138c1ea4d60bdd2ce78c5ef816bed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\session_commands.json": {
+      "type": "file",
+      "bytes": 7547,
+      "sha256": "39a48dee77d2c92dfd8439a91e9151c9eb700f8f414e19925284d99469cfdbc3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8580,
+      "sha256": "94fc7443788e586162acbccb46fd0bd70dd3bb7fa99f281740bf8931b4bcb550"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 1142,
+      "sha256": "b1f93acde05ce66f9af962dc37d748e75b948e3d4717c35dd281a84309757d19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\audit_bridge_cli.py": {
+      "type": "file",
+      "bytes": 497,
+      "sha256": "a2094e44b9d29575d0651f37ac2de4c4b29e7baacb74a87410222e542d990141"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 9069,
+      "sha256": "ce7a9de0c9cad857d93094ed2495a4c5e64aefe4abd136bbfecc9fb6c1c380be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\pilot_stats.py": {
+      "type": "file",
+      "bytes": 2026,
+      "sha256": "56eaff70050be0ac77d91c32d14052d673894c8263a93c3b6871102faa88c7fb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\review_finish.py": {
+      "type": "file",
+      "bytes": 4956,
+      "sha256": "144ef35fb609e2d0c508a1cca8a2b8f51b1a806547457ed2e8d2563d97c23521"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\run_pilot.py": {
+      "type": "file",
+      "bytes": 3846,
+      "sha256": "481c3fa5fc941b27b137cd92c7239ad3252559a77bb1d76ccc5533a75a46c458"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\run_recovery.py": {
+      "type": "file",
+      "bytes": 12876,
+      "sha256": "7d0aed954ee276e7ae4d06c639088394928410b19aa03c2f3ac433717035bc98"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s01_stdout.log": {
+      "type": "file",
+      "bytes": 6548,
+      "sha256": "ae800e229d0900b64ef0c65ae55dcdde5d330fc840ad4b8c107bf10c33bf9b42"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s02_stdout.log": {
+      "type": "file",
+      "bytes": 6553,
+      "sha256": "255b547458d24e00d61b19f99cd0fd0f43511bb93ec5c0f1a74cbf2270bb4d34"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s03_stdout.log": {
+      "type": "file",
+      "bytes": 6548,
+      "sha256": "358a2f1a5b53874bbbb20e4f5fdbbfc98d96443b4ba342e8e962b352e63d8d8d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s04_stdout.log": {
+      "type": "file",
+      "bytes": 6553,
+      "sha256": "200df6eeff8017bb332645158142f40657199560f814bef3f9832cb6b15cef40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s05_stdout.log": {
+      "type": "file",
+      "bytes": 6550,
+      "sha256": "78b9dd5f060714dec36b960c8998695bff32562932452dfc4586e99c4dee41d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s06_stdout.log": {
+      "type": "file",
+      "bytes": 6552,
+      "sha256": "33c60aefff7df09604330970969835b452c95f843051225442c21c97a92451a9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s07_stdout.log": {
+      "type": "file",
+      "bytes": 6549,
+      "sha256": "212fa560bd135b2be4097aa1526c1fe86cc9117777ba071415d50e334cc3171a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\s08_stdout.log": {
+      "type": "file",
+      "bytes": 6549,
+      "sha256": "61b060d8cab89d17a5f628dfb2013eb79d40b5b7d0d0cc20a1e9430cf7120fb1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\test_bridge_client.py": {
+      "type": "file",
+      "bytes": 1934,
+      "sha256": "42396201487cdbdc45a7bb8eae4be0bd1aa7eb92fb6570dc336062c183d96517"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\test_pilot.py": {
+      "type": "file",
+      "bytes": 1007,
+      "sha256": "e66931be35fa5507b2c677be1dadc6e7e47b0f6cafb1070f854f91d132fe3be0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\audit_bridge_cli.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 980,
+      "sha256": "99d0bcc88a0fda301fb40bd72b996311a777db93a80d4d24040aacb1da92bf32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\pilot_stats.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 3526,
+      "sha256": "47765e3f6e7236583d3e8b277b661bb9fd8af01195f5ea6bbc6ba3ec0c6316a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 7360,
+      "sha256": "fad52e8ad5fbbfbbfee64f7f832e1c63511388659b301a1ec06e781b5a191867"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\run_pilot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 5980,
+      "sha256": "650e69ddfeea84071f1f8d4451f82c604f94ef0ccccef56f0f64987fff202170"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\run_recovery.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 20591,
+      "sha256": "8e149ddf8047d8ce86ff7eba60edcce1085aeb2eee6e6ad1103f23530e6e57e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\test_bridge_client.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 4915,
+      "sha256": "ba89577c794cba4081c02d098a9d92089797f34fb029ba7d4d41c8467befea4f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 7536,
+      "sha256": "3dde4b2446447afe00c815400a95a46a13c5dc25c5d792601a47eee0d1d562bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\analyze_dump.py": {
+      "type": "file",
+      "bytes": 9106,
+      "sha256": "491ff1cd45d812f80777ae5918313dcf0f047fdb558f221a52fc076624386eb0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_allin_runout_ev_log.py": {
+      "type": "file",
+      "bytes": 5216,
+      "sha256": "ba53f33b4e68ac148609a160b7c3d0fc61fa81a698c11e036388aca86a83f592"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_policy_replay_session.py": {
+      "type": "file",
+      "bytes": 8492,
+      "sha256": "8c8c3445387ec1931f56628a876fd4e7ec5ac7a26762148b9fdf77288c53a7d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_replay_dataset.py": {
+      "type": "file",
+      "bytes": 3043,
+      "sha256": "f7c00dc8f595b9c622faaba88258a24e93f6de13c606ecd28cd430c34c637105"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_mirrored_selfplay_log.py": {
+      "type": "file",
+      "bytes": 5677,
+      "sha256": "cf56d719ac4d0d46f1e1a6a3c8d75ee6be64b153fecf71772c8c2945c6f9cd85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_paired_seat_average_session.py": {
+      "type": "file",
+      "bytes": 3758,
+      "sha256": "cdea3d0b91196c12cbcfe7071acf47f32fc28fdbe61bb16c046c24b09b0f6f3e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_hand_evidence.py": {
+      "type": "file",
+      "bytes": 11383,
+      "sha256": "38aa472cc4034c4b26c371afd385ce31dcdff6bb8db2c1368919085d1f87f4e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_session_independence.py": {
+      "type": "file",
+      "bytes": 9936,
+      "sha256": "60ca9fee6ee8428354b9601ff6e69104bfff4ccf447d5ced890184cac75546e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py": {
+      "type": "file",
+      "bytes": 18394,
+      "sha256": "ddebe393178f433ffe28c3258527d98a6cbd3154a2dcb04cd2ad39cbdf4744a9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_dynamic_pool_session.py": {
+      "type": "file",
+      "bytes": 10042,
+      "sha256": "4c4cbfe1b593eba0711820903e343ff8694d31ade8b77d95a624a719d0103dfe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_elo_session.py": {
+      "type": "file",
+      "bytes": 15098,
+      "sha256": "01c525da223927da011cde61fb104a4033811566ea21a68b32ecc5ce8e052ac9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py": {
+      "type": "file",
+      "bytes": 14926,
+      "sha256": "05ec950ec4760747d5ab8d39fef90583e8ae4173efe5194031c1de4cb05b4b6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_replay_session.py": {
+      "type": "file",
+      "bytes": 8186,
+      "sha256": "e24dbdee59ee6c734a2c717d8c68bdcc42d8f032d97beaa9d4ad49dd09e2553f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\combine_slumbot_logs.py": {
+      "type": "file",
+      "bytes": 3856,
+      "sha256": "ad2d61219e911e5948efd59f6143ddbcaf7a8e1d497b89d6f1f4a31100296c4c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\counterfactual_q_replay.py": {
+      "type": "file",
+      "bytes": 31450,
+      "sha256": "6148e45cae4bbc39fb7be01ed0f3fb4ccf88c93e7d3f4363abd060b54f4b56cf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\distill_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 40164,
+      "sha256": "6cbf21ae4ee83b22a9d6bbd401420eeae9ca4fb160c542b60529a5253553015f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment.py": {
+      "type": "file",
+      "bytes": 14242,
+      "sha256": "764c838ff060881705b91477d8bf3a5df6949f94a6e503fcb816c6f1b4c57f9b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v55.py": {
+      "type": "file",
+      "bytes": 19558,
+      "sha256": "39ac67a5939035497da4bfb07da63e00a8418262e75f5552185718ffe1eba6ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v6.py": {
+      "type": "file",
+      "bytes": 5168,
+      "sha256": "e97c05c59d28e23594ea2ee1b860411f514dc27b82c6a02b82933cf45c96c221"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate.py": {
+      "type": "file",
+      "bytes": 8315,
+      "sha256": "adddb47ddec6dc1ed0d5fe82cc10ae1d7c42633dc2cc63ec7b86dbd95b32de12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 3053,
+      "sha256": "909a0b0b7ac54df5a5825107dda0a5ea5f449adafa788ded2779e189447fbb8e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\execution_v6.py": {
+      "type": "file",
+      "bytes": 3473,
+      "sha256": "28c13c4ae6c8ccbde821c322d951f7a8e61f41e4e6dffd345f1c6bf5d1aefa25"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\legacy_observation_bridge_v6.py": {
+      "type": "file",
+      "bytes": 9513,
+      "sha256": "63e0a0efa63ece090d412bfaf8a694ffa9aba8c170cd6b3cfd7c7b1acbeda857"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network.py": {
+      "type": "file",
+      "bytes": 24761,
+      "sha256": "64667d2b379775de17ceef916c32f7c2b7ac9a01e821a5677f6997c196b7325e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 40887,
+      "sha256": "95fe31834a3c55bb0ad7a13da7188d74bfb9513da9c10396acad94a7c563b406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py": {
+      "type": "file",
+      "bytes": 4985,
+      "sha256": "73ff5c2d43bfeccc2998abebc16f369903590a0b27ec3808fa32a2cd4e4dd955"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot.py": {
+      "type": "file",
+      "bytes": 110759,
+      "sha256": "2465373a2dcb7d84adf9618e9cb8953156623ad5b38bef32395339b9e7db5d01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6.py": {
+      "type": "file",
+      "bytes": 4231,
+      "sha256": "5694199b675d9fab3e33ea73d25e3c720dbb6d3440465d68e2ff970e2a5fab75"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py": {
+      "type": "file",
+      "bytes": 13349,
+      "sha256": "2085053a1d2bbedf3fe2cce41343d16be34a85411352bfe234dc5ba2de807c5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\policy_contract_v6.py": {
+      "type": "file",
+      "bytes": 7593,
+      "sha256": "abc4a0b5b305bd3e0aef7d234441db7af12caccca6091d0de332777723a0ec86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 8114,
+      "sha256": "be1117bc9740ccf916c0d9ccda0c3f58182872578e436a2eded3ff3594557d5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\rules_v6.py": {
+      "type": "file",
+      "bytes": 6916,
+      "sha256": "f2e4b5acb76d2d18897ae75babc5a2e4b932dc9ef351f1220d6df5e7908f7ef1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_ci_from_hands.py": {
+      "type": "file",
+      "bytes": 8477,
+      "sha256": "9537f97bc38a7dc87da0ee3e4940978de729e120c005110e95d48755135eb547"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_journal_v6.py": {
+      "type": "file",
+      "bytes": 3028,
+      "sha256": "7ec409e78891be84698acb9ba14fcd02a9c0456041950c58f1652754b23dc69e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_terminal_v6.py": {
+      "type": "file",
+      "bytes": 6552,
+      "sha256": "83324c9213a7ed8453a83f1db338f7477e1528de39b6cdd1b41acc64008f5f44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_transport.py": {
+      "type": "file",
+      "bytes": 2383,
+      "sha256": "b6ecaf23a18dde031cbe6369deacec863273b68104590f8a9a80fa1f806a9554"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\teacher_live_coverage_audit.py": {
+      "type": "file",
+      "bytes": 14089,
+      "sha256": "726e8b3b16b68ba96099d2e3f2351d4d12f4dcb55ee3357daf6da84da69d8a0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_counterfactual_policy_only.py": {
+      "type": "file",
+      "bytes": 2372,
+      "sha256": "5f6880542a4f95e8764742cca5398b57afd8d319cab0bc9181d9251926a5aaa2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_distill_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 4928,
+      "sha256": "6ac71f060cffcaf050ae3aff759ee9c88fc201a56eaa9f204a39eb85744c140f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_environment_hand_accounting.py": {
+      "type": "file",
+      "bytes": 3966,
+      "sha256": "71f1b05164b8d1ec6030dfd97e8f033e1ac82d5a8417877a914f33ca03a78e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_greedy_advantage_margin.py": {
+      "type": "file",
+      "bytes": 4634,
+      "sha256": "73a7dc5d1b38537d67b7b17dfe4e2bb8da99343012ed28742514f697c9e6d1be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_hero_policy_temperature.py": {
+      "type": "file",
+      "bytes": 3142,
+      "sha256": "012cbd3620390ba29fcc634cbc0e1fae86ea56a63efff338f2e7b1fa0fc2fda8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_legacy_observation_bridge_v6.py": {
+      "type": "file",
+      "bytes": 1227,
+      "sha256": "664cb0bdd371c99bf25ed7ddb46f0b6567f279c6bdbe6da69983b704d145589c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_paired_seat_actor_returns.py": {
+      "type": "file",
+      "bytes": 3684,
+      "sha256": "a08f2b10f376dbd68c8d8c59e395644ebe04d815c02b3f03323ce4b0543984bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_diagnostics.py": {
+      "type": "file",
+      "bytes": 2945,
+      "sha256": "88e0b249923068bcf583c9891c32b6eab407d945360e776f813318d6e088436b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_update_equivalence.py": {
+      "type": "file",
+      "bytes": 2571,
+      "sha256": "6070708475fbef3344a7acec06beaa5e3d1fd57da4da2cce1bc904fa2867e4e1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 10004,
+      "sha256": "435f63652a3855c3b91fefb6e167cd12bb4daa3c2877f29f88729d880d826863"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_preflop_context_action_priors.py": {
+      "type": "file",
+      "bytes": 6844,
+      "sha256": "198cf2b36e2ab3d7f176a4e46a100425cc4a2dac712df6e8b51c8d52505c964d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_sampled_mirror_eval.py": {
+      "type": "file",
+      "bytes": 3863,
+      "sha256": "b2a1b9d4ba54e5397657301bacb32c41e9cb6fc9a14ee3ca28a8693a490dfe5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_ci_from_hands.py": {
+      "type": "file",
+      "bytes": 1615,
+      "sha256": "d140f220817e79b86e927534884fbb7b26919cc2a512f4886d35923760173fc9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_execution_telemetry.py": {
+      "type": "file",
+      "bytes": 3639,
+      "sha256": "ddcf66ec7802072c6ca88b7da2fcb14fd6deb0420ae25c2dfd79eead97894ca9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_transport.py": {
+      "type": "file",
+      "bytes": 12026,
+      "sha256": "0a06b76e8582feb406d58565893651b546680347afcc7ed4a45e4692b790ff6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_greedy_margin_preservation.py": {
+      "type": "file",
+      "bytes": 5062,
+      "sha256": "b5a29aaf348b9ede45a246543e7a0e0083c9038861abc8f41ac198d61c621934"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_policy_kl_temperature.py": {
+      "type": "file",
+      "bytes": 3087,
+      "sha256": "a2c5b96d611ac6d53512e2dcf4950098d560aecfd91595ff00fe64b034c61392"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_stochastic_slumbot_evidence.py": {
+      "type": "file",
+      "bytes": 10831,
+      "sha256": "c23c312da94450fddd34095b941b156a1e359c92a4d1e9d9f87f7b3262c77368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_teacher_live_coverage_audit.py": {
+      "type": "file",
+      "bytes": 2483,
+      "sha256": "f0af152b048bcc3aa80af12b6f925a789a866cdb07742ba038a9ddf629bc5df1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_allin_ev.py": {
+      "type": "file",
+      "bytes": 2768,
+      "sha256": "aca40d49f7a3634bd77f18ef3c50d6f432e18b0abc6aee9b1d6c8b2df09510b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_dynamic_pool.py": {
+      "type": "file",
+      "bytes": 5927,
+      "sha256": "42e5f51eb7b72d0dc79c3fcf8e07f88ce214030f3e09f70aecbf395b81989e06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_elo_pool.py": {
+      "type": "file",
+      "bytes": 4988,
+      "sha256": "7ee054d1d4ce328b6e4ebc61e59b15b5f1a5a96ae718a3f962a7a73326fd2650"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_mirror_deals.py": {
+      "type": "file",
+      "bytes": 2171,
+      "sha256": "463b25964d4aebf9ecab78a8beab8bd6b920151e1cfd24f1956f1fcc0f2c5d43"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_procedural_opponent.py": {
+      "type": "file",
+      "bytes": 8323,
+      "sha256": "add8e8a608e2505a0e17eb3c47764a12e9d46fbb56d393d4a7a0970d15ac72b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_replay.py": {
+      "type": "file",
+      "bytes": 7815,
+      "sha256": "600cac3cbce36301705fb5c3a50348c04a9f1f7f601dcd7e3ec090a88b214193"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 130549,
+      "sha256": "a0247156d24a6cbdb1bef57dc11bf712e6112b0885f81dcbc676334e0fc0dd98"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_v5.py": {
+      "type": "file",
+      "bytes": 455749,
+      "sha256": "2dac6cc170a4867e77df171eab9238fcd77ed7f807092238d4fbd3654d10aad3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_exp_w1_value_warmup.py": {
+      "type": "file",
+      "bytes": 12578,
+      "sha256": "247c5348047e571cf7b9bf46bf1ca07040017a6fb6129959d4be55d40d3c3f36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h1_critic.py": {
+      "type": "file",
+      "bytes": 5141,
+      "sha256": "9e48442314f1c218bf2e3f1f224ace5936266e3e1a62d2a81f02048e9205705a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h2_targets.py": {
+      "type": "file",
+      "bytes": 15264,
+      "sha256": "2a99fc3ebc90afcdcb4501d7c6c067c2c112a34c0e023204bd75274a88b70d50"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_mirror_eval.py": {
+      "type": "file",
+      "bytes": 40120,
+      "sha256": "adc5c9665194f58a8180cb6c5750ce5dfb0e997c29fd2ee5b05335906d794ed2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_loss_report.py": {
+      "type": "file",
+      "bytes": 17129,
+      "sha256": "bf8100469a55f7273b61501d4f05e44e5f59103112be1dc833632eeb8bc0cfdb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_promotion_gate.py": {
+      "type": "file",
+      "bytes": 27123,
+      "sha256": "9b29c8335956c40be37bed4e6f20d66b295804175300764b9bfad23b287ef325"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_training_curve_eval.py": {
+      "type": "file",
+      "bytes": 21202,
+      "sha256": "347030530a9df098e4ab4ee522a0773f7e28018e18ff603371ebb40612a8a897"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v6_mirror_eval.py": {
+      "type": "file",
+      "bytes": 4034,
+      "sha256": "09c00c4718d6d1c67affd8a23d79fe2258db00c2816a41642150c124817154c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_compact_v55_bridge.py": {
+      "type": "file",
+      "bytes": 11130,
+      "sha256": "a0d3032cdb9fdd7992916ff0139f9e9615ac7a8979fa1be963d93c0c1e57c24d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_train_v5_replay_resume.py": {
+      "type": "file",
+      "bytes": 7298,
+      "sha256": "772d51bf617e7322d388ced3fe1fbe6c6990cc0f403ae3ede6935fecc415397d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__init__.py": {
+      "type": "file",
+      "bytes": 65,
+      "sha256": "af49b349165d50fb0d550e72061231455cb4919abd08aaa17bc94aeb103cf6e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\auto_converge.py": {
+      "type": "file",
+      "bytes": 14971,
+      "sha256": "8b954943283bbf4347fbc2c8efcdb8709a36aaf2b11b162264aa779d28f72359"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\batched_traversal.py": {
+      "type": "file",
+      "bytes": 15915,
+      "sha256": "677acaad866c8f73f8bb4ae65ed9961b23e25ce9038ff8ef4ed5d7822d71ff5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\check_encoding_collisions.py": {
+      "type": "file",
+      "bytes": 2389,
+      "sha256": "a308a3b89979440db75992dbb5821217745aabae2c13ef65f581cc93eb0b346f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\compare_strategies.py": {
+      "type": "file",
+      "bytes": 7737,
+      "sha256": "32b3ffebd08807afeb3e59ec10b92b9c6c693122aa9c3773b31e0dc0a8bff363"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\distill.py": {
+      "type": "file",
+      "bytes": 17108,
+      "sha256": "1bf30bfb8906a08ddd02774e53ba3ea9bce92a2fb04091b0dd4db81a139c6e06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\encoding.py": {
+      "type": "file",
+      "bytes": 9229,
+      "sha256": "d2cc67bd922903e655bf4b10dbd1bd388b2f65e628caf7bfe1c21c6a6a2ff49f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\eval_agent.py": {
+      "type": "file",
+      "bytes": 34328,
+      "sha256": "1265bc69dfa7dd50482d93c1ea0f83958b6b4dc125549df804b7b55deaac88d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_fresh_buffer.py": {
+      "type": "file",
+      "bytes": 2110,
+      "sha256": "c6bfc5984a6e038cb8329dbb845c9c76d7dbd0f3d58caa4689118e956e206898"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_fast.py": {
+      "type": "file",
+      "bytes": 5380,
+      "sha256": "c6d3757f2c6471789b2ba969dd4e92ce3e44f320d541d4b0716a0775e60180d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_improved.py": {
+      "type": "file",
+      "bytes": 7506,
+      "sha256": "e72c559b67b072171b2fa1ee27fd584b0bf513d10e90e426a8fcef912f723eb5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_policy_net.py": {
+      "type": "file",
+      "bytes": 14719,
+      "sha256": "6b35d85a5ffc26f28d98d3d1c944c992c4a5b06d6158ffde7fd879b19225c25f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_tabular_sdcfr.py": {
+      "type": "file",
+      "bytes": 7601,
+      "sha256": "894ca78c3a626c4fa10967b098c197c5e219e397fb460e4c6db7293a0f08c5fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\export.py": {
+      "type": "file",
+      "bytes": 7245,
+      "sha256": "a27f528f88290b030deae533d0d081ca058e5cb0e09e0e5a4192817c51aa81c4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\game_state.py": {
+      "type": "file",
+      "bytes": 27001,
+      "sha256": "1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\hand_eval.py": {
+      "type": "file",
+      "bytes": 2187,
+      "sha256": "fc30df48b0ae0091311f2ff40f8e320278bc47abba606c0c1f71fcce498f490d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\networks.py": {
+      "type": "file",
+      "bytes": 10211,
+      "sha256": "3a5b715e0d615e2f45e90943e34bacdea1f86e2bbcf180fac6197738c65bbc45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\reservoir.py": {
+      "type": "file",
+      "bytes": 5447,
+      "sha256": "59f6214b6bec1f53cc68dfe107d30eb426265a86980e53465bf15247982ab241"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\run_hunl.py": {
+      "type": "file",
+      "bytes": 2903,
+      "sha256": "7573f2e646ee6b183299dd418dd1fceac0892ac891608286f4e909d7ad941318"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr.py": {
+      "type": "file",
+      "bytes": 17460,
+      "sha256": "e4913390456fff39a67bc5b44b814a86881ae775f669e8eaee020d1ace2da8b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr_leduc.py": {
+      "type": "file",
+      "bytes": 10639,
+      "sha256": "9019c0e6a99d6fb479e3818e53ac9ebc9bd777483f64c2c59d69f12fe215846b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\train.py": {
+      "type": "file",
+      "bytes": 48472,
+      "sha256": "dde4ac6ebe758f55e1fafa0f375b6ab7bb73eba66f9e798f155f8973cdecd6b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\validate_fixes.py": {
+      "type": "file",
+      "bytes": 3705,
+      "sha256": "6e8bb3a8610150de380e2ec40094c0460a9424ef813489ccbffd851044a69882"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__init__.py": {
+      "type": "file",
+      "bytes": 78,
+      "sha256": "ec74f39495a984d95143410b9278467ffac668e497af0b8c115b2be1fd4d5fca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\audit_slumbot_v6_session.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 27382,
+      "sha256": "2ba0bd117383be3ad3e61c9d8ba47bd6771ad26fb5a856376623fb89693c6bc5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 16068,
+      "sha256": "14991a3649a6de87d9363b05b3e234bb7351ec6101365abb876699f629a8ab6c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment_v55.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 21046,
+      "sha256": "341cebd5b2bac44d9f62302fb53855aabf5a27c681cbc54b2dded1d9b7268da1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\execution_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 6152,
+      "sha256": "9b0c855f207a3b6462a2e67b39295e61b9c234da1a0537b61e818ffd78a75d89"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\legacy_observation_bridge_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 13808,
+      "sha256": "5c9d2023d25db92ab5a5dc839052e9a7ea02628ee8d1245a0ebb436c159ea657"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\network.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 28332,
+      "sha256": "f96c30419718e21cc9a8a1f30718c36d56972471710da905870ca267df78fc41"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 105133,
+      "sha256": "e3b17598cebce2a91a34faacbccfee251f8b3454349c0e681822b3ceb0fd479d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot_v6_journaled.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 17997,
+      "sha256": "9ba4c015ee7e88a2def6e12689c8b72fba93dddba9030ab5d34208bf108e4b52"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\policy_contract_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 12029,
+      "sha256": "0e3f385bcabdcede651473442e7592051e4988023d8a6356510dc70e8657722f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\rules_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 13108,
+      "sha256": "6b9d2bf9a8e5f810b8319fcc55e4239267669778f1b2ed7e2ea7da74e981cd46"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_journal_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 5676,
+      "sha256": "acb3db41b7f6559ae11c7903e172261ab6e98d561a0a4f39d3a297212f6d217f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_terminal_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 9516,
+      "sha256": "e4d300e6796e066557ef2fea17395a3a8aae7a0ee8c9f38f00e54d85a713d5a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_transport.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 3608,
+      "sha256": "01c4e4dc085b413720281b90930009b3308815b73884bab4e1192e1315c03a43"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\v5_mirror_eval.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 47806,
+      "sha256": "a2a036a9629fc71493d6cf3b4ae47aa298fb63a0f3140e16794d20289e1e26ca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\__init__.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 264,
+      "sha256": "819cb811947aa6d633c132f6e42e9ead7e7a9655f0d05b41a66fe8125671edeb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\game_state.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 33435,
+      "sha256": "21c2a2cb64370f7c60a0dd158adb645496d143231892782da882f7d23d91a497"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\hand_eval.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 3165,
+      "sha256": "3d579c49845a155203e816964237f2c938956d15851ca0de60ced163769d33fb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\__init__.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 260,
+      "sha256": "f15e7ad50557b9c40c76fc4b36fe588aa52d152a543a21a675b173e766971a6c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3194810,
+      "sha256": "871667c1cf8bdb878934d190202e2804542d07aac1b492ed92eee947ff8ee949"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5475936,
+      "sha256": "a19ad4a13a6fc173939a960d5c7712aefdcc7867375ce2f10eb54b6f621a4e63"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\summary.json": {
+      "type": "file",
+      "bytes": 6424,
+      "sha256": "cdd218fe489932d2d6aa0182c2ae7c95737e7613e804b7b7202b5fc6665719b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3126817,
+      "sha256": "94bb16b03ff8abfbba88d04d3feb536826385169eb6cb9b518dce8f5e61e1d30"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5342451,
+      "sha256": "2f0dd7ea3b00ed35d35c76000ee317b680e2181395f415e1c5d13b2709fef23e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\summary.json": {
+      "type": "file",
+      "bytes": 6429,
+      "sha256": "a3461784368e2afa3c19e170707e43a6e8c3c1686a21005507269d6be69ebee0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3233223,
+      "sha256": "0ed2d194ffbd13bdd5969861e5222f79435d6ee791044d85eba47862f61af336"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5553216,
+      "sha256": "04eb43a72dfd2985f5ceeeacdb1a5b05a91d546110be44fcc88c408718c174ee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\summary.json": {
+      "type": "file",
+      "bytes": 6424,
+      "sha256": "0d8c35d48dc554e8432b22d86a5c4673b2c6cbd6f1645f85c57d0b74230f3a02"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3148993,
+      "sha256": "9acc280a9ed67718cf1f191e869001c9496ca70d320898f8728433b61669122a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5384056,
+      "sha256": "4ce590594b5df740406adbc2c2eff7945d727cf0490e938ce3da0b48dbc5eb7b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\summary.json": {
+      "type": "file",
+      "bytes": 6429,
+      "sha256": "e880f2609894c63cf33d48e9c663b5eba488dff04e4b0bc0b01602cd62902fce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3151841,
+      "sha256": "d9fed6b4a95356a72aa43a356bf173aa04f9c9e1315f1a06e5bce7ffa1eb02df"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5391357,
+      "sha256": "fa216e74ee40079c7eea8ba1e4eb9eca48e6d1f82f634fca72a477008467229c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\summary.json": {
+      "type": "file",
+      "bytes": 6426,
+      "sha256": "f253f945ef63e51470db75b96fb8ae8efb6bb9a41ce419e1eb3bd22bed0b1487"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3150410,
+      "sha256": "548f07dac4a3c04fede933febfbe48b60685ac7b522fd687015d14e5b431e623"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5387245,
+      "sha256": "424fad978e95561a3cec5b043ac1fc2a450db51dd7b7de4d798b7bcac0802c72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\summary.json": {
+      "type": "file",
+      "bytes": 6428,
+      "sha256": "542d0365830ddc486427b0fc718ebb48f8a01e9bf89227a64ff40d1a19258278"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3167062,
+      "sha256": "99b95b627961be69b4484e274962785be5595f08a49054ee9fa6ac79b9626364"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5421012,
+      "sha256": "f078d3b54942cc0fb23395eebedda1e6128bfc6b7d8a3d0b503f9e263169b59b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\summary.json": {
+      "type": "file",
+      "bytes": 6425,
+      "sha256": "99d72079fdf5916a93082de15dbc229a1e0e05a78b652df5946cf03112372a8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\hands.jsonl": {
+      "type": "file",
+      "bytes": 3285299,
+      "sha256": "505f58b23642c8e4b884840809ead272e955f8f46b6049bbeffba2d2bf57c406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\journal.jsonl": {
+      "type": "file",
+      "bytes": 5653497,
+      "sha256": "df8ce34e29ff2df7a56767bd7c37b8e98fc196dd3435404120a8fbe92771fc80"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\summary.json": {
+      "type": "file",
+      "bytes": 6425,
+      "sha256": "e71ed4b380950ce922d7bcf251d2aa52c99b26a601498924e5c36bf07a8766e5"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1187,
+      "sha256": "ed7baac75ad7359049575a6b675a8b80511cd8513947d8069896d885beb69e65"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 445,
+      "sha256": "e6c507cde2d2da7822f7e68f4400cd57265bc87422387d1c4e1b31806b42507e"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/session_independence_audit.json": {
+      "type": "file",
+      "bytes": 18319,
+      "sha256": "5578302944e8f8e39d3037bbc704251486e9602c0f69f52c224f019365d559b4"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/independent_raw_ci.json": {
+      "type": "file",
+      "bytes": 2175,
+      "sha256": "4363dc6f8bf86c50ab080f686e420c966040e814c6d2895533a89c7ecb6c143c"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-greedy-fresh5k-slumbot-20260901/combined_audit.json": {
+      "type": "file",
+      "bytes": 8580,
+      "sha256": "94fc7443788e586162acbccb46fd0bd70dd3bb7fa99f281740bf8931b4bcb550"
+    }
+  }
+}

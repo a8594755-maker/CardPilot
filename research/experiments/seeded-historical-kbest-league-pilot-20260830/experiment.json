@@ -1,0 +1,393 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "seeded-historical-kbest-league-pilot-20260830",
+  "title": "Seeded historical K-best learned-opponent league pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T12:14:33+00:00",
+  "updated_at": "2026-08-30T12:54:03+00:00",
+  "started_at": "2026-08-30T12:14:33+00:00",
+  "ended_at": "2026-08-30T12:54:03+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Starting from the same three frozen anchors as the matched fresh-only control, then retaining two loss-selected current-policy historical snapshots in a five-member adaptive league will create a more informative learned-policy curriculum and improve robust multi-anchor performance without source-policy drift.",
+  "material_change": "Add distinct initial-opponent seeding that permits historical snapshot insertion, make adaptive league state identity-safe across dynamic K-best membership changes, and make assignment provenance replay support varying pool membership. After tests and a bounded smoke, run a 262,144-hand all-policy-head treatment matched to adaptive-league-all-heads-pilot-20260830 except for seeded dynamic loss-K-best snapshots every eight updates.",
+  "baseline": "adaptive-league-all-heads-pilot-20260830: fixed three-opponent adaptive fresh-only PPO, same seed 20260852, worker deal stream 2026085200, all-policy-head scope, and 263,602 actual hands; its frozen iter16/32/48/64 curve is the untouched control.",
+  "source": "AlphaHoldem AAAI 2022 K-Best Self-Play; alpha-replay-buffer-pilot-20260830 rejected replay scale and explicitly selected a true historical learned-opponent league as next step.",
+  "parent_id": "alpha-replay-buffer-pilot-20260830",
+  "command": "python -m pytest scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_replay.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_replay.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:14:33+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 256 --total-hands 768 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 256 --entropy-coef 0.005 --entropy-floor 0.05 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026087200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 1 --save-interval 1 --archive-checkpoint-every 1 --run-id seeded_historical_kbest_smoke_20260830 --run-dir research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke --out research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/latest.pt --seed 20260872 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:18:13+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/seeded-historical-kbest-league-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 8 --save-interval 1 --archive-checkpoint-every 16 --run-id seeded_historical_kbest_all_heads_262k_20260830 --run-dir research/experiments/seeded-historical-kbest-league-pilot-20260830/production --out research/experiments/seeded-historical-kbest-league-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:19:53+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_dynamic_pool_session.py --run-dir research/experiments/seeded-historical-kbest-league-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-initial-pool-size 3 --expected-final-pool-size 5 --expected-snapshot-every 8 --out research/experiments/seeded-historical-kbest-league-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:47:18+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065896.pt --candidate-label kbest_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16.json --out-md research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16.md --execution-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:47:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16.json --out research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:48:47+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131769.pt --candidate-label kbest_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32.json --out-md research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32.md --execution-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:49:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32.json --out research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter32.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:50:25+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197724.pt --candidate-label kbest_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48.json --out-md research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48.md --execution-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:50:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48.json --out research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter48.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:51:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263581.pt --candidate-label kbest_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64.json --out-md research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64.md --execution-json research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:52:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64.json --out research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter64.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:53:26+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5039164d101c753bf11e2642cc5e9736a714f9d6751914e7cb9af113e71e43b2",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-08-30T12:14:33+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/seeded-historical-kbest-league-pilot-20260830/code.patch",
+    "patch_sha256": "b7306bbe75e79d44e8195b6e4a1c10d080db27d64ab9891118a86cb46f38fb8b",
+    "source_manifest": "research/experiments/seeded-historical-kbest-league-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "5673f1f12665275f4b74847e7eb6f7cf4f9708d974a9bad7b7c539acc5ba1555",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 263581,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 2370.0,
+    "smoke_environment_hands": 844
+  },
+  "metrics": {
+    "smoke_final_iteration": 3,
+    "smoke_final_pool_size": 5,
+    "smoke_candidate_history": 6,
+    "smoke_max_reference_kl": 0.0001,
+    "smoke_max_importance_ratio": 1.07,
+    "production_final_iteration": 64,
+    "production_actual_hands": 263581,
+    "production_max_reference_kl": 0.0013428420688097295,
+    "production_max_importance_ratio": 1.17,
+    "production_kl_early_stops": 0,
+    "final_pool_size": 5,
+    "learned_survivor_count": 2,
+    "production_max_abs_approx_kl": 0.00044755877128669193,
+    "paired_delta_positive_rows": 5,
+    "paired_delta_total_rows": 12,
+    "paired_delta_mean_bb100": -0.28271484374999983,
+    "paired_delta_median_bb100": -0.27026367187499983,
+    "lower_variance_delta_positive_rows": 4,
+    "lower_variance_delta_total_rows": 8,
+    "lower_variance_delta_mean_bb100": -0.2738037109375001,
+    "iter64_standard10_delta_bb100": 0.439453125,
+    "iter64_standard10_delta_ci95_lower_bb100": 0.022974673832877684
+  },
+  "artifacts": [
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/code.patch",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/source_manifest.json",
+    "scripts/alpha_holdem/test_train_v5_dynamic_pool.py",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/latest.pt",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/latest_train.log",
+    "scripts/alpha_holdem/audit_train_v5_dynamic_pool_session.py",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production_session_audit.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/latest.pt",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/run_manifest.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/latest_train.log",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065896.pt",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131769.pt",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197724.pt",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263581.pt",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16.md",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter16.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32.md",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter32.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48.md",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter48.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64.md",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter64.json"
+  ],
+  "notes": [
+    "Preregistered treatment: no PPO replay; resume Standard10 only as model initialization with optimizer and hand counter reset; seed pool from Standard10, slumbot_free, corrected_cfr96; k=5 loss-kbest; snapshot every 8 updates; adaptive per-group league; all-policy-head-only training. Promotion requires no health regression and directionally consistent paired improvement versus the untouched control across checkpoints/anchors, not a single noisy mean.",
+    "Implementation preflight passed: train_v5.py py_compile and 12/12 dynamic-pool plus replay/resume tests. Smoke intentionally snapshots every update to exercise pool growth, pruning, identity-safe adaptive state, and varying-membership provenance before production cadence is relaxed to every eight updates.",
+    "Smoke passed. Three iterations produced 844 actual hands; provenance chain is valid with pool sizes 3->4->5 and exact snapshot memberships; final checkpoint retains five matching adaptive EMA/weight/observation entries summing to probability 1, ten optimizer states, and six candidate-history rows. At the third insertion candidate id5 was correctly rejected and local order changed, exercising identity-safe remapping.",
+    "Starting preregistered 262,144-hand production treatment. Untouched matched control is adaptive-league-all-heads-pilot-20260830; treatment uses the same three initial anchors, seed 20260852, worker seed/deal stream 2026085200, all-policy-head scope, trust-region settings, and 4,096 hands/update. Only historical snapshot admission/K-best membership is materially changed.",
+    "Production terminal audit PASS: 64 contiguous metric rows, 64 cryptographically verified assignment rows with exact dynamic RNG replay, membership changes only after iterations 8/16/32, final pool ids [0,1,2,6,3], two learned survivors, ten optimizer states all at step 1868, 263,581 actual hands, and complete archive/artifact SHA256 evidence.",
+    "Starting preregistered iter16 fresh-only multi-anchor evaluation against the exact untouched adaptive-league-all-heads control curve; 1,024 mirrored pairs per anchor, seed 20260853.",
+    "Completed iter16 matched fresh-only evaluation and paired treatment-minus-control calculation; 6,144 new internal evaluation hands.",
+    "Starting iter32 matched multi-anchor evaluation; this checkpoint has trained for 16 updates against a pool containing learned id3 and reaches the second learned admission boundary.",
+    "Completed iter32 matched fresh-only evaluation and paired delta; cumulative internal evaluation hands now 12,288.",
+    "Starting iter48 matched evaluation after stable full-pool K-best training and the id6-for-id4 membership replacement.",
+    "Completed iter48 matched fresh-only evaluation and paired delta; cumulative internal evaluation hands now 18,432.",
+    "Starting final iter64 matched evaluation. Promotion remains contingent on consistent lower-variance Standard10/slumbot_free direction plus no contradictory anchor evidence.",
+    "Completed all four preregistered matched fresh-only checkpoints: 4 x 3 anchors x 2,048 hands = 24,576 new internal evaluation hands; paired deltas reuse these outcomes and are not double-counted.",
+    "Curve conclusion: 5/12 all-anchor paired rows positive, unweighted mean -0.283 and median -0.270 bb/100. Standard10 plus slumbot_free rows were 4/8 positive with mean -0.274. Iter64 alone had Standard10 +0.439 CI95 [+0.023,+0.856], slumbot_free +0.161 CI crossing zero, and CFR96 -0.904 CI crossing zero. This is not robust enough to scale training, but the final checkpoint merits exactly one independently seeded matched replication."
+  ],
+  "result": {
+    "summary": "Implemented and audited identity-safe seeded dynamic K-best training, completed 263,581 actual environment hands, and evaluated four frozen checkpoints on 24,576 fresh internal hands against an untouched matched control.",
+    "conclusion": "The infrastructure and training run succeeded: dynamic membership, adaptive weights, assignment RNG provenance, optimizer state, and four checkpoint hashes all passed audit; two learned snapshots survived K-best selection and the policy stayed inside the source trust region. The strength hypothesis did not pass the preregistered robust curve test: only 5/12 paired checkpoint-anchor rows were positive, the mean and median deltas were negative, and no checkpoint improved all anchors. Iter64 produced a narrow positive Standard10 delta and a positive but inconclusive slumbot_free point estimate, while CFR96 remained negative and inconclusive.",
+    "decision": "REJECT_KBEST_SCALE_RETAIN_ITER64_FOR_ONE_REPLICATION",
+    "next_step": "Do not scale this proxy K-best curriculum. Run exactly one independent-deal-seed matched replication of frozen iter64 versus the same frozen fresh-only iter64 control; if lower-variance anchors do not replicate positive direction, retire this route. If they do, deepen only the final checkpoint before any Slumbot spend."
+  },
+  "tags": [
+    "historical-league",
+    "k-best",
+    "learned-policy",
+    "matched-control"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 119181,
+      "sha256": "b7306bbe75e79d44e8195b6e4a1c10d080db27d64ab9891118a86cb46f38fb8b"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 279,
+      "sha256": "5673f1f12665275f4b74847e7eb6f7cf4f9708d974a9bad7b7c539acc5ba1555"
+    },
+    "scripts/alpha_holdem/test_train_v5_dynamic_pool.py": {
+      "type": "file",
+      "bytes": 4750,
+      "sha256": "4de5da5c551378e867b4990c060b546022b121f056363668c37865a66edc2c8f"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 199423024,
+      "sha256": "4e1e1f7ab08a2cf4cacf8dc6f3c3ee7365ded6b957eb4fc03650f8d13db6298f"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 129382,
+      "sha256": "cd995e90c7c7a5b5cf75a35b700e2f526964b3e4488e29f5d8dd013edc74199a"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 65256,
+      "sha256": "9a40e01fb53b5964fd1c1a99c6e04309ece0797e03979065f2296b5f7dcbd8d1"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4636,
+      "sha256": "703fb14366571e6bb6955603cf69a460b470a067d299f4865dd2ad4bceb9917f"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/smoke/latest_train.log": {
+      "type": "file",
+      "bytes": 1245,
+      "sha256": "9a93d0c9612fc8c88668d25c3badac897c7536179ff0f9d8518a604dafac5514"
+    },
+    "scripts/alpha_holdem/audit_train_v5_dynamic_pool_session.py": {
+      "type": "file",
+      "bytes": 10042,
+      "sha256": "4c4cbfe1b593eba0711820903e343ff8694d31ade8b77d95a624a719d0103dfe"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 3654,
+      "sha256": "3e516a638533c2d829a8cf9ef1a7d682e72a0b68873ceebdcb4ca76c60fc2768"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 199490288,
+      "sha256": "087da9960387a468d8b6063c06b1fcc889011ef470525a853fe703ff76f4c142"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 136019,
+      "sha256": "daf6a90f976c70159ad280a698844206bcc22aebde30244730573d8af3ebd42f"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1542452,
+      "sha256": "4beb27165ad2ea9b2e907afd117b8bd48b910e74f6a8e61bcad92d7e1177c1a6"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 176953,
+      "sha256": "71156dd2473a75723c60704782b5321a1b6b15806a8435c356436a71f364851f"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/latest_train.log": {
+      "type": "file",
+      "bytes": 27043,
+      "sha256": "b2bf23b51d8340a5ba3f3c9776e1681442cedefc8b9043f63a15fa52e814c1ef"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065896.pt": {
+      "type": "file",
+      "bytes": 199434654,
+      "sha256": "e3e836da41801ea4af27a28b454d3b4742decfc342e83de22948ac2726c32521"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131769.pt": {
+      "type": "file",
+      "bytes": 199461534,
+      "sha256": "638546a8fbc518745db3788d3688a8db4fac3064deb0f4fa455866ce2c97a9f6"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197724.pt": {
+      "type": "file",
+      "bytes": 199488478,
+      "sha256": "99c3bee9f59e8fd5666b6cf705c2a1c0f77affc9f797634158652b08292357a2"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263581.pt": {
+      "type": "file",
+      "bytes": 199515358,
+      "sha256": "f2f0816cd022a51030f97fddb0fc2d4804b0a9db4962357f21d93b0825977522"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 172811,
+      "sha256": "5f44cc4ae0edbdb366bf2c213ece68ae76cf073a30b70b3af4735ec0978ebef8"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16.md": {
+      "type": "file",
+      "bytes": 1573,
+      "sha256": "811b4e603aa18e365534670461da932136b25c847b90f094b2323eec972d224f"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1864,
+      "sha256": "8ffbebc9eb8f439c02aeccfbb6c18befcc9d69e4b43214a05b73de347bd50f87"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter16.json": {
+      "type": "file",
+      "bytes": 4969,
+      "sha256": "e78dfb83086e5cfb06e83c3271953f0b88b4d8bdb7a63f79db15b81ff2bfd63b"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 172976,
+      "sha256": "4a57e748b6d7c88038ecbcc226d5cfbd27f23e1de8d7df53523d16b127748e80"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32.md": {
+      "type": "file",
+      "bytes": 1575,
+      "sha256": "f2368686344d256e01a6df7f7c966993886a9c12428ed1560c40252bcce47619"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1851,
+      "sha256": "2bc9155982bea222d301d3ab650f926b9ff7ba5046a082ad38ab6aa09fdb54a8"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter32.json": {
+      "type": "file",
+      "bytes": 4968,
+      "sha256": "bc595857ca682d6f268a5edcadaa52de484549ed098e0c590909dc3f4956ee55"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 172940,
+      "sha256": "cb2710a9c0ca489812d83f6c6e58d392e08fa43c326792f5a254f90f782c077d"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48.md": {
+      "type": "file",
+      "bytes": 1575,
+      "sha256": "e79c7773cb61acb2d1b26270462d1f8a5b6dcc5ec515ee0da37c15ba26a3edce"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1863,
+      "sha256": "862f30d6dc260bc4f0645cabf2e07790847bf4319ccaad9b2f7cb67f701d6896"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter48.json": {
+      "type": "file",
+      "bytes": 4955,
+      "sha256": "2edf2a2caab04f60c3dd440753816b7b87f2b90cfbc49b45dd2580815b297c61"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 173014,
+      "sha256": "52cc726a431b23e5cda76c730edba565d134c4cd508be5228ba93d2a522bf317"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64.md": {
+      "type": "file",
+      "bytes": 1575,
+      "sha256": "ceceb8b2546495db00996f4f83873ed5a812c0ee10f80589bd61e2e5b475a88c"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1864,
+      "sha256": "f83bcbee1018c85a0d62bd5458c3e6744e1e138136c7327f0f75d0d24f39d66a"
+    },
+    "research/experiments/seeded-historical-kbest-league-pilot-20260830/paired_delta/iter64.json": {
+      "type": "file",
+      "bytes": 4973,
+      "sha256": "adbd2754a96de6aedd3205d92eef3ebbcfb127fa2794e857aa15d24e321b818c"
+    }
+  }
+}

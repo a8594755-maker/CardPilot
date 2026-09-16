@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="12" skipped="0" tests="35" time="0.508" timestamp="2026-08-31T03:19:29.887695" hostname="Louis"><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_bb_option_and_minimum" time="0.002"><failure message="AssertionError">def test_bb_option_and_minimum():
+        s, _ = prefix(['c'])
+        assert (s.street, s.actor, s.board, s.min_to) == (0, 0, (), 200)
+&gt;       s, _ = prefix(['c', 'k'])
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19900, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_raise_increment" time="0.001"><failure message="AssertionError">def test_raise_increment():
+&gt;       s, o = prefix(['c', 'k', 'b300'])
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19900, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_no_raise_cap_and_history_overflow" time="0.001"><failure message="AssertionError">def test_no_raise_cap_and_history_overflow():
+        actions = ['b200', 'b300', 'b400', 'b500', 'b600', 'b700', 'b800', 'c', 'k']
+&gt;       s, _ = prefix(actions)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19200, 19200), bets=(0, 0), pot=1600, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10... amount=800, is_raise=True), Event(street=0, player=0, kind='c', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_opening_allin_is_bet" time="0.001"><failure message="AssertionError">def test_opening_allin_is_bet():
+&gt;       s, _ = prefix(['c', 'k', 'b19900'])
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19900, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions0-initial0]" time="0.002" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions1-initial1]" time="0.001" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions2-initial2]" time="0.002" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions3-initial3]" time="0.001"><failure message="AssertionError">actions = ['c', 'k', 'b150', 'c'], initial = (250, 20000)
+
+    @pytest.mark.parametrize('actions,initial', [
+        (['b20000', 'c'], (20000, 20000)),
+        (['b20000', 'f'], (20000, 20000)),
+        (['b1000', 'b1500', 'c'], (1500, 20000)),
+        (['c', 'k', 'b150', 'c'], (250, 20000)),
+        (['c', 'k', 'b50', 'c'], (150, 20000)),
+        (['b20000', 'c'], (1500, 20000)),
+        (['c', 'k', 'k', 'k', 'k', 'k', 'k', 'k'], (20000, 20000)),
+        (['f'], (20000, 20000)),
+    ])
+    def test_terminal_oracle(actions, initial):
+&gt;       s, _ = prefix(actions, initial)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(250, 20000), stacks=(150, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions4-initial4]" time="0.001"><failure message="AssertionError">actions = ['c', 'k', 'b50', 'c'], initial = (150, 20000)
+
+    @pytest.mark.parametrize('actions,initial', [
+        (['b20000', 'c'], (20000, 20000)),
+        (['b20000', 'f'], (20000, 20000)),
+        (['b1000', 'b1500', 'c'], (1500, 20000)),
+        (['c', 'k', 'b150', 'c'], (250, 20000)),
+        (['c', 'k', 'b50', 'c'], (150, 20000)),
+        (['b20000', 'c'], (1500, 20000)),
+        (['c', 'k', 'k', 'k', 'k', 'k', 'k', 'k'], (20000, 20000)),
+        (['f'], (20000, 20000)),
+    ])
+    def test_terminal_oracle(actions, initial):
+&gt;       s, _ = prefix(actions, initial)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(150, 20000), stacks=(50, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions5-initial5]" time="0.002" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions6-initial6]" time="0.001"><failure message="AssertionError">actions = ['c', 'k', 'k', 'k', 'k', 'k', ...], initial = (20000, 20000)
+
+    @pytest.mark.parametrize('actions,initial', [
+        (['b20000', 'c'], (20000, 20000)),
+        (['b20000', 'f'], (20000, 20000)),
+        (['b1000', 'b1500', 'c'], (1500, 20000)),
+        (['c', 'k', 'b150', 'c'], (250, 20000)),
+        (['c', 'k', 'b50', 'c'], (150, 20000)),
+        (['b20000', 'c'], (1500, 20000)),
+        (['c', 'k', 'k', 'k', 'k', 'k', 'k', 'k'], (20000, 20000)),
+        (['f'], (20000, 20000)),
+    ])
+    def test_terminal_oracle(actions, initial):
+&gt;       s, _ = prefix(actions, initial)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19900, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_terminal_oracle[actions7-initial7]" time="0.001" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_illegal_fails[k]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_illegal_fails[b199]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_illegal_fails[b20001]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_illegal_fails[b-5]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_illegal_fails[b1.5]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_illegal_fails[x]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_integer_and_deck_validation" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_mask_has_no_duplicate_actions" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_and_environment_parity[actions0]" time="0.054" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_and_environment_parity[actions1]" time="0.001" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_and_environment_parity[actions2]" time="0.001"><failure message="AssertionError">actions = ['c', 'k']
+
+    @pytest.mark.parametrize('actions', [[], ['c'], ['c','k'], ['b300','c','k'],
+        ['c','k','b19900'], ['b200','b300','b400','b500','b600','b700','b800','c','k'],
+        ['c','k','k','k','b100','c','k']])
+    def test_external_and_environment_parity(actions):
+&gt;       s, _ = prefix(actions)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19900, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_and_environment_parity[actions3]" time="0.001"><failure message="AssertionError">actions = ['b300', 'c', 'k']
+
+    @pytest.mark.parametrize('actions', [[], ['c'], ['c','k'], ['b300','c','k'],
+        ['c','k','b19900'], ['b200','b300','b400','b500','b600','b700','b800','c','k'],
+        ['c','k','k','k','b100','c','k']])
+    def test_external_and_environment_parity(actions):
+&gt;       s, _ = prefix(actions)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19700, 19700), bets=(0, 0), pot=600, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,... amount=300, is_raise=True), Event(street=0, player=0, kind='c', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_and_environment_parity[actions4]" time="0.001"><failure message="AssertionError">actions = ['c', 'k', 'b19900']
+
+    @pytest.mark.parametrize('actions', [[], ['c'], ['c','k'], ['b300','c','k'],
+        ['c','k','b19900'], ['b200','b300','b400','b500','b600','b700','b800','c','k'],
+        ['c','k','k','k','b100','c','k']])
+    def test_external_and_environment_parity(actions):
+&gt;       s, _ = prefix(actions)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19900, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_and_environment_parity[actions5]" time="0.001"><failure message="AssertionError">actions = ['b200', 'b300', 'b400', 'b500', 'b600', 'b700', ...]
+
+    @pytest.mark.parametrize('actions', [[], ['c'], ['c','k'], ['b300','c','k'],
+        ['c','k','b19900'], ['b200','b300','b400','b500','b600','b700','b800','c','k'],
+        ['c','k','k','k','b100','c','k']])
+    def test_external_and_environment_parity(actions):
+&gt;       s, _ = prefix(actions)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19200, 19200), bets=(0, 0), pot=1600, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10... amount=800, is_raise=True), Event(street=0, player=0, kind='c', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_and_environment_parity[actions6]" time="0.001"><failure message="AssertionError">actions = ['c', 'k', 'k', 'k', 'b100', 'c', ...]
+
+    @pytest.mark.parametrize('actions', [[], ['c'], ['c','k'], ['b300','c','k'],
+        ['c','k','b19900'], ['b200','b300','b400','b500','b600','b700','b800','c','k'],
+        ['c','k','k','k','b100','c','k']])
+    def test_external_and_environment_parity(actions):
+&gt;       s, _ = prefix(actions)
+
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+research\experiments\native-rules-contract-repair-20260831\test_contract.py:29: in prefix
+    s = advance(s, o, action)
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:66: in advance
+    assert_equal(next_state, oracle)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+state = ChipState(initial=(20000, 20000), stacks=(19900, 19900), bets=(0, 0), pot=200, deck=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,..., amount=0, is_raise=False), Event(street=0, player=0, kind='k', amount=0, is_raise=False)), terminal=False, folded=-1)
+oracle = State(automations=(&lt;Automation.ANTE_POSTING: 'Ante posting'&gt;, &lt;Automation.BET_COLLECTION: 'Bet collection'&gt;, &lt;Automati...illing_statuses=[False, False], _pots=None, _sub_pots=[], total_pushed_amount=0, chips_pulling_statuses=[False, False])
+
+    def assert_equal(state, oracle):
+        state.assert_invariants()
+        assert state.terminal == (not oracle.status), (state, oracle.status)
+        if state.terminal:
+            assert tuple(oracle.payoffs) == state.payoffs(), (oracle.payoffs, state.payoffs(), state)
+            assert tuple(oracle.stacks) == tuple(state.initial[p]+state.payoffs()[p] for p in (0, 1))
+            return
+        assert state.actor == oracle.actor_index, (state.actor, oracle.actor_index, state.history)
+        assert state.street == oracle.street_index
+        assert tuple(state.stacks) == tuple(oracle.stacks), (state.stacks, oracle.stacks)
+        assert tuple(state.bets) == tuple(oracle.bets), (state.bets, oracle.bets)
+        assert state.pot == oracle.total_pot_amount, (state.pot, oracle.total_pot_amount)
+&gt;       assert [card_to_str(c) for c in state.board] == [str(c) for c in oracle.get_board_cards(0)]
+E       AssertionError
+
+research\experiments\native-rules-contract-repair-20260831\oracle_validation.py:39: AssertionError</failure></testcase><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_environment_strict_and_immutable" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_metadata_fails_closed" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_prefix_rejected[/]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_prefix_rejected[x]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_prefix_rejected[c//]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_prefix_rejected[b199]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_prefix_rejected[kk]" time="0.000" /><testcase classname="research.experiments.native-rules-contract-repair-20260831.test_contract" name="test_external_prefix_rejected[f]" time="0.000" /></testsuite></testsuites>

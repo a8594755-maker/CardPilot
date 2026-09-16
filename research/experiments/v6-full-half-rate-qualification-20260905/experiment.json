@@ -1,0 +1,180 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-full-half-rate-qualification-20260905",
+  "title": "Current full-network half-rate continuation qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-05T22:00:19+00:00",
+  "updated_at": "2026-09-05T22:02:28+00:00",
+  "started_at": "2026-09-05T22:00:19+00:00",
+  "ended_at": "2026-09-05T22:02:27+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A deliberate LR-only transfer can preserve both current full-network endpoints and all continuation state while admitting one half-rate control; this tests mechanics, not poker strength.",
+  "material_change": "Exclusive derived checkpoint changes only actual Adam LR by factor0.5 plus explicit provenance. Test all-state preservation and actual-model same-gradient Adam fixtures without poker hands.",
+  "baseline": "Both completed representation-pilot full_stage2 endpoints, original actual LR approximately1e-4",
+  "source": "v6-current-kl-representation-pilot-20260905",
+  "parent_id": "v6-current-kl-representation-pilot-20260905",
+  "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-full-half-rate-qualification-20260905/test_lr_transfer.py --junitxml=research/experiments/v6-full-half-rate-qualification-20260905/lr_tests.xml",
+  "commands": [
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-full-half-rate-qualification-20260905/test_lr_transfer.py --junitxml=research/experiments/v6-full-half-rate-qualification-20260905/lr_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:00:19+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-full-half-rate-qualification-20260905/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:00:32+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-full-half-rate-qualification-20260905/finish_record.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:02:27+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Users\\a8594\\CardPilot\\research\\experiment_log.py audit --since 2026-09-05T22:00:19+00:00 --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\post_finish_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:02:28+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-full-half-rate-qualification-20260905"
+    ],
+    "captured_at": "2026-09-05T22:00:19+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-full-half-rate-qualification-20260905/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-full-half-rate-qualification-20260905/source_manifest.json",
+    "source_manifest_sha256": "52f083512116e9b36258b659405e5585252a039e8eebf6757603ee53b43e34e7",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 128.0,
+    "slumbot_hands": 0,
+    "final_qualification_hands": 0
+  },
+  "metrics": {
+    "unit_tests_passed": 24,
+    "actual_parent_qualification_passed": true,
+    "synthetic_update_fixtures": 2,
+    "goal_achieved": false
+  },
+  "artifacts": [
+    "research/experiments/v6-full-half-rate-qualification-20260905/protocol.md",
+    "research/experiments/v6-full-half-rate-qualification-20260905/lr_transfer.py",
+    "research/experiments/v6-full-half-rate-qualification-20260905/qualify.py",
+    "research/experiments/v6-full-half-rate-qualification-20260905/test_lr_transfer.py",
+    "research/experiments/v6-full-half-rate-qualification-20260905/code.patch",
+    "research/experiments/v6-full-half-rate-qualification-20260905/source_manifest.json",
+    "research/experiments/v6-full-half-rate-qualification-20260905/lr_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\finish_record.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\derived\\seed1_half.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\derived\\seed3_half.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\post_finish_audit.json"
+  ],
+  "notes": [
+    "Previous goal turn was status-only, no research progress. Completed parent experiment and terminal review revalidated. This independently scoped qualification does not certify actual rollout continuation or stronger policy.",
+    "All24 transformation rejection/roundtrip tests passed. Proceed with fixed actual-parent fixtures; no environment hands.",
+    "Scoped post-finish audit passed with zero warnings."
+  ],
+  "result": {
+    "summary": "Both current full endpoints passed24 tests and two actual serialized-model same-gradient fixtures: all86 Adam states retained,only actual LR halved,zero poker hands.",
+    "conclusion": "The half-rate transformation preserves all non-LR checkpoint state; fixture Adam moments are bitwise identical and displacement ratio is0.5000002. This proves transfer mechanics,not PPO dose,worker replay or strength.",
+    "decision": "ADMIT_SEPARATE_TWO_SEED_FULL_RATE_VERSUS_HALF_RATE_CONTINUATION",
+    "next_step": "Preregister matched262k-to1M additional physical hands per arm/seed from both current full endpoints. Preserve all optimizer/replay/counters and use exact initial-state audits,fresh managed attempts,unchanged four-anchor/both-seat evaluations. No automatic larger scale or final Slumbot test."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-full-half-rate-qualification-20260905/protocol.md": {
+      "type": "file",
+      "bytes": 3356,
+      "sha256": "a199fcd76159173ec73ae2d7ddf971eec22bf4c8ff42f535b6948993d50a97ab"
+    },
+    "research/experiments/v6-full-half-rate-qualification-20260905/lr_transfer.py": {
+      "type": "file",
+      "bytes": 3205,
+      "sha256": "ab85d06005241676d90c05cfc9b77f90a1a204d3c7702b4421b626598e7ef5ef"
+    },
+    "research/experiments/v6-full-half-rate-qualification-20260905/qualify.py": {
+      "type": "file",
+      "bytes": 10845,
+      "sha256": "fd966a36be87f29793a8378476ee8a6ce1063cd75e9c4d111b10dc4c52b37a9d"
+    },
+    "research/experiments/v6-full-half-rate-qualification-20260905/test_lr_transfer.py": {
+      "type": "file",
+      "bytes": 3485,
+      "sha256": "328afd6fdcf4d69f3a5c30adef24b79d38ef1d45a9a1e2912f57f60e4fec143f"
+    },
+    "research/experiments/v6-full-half-rate-qualification-20260905/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-full-half-rate-qualification-20260905/source_manifest.json": {
+      "type": "file",
+      "bytes": 1157,
+      "sha256": "52f083512116e9b36258b659405e5585252a039e8eebf6757603ee53b43e34e7"
+    },
+    "research/experiments/v6-full-half-rate-qualification-20260905/lr_tests.xml": {
+      "type": "file",
+      "bytes": 4123,
+      "sha256": "12d2c4508596db5f89644c649f169a5d10cdeec6cb25038b40165e24e1c5ce87"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\qualification.json": {
+      "type": "file",
+      "bytes": 46177,
+      "sha256": "afe2955b7a5fd1d257cf0dbd66a86d703f9023315034855e7449515f33fa028b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\finish_record.py": {
+      "type": "file",
+      "bytes": 3144,
+      "sha256": "f0b3de592104a25e5fc03f6b3a1fe681f995553731f9eb5873a0eb91ad19ffa4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\result_summary.md": {
+      "type": "file",
+      "bytes": 1549,
+      "sha256": "421c490754d93888ad680b8623255a8b93a86c4cbdb498885b3676ba9482618b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\derived\\seed1_half.pt": {
+      "type": "file",
+      "bytes": 369058578,
+      "sha256": "d9e029c30e58a9d0e3ca81f83bb5ee54103b7044bde359019b4b616384feacd7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\derived\\seed3_half.pt": {
+      "type": "file",
+      "bytes": 375860754,
+      "sha256": "f3c2c58a8427896042d4dc0ea90ecc7eea9e5f1952018437f10c7e5ad9e8e3eb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\post_finish_audit.json": {
+      "type": "file",
+      "bytes": 224,
+      "sha256": "db51b575621a3b77c0b9a8ff5d3054a46c74a8ee0488c026758f613c26687911"
+    }
+  }
+}

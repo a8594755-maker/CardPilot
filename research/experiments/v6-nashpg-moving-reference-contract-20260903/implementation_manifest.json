@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.nashpg_moving_reference_contract.v1",
+  "environment_training_hands": 0,
+  "evaluation_hands": 0,
+  "legacy_default": {
+    "kl_direction": "reference_to_current",
+    "refresh_interval_updates": 0,
+    "status": "preserved"
+  },
+  "moving_reference": {
+    "kl_direction": "current_to_reference",
+    "refresh_boundary": "after each configured number of complete trainer PPO calls",
+    "serialized": [
+      "reference_model",
+      "completed_updates",
+      "last_refresh_update",
+      "reference_round",
+      "activation_iteration",
+      "trainer_iteration",
+      "python_numpy_torch_cpu_and_cuda_rng"
+    ],
+    "resume_rejects": [
+      "direction mismatch",
+      "refresh interval mismatch",
+      "counter cadence mismatch",
+      "trainer iteration mismatch",
+      "reference architecture mismatch",
+      "missing RNG state",
+      "optimizer reset",
+      "hand-counter reset",
+      "dynamic-pool resume without assignment provenance"
+    ],
+    "partial_update_policy": "preserve preceding complete checkpoint on KeyboardInterrupt inside PPO"
+  },
+  "source_sha256": {
+    "scripts/alpha_holdem/source_policy_reference.py": "9eaaff9ae748bb8434203b76242e3e3c80e156e47adb5d4732c2b2a2c0e8df55",
+    "scripts/alpha_holdem/train_mp3_hybrid_h1.py": "7b2ddf2e013782d4e439492ce1832467eb8ca9c89f26e117f0caac11eace8b33",
+    "scripts/alpha_holdem/train_v5.py": "c29aff2c3bf1cc1361369ea942697cbaf60d0b6a74930ce8893aff627ea5f776",
+    "scripts/alpha_holdem/test_source_policy_moving_reference.py": "000a1177a9c74fe1b7d346322c66b511b512de39ef0989a49b8d2c676a737dde"
+  },
+  "verification": {
+    "targeted_tests": 10,
+    "targeted_failures": 0,
+    "full_alpha_holdem_tests": 335,
+    "full_alpha_holdem_failures": 0,
+    "py_compile": "pass"
+  }
+}

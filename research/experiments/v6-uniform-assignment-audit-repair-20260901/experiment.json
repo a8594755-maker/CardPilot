@@ -1,0 +1,115 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-uniform-assignment-audit-repair-20260901",
+  "title": "Uniform fixed-pool assignment replay repair",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T08:08:37+00:00",
+  "updated_at": "2026-09-01T08:09:41+00:00",
+  "started_at": "2026-09-01T08:08:37+00:00",
+  "ended_at": "2026-09-01T08:09:41+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The smoke audit mismatch is caused by restore_group_assignment_rng_from_evidence replaying null-weight uniform assignments through weighted random.choices instead of the trainer's native sample/randrange branch; selecting replay semantics from recorded weights plus adaptive metric evidence will exactly recover the existing immutable chain without weakening hash or membership checks.",
+  "material_change": "Correct null-weight provenance replay to use native uniform assignment when no adaptive metric evidence exists, retain legacy adaptive-null compatibility, and add a regression covering pool_size smaller than group count where native randrange differs from weighted choices.",
+  "baseline": "The immutable two-row smoke chain hashes pass but generic replay fails at iteration1; direct seed replay through native uniform assignment reproduces its recorded identities while weighted choices does not.",
+  "source": "Existing immutable v6-soup-uniform-mixed-league-smoke assignment JSONL and train_v5 replay/audit implementation.",
+  "parent_id": "v6-soup-uniform-mixed-league-smoke-20260901",
+  "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 4 --expected-archive-every 0 --expected-normalization global --out research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/session_audit.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 4 --expected-archive-every 0 --expected-normalization global --out research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:08:37+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_procedural_opponent.py scripts/alpha_holdem/test_environment_hand_accounting.py --junitxml=research/experiments/v6-uniform-assignment-audit-repair-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:09:40+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T08:08:37+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-uniform-assignment-audit-repair-20260901/code.patch",
+    "patch_sha256": "ffc0114db9eca5bf5bc1790e75e21cdd8e33524d35532af5267e75190af6ea02",
+    "source_manifest": "research/experiments/v6-uniform-assignment-audit-repair-20260901/source_manifest.json",
+    "source_manifest_sha256": "080f128e3dd6c0f07d265b0582040cd5ebaa180185c8f2170c42daa29ce9d99c",
+    "source_files": 73
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 64.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 0
+  },
+  "metrics": {
+    "tests_passed": 26,
+    "recovered_assignment_rows": 2
+  },
+  "artifacts": [
+    "research/experiments/v6-uniform-assignment-audit-repair-20260901/code.patch",
+    "research/experiments/v6-uniform-assignment-audit-repair-20260901/source_manifest.json",
+    "research/experiments/v6-uniform-assignment-audit-repair-20260901/tests.xml",
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/session_audit.json"
+  ],
+  "notes": [
+    "Repair may change only read/replay semantics and tests; it must not modify the completed checkpoint, manifest, metrics, or assignment JSONL.",
+    "26 regression tests PASS. The previously immutable smoke chain now replays exactly: 2 records, tail SHA 4fbd4349..., checkpoint/manifest/metrics/assignments hashes captured, audit PASS."
+  ],
+  "result": {
+    "summary": "Corrected uniform fixed-pool assignment replay semantics; 26 tests passed and the existing immutable 8k smoke session now passes exact RNG/hash/membership audit.",
+    "conclusion": "Null assignment weights are not equivalent to explicit uniform weighted choices: non-adaptive training uses sample/randrange. Metric-evidence disambiguation restores valid uniform chains while preserving compatibility with legacy adaptive-null provenance.",
+    "decision": "UNIFORM_ASSIGNMENT_AUDIT_REPAIR_VERIFIED",
+    "next_step": "Finish the already-completed smoke from its now-valid evidence, then preregister the matched one-member versus four-member 65k mixed-opponent pilot."
+  },
+  "tags": [
+    "infrastructure",
+    "provenance",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-uniform-assignment-audit-repair-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12790475,
+      "sha256": "ffc0114db9eca5bf5bc1790e75e21cdd8e33524d35532af5267e75190af6ea02"
+    },
+    "research/experiments/v6-uniform-assignment-audit-repair-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13460,
+      "sha256": "080f128e3dd6c0f07d265b0582040cd5ebaa180185c8f2170c42daa29ce9d99c"
+    },
+    "research/experiments/v6-uniform-assignment-audit-repair-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 4277,
+      "sha256": "6503690c73fae140abf2a6355bdf5f93a6966afb8ffa155c06c413dc5a29e47d"
+    },
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/session_audit.json": {
+      "type": "file",
+      "bytes": 4936,
+      "sha256": "43b44d371764172db6d92b6af6228ec74d7dac520ceb621ae39849f0aa4bb1c4"
+    }
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901",
+  "title": "Fresh-zero Standard10-anchored ELO curriculum smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T13:29:36+00:00",
+  "updated_at": "2026-09-01T13:46:24+00:00",
+  "started_at": "2026-09-01T13:29:36+00:00",
+  "ended_at": "2026-09-01T13:46:24+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Adding frozen Standard10 as opponent-only dynamic ELO curriculum alongside the exact random initial actor will prevent pure self-history overfitting and yield positive breadth against multiple untouched learned policies.",
+  "material_change": "Extend exact-v6 ELO initial seeding to combine external checkpoints with the initialized hero, then run a 32768-physical-hand fresh-zero full-network smoke with Standard10 plus initial actor in a K5 dynamic pool.",
+  "baseline": "v6-legacy-fresh-zero-kl-stop-smoke-20260901",
+  "source": "random main actor; opponent-only Standard10 SHA91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "parent_id": "v6-legacy-fresh-zero-lr1e4-smoke-20260901",
+  "command": "python -m pytest scripts/alpha_holdem -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:29:36+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 32768 --starting-stack 200 --env-version v6legacyv4obs --norm-layer bn --lr .0003 --ppo-epochs 4 --ppo-target-kl .01 --mini-batch-size 1024 --pool-strategy elo-kbest --k-best 5 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --elo-seed-initial-policy --elo-tournament-pairs 64 --elo-k-factor 32 --elo-tournament-seed 2026120101 --elo-tournament-provenance-file research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/training/elo_tournaments.jsonl --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120100 --fixed-training-deal-stream --critic-contract critic_v1 --value-coef .5 --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 2 --run-id v6_legacy_fresh_zero_standard10_elo_curriculum_smoke_20260901 --run-dir research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/training --out research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/training/latest.pt --seed 20261201 --max-runtime-seconds 1800 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:30:11+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_elo_session.py --run-dir research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/training --expected-target-hands 32768 --expected-target-environment-hands 32768 --expected-final-iteration 8 --expected-initial-pool-size 2 --expected-final-pool-size 5 --expected-snapshot-every 2 --expected-tournament-pairs 64 --out research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:34:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt --anchor models/baseline/standard10/latest.pt --pairs 4096 --seed 20261210 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/standard10",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:34:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt --anchor research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --pairs 4096 --seed 21261213 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_no_stop",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:34:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt --anchor research/experiments/v6-legacy-fresh-zero-kl-stop-smoke-20260901/frozen/final.pt --pairs 4096 --seed 22261216 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_kl_stop",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:34:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt --anchor research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/final.pt --pairs 4096 --seed 23261219 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_lr1e4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:34:28+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/analyze_results.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:46:24+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "3dcdd5dc506d9921bd18f07c7f612c1a196596ba6f18dd04d42431ad2f698081",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/policy_contract_v6.py",
+      "scripts/alpha_holdem/v6_elo_eval.py",
+      "scripts/alpha_holdem/v6_contract_mirror_eval.py",
+      "scripts/alpha_holdem/audit_train_v5_elo_session.py",
+      "scripts/alpha_holdem/test_train_v5_elo_pool.py",
+      "scripts/alpha_holdem/test_v6_elo_eval.py",
+      "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/preregistration.md"
+    ],
+    "captured_at": "2026-09-01T13:29:37+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/code.patch",
+    "patch_sha256": "086c636fdbb34e3f36fbe2c53e958ca3ec5ae11d1bd4f70a26911d08eaf0548b",
+    "source_manifest": "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "688a334c7b944c48b3e94724dec7e067f48bc5fbb5f991ca0dd2cc7bed0bbcd9",
+    "source_files": 8
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 34780,
+    "lineage_training_hands": 34780,
+    "offline_samples": 0,
+    "evaluation_hands": 37120,
+    "wall_time_seconds": 1008.0
+  },
+  "metrics": {
+    "implementation_gate_pass": 1,
+    "alpha_holdem_tests_passed": 190,
+    "session_audit_pass": 1,
+    "standard10_survived": 1,
+    "initial_model_state_match": 1,
+    "max_approx_kl": 0.187665323416392,
+    "max_clip_fraction": 0.3912113904953003,
+    "standard10_worker_assignments": 20,
+    "standard10_bb100": -257.782470703125,
+    "standard10_ci95_low": -402.9974843272913,
+    "standard10_ci95_high": -112.56745707895871,
+    "breadth_positive_cells": 0,
+    "breadth_lcb_positive_cells": 0
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/preregistration.md",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/code.patch",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/session_audit.json",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/init.pt",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/analysis.json",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/analyze_results.py",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/standard10/summary.json",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/standard10/pairs.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_no_stop/summary.json",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_no_stop/pairs.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_kl_stop/summary.json",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_kl_stop/pairs.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_lr1e4/summary.json",
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_lr1e4/pairs.jsonl"
+  ],
+  "notes": [
+    "Mixed external-plus-initial ELO seeding and full190-test gate passed. Training authorized.",
+    "Terminal exact ELO/session audit PASS. Standard10 id0 survived terminal K5; frozen final created before breadth evaluation.",
+    "Full 190-test regression gate passed after all evidence was frozen."
+  ],
+  "result": {
+    "summary": "Fresh-zero actor completed 34,780 physical v6 hands and exact K5 ELO accounting. Standard10 survived and was assigned to 20/96 workers, but the frozen terminal actor scored -257.7825 bb/100 (95% CI [-402.9975,-112.5675]) against it and exact-drew every one of 4096 mirrored pairs against each of three untouched fresh-zero PPO anchors.",
+    "conclusion": "Opponent-only exposure to the strongest known external reference did not alter the deployed greedy fresh-zero basin. The actor changed all 146 model tensors and had finite optimizer state, yet its reachable greedy behavior remained identical to three materially different PPO treatments and significantly lost to Standard10. More PPO hyperparameter tuning or unchanged margin/temperature interventions is not justified.",
+    "decision": "REJECT_OPPONENT_ONLY_STANDARD10_CURRICULUM",
+    "next_step": "Run a separately logged, outcome-blind ELO-survivor selection diagnostic: freeze the terminal tournament top-rated historical snapshot chosen before new endpoint evaluation, verify it matches archived evidence, and test whether K-best selection rather than the terminal actor changes greedy breadth."
+  },
+  "tags": [
+    "curriculum",
+    "fresh-zero",
+    "learned-weights",
+    "selfplay",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 8,
+    "command_count": 8
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 4636,
+      "sha256": "73098a91e45a787955ed072fc9463ed16ed08d4097be100b82111c69963b3e06"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 265854,
+      "sha256": "086c636fdbb34e3f36fbe2c53e958ca3ec5ae11d1bd4f70a26911d08eaf0548b"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 1586,
+      "sha256": "688a334c7b944c48b3e94724dec7e067f48bc5fbb5f991ca0dd2cc7bed0bbcd9"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/session_audit.json": {
+      "type": "file",
+      "bytes": 4291,
+      "sha256": "fa0d8f1a46afc210ce80f7ed7add05cdb165248647d2126384638c621e774f8a"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/init.pt": {
+      "type": "file",
+      "bytes": 98397444,
+      "sha256": "3b1326bf591604b602078cc0e538bbcc06d6ac0dc8e8404250b1d7e6508bb0b5"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/frozen/final.pt": {
+      "type": "file",
+      "bytes": 261786310,
+      "sha256": "c96625823340e23e15f3b685db75b14923aff80df3f1a01df16bb94446666b2e"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1835,
+      "sha256": "697b758697bda4a3ffc095dafcbd1d7b4b9399e5fe7ebddea155f06f8fd60692"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/analyze_results.py": {
+      "type": "file",
+      "bytes": 5759,
+      "sha256": "34ea097f7b9f6eb511915647fc49b2834e0def32241f674bb57d482a99772820"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/standard10/summary.json": {
+      "type": "file",
+      "bytes": 1780,
+      "sha256": "8ad5adeb00e66d22b6a7d76337eb104f8e27e6b800d0b3d9bf95bf01a8552b02"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/standard10/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1315494,
+      "sha256": "7a17105584df66989c4a7e090266e601bb6905bd2f98fdb90d274797a45fdabe"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_no_stop/summary.json": {
+      "type": "file",
+      "bytes": 1832,
+      "sha256": "fc045e4eafd85f238790a690d6b04ecf346c2f0a36897368aae5bd4da2e7e848"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_no_stop/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1317067,
+      "sha256": "4c916d602d24c4a0644efcda6baea7db0527fdf0c88bfe2fe3d6390e03e9ff5e"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_kl_stop/summary.json": {
+      "type": "file",
+      "bytes": 1841,
+      "sha256": "58d714337c0728e4226e9b146ffd530501de77eb457aa25593241c104b6bc132"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_kl_stop/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1316932,
+      "sha256": "05cf34097acf8ac6f0dc2403859fcfa2e919379d7710b37951a6498a23e0028e"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_lr1e4/summary.json": {
+      "type": "file",
+      "bytes": 1836,
+      "sha256": "8e20ff6798f2e180f02b2b91f46c1d7d272300e7da3a5a90808ee0d0c4c47be2"
+    },
+    "research/experiments/v6-legacy-fresh-zero-standard10-elo-curriculum-smoke-20260901/eval/pure_lr1e4/pairs.jsonl": {
+      "type": "file",
+      "bytes": 1316857,
+      "sha256": "9e35a6d307a0de6f2b438a4721fe3ad7e0d35eeca07fd933ce828ee17694bca5"
+    }
+  }
+}

@@ -9,6 +9,7 @@ import {
   getConfigLabel,
   getConfigOutputDir,
   getStackLabel,
+  getHURangeOptions,
   type TreeConfigName,
 } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
@@ -54,6 +55,10 @@ const hasFlag = (name: string) => args.includes(`--${name}`);
 
 // Config selection: v1_50bb (default), standard_50bb, standard_100bb, or "standard" (both 50bb+100bb)
 const configArg = getStringArg('config', 'v1_50bb');
+const outputDirArg = getStringArg('output-dir', '');
+const seedRaw = getStringArg('seed', '');
+const seed = seedRaw === '' ? undefined : Number.parseInt(seedRaw, 10);
+if (seedRaw !== '' && !Number.isFinite(seed)) throw new Error(`Invalid --seed: ${seedRaw}`);
 const isStandardBoth = configArg === 'standard'; // run both 50bb and 100bb
 
 const numFlops = getArg('flops', 1);
@@ -85,6 +90,12 @@ const QUICK_FLOPS: string[][] = [
   ['2h', '2d', '7s'], // Paired low
   ['9h', '6d', '3c'], // Disconnected rainbow
   ['Kc', '8h', '4d'], // K-high disconnected
+  ['Ac', 'Ad', '7h'], // Paired high
+  ['8c', '8d', '5c'], // Paired middle, two-tone
+  ['7s', '6s', '2d'], // Low connected, two-tone
+  ['Qh', '9d', '5h'], // Q-high disconnected, two-tone
+  ['4s', '3s', '2s'], // Low monotone wheel texture
+  ['Jh', 'Td', '4c'], // Two-broadway rainbow
 ];
 
 async function main(): Promise<void> {
@@ -96,19 +107,10 @@ async function main(): Promise<void> {
   console.log(
     `Mode: ${useAllFlops ? 'all isomorphic flops' : useSelector ? 'stratified flop selection' : 'preset flops'}`,
   );
+  console.log(`Seed: ${seed === undefined ? 'time-based (legacy)' : seed}`);
   console.log();
 
-  // Load preflop ranges
-  console.log('Loading preflop ranges...');
   const chartsPath = resolve(PROJECT_ROOT, 'data/preflop_charts.json');
-  const { oopRange, ipRange } = loadHUSRPRanges(chartsPath);
-  console.log(
-    `OOP range: ${oopRange.handClasses.size} hand classes, ${oopRange.combos.length} combos`,
-  );
-  console.log(
-    `IP range: ${ipRange.handClasses.size} hand classes, ${ipRange.combos.length} combos`,
-  );
-  console.log();
 
   // Prepare flop list
   interface FlopEntry {
@@ -150,13 +152,32 @@ async function main(): Promise<void> {
   // Run for each config (e.g. standard = 50bb + 100bb)
   for (const configName of configNames) {
     const treeConfig = getTreeConfig(configName);
-    const outputDir = resolve(PROJECT_ROOT, 'data/cfr', getConfigOutputDir(configName));
+    const outputDir = outputDirArg
+      ? resolve(
+          PROJECT_ROOT,
+          outputDirArg,
+          configNames.length > 1 ? configName : '',
+        )
+      : resolve(PROJECT_ROOT, 'data/cfr', getConfigOutputDir(configName));
     const stackLabel = getStackLabel(configName);
 
     console.log(`\n${'='.repeat(50)}`);
     console.log(`Config: ${getConfigLabel(configName)}`);
     console.log(`Output: ${outputDir}`);
     console.log(`${'='.repeat(50)}\n`);
+
+    console.log('Loading config-specific preflop ranges...');
+    const { oopRange, ipRange } = loadHUSRPRanges(
+      chartsPath,
+      getHURangeOptions(configName),
+    );
+    console.log(
+      `OOP range: ${oopRange.handClasses.size} hand classes, ${oopRange.combos.length} combos`,
+    );
+    console.log(
+      `IP range: ${ipRange.handClasses.size} hand classes, ${ipRange.combos.length} combos`,
+    );
+    console.log();
 
     // Build the betting tree
     console.log('Building betting tree...');
@@ -171,6 +192,7 @@ async function main(): Promise<void> {
         flops,
         iterations,
         bucketCount,
+        seed,
         outputDir,
         chartsPath,
         configName,
@@ -219,6 +241,7 @@ async function main(): Promise<void> {
         ipRange: ipCombos,
         iterations,
         bucketCount,
+        seed: seed === undefined ? undefined : seed + i,
         onProgress: (iter, elapsed) => {
           process.stdout.write(
             `\r  iter ${iter}/${iterations} | ${(elapsed / 1000).toFixed(1)}s | ${store.size} info sets`,
@@ -241,6 +264,7 @@ async function main(): Promise<void> {
         stackLabel,
         configName,
         betSizes: treeConfig.betSizes,
+        seed: seed === undefined ? undefined : seed + i,
       });
       exportMeta({
         outputPath,
@@ -254,6 +278,7 @@ async function main(): Promise<void> {
         stackLabel,
         configName,
         betSizes: treeConfig.betSizes,
+        seed: seed === undefined ? undefined : seed + i,
       });
 
       totalInfoSets += exportResult.infoSets;

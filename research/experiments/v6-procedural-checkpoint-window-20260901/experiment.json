@@ -1,0 +1,153 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-procedural-checkpoint-window-20260901",
+  "title": "Procedural domain-randomization checkpoint window",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T04:31:49+00:00",
+  "updated_at": "2026-09-01T04:32:42+00:00",
+  "started_at": "2026-09-01T04:31:49+00:00",
+  "ended_at": "2026-09-01T04:32:42+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An earlier frozen treatment checkpoint may retain the final endpoint procedural-family generalization mechanism while remaining within the preregistered raw-parent deployment-preservation thresholds.",
+  "material_change": "Read-only stage gate over preregistered iteration32 and iteration40 archives. Evaluate preservation first on the exact frozen 14963-state parent corpus. A treatment archive must satisfy mean TV <=0.02 and greedy disagreement <=0.02 before any strength evaluation. If multiple pass, select the later checkpoint without looking at old formal heldout outcomes; then qualify only that checkpoint against its matched control on new untouched procedural block seeds. No new training and no Slumbot unless both gates pass.",
+  "baseline": "Final iteration43 treatment passed procedural delta but failed preservation: mean TV0.026489 and greedy disagreement0.028069. Raw parent generic-greedy Slumbot fresh5k was -9.4188 with wide CI; Standard10 greedy was -11.4275 historically but strict sampled was -48.9778.",
+  "source": "v6-procedural-opponent-domain-randomization-pilot-20260901 frozen archives",
+  "parent_id": "v6-procedural-opponent-domain-randomization-pilot-20260901",
+  "command": "python research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/evaluate_preservation.py --parent research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --control research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000032_hands000000132038.pt --treatment research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000032_hands000000131971.pt --out-dir research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter32 --device cuda",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/evaluate_preservation.py --parent research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --control research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000032_hands000000132038.pt --treatment research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000032_hands000000131971.pt --out-dir research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter32 --device cuda",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:31:49+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/evaluate_preservation.py --parent research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --control research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000040_hands000000165035.pt --treatment research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000040_hands000000164921.pt --out-dir research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter40 --device cuda",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:32:42+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4ad931ecf1aa8910b836aadb2bf7b7a22b95a4b0d0ebc588c047d695ea200b1a",
+    "code_paths": [
+      "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/evaluate_preservation.py"
+    ],
+    "captured_at": "2026-09-01T04:31:49+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-procedural-checkpoint-window-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-procedural-checkpoint-window-20260901/source_manifest.json",
+    "source_manifest_sha256": "2fa0c884ecbd4c0399037dc9057cd56ef85c7b8c56ccac16ae6137450d105576",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 29926,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 53.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "iter32_treatment_mean_tv": 0.020217758552657464,
+    "iter32_treatment_greedy_disagreement": 0.024727661565194146,
+    "iter40_treatment_mean_tv": 0.02464293140463629,
+    "iter40_treatment_greedy_disagreement": 0.026999933168482256
+  },
+  "artifacts": [
+    "research/experiments/v6-procedural-checkpoint-window-20260901/code.patch",
+    "research/experiments/v6-procedural-checkpoint-window-20260901/source_manifest.json",
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter32/summary.json",
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter32/state_metrics.jsonl",
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter40/summary.json",
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter40/state_metrics.jsonl",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000032_hands000000132038.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000032_hands000000131971.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000040_hands000000165035.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000040_hands000000164921.pt"
+  ],
+  "notes": [
+    "Selection is outcome-blind to the old formal procedural evaluation: preservation alone decides whether an archive receives new untouched procedural qualification. Old seeds 2026110801-2026110808 are excluded from any qualification.",
+    "Iteration32 failed both preservation thresholds: treatment mean TV0.020218>0.02 and greedy disagreement0.024728>0.02. Iteration40 also failed both: TV0.024643 and disagreement0.027000. Per preregistration, neither archive receives procedural-strength evaluation or Slumbot."
+  ],
+  "result": {
+    "summary": "Read-only preservation-first window scan replayed the same audited14963-state parent corpus for matched iteration32 and40 archives. Iteration32 treatment TV/disagreement were0.020218/0.024728; iteration40 were0.024643/0.027000. Both frozen archives failed both <=0.02 gates.",
+    "conclusion": "The domain-randomization trajectory crossed the deployment-preservation boundary before the first archived checkpoint. There is no eligible frozen checkpoint among iteration32,40,43, so outcome evaluation was correctly withheld.",
+    "decision": "NO_ARCHIVED_CHECKPOINT_PASSES_PRESERVATION",
+    "next_step": "Test an outcome-blind parent-to-iteration32 learned-weight interpolation selected solely to satisfy both preservation limits, then use new untouched procedural seeds only if preservation passes. This is a bounded mechanism-preservation test, not evidence that generic Slumbot transfer is solved."
+  },
+  "tags": [
+    "checkpoint-window",
+    "domain-randomization",
+    "preservation",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-procedural-checkpoint-window-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-procedural-checkpoint-window-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 349,
+      "sha256": "2fa0c884ecbd4c0399037dc9057cd56ef85c7b8c56ccac16ae6137450d105576"
+    },
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter32/summary.json": {
+      "type": "file",
+      "bytes": 3493,
+      "sha256": "7dfa6fab029e2fc336db6ff678c72d6cdb03a962d01f55eefa9ccffdec4abb3b"
+    },
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter32/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 3291641,
+      "sha256": "5fed619c018b42e4b3925831e04cf2ef69a935aba699ca8bcc76163ef0039412"
+    },
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter40/summary.json": {
+      "type": "file",
+      "bytes": 3493,
+      "sha256": "9e93e650d7ece1413727c919f9d89207c1707b85faee901254d20d96ec156cf8"
+    },
+    "research/experiments/v6-procedural-checkpoint-window-20260901/preservation_iter40/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 3291555,
+      "sha256": "716d3de0ee48d20b86759a23e23f1121025d0ee5ca935a52a4a4ebb667222518"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000032_hands000000132038.pt": {
+      "type": "file",
+      "bytes": 66971798,
+      "sha256": "fe232a82842861738e4b89e35fce9cb8fe5119b3a722911e48f137c05a18b93d"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000032_hands000000131971.pt": {
+      "type": "file",
+      "bytes": 66971862,
+      "sha256": "fc30b57a63e852740937165b62de2c8a8343cd515870eff566019be2bb27ef11"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000040_hands000000165035.pt": {
+      "type": "file",
+      "bytes": 66971798,
+      "sha256": "bfb2bfc553072e2ac58bc04d357d6294ca1d91e50553fb22777ede03e8627809"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000040_hands000000164921.pt": {
+      "type": "file",
+      "bytes": 66971926,
+      "sha256": "31ce8e7371e00e28b259dd1dcafdf749bc8879c48451889289cc115f10e76049"
+    }
+  }
+}

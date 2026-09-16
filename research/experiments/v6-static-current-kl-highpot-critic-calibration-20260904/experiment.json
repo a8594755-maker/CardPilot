@@ -1,0 +1,145 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-static-current-kl-highpot-critic-calibration-20260904",
+  "title": "Static-current-KL 262k-to-1M high-pot critic calibration",
+  "status": "COMPLETED",
+  "created_at": "2026-09-04T05:48:07+00:00",
+  "updated_at": "2026-09-04T05:55:35+00:00",
+  "started_at": "2026-09-04T05:48:07+00:00",
+  "ended_at": "2026-09-04T05:55:35+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Across fresh internal common-deck play against four general anchors and both seats, the 1M endpoints have a replicated high-pot-specific critic calibration degradation relative to their seed-matched 262k parents.",
+  "material_change": "Zero-Slumbot read-only on-policy critic calibration audit using first decision per pot bucket, matched common-reach hand identities, and a preregistered high-minus-low difference-in-differences gate; no weights or action rules change.",
+  "baseline": "The 1M scale evaluation had a noisy positive pooled internal slope (+0.4358 bb/100, raw pair CI [-3.0908,3.9625]) but only one of three seeds met breadth. Existing Slumbot attribution localized replicated losses to final pots >=30bb without causal action support.",
+  "source": "Seed-matched v6-static-current-kl 262k and 1M frozen endpoints, plus Standard10, CFR4, legacy iter16, and legacy mixed65k anchors.",
+  "parent_id": "v6-integrated-slumbot-loss-attribution-20260904",
+  "command": "python research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/run_calibration.py --pairs-per-anchor 512 --seed-base 20263120 --device cuda --out-dir research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/run_calibration.py --pairs-per-anchor 512 --seed-base 20263120 --device cuda --out-dir research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T05:48:07+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/test_calibration.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T05:55:35+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "c9b5480965e52d94239d7e867a5aed5841a1ff6ab9604e468a79a5da73da474a",
+    "code_paths": [
+      "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904"
+    ],
+    "captured_at": "2026-09-04T05:48:07+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/source_manifest.json",
+    "source_manifest_sha256": "6d2a3b0a0d1d5990a3d48ba260f13ceb4d03cc372bfa4622373fdf3a09a6f957",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 28279,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 448.0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "planned_evaluation_hands": 24576,
+    "unique_fresh_decks": 6144,
+    "prior_deck_digests_checked": 98304
+  },
+  "metrics": {
+    "retained_decision_rows": 28279,
+    "common_highpot_identities": 590,
+    "pooled_highpot_squared_error_delta": -223.938768207648,
+    "pooled_highpot_squared_error_ci_low": -531.656239013358,
+    "pooled_highpot_squared_error_ci_high": 83.7787025980617,
+    "pooled_highpot_absolute_error_delta": -1.14534185403852,
+    "pooled_highpot_specific_did": -103.501166702267,
+    "pooled_highpot_specific_did_ci_low": -252.442745110925,
+    "pooled_highpot_specific_did_ci_high": 45.4404117063903
+  },
+  "artifacts": [
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/code.patch",
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/source_manifest.json",
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/preregistration.md",
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/run_calibration.py",
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/test_calibration.py",
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/calibration_raw.jsonl.gz",
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/analysis.json"
+  ],
+  "notes": [
+    "Preflight before record start: py_compile PASS; 3 unit tests PASS; separate 96-hand CPU smoke PASS. Smoke outputs are outside the experiment directory and are not scientific evidence.",
+    "All 6,144 generated decks were unique and disjoint from 98,304 prior raw static-current-KL lineage deck digests. Checkpoint SHA256 values were unchanged after evaluation.",
+    "The three treatment high-pot residual biases were all optimistic in sign (-9.05,-7.80,-6.02 bb for target minus prediction), but every per-seed 95% CI included zero. This descriptive pooled tendency does not satisfy the preregistered multi-seed significance gate."
+  ],
+  "result": {
+    "summary": "The fresh 24,576-hand internal calibration audit completed with 590 common-reach high-pot identities. The 1M endpoints did not have higher high-pot error than their 262k parents: pooled squared-error delta was -223.94 bb^2 with CI95 [-531.66,83.78], and high-minus-low difference-in-differences was -103.50 with CI95 [-252.44,45.44].",
+    "conclusion": "The externally localized >=30bb loss class does not close a causal loop through worsening internal critic calibration. Error worsening appeared in only one seed, high-pot specificity pointed negative, and no treatment seed had a significant residual bias. Do not oversample high-pot states, reset the critic, reverse actions, or imitate solver/Slumbot labels from this evidence.",
+    "decision": "NO_HIGHPOT_VALUE_INTERVENTION; STATIC_CURRENT_KL_NOT_REJECTED",
+    "next_step": "Return to geometric scale evidence for the preserved static-current-KL method. Its 262k-to-1M internal slope was positive in two of three seeds with low drift and no replicated mechanism failure; preregister a multi-seed 1M-to-4M continuation with intermediate 2M checkpoints and untouched broad internal evaluation, rather than opening a benchmark-specific patch."
+  },
+  "tags": [
+    "calibration",
+    "critic",
+    "high-pot",
+    "no-slumbot"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 1025,
+      "sha256": "6d2a3b0a0d1d5990a3d48ba260f13ceb4d03cc372bfa4622373fdf3a09a6f957"
+    },
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/preregistration.md": {
+      "type": "file",
+      "bytes": 3823,
+      "sha256": "b6ceab2374be339e5f4935caaab3bd87ac4868e57ba252b5fc0da22048822a87"
+    },
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/run_calibration.py": {
+      "type": "file",
+      "bytes": 17397,
+      "sha256": "3fbf92fd0d78e1e245b90988c20307445ebf4f8707696a27bcd3cd1b96b69bb5"
+    },
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/test_calibration.py": {
+      "type": "file",
+      "bytes": 1187,
+      "sha256": "364d79d1d001b8dfc48c209ab136a371b9b9cacb49ed2338f7b0c97d5eb7da72"
+    },
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/calibration_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 1434765,
+      "sha256": "c6ae2a9c9d02010be53892cf0ab895a99c7fdf58e935cabe42d784c5fffbd5fa"
+    },
+    "research/experiments/v6-static-current-kl-highpot-critic-calibration-20260904/analysis.json": {
+      "type": "file",
+      "bytes": 18181,
+      "sha256": "66bbf41ed5fe8bc63c61e6c12012eaba1d20c2d4e719f14341422f40a6792fb8"
+    }
+  }
+}

@@ -1,0 +1,366 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-physical-training-smoke-20260831",
+  "title": "Corrected-contract measured physical training smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T07:37:02+00:00",
+  "updated_at": "2026-08-31T07:41:33+00:00",
+  "started_at": "2026-08-31T07:37:02+00:00",
+  "ended_at": "2026-08-31T07:40:43+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The validated v6 contract supports real full-network PPO updates, exact physical accounting and frozen multi-anchor evaluation without legacy semantic leakage.",
+  "material_change": "Explicit new-contract Standard10 weight rebinding with fresh Adam/counters and fixed8192physical-hand target; six diagnostic64pair cells, no strength gate.",
+  "baseline": "native-rules-contract-repair-20260831",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "native-rules-contract-repair-20260831",
+  "command": "python research/experiments/v6-physical-training-smoke-20260831/run_smoke.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-physical-training-smoke-20260831/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:37:02+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\test_smoke.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:37:05+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026091600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_physical_smoke_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\latest.pt --seed 20260916 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:37:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:38:59+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt --pairs 64 --seed 20260917 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:39:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor1.pt --pairs 64 --seed 20260917 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:39:11+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor2.pt --pairs 64 --seed 20260917 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:39:15+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt --pairs 64 --seed 20260917 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:39:21+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor1.pt --pairs 64 --seed 20260917 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:39:29+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor2.pt --pairs 64 --seed 20260917 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:39:34+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-physical-training-smoke-20260831/recover_completed_summary.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:40:37+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-physical-training-smoke-20260831/review_and_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:40:43+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "56f8b3e0591abdb29d3e6ceeb2bfe342a1046ff42b19824ebd34ad2c850562f7",
+    "code_paths": [
+      "research/experiments/v6-physical-training-smoke-20260831"
+    ],
+    "captured_at": "2026-08-31T07:37:02+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-physical-training-smoke-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-physical-training-smoke-20260831/source_manifest.json",
+    "source_manifest_sha256": "89240edf9fab07253817c84d76cf08c0bf8afee0fad0c22e15ad3ad565fa6dbd",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 11261,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 768,
+    "wall_time_seconds": 221.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "trainer_pid": 41336,
+    "latest_iteration": 2,
+    "trainer_exit_code": 0,
+    "wrapper_exit_code": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-physical-training-smoke-20260831/preregistration.md",
+    "research/experiments/v6-physical-training-smoke-20260831/code.patch",
+    "research/experiments/v6-physical-training-smoke-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\rebound_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\trainer_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor2\\pairs.jsonl",
+    "research/experiments/v6-physical-training-smoke-20260831/recover_completed_summary.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\review_and_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\result_summary.md",
+    "research/experiments/v6-physical-training-smoke-20260831/completed_analysis.json",
+    "research/experiments/v6-physical-training-smoke-20260831/result_summary.md"
+  ],
+  "notes": [
+    "This is a NEW v6 run, not a resume/reset of earlier research. Rebound anchors preserve weight tensors but constitute explicitly different executed policies. No inherited replay or pool outcomes; no Slumbot.",
+    "Trainer exit0 and six completed64pair cells were preserved. Wrapper then failed in final hash-only postprocessing: sha256_file received a str manifest path rather than Path. No retraining or reevaluation; recover summary from existing raw artifacts using a separate helper, preserve original executed wrapper/source snapshot.",
+    "Independent raw arithmetic/checkpoint/worker/source review passed. Tiny cell results are descriptive and do not select a policy or admit qualification.",
+    "Result summary explicitly records wrapper exit1 in final hash-only postprocessing, separately recovered with zero additional hands. Training exit0, all six cell completions and independent review remain valid; no original runtime source rewritten. Next direction: substantive corrected-v6 physical-budget full-network learning curve from original Standard10, with untouched holdout-anchor evaluation."
+  ],
+  "result": {
+    "summary": "Correctedv6 PPO smoke completed11261physical training hands and768diagnostic internal hands,with86finite changed tensors and validated accounting.",
+    "conclusion": "The repaired production trainer and frozen-evaluation pipeline work on actual learned weights; strength improvement is not established by this tiny smoke.",
+    "decision": "V6_TRAINING_PIPELINE_SMOKE_PASSED",
+    "next_step": "Preregister a substantive v6 physical-budget learning curve and untouched multi-anchor evaluation from the original source, excluding prior smoke and legacy outcomes from confirmation."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-physical-training-smoke-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2921,
+      "sha256": "fcb3e68c2d0cccaed11802ec6cd64d32f80b36ac0ec12b0a2c9c7e9767ae6f39"
+    },
+    "research/experiments/v6-physical-training-smoke-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-physical-training-smoke-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 929,
+      "sha256": "89240edf9fab07253817c84d76cf08c0bf8afee0fad0c22e15ad3ad565fa6dbd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 12876,
+      "sha256": "88521a919c481781829d19e2b2c5d7b4010cac7b76e8015176ce4d454781e94e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 21705,
+      "sha256": "dbdeaca49541dd9dd2f413daade5989d909d69ea23dc75dcbc9274d4e7b80464"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 647,
+      "sha256": "d98117316daa5709d1b91f2d53be96747fdfd0531ea6c758fa1172728b21796a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\rebound_manifest.json": {
+      "type": "file",
+      "bytes": 1318,
+      "sha256": "5708503b87bdea33b90c09719b63fd304e4713269c4ef715d79f55662af070b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\trainer_stdout.log": {
+      "type": "file",
+      "bytes": 3633,
+      "sha256": "3aa92cfb9c9a45f49b3f2a2255dd6254a6e424d79a6f1c86b91aa2f2944a0e1e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 198567240,
+      "sha256": "30f3c6529f82a32df66b1d6e297ce388ff8f28cdb414ebcd35c00aaa2be44e56"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\session_audit.json": {
+      "type": "file",
+      "bytes": 5295,
+      "sha256": "e7226d4315682b31494cb20cef4549919c0270f89067491d4d19614450ecf469"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\latest.pt": {
+      "type": "file",
+      "bytes": 198567240,
+      "sha256": "30f3c6529f82a32df66b1d6e297ce388ff8f28cdb414ebcd35c00aaa2be44e56"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57338,
+      "sha256": "e376fa74ca295469e7345124b2e19f11b737a00a1d30e55722e3a437818afbcc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 51674,
+      "sha256": "89637c0121fedd584ddf29b23efc39d0c69e436da0fecd4ad806099ff01d79aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\production\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4802,
+      "sha256": "451f0803d7b37953a9f434add117fd79d54ce581ea25e60924fea9606a68052a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1477,
+      "sha256": "663f9055eedc6824582c6363360ff4aa535a28f1633f87ed9f42255cb201efa5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 17808,
+      "sha256": "bd43e4b7bc402ed4a09d6f3c6a0ec8ed5177d2cf30d4a8aff55b9297215d5d2e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1516,
+      "sha256": "23be6007f9e067f9fa87360b69f6a92ca93ba8043cc31a68baa07eef9e6f4a8d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 17663,
+      "sha256": "6d6cf22f17abd9607ae27dfad06bb9a951ffcb99c064caf9ac3bc5d6d432c0cb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1515,
+      "sha256": "adfc9e4e0ed58c675f1479355f287b835bee6c854829e96d0bf7eb1268234a54"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 17782,
+      "sha256": "c647cd574a60a85af07404e4b30df846ae359f4205d9a5d0a3c7b8bfdcb20ed3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1513,
+      "sha256": "5bea572967b304643b074ae68a80b7d3525ce62e9247bea64b2c48f7e7390762"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 17819,
+      "sha256": "3d4b35a9c8226f07f470ebfd9284399bbb9d2e298fd0780029ead930167b6b07"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1509,
+      "sha256": "7fc8cb7d77aa4834e23d061e322d0be99558a2dc8f48da562745f578b0029698"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 17666,
+      "sha256": "ac8a09f6cc0f6f4a0bd80a4f96b2c63c395c10d6809c1f3ead4ca79e0e1eefe4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1508,
+      "sha256": "e8ae2a4f514aa050e17d6eb9cbfae38be5b8bc6e6ca13c982037914d35477a0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\matrix\\final_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 17795,
+      "sha256": "151366f9c6b60fd3de160216c06b8ab1552ebc7312153f4caf16331f00f2fbad"
+    },
+    "research/experiments/v6-physical-training-smoke-20260831/recover_completed_summary.py": {
+      "type": "file",
+      "bytes": 2628,
+      "sha256": "b28a26bebc02867bfd3f70d88d0bd43e81427a7023e39670f7c51c18d50284f5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\review_and_finish.py": {
+      "type": "file",
+      "bytes": 8019,
+      "sha256": "05a31b9a89abb1d532d8f540beeea027a112e26dba587107ccfb27694a5e71e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 2058,
+      "sha256": "e40402c21d015833532cef42185ee411f1893bcede9817f2367e7c7b2ab83aa1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical-training-smoke-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1265,
+      "sha256": "667363e1c863891150dba61caa19c78958cb842b958a077d62c99ee925b2fe0b"
+    },
+    "research/experiments/v6-physical-training-smoke-20260831/completed_analysis.json": {
+      "type": "file",
+      "bytes": 11131,
+      "sha256": "ef60e745b6f7c99cbacaf5a30fa958f6ba5638cf90ea0f3a782117a993614653"
+    },
+    "research/experiments/v6-physical-training-smoke-20260831/result_summary.md": {
+      "type": "file",
+      "bytes": 1265,
+      "sha256": "667363e1c863891150dba61caa19c78958cb842b958a077d62c99ee925b2fe0b"
+    }
+  }
+}

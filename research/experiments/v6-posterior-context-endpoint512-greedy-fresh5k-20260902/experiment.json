@@ -1,0 +1,375 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-posterior-context-endpoint512-greedy-fresh5k-20260902",
+  "title": "Posterior-context endpoint512 greedy fresh5k Slumbot gate",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T09:47:31+00:00",
+  "updated_at": "2026-09-02T10:04:30+00:00",
+  "started_at": "2026-09-02T09:47:31+00:00",
+  "ended_at": "2026-09-02T10:04:30+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The selected endpoint512 seed2 policy, after a per-session 64-hand exact Standard10 cold start and fixed entropy-reliability contextual activation, will improve the directional external frontier while preserving session-independent audited execution.",
+  "material_change": "Evaluate one frozen contextual deployment with no weight updates in eight untouched 625-hand greedy Slumbot sessions; context uses only prior public actions within each independent session.",
+  "baseline": "Standard10 historical greedy fresh20k: -11.4275 bb/100, 95% CI [-28.7124, 5.8574]. This 5k is directional and cannot satisfy the 100k goal.",
+  "source": "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/posterior_context_endpoint512_seed2_deployment.pt",
+  "parent_id": "v6-posterior-context-endpoint512-deployment-feasibility-20260902",
+  "command": "python scripts/alpha_holdem/v6_contextual_deployment_feasibility.py --source-checkpoint research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run/seed2_endpoint512.pt --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --states 512 --session-hands 70 --seed 2026090217 --out-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_contextual_deployment_feasibility.py --source-checkpoint research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run/seed2_endpoint512.pt --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --states 512 --session-hands 70 --seed 2026090217 --out-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:47:31+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contextual_deployment_feasibility.py --source-checkpoint research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run/seed2_endpoint512.pt --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --states 512 --session-hands 70 --seed 2026090217 --out-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:48:41+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:49:48+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/alpha_holdem/bench_contextual_slumbot.ps1 -ModelPath research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery/posterior_context_endpoint512_seed2_deployment.pt -BaseModel models/baseline/standard10/latest.pt -OutDir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live -SessionPrefix pc512s2_20260902 -HandsPerSession 625 -Sessions 8 -SeedBase 2026092200 -LaunchStaggerSeconds 1 -PythonExe python",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:50:25+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_v6_session.py --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08 --model research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery/posterior_context_endpoint512_seed2_deployment.pt --base-model models/baseline/standard10/latest.pt --observation-bridge posterior-context",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:54:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_journaled_slumbot_independence.py --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08 --out-json research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/session_independence.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:57:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/slumbot_ci_from_hands.py research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/hands.jsonl research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/hands.jsonl research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/hands.jsonl research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/hands.jsonl research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/hands.jsonl research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/hands.jsonl research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/hands.jsonl research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/hands.jsonl --baseline-bb100 -11.4275 --out-json research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/ci_summary.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:57:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contextual_slumbot_phase_audit.py --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07 --session-dir research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08 --model research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery/posterior_context_endpoint512_seed2_deployment.pt --base-model models/baseline/standard10/latest.pt --out-json research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/phase_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:59:02+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T10:01:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/compare_independent_slumbot_samples.py --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/hands.jsonl --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/hands.jsonl --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/hands.jsonl --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/hands.jsonl --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/hands.jsonl --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/hands.jsonl --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/hands.jsonl --candidate research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s01/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s02/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s03/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s04/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s05/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s06/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s07/hands.jsonl --control research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions/s08/hands.jsonl --out-json research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/control_comparison.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T10:03:36+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "d308db9bc414eb3d7bdae983f0abefffef36c95c5206a58a73cb116547760063",
+    "code_paths": [
+      "scripts/alpha_holdem/contextual_execution_v6.py",
+      "scripts/alpha_holdem/play_slumbot_v6_journaled.py",
+      "scripts/alpha_holdem/audit_slumbot_v6_session.py",
+      "scripts/alpha_holdem/bench_contextual_slumbot.ps1",
+      "scripts/alpha_holdem/v6_contextual_deployment_feasibility.py"
+    ],
+    "captured_at": "2026-09-02T09:47:31+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/source_manifest.json",
+    "source_manifest_sha256": "3f953d5bb79968c1da130d9e36fcb8fb0c589019c6423d46340ee4f6c995e2a9",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 5280,
+    "wall_time_seconds": 1019.0,
+    "training_hands": 0,
+    "slumbot_hands": 5000
+  },
+  "metrics": {
+    "decision_replays": 15284,
+    "slumbot_bb100": -51.75,
+    "slumbot_ci95_lower": -89.52,
+    "slumbot_ci95_upper": -13.98,
+    "baseline_delta_bb100": -40.32,
+    "cold_start_bb100": 1.3671875,
+    "context_active_bb100": -57.809714795,
+    "context_active_ci95_lower": -99.230549801,
+    "context_action_disagreement_rate": 0.01663019694,
+    "active_mean_context_reliability": 0.6866689244,
+    "full_tests_passed": 294
+  },
+  "artifacts": [
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/code.patch",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/source_manifest.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight/mock_session_1/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight/mock_session_2/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery/posterior_context_endpoint512_seed2_deployment.pt",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/tests.xml",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/session_audit.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/session_independence.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/ci_summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/phase_audit.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/control_comparison.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/summary.json"
+  ],
+  "notes": [
+    "Preflight first. No retry, resume, failed-hand replacement, checkpoint change, or cross-session context carry.",
+    "Initial final-code preflight completed 140 offline fixture hands but failed stateful replay because active contextual decision telemetry omitted uniform. Zero Slumbot hands attempted. Evidence preserved; recovery changes metadata only.",
+    "Recovery preflight passed every gate. Bundle SHA remained d5cda4c74e2745f73a4b2290798606fdd00aa827c681f563adf7be534bc857d2; 512-state parity and zero-context exactness passed; 527 stateful decision replays passed across two independent sessions.",
+    "Full suite 294/294 passed immediately before launch. Frozen deployment SHA d5cda4c74e2745f73a4b2290798606fdd00aa827c681f563adf7be534bc857d2; Standard10 base SHA 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428; fixed sessions=8, hands/session=625, seeds=2026092201..2026092208. No replacement.",
+    "All eight immutable live processes completed exactly625 hands with COMPLETED summaries and empty stderr (5000 total). Bench post-processing falsely failed because Start-Process ExitCode properties were stale/null; no session failed and no retry occurred. Recovery is read-only over the original eight session directories.",
+    "Stateful journal audit PASS across all original sessions: 5000 hands, 15284 frozen decisions, disjoint token chains.",
+    "Raw 5000-hand result: -51.75 bb/100, CI95 [-89.52,-13.98], baseline delta -40.32. Session independence PASS with zero same-position visible-deal matches across all 28 pairs.",
+    "Same-run descriptive audit: cold512 +1.367 bb/100; active4488 -57.810. Context changed only228/13710 active decisions (1.663%). Changed-hand outcomes were positive descriptively while unchanged hands carried the loss, so this run rejects the frozen external gate but does not identify contextual action drift as the causal mechanism."
+  ],
+  "result": {
+    "summary": "The exact frozen contextual bundle completed eight untouched 625-hand Slumbot sessions: 5000 hands at -51.75 bb/100, raw CI95 [-89.52,-13.98]. Stateful replay verified 15284 decisions and all context transitions; session independence passed. Cold-start512 scored +1.367 and active4488 -57.810 descriptively. Context changed only 228/13710 active decisions (1.663%). Against the execution-matched Standard10 bridge fresh20k (-24.5683), the independent delta was -27.1817 with CI95 [-69.1354,+14.7720].",
+    "conclusion": "This frozen endpoint fails the directional external gate and must not be scaled to fresh20k/100k. The absolute external result is clearly negative, but it does not establish contextual mechanism collapse: action changes were sparse, changed-hand outcomes were not the loss source descriptively, and the execution-matched candidate-minus-base interval includes zero. Retain the method as underidentified/undertrained, reject this checkpoint for external promotion.",
+    "decision": "REJECT_ENDPOINT512_EXTERNAL_PROMOTION_RETAIN_CONTEXT_METHOD_AS_UNDERIDENTIFIED",
+    "next_step": "Run a no-new-Slumbot proxy/action-support alignment audit on the frozen 128/512 three-seed endpoints: replay broad training and SHA-disjoint holdout evaluations to measure contextual-vs-Standard10 argmax flip rate, margin, street/seat support, and whether paired gains concentrate on changed decisions. Use it to decide whether a margin-aware objective deserves a new multi-seed geometric training curve or whether to pivot to a different learned self-play objective."
+  },
+  "tags": [
+    "fresh5k",
+    "greedy",
+    "posterior-context",
+    "slumbot"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 10,
+    "command_count": 10
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 1042,
+      "sha256": "3f953d5bb79968c1da130d9e36fcb8fb0c589019c6423d46340ee4f6c995e2a9"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight/mock_session_1/hands.jsonl": {
+      "type": "file",
+      "bytes": 587656,
+      "sha256": "63199ae0adaf398e480a7bef7630a2422b1076e9019a7e2b8417f8be2e227f27"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight/mock_session_2/hands.jsonl": {
+      "type": "file",
+      "bytes": 571119,
+      "sha256": "32b17a3516484b415455ce0b43c890b52da543b8e91044f06610a5f9792fbd84"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery/summary.json": {
+      "type": "file",
+      "bytes": 7505,
+      "sha256": "9d43a9298af3e932f9c20d304fd47e15d61dada7b7520399500051e9e9eff53b"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/preflight_recovery/posterior_context_endpoint512_seed2_deployment.pt": {
+      "type": "file",
+      "bytes": 481238,
+      "sha256": "d5cda4c74e2745f73a4b2290798606fdd00aa827c681f563adf7be534bc857d2"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 44556,
+      "sha256": "7cd099ae929b91aaf0308e43a13420932246982f8815cc57de3ee56119bac87e"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/session_audit.json": {
+      "type": "file",
+      "bytes": 9268,
+      "sha256": "ebc36459785677f54d4ae97db8317ea2893448f444ac5fa100ed21f76da1736a"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/session_independence.json": {
+      "type": "file",
+      "bytes": 10353,
+      "sha256": "b588980ab06b5976c0f7693abb85f8a1755be4515228573e313cca9319438b04"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/ci_summary.json": {
+      "type": "file",
+      "bytes": 2019,
+      "sha256": "057c33d3bcd83e7ff18ff8b25fb1df9c0e891c79ec8102056d1a7cbcca79bb1b"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/phase_audit.json": {
+      "type": "file",
+      "bytes": 4687,
+      "sha256": "01f2678e6ef490d536679f06ec48d373fd7d98e59d90b11a7428eb79b7351e51"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/control_comparison.json": {
+      "type": "file",
+      "bytes": 2663,
+      "sha256": "1903f7173b5b46a4a4f8db6780b056a24bf239228199cb9c56a9fcf3a31acc9b"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/hands.jsonl": {
+      "type": "file",
+      "bytes": 4447396,
+      "sha256": "8c4936ddf4e6cc08704f9974b085860e801d89767e3c003f5abb1d0e0f15efd9"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/journal.jsonl": {
+      "type": "file",
+      "bytes": 6759256,
+      "sha256": "28e4e0c670c8dfeec95ccdd1fced2cd270bb81e646cda52f02a82e15a2c1ebc1"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s01/summary.json": {
+      "type": "file",
+      "bytes": 6488,
+      "sha256": "cabe6f95cfb504f1b7cfd5e3cdf5a5e57132e595faf615c8a897403a8d176a3b"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/hands.jsonl": {
+      "type": "file",
+      "bytes": 4416586,
+      "sha256": "e9e83b813a926b7c7302b77883db8ee19f507cb40a5cb547568e749d17927f17"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/journal.jsonl": {
+      "type": "file",
+      "bytes": 6694801,
+      "sha256": "40f350ca716d557e509497ee44b14fa73b477e11bd5205a183ab43defa3471d5"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s02/summary.json": {
+      "type": "file",
+      "bytes": 6487,
+      "sha256": "ffd2b3c4b9d83a8e75913eb3f2d31ba88c3c37ec027a043541d220b5d0cc2534"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/hands.jsonl": {
+      "type": "file",
+      "bytes": 4448568,
+      "sha256": "42272a2ec175b6e3a78a2504d8dd913bf7448ec73df2cc5a66bdc4e6fe1b9ad3"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/journal.jsonl": {
+      "type": "file",
+      "bytes": 6765662,
+      "sha256": "6412d000785e6521029f2aac2fe803b24bffdbda78654ca3a9529231e2d3a809"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s03/summary.json": {
+      "type": "file",
+      "bytes": 6487,
+      "sha256": "001a9c6f120c03951f43ef9b56b4f913f097d6bc344f5e57a452b28c593115e2"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/hands.jsonl": {
+      "type": "file",
+      "bytes": 4275386,
+      "sha256": "e66d6c03db427f50aa617e1758436d10fde3d41ef358e82553c56756cdeef2a8"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/journal.jsonl": {
+      "type": "file",
+      "bytes": 6471337,
+      "sha256": "3429d66b87f02d0f81534c126d9f2d4a4e6c2ebba2413a21dc93bc81f14f8b97"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s04/summary.json": {
+      "type": "file",
+      "bytes": 6488,
+      "sha256": "45a86f83fe9cded9714f691b0c9272befc76efa31ab766149b8b62d3fd1feb61"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/hands.jsonl": {
+      "type": "file",
+      "bytes": 4528732,
+      "sha256": "aa8e19269cacd4b7f477bbc0b24c829a4369567c09032a367ed60d76faed5051"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/journal.jsonl": {
+      "type": "file",
+      "bytes": 6864871,
+      "sha256": "41b831f3b93f8a579a13ce2dbe9ade12af3ebf6dae791821446692f999a01b99"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s05/summary.json": {
+      "type": "file",
+      "bytes": 6487,
+      "sha256": "2d8166813e43f7008bd6603c802512fe4cf39b3bcdfa31c0dcc07731634ad733"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/hands.jsonl": {
+      "type": "file",
+      "bytes": 4393827,
+      "sha256": "a63fad5375d738c7ee7972773916d1f7e69f877fc35dcfd3c6a7733216e98bf3"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/journal.jsonl": {
+      "type": "file",
+      "bytes": 6645168,
+      "sha256": "06cb2788586f00d2be012e4f3688d9bed4e705861726bc1371e5cc76b00b3494"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s06/summary.json": {
+      "type": "file",
+      "bytes": 6486,
+      "sha256": "d5ce2e194bfe9d1d02963a7898801f479a87336450860e4181d87eead25e1c0e"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/hands.jsonl": {
+      "type": "file",
+      "bytes": 4400430,
+      "sha256": "2f0d5ac1fca0d9cd3340c9d0acb60d8b150114e52a7aa38ac3267c848b60f2d3"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/journal.jsonl": {
+      "type": "file",
+      "bytes": 6678204,
+      "sha256": "67ec9c9d00438feb9156a3ccd2f4b8d01d0892c43eefea186492dc302892344a"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s07/summary.json": {
+      "type": "file",
+      "bytes": 6486,
+      "sha256": "6f47ba31dafbd9de2e7dd58895c3ff44bdf801f4137fd1294f28bdd6202197dd"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/hands.jsonl": {
+      "type": "file",
+      "bytes": 4498457,
+      "sha256": "af3ef84d604b01c39db6593167ed61030a7602ed6285722ae29ff27f2398f7c5"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/journal.jsonl": {
+      "type": "file",
+      "bytes": 6845261,
+      "sha256": "72aae8214f5edd98cadb1ca4b48464bf2cc1c51a2ddd9327bfc7acc032518a66"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-greedy-fresh5k-20260902/live/s08/summary.json": {
+      "type": "file",
+      "bytes": 6487,
+      "sha256": "d097c07dfd5842ba5d8c0eeaa8b68c0c2a25a58f81dbf6e80bb6853600c7c6d1"
+    }
+  }
+}

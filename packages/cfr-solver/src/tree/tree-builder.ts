@@ -28,7 +28,7 @@ interface BuildState {
   history: string; // encoded action history
   raiseCount: number; // raises on this street
   isFirstAction: boolean; // first action on this street
-  facingBet: number; // bet the current player must respond to (0 if none)
+  facingBet: number; // additional amount the current player must call (0 if none)
 }
 
 /**
@@ -81,6 +81,7 @@ function buildNode(config: TreeConfig, state: BuildState): GameNode {
 function getLegalActions(config: TreeConfig, state: BuildState): Action[] {
   const actions: Action[] = [];
   const playerStack = state.stacks[state.player];
+  const opponentStack = state.stacks[1 - state.player];
 
   if (state.facingBet > 0) {
     // Facing a bet/raise
@@ -88,7 +89,13 @@ function getLegalActions(config: TreeConfig, state: BuildState): Action[] {
     actions.push('call');
 
     // Can only raise if under the raise cap and have enough stack
-    if (state.raiseCount < config.raiseCapPerStreet && playerStack > state.facingBet) {
+    // In heads-up poker an opponent with zero chips is already all-in. The
+    // remaining player may only fold or call; there is nobody left to raise.
+    if (
+      opponentStack > 0 &&
+      state.raiseCount < config.raiseCapPerStreet &&
+      playerStack > state.facingBet
+    ) {
       const raiseSizes = getRaiseSizesAvailable(
         config,
         state.pot,
@@ -274,7 +281,11 @@ function applyAction(config: TreeConfig, state: BuildState, action: Action): Gam
   const isRaise = state.facingBet > 0;
 
   // Opponent now faces the bet
-  const facingAmount = betAmount - state.facingBet; // additional chips opponent must put in
+  // The raiser first calls the old outstanding amount, so only the raise-over
+  // portion is outstanding for the opponent.  Storing the whole additional
+  // contribution here makes the next call overpay and corrupts every later
+  // pot/stack state.
+  const facingAmount = betAmount - state.facingBet;
 
   return buildNode(config, {
     street: state.street,
@@ -284,7 +295,7 @@ function applyAction(config: TreeConfig, state: BuildState, action: Action): Gam
     history: newHistory,
     raiseCount: state.raiseCount + (isRaise ? 1 : 0),
     isFirstAction: false,
-    facingBet: facingAmount > 0 ? betAmount : state.facingBet,
+    facingBet: Math.max(facingAmount, 0),
   });
 }
 

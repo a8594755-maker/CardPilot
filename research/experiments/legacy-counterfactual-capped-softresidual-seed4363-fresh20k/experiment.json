@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-counterfactual-capped-softresidual-seed4363-fresh20k",
+  "title": "counterfactual_capped_softresidual_seed4363_fresh20k",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/counterfactual_cappedsoft_seed2026084363_fresh20k_auditrepair_c3_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/counterfactual_cappedsoft_seed2026084363_fresh20k_auditrepair_c3_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "Frozen pure-weight SHA 478fdeaeec6e0acb49e6caab7efbe767893af54a783ac5ce5ff1bff416bcfa40 completed an audited fresh20k at -38.0775 bb/100, CI95 [-56.8388,-19.3162], with SB -43.57 and BB -32.585; 119,511 decision rows, zero greedy mismatches, zero malformed rows and zero stderr bytes.",
+    "conclusion": "Do not run formal100k, add Slumbot hands or scale the same one-step source-continuation capped-soft residual checkpoint.",
+    "decision": "REJECT_EXACT_CHECKPOINT_REVISE_METHOD_NO_FORMAL100K",
+    "next_step": "Generate candidate-continuation or multi-step same-state counterfactual targets that account for repeated candidate decisions, then pass cross-seed, cross-opponent, both-seat/street and large-pot-risk gates."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

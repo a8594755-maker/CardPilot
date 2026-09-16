@@ -1,0 +1,94 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-expanded-assignment-boundary-20260907",
+  "title": "Real-parent expanded-pool assignment boundary qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-07T16:31:44+00:00",
+  "updated_at": "2026-09-07T16:32:21+00:00",
+  "started_at": "2026-09-07T16:31:44+00:00",
+  "ended_at": "2026-09-07T16:32:21+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "If retained parent assignment tails are consumed, existing RNG replay supports nine-slot next assignment without rewriting evidence; pending tails must fail closed.",
+  "material_change": "Replay complete retained per-group assignment chains under old and expanded pools and compare RNG, then deterministic next assignment; zero live poker.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-expanded-family-pool-qualification-20260907",
+  "command": "python -B research/experiments/v6-expanded-assignment-boundary-20260907/qualify.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-expanded-assignment-boundary-20260907/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T16:31:44+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-expanded-assignment-boundary-20260907"
+    ],
+    "captured_at": "2026-09-07T16:31:44+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-expanded-assignment-boundary-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-expanded-assignment-boundary-20260907/source_manifest.json",
+    "source_manifest_sha256": "9a55facf4d1c948610185bb1d2bf8c1d32c67a4b509e56efae727f9e105d8531",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 37.0,
+    "training_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-expanded-assignment-boundary-20260907/code.patch",
+    "research/experiments/v6-expanded-assignment-boundary-20260907/source_manifest.json",
+    "research/experiments/v6-expanded-assignment-boundary-20260907/report.json"
+  ],
+  "notes": [
+    "One preliminary inline PowerShell diagnostic failed parsing before Python execution; no source or evidence writes. Final qualification script ran successfully once and wrote exclusive report."
+  ],
+  "result": {
+    "summary": "Both real parent assignment chains replayed3116 records each; consumed tails equal checkpoint iteration3116, no pending old-pool assignment, identical restored RNG and reproducible next nine-slot assignment.",
+    "conclusion": "Existing trainer handles these consumed-tail boundaries without source patch or evidence rewrite. Previous expectation of required new assignment segment was conditional and is unnecessary for these exact parents. Does not qualify pending-tail expansion or live workers.",
+    "decision": "Reuse existing assignment restore unchanged. Proceed to hash-bound derived checkpoint and actual-worker short smoke for both seeds, preserving original model optimizer replay counters and raw prefixes.",
+    "next_step": "Implement exclusive derived parent artifacts with capacity9 runtime binding and serialized expansion provenance, then two real-worker short resumes with expected initial assignment/state checks. No main-scale launch before evidence passes."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-expanded-assignment-boundary-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-expanded-assignment-boundary-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 521,
+      "sha256": "9a55facf4d1c948610185bb1d2bf8c1d32c67a4b509e56efae727f9e105d8531"
+    },
+    "research/experiments/v6-expanded-assignment-boundary-20260907/report.json": {
+      "type": "file",
+      "bytes": 6957,
+      "sha256": "5e7091045e0a47b84764101b7a45e8ce139badea874f199c5e67192a8023de5a"
+    }
+  }
+}

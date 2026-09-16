@@ -1,0 +1,100 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-regularized-ppo-target-qualification-20260908",
+  "title": "Regularized full-hand targets into real retained PPO Adam updates",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T15:13:01+00:00",
+  "updated_at": "2026-09-08T15:13:43+00:00",
+  "started_at": "2026-09-08T15:13:01+00:00",
+  "ended_at": "2026-09-08T15:13:43+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Hero-compressed reward differences preserve full chronological regularized Monte Carlo returns and can drive existing critic_v2 PPO without Adam reset.",
+  "material_change": "Two seeds eta0/0.1 isolated offline diagnostic updates; gamma/lambda1, explicit bb-to-stack conversion and saved model/Adam roundtrip. Original production parents unchanged.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-regularized-full-hand-adapter-20260908",
+  "command": "python research/experiments/v6-regularized-ppo-target-qualification-20260908/qualify.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-regularized-ppo-target-qualification-20260908/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:13:01+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-regularized-ppo-target-qualification-20260908"
+    ],
+    "captured_at": "2026-09-08T15:13:02+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-regularized-ppo-target-qualification-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-regularized-ppo-target-qualification-20260908/source_manifest.json",
+    "source_manifest_sha256": "5417dea4ae0c7964d72e0726035b1e0e72ebdedc4eeb5e4af32637bd88e1b28e",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 92,
+    "evaluation_hands": 40,
+    "wall_time_seconds": 42.0,
+    "training_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/code.patch",
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/source_manifest.json",
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/result.json",
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/qualify.py"
+  ],
+  "notes": [
+    "First diagnostic invocation reconstructed8 existing fixture hands then failed at backward because evaluation init_model disables parameter gradients. No optimizer step or diagnostic checkpoint completed. Enabled requires_grad only in isolated script; preserve first attempt source in start snapshot. Retry is32 additional existing-trace reconstructions, not new independent deals."
+  ],
+  "result": {
+    "summary": "Four real retained-model diagnostic PPO updates completed;86 Adam states retained and advanced once per arm, target conversion and serialized state equality passed.",
+    "conclusion": "Eta0/0.1 full-chronology Monte Carlo reward differences reach existing critic_v2 update with correct200bb conversion. First attempt failed before Adam due to eval loader frozen gradients; corrected isolated script.40 completed existing-trace reconstructions including8 failed-attempt preparations;92 successful update row exposures,16 existing unique decks. No fresh training or strength evaluation.",
+    "decision": "Kernel and actual update path qualified only; diagnostic snapshots are explicitly nonproduction and do not prove full trainer resume. Preserve original buffers/counters/parents.",
+    "next_step": "Implement complete-hand online collection and explicit retained-state checkpoint/accounting for one matched eta0 versus shaped-return pilot, including actual commitment bounds, algorithm metadata and deterministic next-update restoration before launch."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 537,
+      "sha256": "5417dea4ae0c7964d72e0726035b1e0e72ebdedc4eeb5e4af32637bd88e1b28e"
+    },
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/result.json": {
+      "type": "file",
+      "bytes": 1696,
+      "sha256": "7ccfa656f10252fcc7531706c3a1217987f672e9bcce5c2b897319899c100210"
+    },
+    "research/experiments/v6-regularized-ppo-target-qualification-20260908/qualify.py": {
+      "type": "file",
+      "bytes": 6223,
+      "sha256": "ab1b42b24fe36550899ec3bac9976cdf597357e728b73de62fcc3ce85b312c22"
+    }
+  }
+}

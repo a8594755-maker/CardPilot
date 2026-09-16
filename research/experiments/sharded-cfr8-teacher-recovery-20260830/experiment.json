@@ -1,0 +1,110 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "sharded-cfr8-teacher-recovery-20260830",
+  "title": "Recover full eight-board i200 teacher after converter truncation",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T01:25:46+00:00",
+  "updated_at": "2026-08-30T02:18:48+00:00",
+  "started_at": "2026-08-30T01:25:46+00:00",
+  "ended_at": "2026-08-30T01:39:05+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The prior eight-board adapter lost its mirror signal because each deep SRP checkpoint was silently truncated to the first 8,388,608 unique keys during conversion; complete sharded conversion will restore board/history coverage and outperform the truncated teacher under the identical conservative dual-mask distillation recipe.",
+  "material_change": "Reconvert all existing eight-board b8/i200 cap1 SRP and 3BP raw checkpoints with the sharded infoset loader and deployment-semantic raise counts, record skip accounting, validate cross-language parity, then train the same frozen-source H64/source-KL1/L2=.01 dual-mask adapter with board-disjoint splits.",
+  "baseline": "Truncated eight-board dual-mask H64 epoch3 mirror4096 -0.452 bb/100 CI95 +/-0.864; four-board dual-mask +2.005 +/-0.631 mirror10k but fresh5k -41.98 CI [-84.83,+0.87].",
+  "source": "packages/cfr-solver/src/scripts/cfr-to-training-data.ts",
+  "parent_id": "deployment-cap2-solver-profile-20260830",
+  "command": "node --max-old-space-size=65536 --import tsx packages/cfr-solver/src/scripts/cfr-to-training-data.ts --cfr-dir <cfr8_i200> --output <compact_full> --config deployment_v55_<root>_200bb --workers 1 --output-format v55-compact ...",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "provenance_gap": "Historical record predates automatic patch/source-manifest capture; the exact dirty worktree cannot be reconstructed post hoc."
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 1657222,
+    "evaluation_hands": 16384,
+    "wall_time_seconds": 799.0,
+    "compact_srp_rows": 1387433,
+    "compact_3bp_rows": 269789,
+    "compact_total_rows": 1657222,
+    "recovered_rows": 722965,
+    "offline_rows": 1657222
+  },
+  "metrics": {
+    "live_history_pot_spr_mask_coverage": 0.440221,
+    "live_history_shape_mask_coverage": 0.940594,
+    "bridge_mask_exact_fraction": 0.532511,
+    "epoch2_mirror4096_bb100": -0.622559,
+    "epoch2_mirror4096_ci95": 0.810178,
+    "epoch3_mirror4096_bb100": -2.026367,
+    "epoch3_mirror4096_ci95": 1.009914
+  },
+  "artifacts": [
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/bridge_cfr8_full.json",
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/live_coverage_cfr8_full.json",
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/mirror4096_epoch02.json",
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/mirror4096_epoch03.json"
+  ],
+  "notes": [
+    "Full sharded eight-board teacher is 77.4% larger than the truncated artifact and passes 1.657M-row replay/state/target validation with zero failures. Begin identical H64 dual-mask distillation.",
+    "Post-hoc infrastructure repair refreshed verifiable wall-time and artifact-integrity fields. The exact historical dirty-worktree patch/source manifest and placeholder commands cannot be reconstructed without falsifying provenance; the record explicitly preserves that gap."
+  ],
+  "result": {
+    "summary": "Sharded conversion recovered 722,965 missing rows (+77.4%) and passed complete bridge validation, but both validation-selected epoch2 and fixed-comparison epoch3 were negative versus Standard10 at the 4,096-pair mirror screen.",
+    "conclusion": "The single-Map truncation was real and materially distorted prior datasets, but simply restoring the full eight-board cap1 teacher does not improve internal play under the same H64 dual-mask objective. No Slumbot evaluation is justified.",
+    "decision": "REJECT_NO_EXTERNAL_EVAL",
+    "next_step": "Train the exact four-board subset from the corrected full conversion with the same dual-mask recipe (boards 0-1 train, 2 validation, 3 test). This isolates whether the old four-board positive mirror signal depended on truncated row ordering/distribution."
+  },
+  "tags": [
+    "200bb",
+    "cfr",
+    "converter",
+    "distillation"
+  ],
+  "commands": [
+    {
+      "command": "node --max-old-space-size=65536 --import tsx packages/cfr-solver/src/scripts/cfr-to-training-data.ts --cfr-dir <cfr8_i200> --output <compact_full> --config deployment_v55_<root>_200bb --workers 1 --output-format v55-compact ...",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-30T01:25:46+00:00"
+    }
+  ],
+  "reproducibility": {
+    "exact_command_available": false,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 0,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/bridge_cfr8_full.json": {
+      "type": "file",
+      "bytes": 5886,
+      "sha256": "c53aa977aa162de02a47b20cc7b0b105d2145b58d45d863b18e772ef61acf05b"
+    },
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/live_coverage_cfr8_full.json": {
+      "type": "file",
+      "bytes": 40594,
+      "sha256": "a920a6aa461874ccb57b01d065bc69ed8c5a7b038f383360228a52d4814eac21"
+    },
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/mirror4096_epoch02.json": {
+      "type": "file",
+      "bytes": 6307,
+      "sha256": "c246653a637ac112699c23e905790b6027012a282b89283b33513f87e85c02e7"
+    },
+    "research/experiments/sharded-cfr8-teacher-recovery-20260830/mirror4096_epoch03.json": {
+      "type": "file",
+      "bytes": 6308,
+      "sha256": "5aa45c9d707eb6fd3bc0d8a915d057c0537f8dc7d4863478e5d4e2f3ae3e4e38"
+    }
+  }
+}

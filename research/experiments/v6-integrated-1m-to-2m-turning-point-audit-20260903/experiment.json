@@ -1,0 +1,227 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-1m-to-2m-turning-point-audit-20260903",
+  "title": "Integrated AlphaHoldem 1M-to-2M turning-point audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T11:42:52+00:00",
+  "updated_at": "2026-09-03T12:37:29+00:00",
+  "started_at": "2026-09-03T11:42:52+00:00",
+  "ended_at": "2026-09-03T12:37:29+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The replicated 2M regression begins after a measurable post-1M turning point and is concentrated in seat0 and Standard10 performance; shared-deck archive evaluation across both seeds can distinguish monotone degradation from a late noisy endpoint and identify whether approximately 1M early stopping is justified.",
+  "material_change": "Without new training, evaluate the existing iteration 256, 320, 384, and final approximately 2.1M checkpoints from each seed against its untouched 1M control. Use 2048 pairs per four anchors; reuse the same fresh deck seed within each lineage to enable paired endpoint contrasts, while keeping the two lineage seeds independent.",
+  "baseline": "The prior verified 2M-minus-1M result over 131072 hands is -3.2402 +/-3.1547 bb/100, with Standard10 -9.0302 +/-6.7912 and seat0 -7.9224 +/-5.6990; both training and Standard10 preservation audits pass.",
+  "source": "Frozen Seed1 archives at iterations 256,320,384 and final SHA 993fe99b; frozen Seed2 archives at iterations 256,320,384 and final SHA c072a966. Controls are the clean 1M checkpoints SHA 6fbbe021 and b5602618.",
+  "parent_id": "v6-integrated-alphaholdem-two-seed-2m-scale-20260903",
+  "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed1/checkpoints/checkpoint_iter000256_hands000001054686.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262420 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter256",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed1/checkpoints/checkpoint_iter000256_hands000001054686.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262420 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter256",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:42:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed1/checkpoints/checkpoint_iter000320_hands000001318303.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262420 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter320",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:43:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed1/checkpoints/checkpoint_iter000384_hands000001581942.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262420 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter384",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:43:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed1/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262420 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_final",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:43:18+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed2/checkpoints/checkpoint_iter000256_hands000001054924.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262520 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter256",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:43:18+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed2/checkpoints/checkpoint_iter000320_hands000001318503.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262520 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter320",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:43:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed2/checkpoints/checkpoint_iter000384_hands000001582343.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262520 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter384",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:43:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262520 --device cuda --out-dir research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_final",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T11:43:20+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_turning_point.py --endpoint seed1:iter256=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter256 --endpoint seed1:iter320=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter320 --endpoint seed1:iter384=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter384 --endpoint seed1:final=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_final --endpoint seed2:iter256=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter256 --endpoint seed2:iter320=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter320 --endpoint seed2:iter384=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter384 --endpoint seed2:final=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_final --out research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:29:14+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_turning_point.py --endpoint seed1:iter256=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter256 --endpoint seed1:iter320=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter320 --endpoint seed1:iter384=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter384 --endpoint seed1:final=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_final --endpoint seed2:iter256=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter256 --endpoint seed2:iter320=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter320 --endpoint seed2:iter384=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter384 --endpoint seed2:final=research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_final --prior-final seed1:prior=research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/eval_seed1 --prior-final seed2:prior=research/experiments/v6-integrated-alphaholdem-two-seed-2m-scale-20260903/eval_seed2 --out research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/aggregate_v2.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:30:58+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:37:29+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "64d367009711696b73d5c41fcd1b65ab64561fadc149369a58ceedc6f43652fd",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T11:42:52+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/code.patch",
+    "patch_sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea",
+    "source_manifest": "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/source_manifest.json",
+    "source_manifest_sha256": "86abfbfefc594b4eea30e5591123339137b3923c38e6e1fd22a89f473614a70e",
+    "source_files": 241
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 4199272,
+    "offline_samples": 0,
+    "evaluation_hands": 262144,
+    "wall_time_seconds": 3277.0,
+    "planned_evaluation_hands": 262144
+  },
+  "metrics": {
+    "tests_passed": 325,
+    "current_final_delta_bb100": 1.9287109375,
+    "current_final_ci95_half_bb100": 4.3771688228501535,
+    "combined_final_evaluation_hands": 196608,
+    "combined_final_delta_bb100": -1.5172322591145835,
+    "combined_final_ci95_low_bb100": -4.076995043989258,
+    "combined_final_ci95_high_bb100": 1.0425305257600908,
+    "combined_standard10_delta_bb100": -5.948893229166666,
+    "combined_standard10_ci95_high_bb100": -0.6755473473936526,
+    "combined_seat0_delta_bb100": -4.825846354166666,
+    "combined_seat0_ci95_high_bb100": -0.3446490381330075,
+    "iter320_to_iter384_delta_bb100": 5.26275634765625,
+    "iter320_to_iter384_ci95_low_bb100": 0.5551478148059223,
+    "final_cohort_mean_difference_bb100": 5.168914794921875
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/code.patch",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/source_manifest.json",
+    "scripts/alpha_holdem/aggregate_v6_integrated_turning_point.py",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/aggregate.json",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/aggregate_v2.json",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter256",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter320",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter384",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_final",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter256",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter320",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter384",
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_final"
+  ],
+  "notes": [
+    "Shared deck seeds are intentionally reused across the four endpoints within each lineage so raw per-pair differences can estimate adjacent checkpoint changes with lower variance. Seed1 and Seed2 use distinct deck seeds. This is checkpoint selection and mechanism diagnosis, not a benchmark claim.",
+    "All eight endpoint evaluations passed raw SHA, row-count, deck-completeness, unique-key, summary recomputation, checkpoint-hash, within-lineage shared-deck, and across-lineage independent-seed gates. A repository-root pytest invocation was intentionally not used as evidence because it recursively collects immutable historical execution_code snapshots; the canonical scripts/alpha_holdem suite passed 325 tests."
+  ],
+  "result": {
+    "summary": "Eight untouched shared-deck endpoint evaluations completed 262,144 hands. The new final 2.10M-minus-1M cohort was +1.9287 +/-4.3772 bb/100, while pooled with the prior independent cohort the final difference was -1.5172 +/-2.5598 over 196,608 hands. The 1.52M-to-1.82M interval improved +5.2628 bb/100 with CI lower +0.5551, rejecting monotone post-1M degradation.",
+    "conclusion": "The preregistered monotone-regression hypothesis is rejected: the continuation curve is nonmonotonic and the final global estimate is cohort-sensitive and inconclusive. This is insufficient-scale/selection uncertainty, not a mechanism-level rejection of integrated learning. However, pooled final evidence still shows narrowly significant Standard10 (-5.9489, CI upper -0.6755) and seat0 (-4.8258, CI upper -0.3446) regressions, so the unchanged 2M endpoint is not yet a defensible replacement for the 1M control.",
+    "decision": "RETAIN_1M_CONTROL_PENDING_EXTERNAL_GENERALIZATION_ADJUDICATION",
+    "next_step": "Search existing lineage-specific Slumbot evidence, then run the smallest fresh external adjudication that can compare the retained 1M control with a frozen continuation without treating an early negative absolute score as proof against scaling. Scale only if multi-seed internal slope, breadth, Standard10 preservation, and external direction align."
+  },
+  "tags": [
+    "matched-evaluation",
+    "turning-point",
+    "two-seed",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12837937,
+      "sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea"
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 45898,
+      "sha256": "86abfbfefc594b4eea30e5591123339137b3923c38e6e1fd22a89f473614a70e"
+    },
+    "scripts/alpha_holdem/aggregate_v6_integrated_turning_point.py": {
+      "type": "file",
+      "bytes": 18035,
+      "sha256": "4474f98b09b449d991c9fbe70d0e8133e1dd59942b31ef39bb827d412b42c246"
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 29943,
+      "sha256": "a6a3a4d26c07bfe6c738ced41a522e1bb9b153eeb2d205234f4acad72ce67eb0"
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/aggregate_v2.json": {
+      "type": "file",
+      "bytes": 36572,
+      "sha256": "343f22be893fddf9555389cd1b2e7dcd353c57692d0b66d809bd2c64770618d7"
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter256": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter320": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_iter384": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed1_final": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter256": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter320": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_iter384": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-1m-to-2m-turning-point-audit-20260903/seed2_final": {
+      "type": "directory",
+      "sha256": null
+    }
+  }
+}

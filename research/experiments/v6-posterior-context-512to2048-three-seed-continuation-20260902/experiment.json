@@ -1,0 +1,145 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-posterior-context-512to2048-three-seed-continuation-20260902",
+  "title": "Posterior-context 512-to-2048 three-seed continuation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T08:13:48+00:00",
+  "updated_at": "2026-09-02T09:29:07+00:00",
+  "started_at": "2026-09-02T08:13:48+00:00",
+  "ended_at": "2026-09-02T09:29:07+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Continuing the exact three endpoint512 models, optimizers, and context counts to 2,048 learning hands/group will preserve the positive geometric trend without sacrificing breadth: at least two seeds have positive pooled slopes, at least two final holdout seeds and the median holdout are nonnegative, median seat/context-value are positive, and all geometry/preservation gates pass.",
+  "material_change": "Resume each exact parent endpoint512 checkpoint without replaying earlier hands. Add 1,536 learning hands/group in four restart-safe 384-round/96-step stages, storing raw evidence, schedules, exact group counts, optimizer, and per-step geometry in every checkpoint. Freeze endpoint2048 and evaluate reliability-power1 on 128 fresh common-deck pairs across nine policies and both seats.",
+  "baseline": "The 128-to-512 curve had 3/3 positive pooled slopes (+11.87,+19.19,+10.86), final holdout median +11.26 and seat median +9.68 with 384/384 positive-geometry updates, but one seed had -29.23 holdout and negative context value.",
+  "source": "research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run",
+  "parent_id": "v6-posterior-context-128to512-three-seed-curve-20260902",
+  "command": "python scripts/alpha_holdem/v6_posterior_context_512to2048_continuation.py --parent-run-dir research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run --parent-aggregate-summary research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/aggregate_recovery/summary.json --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-context-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --seed 20263010 --seeds 3 --stage-rounds 384 --stages 4 --steps-per-stage 96 --group-batch-size 32 --warmup-hands 64 --pairs-per-policy 128 --device cuda --out-dir research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_posterior_context_512to2048_continuation.py --parent-run-dir research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run --parent-aggregate-summary research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/aggregate_recovery/summary.json --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-context-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --seed 20263010 --seeds 3 --stage-rounds 384 --stages 4 --steps-per-stage 96 --group-batch-size 32 --warmup-hands 64 --pairs-per-policy 128 --device cuda --out-dir research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T08:13:48+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:29:07+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "c0d5b8ec067aee335bb59d192272c06d50356bd7e3714e40605cde45137caa0d",
+    "code_paths": [
+      "scripts/alpha_holdem/contextual_residual_v6.py",
+      "scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py",
+      "scripts/alpha_holdem/v6_posterior_context_512to2048_continuation.py"
+    ],
+    "captured_at": "2026-09-02T08:13:48+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/source_manifest.json",
+    "source_manifest_sha256": "eee31a34c2298d2fdb78be9097c20c0d761375eaa4a267ad811283c4976f44f3",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 55296,
+    "lineage_training_hands": 92928,
+    "offline_samples": 0,
+    "evaluation_hands": 24192,
+    "wall_time_seconds": 4519.0,
+    "planned_training_hands": 55296,
+    "planned_evaluation_hands": 24192,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "seed0_pooled_slope_bb100": -12.0859375,
+    "seed1_pooled_slope_bb100": 20.450086805555557,
+    "seed2_pooled_slope_bb100": -31.717447916666664,
+    "positive_seed_slopes": 1,
+    "seed0_final_delta_bb100": -8.184027777777779,
+    "seed1_final_delta_bb100": 36.86414930555556,
+    "seed2_final_delta_bb100": -21.470052083333332,
+    "seed0_final_holdout_bb100": -27.057291666666668,
+    "seed1_final_holdout_bb100": 49.830729166666664,
+    "seed2_final_holdout_bb100": -28.157552083333332,
+    "positive_final_holdout_seeds": 1,
+    "geometry_positive_updates": 1152,
+    "geometry_total_updates": 1152,
+    "tests_passed": 291,
+    "admitted": false
+  },
+  "artifacts": [
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/code.patch",
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/source_manifest.json",
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/run",
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_posterior_context_512to2048_continuation.py",
+    "scripts/alpha_holdem/test_v6_posterior_context_512to2048_continuation.py"
+  ],
+  "notes": [
+    "The continuation uses the original seed bases because hand round indices start at 512; deterministic formulas guarantee no overlap with rounds 0-511. Admission explicitly requires at least two nonnegative final holdout seeds, strengthening the prior median-only breadth gate.",
+    "All twelve restart-safe stages completed exact accounting (55,296 new environment training hands), persisted raw evidence/schedules/optimizer/context counts and per-step geometry, and all 1,152 MGDA updates had positive worst-group alignment.",
+    "Only seed1 improved from endpoint512 and generalized to holdouts. Seeds0/2 had negative slopes and negative final holdouts despite stable optimization and 98-99% Standard10 agreement. This is mechanism evidence of objective overfitting beyond 512, not a rejection based merely on insufficient total scale."
+  ],
+  "result": {
+    "summary": "Exact continuation from 512 to 2,048 learning hands/group completed three seeds. Slopes were -12.086, +20.450, and -31.717 bb/100; final holdouts were -27.057, +49.831, and -28.158. Only one of three seeds and holdouts was positive, so slope, holdout, and seat gates failed while all trainer and preservation gates passed.",
+    "conclusion": "The current seen-opponent MGDA objective has a reproducible useful region near 512 hands/group but does not scale monotonically to 2,048: two of three seeds overfit and lose broad strength. More hands under the same objective are not justified. The endpoint512 broad candidate remains the safe frozen frontier and should receive an external generalization probe before redesigning the training objective.",
+    "decision": "HOLD_AT_ENDPOINT512_REJECT_SAME_OBJECTIVE_2048_SCALE",
+    "next_step": "Freeze the endpoint512 seed2 policy (best combination of positive pooled, positive holdout, positive context value, and preservation), build an audited self-contained contextual deployment with 64-hand Standard10 cold start and fixed entropy reliability, verify exact reload/session context accounting, then run only a fresh multi-session 5k Slumbot gate if deployment admission passes."
+  },
+  "tags": [
+    "geometric-continuation",
+    "learned-policy",
+    "multiseed",
+    "opponent-context",
+    "restart-safe"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 687,
+      "sha256": "eee31a34c2298d2fdb78be9097c20c0d761375eaa4a267ad811283c4976f44f3"
+    },
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-posterior-context-512to2048-three-seed-continuation-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 44114,
+      "sha256": "4d7020e739d5b6f973ecd5457f607f36316dd91099034e5e1bacc18919e13dbd"
+    },
+    "scripts/alpha_holdem/v6_posterior_context_512to2048_continuation.py": {
+      "type": "file",
+      "bytes": 15399,
+      "sha256": "4f6e939eef0aef28dc52c0f3e0111b19e7086e7bee0370b874f372856f1cc0de"
+    },
+    "scripts/alpha_holdem/test_v6_posterior_context_512to2048_continuation.py": {
+      "type": "file",
+      "bytes": 523,
+      "sha256": "bb2d7bb9c0954446ea946f8397179a0fe69401a77eafa0fd4af90782f73e54cd"
+    }
+  }
+}

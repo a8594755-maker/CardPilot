@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.0036,
+      "greedy_disagreements": 18,
+      "max_tv": 0.24206453561782837,
+      "mean_tv": 0.005336849876989497,
+      "p95_tv": 0.01360259372740984,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.009,
+      "greedy_disagreements": 45,
+      "max_tv": 0.24714875221252441,
+      "mean_tv": 0.009206167982136321,
+      "p95_tv": 0.026461563445627712,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.0128,
+      "greedy_disagreements": 64,
+      "max_tv": 0.24457325041294098,
+      "mean_tv": 0.012912314602006881,
+      "p95_tv": 0.036151167750358586,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.0234,
+      "greedy_disagreements": 117,
+      "max_tv": 0.24073489010334015,
+      "mean_tv": 0.01986719571743888,
+      "p95_tv": 0.07726234197616577,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "models/baseline/standard10/latest.pt",
+    "--parent-sha256",
+    "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "--treatment",
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/treatment.pt",
+    "--out-dir",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed1",
+    "--states",
+    "20000",
+    "--seed",
+    "20262230",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "0.03",
+    "--greedy-disagreement-max",
+    "0.05"
+  ],
+  "created_at": "2026-09-03T05:20:09.984301+00:00",
+  "design": {
+    "greedy_disagreement_max": 0.05,
+    "outcome_blind": true,
+    "seed": 20262230,
+    "source_tv_max": 0.03,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 1049269,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.0122,
+    "greedy_disagreements": 244,
+    "max_tv": 0.24714875221252441,
+    "mean_tv": 0.011830632044642896,
+    "p95_tv": 0.03771224562078707,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seven-objective-fresh-evaluation-20260903\\drift_seed1\\drift_raw.jsonl.gz",
+  "raw_sha256": "34f9560ebf27deeedf77b326688028b941abb798279655a75f76f23973428fb2",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 906355,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seven-objective-dose-boundary-20260903\\dose_5e-5\\seed1\\treatment.pt",
+    "sha256": "587d11fe0e6cab55a110c3fa1d60eaad0c1077078e89f53debe1c4d6ec0e0f97"
+  },
+  "wall_time_seconds": 4.569418907165527
+}

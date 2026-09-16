@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-traversal-k-scale-control-20260901",
+  "title": "Exact-v6 Deep CFR traversal-K scale control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:14:23+00:00",
+  "updated_at": "2026-09-01T15:18:31+00:00",
+  "started_at": "2026-09-01T15:14:23+00:00",
+  "ended_at": "2026-09-01T15:18:31+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At fixed paper-faithful fresh-reinit training, increasing K from 2 to 8 common-deck roots per player will reduce seat-iteration coverage variance and mean node imbalance without degrading the weighted-snapshot generic-anchor policy.",
+  "material_change": "Run matched K2 and K8 three-iteration arms; K2 uses the first two of each K8 deck panel, with identical initial weights, epsilon0 sequential traversal, fresh 512-step updates, sampling/optimizer seeds, and common 256-pair three-anchor snapshot evaluation.",
+  "baseline": "The admitted fresh K2 arm covered all cells but had mean log imbalance 4.035 and player0 received only two traverser nodes in iterations2/3.",
+  "source": "v6-deep-cfr-fresh-reinit-control-20260901",
+  "parent_id": "v6-deep-cfr-fresh-reinit-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_k_scale_control.py --iterations 3 --k-values 2 8 --train-steps 512 --batch-size 256 --eval-pairs 256 --seed 60908 --output-dir research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_k_scale_control.py --iterations 3 --k-values 2 8 --train-steps 512 --batch-size 256 --eval-pairs 256 --seed 60908 --output-dir research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:14:23+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "15707b57cae2a4d1c6770db348ef9019f1592911e4c9893e3127e786943e6b71",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T15:14:23+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "67c51626acfb475394af260641874b86d6115dc1b9b29d972c437ac45bdfb6e4",
+    "source_files": 124
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 3072,
+    "wall_time_seconds": 248.0,
+    "planned_environment_training_hands": 60,
+    "planned_evaluation_hands": 3072,
+    "environment_training_hands": 60
+  },
+  "metrics": {
+    "k2_mean_log_imbalance": 3.69451580357125,
+    "k8_mean_log_imbalance": 2.712449726938555,
+    "k2_minimum_traverser_nodes": 2,
+    "k8_minimum_traverser_nodes": 342,
+    "k2_snapshot_anchor_mean_bb100": 79.26953125,
+    "k8_snapshot_anchor_mean_bb100": -188.43098958333337
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/common_decks.json",
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/k2/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/k8/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "K2 roots are an exact prefix of K8 roots within every iteration. Root, decision-node, terminal-rollout, and evaluation accounting remain separate.",
+    "summary sha256=b0991a903af61d9e2722a2bde365ba69854150f33dc49028ba65f46533bf54f4; decks sha256=0e7054019eb93b3b43cc5dcb71ebbb8d9600661dd5b39c3f2ee9cce6aa47a98b; k2 sha256=55373e4380bc34d2ba5a48a51a3f910e638dadb7335f14ef4ca148f1ea74533c; k8 sha256=2cb7b4eff4494232a928ef615c73eefa4d0eb0d6f2b161257cc60cdf4a975fd5; alpha_holdem suite 215 passed."
+  ],
+  "result": {
+    "summary": "K8 raised minimum seat-iteration coverage from 2 to342 nodes and reduced mean log imbalance from3.695 to2.712, but its snapshot-policy three-anchor mean declined by267.70 bb/100 because min-bet deteriorated sharply.",
+    "conclusion": "Increasing K improves traversal coverage but is rejected under the fixed transfer gate. The effect is confounded by the current non-paper Huber/DCFR weighting as reservoir size grows.",
+    "decision": "REJECT_K8_TRAVERSAL_SCALE",
+    "next_step": "At fixed intermediate K, compare current Huber/DCFR surrogate with paper MSE/LCFR weighting under fresh reinit and matched snapshots before revisiting traversal scale."
+  },
+  "tags": [
+    "deep-cfr",
+    "matched-control",
+    "traversal-scale",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22628,
+      "sha256": "67c51626acfb475394af260641874b86d6115dc1b9b29d972c437ac45bdfb6e4"
+    },
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 11476,
+      "sha256": "b0991a903af61d9e2722a2bde365ba69854150f33dc49028ba65f46533bf54f4"
+    },
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/common_decks.json": {
+      "type": "file",
+      "bytes": 56059,
+      "sha256": "0e7054019eb93b3b43cc5dcb71ebbb8d9600661dd5b39c3f2ee9cce6aa47a98b"
+    },
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/k2/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 7718498,
+      "sha256": "55373e4380bc34d2ba5a48a51a3f910e638dadb7335f14ef4ca148f1ea74533c"
+    },
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/run/k8/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 47192098,
+      "sha256": "2cb7b4eff4494232a928ef615c73eefa4d0eb0d6f2b161257cc60cdf4a975fd5"
+    },
+    "research/experiments/v6-deep-cfr-traversal-k-scale-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1540,
+      "sha256": "e05a7938b939495b08a2776c7884935e1c6248f866611cb417f2c1377efec62a"
+    }
+  }
+}

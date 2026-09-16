@@ -1,0 +1,3 @@
+# Parent-KL outcome-free state-preservation result
+
+Decision: `ADMIT_INDEPENDENT_GREEDY_FRESH5K` across 14,963 audited parent-policy decision states. Overall candidate-parent TV was 0.007614, greedy disagreement 0.809%; maximum supported partition TV was 0.016712 and disagreement 1.417%. All preregistered preservation thresholds passed. The preregistration's 15,056 count came from the separate sampled cohort; the raw generic-greedy corpus contains 14,963 decisions and no rows were added or removed. No outcomes, network calls, or new Slumbot hands were used. This is preservation, not strength evidence; Goal not achieved.

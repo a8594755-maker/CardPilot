@@ -1,0 +1,151 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-seven-objective-update-smoke-20260903",
+  "title": "Matched integrated seven-objective update translation smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T04:37:10+00:00",
+  "updated_at": "2026-09-03T04:38:48+00:00",
+  "started_at": "2026-09-03T04:37:10+00:00",
+  "ended_at": "2026-09-03T04:38:48+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At a matched parent-policy KL dose, the normalized common-descent direction over six opponent-seat reward objectives plus Standard10 KL will improve all seven frozen-cohort objectives in both independent 1M lineages, while the deployed ordinary reward-plus-coefficient-one-KL core direction will harm at least one; the treatment should then show broader untouched greedy multi-anchor deltas without violating Standard10 preservation.",
+  "material_change": "Reuse the immutable 12,288-hand audit cohort. From each frozen 1M checkpoint, create matched-KL control and seven-objective treatment learned-weight updates affecting only policy heads; invalidate optimizer resume. If cohort gates pass, evaluate treatment versus control on 2,048 untouched pairs across four anchors for each lineage and audit fresh Standard10 state drift.",
+  "baseline": "v6-integrated-alphaholdem-seed1-1m-deep-control-20260902",
+  "source": "v6-integrated-standard10-seat-gradient-conflict-audit-20260903",
+  "parent_id": "v6-integrated-standard10-seat-gradient-conflict-audit-20260903",
+  "command": "python scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --target-parent-kl 0.0002 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --target-parent-kl 0.0002 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:37:10+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:38:48+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:38:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "df7c82f957547f91bb06d5651df9ee227209a65595e28f246bcf141dce329ca4",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py"
+    ],
+    "captured_at": "2026-09-03T04:37:10+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/source_manifest.json",
+    "source_manifest_sha256": "3e7e64f66e78e4a0f48e185d57d32dc1ffb4d8639d141ce3f6fd2dfe7e22383b",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 98.0,
+    "new_environment_training_hands": 0,
+    "reused_offline_training_hands": 12288,
+    "planned_evaluation_hands": 65536,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "target_parent_kl": 0.0002,
+    "candidate_lineages": 2,
+    "objectives": 7,
+    "seed1_treatment_source_kl_delta": 2.9551680199801922e-05,
+    "seed2_treatment_source_kl_delta": 3.701215609908104e-05,
+    "seed1_treatment_reward_groups_improved": 6,
+    "seed2_treatment_reward_groups_improved": 6,
+    "seed1_control_reward_groups_harmed": 1,
+    "seed2_control_reward_groups_harmed": 1,
+    "tests_passed": 319
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/code.patch",
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/summary.json",
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed1/control.pt",
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed1/treatment.pt",
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed2/control.pt",
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed2/treatment.pt"
+  ],
+  "notes": [
+    "Preregistered translation gate: both treatment arms must improve all six PPO group losses and source KL on the frozen cohort at matched parent KL; both control arms must fail common descent. External evaluation is untouched and uses independent seeds. A null greedy delta at this small dose is insufficient evidence, not rejection, unless the mechanistic gate fails or preservation collapses.",
+    "No external evaluation or Slumbot calls were made because the preregistered cohort gate failed. All generated arm checkpoints clear optimizer state and set resume_eligible=false."
+  ],
+  "result": {
+    "summary": "At exactly matched 0.0002 parent-policy KL, seven-objective treatment improved all six opponent-seat PPO losses in both 1M lineages, while ordinary reward+KL control harmed one group in each. However treatment increased rather than decreased Standard10 forward KL in both lineages, so the preregistered seven-objective common-descent translation gate failed and untouched evaluation was not run.",
+    "conclusion": "The frozen-state common-descent geometry is valid only locally at this dose: the treatment step crossed the nonlinear Standard10-KL basin before reaching parent KL 0.0002. This is a clear dose-boundary failure, not evidence against conflict-aware training or evidence of insufficient environment hands. The arm checkpoints are evaluation-only and explicitly resume-ineligible.",
+    "decision": "HOLD_SEVEN_OBJECTIVE_ROUTE_FOR_NONLINEAR_DOSE_BOUNDARY",
+    "next_step": "Using the identical frozen cohort and no new environment hands, map a small geometric target-parent-KL curve below 0.0002 for both control and treatment. Select the largest dose at which treatment strictly improves all seven objectives in both lineages; only then run untouched multi-anchor evaluation."
+  },
+  "tags": [
+    "matched-control",
+    "mgda",
+    "offline-update",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 312,
+      "sha256": "3e7e64f66e78e4a0f48e185d57d32dc1ffb4d8639d141ce3f6fd2dfe7e22383b"
+    },
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/summary.json": {
+      "type": "file",
+      "bytes": 11369,
+      "sha256": "d08d0230b9ab1c17c579cc1176a37f1fb76b586ca7339c530d700158585d17b3"
+    },
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed1/control.pt": {
+      "type": "file",
+      "bytes": 304475866,
+      "sha256": "474eee80dd88b77c57c24c2eca9ee7b13a2a1be16cb6fadcb0f9d9a9909831b0"
+    },
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed1/treatment.pt": {
+      "type": "file",
+      "bytes": 304477498,
+      "sha256": "bd2c1a4c68fff0b47350f7d017d8344e260bafe252a329547bd20e834816b94f"
+    },
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed2/control.pt": {
+      "type": "file",
+      "bytes": 313773210,
+      "sha256": "24edacd81fece1e61964221f9f412a9bbfaeb19be6a31b3ccbfc511278ca4c19"
+    },
+    "research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/seed2/treatment.pt": {
+      "type": "file",
+      "bytes": 313774778,
+      "sha256": "d54dede5e6b9426dcbeab4573724becd4588b035e2960cba38ba80dbedab788e"
+    }
+  }
+}

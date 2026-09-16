@@ -1,0 +1,124 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-dual-contract-zero-residual-feasibility-20260901",
+  "title": "Frozen Standard10 plus native-v6 zero-residual feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T16:56:09+00:00",
+  "updated_at": "2026-09-01T16:58:38+00:00",
+  "started_at": "2026-09-01T16:56:09+00:00",
+  "ended_at": "2026-09-01T16:58:38+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A dual-contract learned policy can preserve Standard10 legacy-v4 logits exactly at initialization while exposing native physical-v6 observations only to a separate trainable residual, avoiding the observation-contract destruction seen in direct rebound PPO.",
+  "material_change": "Implement a default-off wrapper with a frozen legacy-v4 base actor/value and a zero-initialized native-v6 residual actor/value. Test exact parity on 4,096 reachable states, legal-mask invariance, gradient isolation, deterministic checkpoint roundtrip, and post-update sensitivity. No poker-strength training or Slumbot calls.",
+  "baseline": "Standard10 bridge fresh20k -24.5683 bb/100; shallow existing-network PPO fresh5k -64.2932; direct native-v6 rebound and longer PPO variants were materially worse.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-public-control-legacy-bridge-greedy-fresh5k-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_residual_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --states 4096 --seed 20261380 --out-dir research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_residual_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --states 4096 --seed 20261380 --out-dir research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:56:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5677019fd57797aafbdba3ead25b3be0e79c9962a20734a7f471905b5dca989d",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T16:56:09+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/source_manifest.json",
+    "source_manifest_sha256": "1e6b04f89d0494438bf8d290222d78ed3735a3b767a7f56bb14bd0743f7ed08e",
+    "source_files": 116
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 149.0,
+    "planned_diagnostic_states": 4096,
+    "planned_training_hands": 0,
+    "planned_evaluation_hands": 0,
+    "diagnostic_states": 4096,
+    "trajectory_hands": 953,
+    "training_hands": 0
+  },
+  "metrics": {
+    "max_zero_logit_error": 0,
+    "max_zero_value_error": 0,
+    "greedy_match_fraction": 1,
+    "base_gradient_tensors": 0,
+    "residual_gradient_tensors": 4,
+    "regression_tests_passed": 224,
+    "wall_time_seconds": 3.89443039894104
+  },
+  "artifacts": [
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/code.patch",
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/source_manifest.json",
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run/summary.json",
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run/states.jsonl.gz",
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run/dual_contract_residual.pt"
+  ],
+  "notes": [
+    "Admission requires bitwise-equal base/wrapper logits and values at zero residual on every state, identical legal greedy slot, zero base gradients, nonzero residual gradients, and exact roundtrip outputs. This is only an architecture gate."
+  ],
+  "result": {
+    "summary": "A frozen Standard10 legacy-v4 base plus zero-initialized native-v6 residual was exercised on 4,096 reachable states from 953 trajectories. Logits, values, and legal greedy choices exactly matched the base at initialization; gradients and updates were isolated to the residual; serialized outputs round-tripped exactly. Full alpha_holdem suite passed 224 tests.",
+    "conclusion": "The architecture removes the immediate observation-contract regression while exposing native-v6 information to trainable weights. This proves mechanism and preservation only; the post-update residual checkpoint is a gradient probe, not a poker candidate.",
+    "decision": "ADMIT_DUAL_CONTRACT_REWARD_TRAINING_SMOKE",
+    "next_step": "Implement a small matched reward-training smoke with the base permanently frozen, zero residual initialization, common training seeds, tightly bounded residual logits, and untouched common-deck evaluation. Do not allocate Slumbot until a separately seeded treatment beats its zero-residual control broadly."
+  },
+  "tags": [
+    "architecture",
+    "physical-v6",
+    "residual",
+    "standard10"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 21574,
+      "sha256": "1e6b04f89d0494438bf8d290222d78ed3735a3b767a7f56bb14bd0743f7ed08e"
+    },
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 1545,
+      "sha256": "4fb2a4a76e69966646332d04da527075b6e26c6a3a04d2b99a9355fc4c724d0a"
+    },
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run/states.jsonl.gz": {
+      "type": "file",
+      "bytes": 92964,
+      "sha256": "af3db13ee38ec19aff740f597eb4223104625c2895695128236844f0cc6572e6"
+    },
+    "research/experiments/v6-dual-contract-zero-residual-feasibility-20260901/run/dual_contract_residual.pt": {
+      "type": "file",
+      "bytes": 462666,
+      "sha256": "e166c12466e6cc447d602b7eb5390110d93025b25048c2a728cc93becaa36e53"
+    }
+  }
+}

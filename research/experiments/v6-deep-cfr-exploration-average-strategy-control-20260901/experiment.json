@@ -1,0 +1,135 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-exploration-average-strategy-control-20260901",
+  "title": "Exact-v6 exploration and SD-CFR average-strategy control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:06:54+00:00",
+  "updated_at": "2026-09-01T15:10:52+00:00",
+  "started_at": "2026-09-01T15:06:54+00:00",
+  "ended_at": "2026-09-01T15:10:52+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Under synchronized common-deck collection, 0.1 opponent exploration will prevent zero-traverser coverage collapse and reduce seat-node imbalance relative to epsilon0, while the correct iteration-weighted per-hand strategy-snapshot policy remains at least directionally competitive on generic anchors.",
+  "material_change": "Add recorded opponent epsilon mixing to the exact-v6 traversal, store every iteration network with linear-CFR weights, run matched epsilon0/0.1 three-iteration arms, and evaluate the frozen per-hand snapshot-and-action-sampled SD-CFR policy on a common 256-pair three-anchor panel.",
+  "baseline": "Synchronization alone improved terminal anchors but had worse mean log imbalance 3.960 and zero P0 traverser nodes in iterations 2 and 3; prior evaluations incorrectly centered terminal current networks rather than SD-CFR snapshot mixtures.",
+  "source": "v6-deep-cfr-synchronized-update-control-20260901",
+  "parent_id": "v6-deep-cfr-synchronized-update-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_exploration_control.py --iterations 3 --traversals-per-player 2 --train-steps 128 --batch-size 256 --epsilons 0 0.1 --eval-pairs 256 --seed 60906 --output-dir research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_exploration_control.py --iterations 3 --traversals-per-player 2 --train-steps 128 --batch-size 256 --epsilons 0 0.1 --eval-pairs 256 --seed 60906 --output-dir research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:06:54+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "a2e2c7b5f4a0911388756120df9fdd8cf867cdfd8319a125cd63fdb91b5bf43a",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T15:06:54+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "82006fd62399b0e9818525dca3afdb3e5e5a3b1dc7792a568e6897ebb250a807",
+    "source_files": 122
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 3072,
+    "wall_time_seconds": 238.0,
+    "planned_environment_training_hands": 24,
+    "planned_evaluation_hands": 3072,
+    "environment_training_hands": 24
+  },
+  "metrics": {
+    "epsilon0_mean_log_imbalance": 0.9387949231812328,
+    "epsilon01_mean_log_imbalance": 0.287914074727314,
+    "epsilon0_snapshot_anchor_mean_bb100": 178.1875,
+    "epsilon01_snapshot_anchor_mean_bb100": -42.046223958333336,
+    "epsilon01_anchors_better": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/common_decks.json",
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/epsilon_0/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/epsilon_0.1/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "Opponent epsilon follows the repository batched Deep CFR behavior-policy mixture and is recorded; no importance correction is claimed. Primary evaluation samples one iteration-weighted snapshot per candidate hand and then samples regret-matched actions.",
+    "summary sha256=ef8b1384ca20df37e55e6fd7c88b61b6ca36d9e756baf450473ee7dd85ee7ecc; decks sha256=a1238bbe410adb4e9ffe02d33b5cbd20cef934ed4ffcfd4352c5bec9aed012cf; epsilon0 sha256=c630da9536a2370c18c884e65a7f08b9098ea83fb82b1d565f505d0fdf9bdd59; epsilon0.1 sha256=bdbdde8182e1ab4b92e3d3d81ac56ffd53863e88377e9d497f788d4f38b46821; alpha_holdem suite 215 passed.",
+    "Post-run primary-source audit: Brown et al. 2019 Algorithm2 samples opponent actions directly from sigma; Algorithm1/Section5.2 trains each player sequentially and reinitializes the value model from scratch each iteration. Source https://proceedings.mlr.press/v97/brown19b.html. Earlier sequential-bug diagnosis is superseded; warm updates are the next controlled deviation."
+  ],
+  "result": {
+    "summary": "Epsilon0.1 reduced mean seat log imbalance from 0.939 to 0.288 and preserved all seat-iteration coverage, but its correct per-hand weighted-snapshot policy was worse on two of three anchors and mean by -220.23 bb/100 versus epsilon0.",
+    "conclusion": "Repository-style epsilon exploration is structurally useful but neither sufficient nor paper-faithful. The average-strategy snapshot contract is retained; the next material contract question is fresh-per-iteration versus warm value-network training.",
+    "decision": "REJECT_EPSILON_0_1_AS_SUFFICIENT",
+    "next_step": "Run a matched epsilon0 sequential warm-versus-fresh-reinit control with common decks/seeds/buffers and weighted-snapshot evaluation, following Brown et al. Algorithm1/2."
+  },
+  "tags": [
+    "average-strategy",
+    "deep-cfr",
+    "exploration",
+    "matched-control",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22246,
+      "sha256": "82006fd62399b0e9818525dca3afdb3e5e5a3b1dc7792a568e6897ebb250a807"
+    },
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 11236,
+      "sha256": "ef8b1384ca20df37e55e6fd7c88b61b6ca36d9e756baf450473ee7dd85ee7ecc"
+    },
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/common_decks.json": {
+      "type": "file",
+      "bytes": 52438,
+      "sha256": "a1238bbe410adb4e9ffe02d33b5cbd20cef934ed4ffcfd4352c5bec9aed012cf"
+    },
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/epsilon_0/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 10187426,
+      "sha256": "c630da9536a2370c18c884e65a7f08b9098ea83fb82b1d565f505d0fdf9bdd59"
+    },
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/run/epsilon_0.1/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 7566946,
+      "sha256": "bdbdde8182e1ab4b92e3d3d81ac56ffd53863e88377e9d497f788d4f38b46821"
+    },
+    "research/experiments/v6-deep-cfr-exploration-average-strategy-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 2203,
+      "sha256": "0d1996cfb6e5bbd20a7c34444bad7011bbb69f59653622dfb6cd9c7b6371a1be"
+    }
+  }
+}

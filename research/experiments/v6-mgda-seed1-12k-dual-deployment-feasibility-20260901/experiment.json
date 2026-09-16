@@ -1,0 +1,150 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-seed1-12k-dual-deployment-feasibility-20260901",
+  "title": "MGDA seed1 12k dual-contract frozen deployment feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T19:10:31+00:00",
+  "updated_at": "2026-09-01T19:12:16+00:00",
+  "started_at": "2026-09-01T19:10:31+00:00",
+  "ended_at": "2026-09-01T19:12:16+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact independent-seed 12k MGDA checkpoint can be deployed with bit-exact parity and the same two-artifact journal/replay contract, enabling a clean multi-seed external transfer check.",
+  "material_change": "Build a self-contained bundle for seed1 12k residual SHA b890dcb3, recover architecture only from its SHA-bound 8k parent, and verify 4,096 state parity plus two mock journal/replay sessions without external hands.",
+  "baseline": "Seed0 external points were 8k -34.42 and 12k -54.53 bb/100 with unresolved independent difference. Seed1 12k internal continuation had pooled +2.924 but mixed Slumbot-free/seat1 breadth.",
+  "source": "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/treatment_residual_12288.pt",
+  "parent_id": "v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --residual-checkpoint research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/treatment_residual_12288.pt --out-dir research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run --bundle-name dual_contract_seed1_12k_deployment.pt",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --residual-checkpoint research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/treatment_residual_12288.pt --out-dir research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run --bundle-name dual_contract_seed1_12k_deployment.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:10:31+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7446780c54d4dfb2403c932edd34926b366352c40201f13c67079f55a2549368",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T19:10:31+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/source_manifest.json",
+    "source_manifest_sha256": "f6d6b8f8cb61f21b24db748f6df71d7524cbec46971ae8c2a758dd62558be27e",
+    "source_files": 146
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 12288,
+    "offline_samples": 4096,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 105.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "reachable_states": 4096,
+    "greedy_action_matches": 4096,
+    "sampled_action_matches": 4096,
+    "max_abs_logit_error": 0,
+    "offline_protocol_hands": 8,
+    "offline_decision_replays": 26,
+    "tests_passed": 241
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/code.patch",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/dual_contract_seed1_12k_deployment.pt",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_1/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_1/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_1/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_2/journal.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_2/hands.jsonl",
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_2/summary.json"
+  ],
+  "notes": [
+    "No external hands. Admission requires source/base/parent SHA integrity, bit-exact logits/actions on all 4,096 states, and complete mock journal/replay evidence."
+  ],
+  "result": {
+    "summary": "Seed1 12k residual SHA b890dcb3 was bundled as SHA 21b08229 with exact base SHA 91b0c587 and architecture parent SHA a569d8f7. Across 4,096 states, logits were bit-exact and greedy/sampled actions matched 4,096/4,096. Two mock sessions yielded eight hands and 26 exact replayed decisions with disjoint token chains.",
+    "conclusion": "The independent-seed 12k checkpoint is valid for a clean external multi-seed transfer check. Architecture recovery is hash-bound, and no learned tensor or action behavior changed.",
+    "decision": "ADMIT_SEED1_12K_EXTERNAL_MULTI_SEED_GATE",
+    "next_step": "Run eight fresh625 greedy journaled Slumbot sessions on exact bundle SHA 21b08229 and base SHA 91b0c587. Compare seed1 with seed0 12k and aggregate route-level 12k evidence, preserving independent-sample uncertainty."
+  },
+  "tags": [
+    "deployment",
+    "dual-contract",
+    "multi-seed",
+    "replay"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 27399,
+      "sha256": "f6d6b8f8cb61f21b24db748f6df71d7524cbec46971ae8c2a758dd62558be27e"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 5583,
+      "sha256": "f258fa32afa558cb2a3e619fbcf5e217f578f4511fec8ffff31afcc89ff0ea4b"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/dual_contract_seed1_12k_deployment.pt": {
+      "type": "file",
+      "bytes": 463666,
+      "sha256": "21b0822982a5bc0d353a4b72b1ef7f2b8f09b5a9593aeca29994e30242215006"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_1/journal.jsonl": {
+      "type": "file",
+      "bytes": 44378,
+      "sha256": "aacc0651d4186c0fe6c93a202d690096adcc9dbdc114bd3a945fe05e62ab1053"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_1/hands.jsonl": {
+      "type": "file",
+      "bytes": 23161,
+      "sha256": "ddc5d012db4aee56cc64d04bd252dc3128e453c16c519a7626fc0bdc00691a9d"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_1/summary.json": {
+      "type": "file",
+      "bytes": 5334,
+      "sha256": "051ac729014aefafc2f49de2ce89b706407e8782f55d3085b22194afdf191bf0"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_2/journal.jsonl": {
+      "type": "file",
+      "bytes": 44415,
+      "sha256": "1713ad17807b2fb192498bfc4183b63375f2f11b28d49e2dfd6d4d4aa77a5917"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_2/hands.jsonl": {
+      "type": "file",
+      "bytes": 23196,
+      "sha256": "65031162f563aca5c7ca98a50442f30123f66dafbfa08dbbe98ce115871ad20f"
+    },
+    "research/experiments/v6-mgda-seed1-12k-dual-deployment-feasibility-20260901/run/mock_session_2/summary.json": {
+      "type": "file",
+      "bytes": 5336,
+      "sha256": "62513347b2c811a78c0f5bb66f4cd1cbccc756c1e48beae2998e39d33c25144a"
+    }
+  }
+}

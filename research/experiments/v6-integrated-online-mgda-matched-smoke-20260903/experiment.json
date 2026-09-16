@@ -1,0 +1,220 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-online-mgda-matched-smoke-20260903",
+  "title": "Matched online opponent-seat MGDA update smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T05:43:27+00:00",
+  "updated_at": "2026-09-03T05:52:03+00:00",
+  "started_at": "2026-09-03T05:43:27+00:00",
+  "ended_at": "2026-09-03T05:52:03+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At the identity-complete iteration224 checkpoint, online minimum-norm aggregation of supported opponent-seat PPO and Standard10 source-KL gradients will produce strict common descent at matched ordinary actor-gradient norm on every update without breaking critic, replay, trust-region, assignment, or accounting contracts.",
+  "material_change": "Branch the same immutable iteration224 checkpoint into matched ordinary-control and online-MGDA treatment continuations. Both preserve optimizer/replay/pool/league state, use identical fixed deals and restored assignment RNG, and run two updates; only treatment replaces policy-head actor gradients with norm-matched minimum-norm common descent.",
+  "baseline": "Online ordinary-update audit at iteration221-224: all 8 probes harmed at least one objective; all 4 identity-complete probes harmed 4-5 of 11 objectives, while source-KL alignment was positive in 8/8.",
+  "source": "research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1/latest.pt SHA256 5f6fdd6f7a51b741eb4a9597e30d18f9b2792259eaf15c4e36445720f380f227 at iteration224 and 1,068,985 actual environment hands, with identity-complete serialized replay.",
+  "parent_id": "v6-integrated-online-gradient-contract-smoke-20260903",
+  "command": "python scripts/alpha_holdem/stage_v6_integrated_scale_resume.py --source control=research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1 --source treatment=research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1 --deal-start control=21100000 --deal-start treatment=21100000 --out-dir research/experiments/v6-integrated-online-mgda-matched-smoke-20260903 --manifest-name resume_stage_manifest.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/stage_v6_integrated_scale_resume.py --source control=research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1 --source treatment=research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1 --deal-start control=21100000 --deal-start treatment=21100000 --out-dir research/experiments/v6-integrated-online-mgda-matched-smoke-20260903 --manifest-name resume_stage_manifest.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:43:27+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1077177 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026171000 --fixed-training-deal-stream --fixed-training-deal-start-index 21100000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 32 --opponent-seat-gradient-diagnostic-minibatches 1 --run-id v6_integrated_alphaholdem_geo_seed1_20260902 --seed 20261710 --max-runtime-seconds 900 --resume research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1/latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --run-dir research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control --out research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:43:57+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1077177 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026171000 --fixed-training-deal-stream --fixed-training-deal-start-index 21100000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 32 --opponent-seat-gradient-diagnostic-minibatches 1 --run-id v6_integrated_alphaholdem_geo_seed1_20260902 --seed 20261710 --max-runtime-seconds 900 --resume research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1/latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --opponent-seat-mgda --run-dir research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment --out research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:43:57+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_integrated_alphaholdem_geometric.py --run control=research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control --run treatment=research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment --base models/baseline/standard10/latest.pt --min-environment-hands 1077177 --expected-archive-iterations '' --expected-run-count 2 --require-continuation --out research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/training_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:52:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_online_mgda_smoke.py --experiment-dir research/experiments/v6-integrated-online-mgda-matched-smoke-20260903 --first-iteration 225 --iterations 2 --out research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:52:03+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:52:03+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7969d6a89649ebc17fdb9ec1ff30fa42987e12010c76e1bd8a97747f56a4a5ad",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T05:43:27+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/code.patch",
+    "patch_sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea",
+    "source_manifest": "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/source_manifest.json",
+    "source_manifest_sha256": "c213e433dbcf7356024b6210751bbc3f45224591e98c3f510d9dada224e763b5",
+    "source_files": 236
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 20302,
+    "lineage_training_hands": 2158272,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 516.0,
+    "inherited_environment_training_hands": 1068985,
+    "planned_new_environment_training_hands": 16384,
+    "target_cumulative_environment_training_hands": 1077177,
+    "planned_evaluation_hands": 0,
+    "environment_training_hands": 20302,
+    "lineage_environment_training_hands": 2158272
+  },
+  "metrics": {
+    "control_new_environment_hands": 10136,
+    "treatment_new_environment_hands": 10166,
+    "control_final_environment_hands": 1079121,
+    "treatment_final_environment_hands": 1079151,
+    "treatment_mgda_updates": 8,
+    "treatment_worst_alignment_min": 0.12077966332435608,
+    "treatment_worst_alignment_max": 0.27512067556381226,
+    "treatment_norm_ratio_max_abs_error": 9.21920353e-08,
+    "control_ordinary_harmful_probe_count": 4,
+    "treatment_ordinary_harmful_probe_count": 4
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/code.patch",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/resume_stage_manifest.json",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/run_manifest.json",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/h1_training_metrics.jsonl",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/opponent_assignments.jsonl",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/run_manifest.json",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/h1_training_metrics.jsonl",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/opponent_assignments.jsonl",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/training_audit.json",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/aggregate.json",
+    "scripts/alpha_holdem/aggregate_v6_online_mgda_smoke.py",
+    "scripts/alpha_holdem/test_ppo_opponent_seat_gradient_diagnostics.py"
+  ],
+  "notes": [
+    "This is a two-update matched mechanism smoke. It cannot reject the long-horizon method or establish external strength. Admission requires strict positive intervention alignment, norm matching, unchanged control semantics, and clean continuation gates before any fresh breadth evaluation.",
+    "Both matched arms passed all nine source/staging gates from identical checkpoint SHA 5f6fdd6; both copied the same 224-row metric and assignment evidence and use fixed-deal start 21,100,000, beyond first-unused 20,102,255.",
+    "Both arms naturally stopped at iteration226. Because collection stops on a global decision boundary, scheduling produced 10,136 versus 10,166 new physical hands; the source checkpoint, fixed per-worker deal streams, first-iteration assignment state, optimizer/replay state and all configuration other than MGDA were matched. No result relies on reward comparison between the slightly unequal rollout suffixes.",
+    "All eight treatment optimizer minibatches had strict positive common-descent alignment across all eleven supported objectives. The minimum worst alignment was +0.12078; every intervention actor L2 matched the corresponding ordinary actor L2 within 9.22e-8 relative ratio error. Ordinary diagnostics remained conflicted in both arms."
+  ],
+  "result": {
+    "summary": "Two exact-state matched continuations completed about 10.1k new environment hands each. Control retained ordinary conflicted updates, while treatment executed eight norm-matched online MGDA steps with strict common descent for every supported opponent-seat and Standard10-KL objective. Both continuation audits and all 325 tests passed.",
+    "conclusion": "The online conflict-aware optimizer is technically viable on the real replay-bearing integrated path: it changes only policy-head actor gradients, preserves critic and trainer state contracts, solves every observed simplex geometry, and removes local objective harm without increasing actor-gradient norm. This is mechanism evidence only; fresh frozen breadth must test translation and catastrophic drift before any geometric training scale.",
+    "decision": "ADMIT_ONLINE_MGDA_FRESH_BREADTH_PILOT",
+    "next_step": "Evaluate the frozen treatment versus matched ordinary control on untouched common-deck, both-seat Standard10/CFR4/legacy-iter16/legacy-mixed65k anchors and audit Standard10 capability drift. Use this as a catastrophe and direction gate, not as a small-sample method rejection; if stable/nonnegative enough, continue MGDA geometrically with multiple lineages."
+  },
+  "tags": [
+    "alpha-holdem",
+    "matched-control",
+    "mgda",
+    "online-training"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12837937,
+      "sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 44945,
+      "sha256": "c213e433dbcf7356024b6210751bbc3f45224591e98c3f510d9dada224e763b5"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/resume_stage_manifest.json": {
+      "type": "file",
+      "bytes": 5132,
+      "sha256": "8300fa7462e01b7796a63953eba219cbfb8457615cac11c1800f0cf6e9e5c60a"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt": {
+      "type": "file",
+      "bytes": 308432432,
+      "sha256": "43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/run_manifest.json": {
+      "type": "file",
+      "bytes": 161154,
+      "sha256": "c7d3d13a41571a414d2f082014aefc67ba9a4bf7e5cc0174740abd2ea325e68f"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 6770099,
+      "sha256": "617b57c4f5527fde2eeb28bad2d9e0cea65d2aa983395755dc23790b8f1882f2"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 634935,
+      "sha256": "f0f938bdb21687128b2f7eaed53d94cf8d61c1760c7fb8b21198d37ad8f4accd"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt": {
+      "type": "file",
+      "bytes": 307563696,
+      "sha256": "2dc0e9e84d2a0e7ab91bc6a8ca7170caa4403d9b9f1d73e8784fa6d6d97744a2"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/run_manifest.json": {
+      "type": "file",
+      "bytes": 170556,
+      "sha256": "6737ed473144a3f5f5ecd2b99f01d24cea314344ae0a794d67222b636cccb45b"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 6782820,
+      "sha256": "f5e319a44a2011768cba49e823ce7bc55673b5773d185723cc180f8853dcfb2c"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 634936,
+      "sha256": "13e5c1924b1a50cbb1002a0c1b31e2d238e7692cc31839000dceb1ca6351c6bd"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/training_audit.json": {
+      "type": "file",
+      "bytes": 12153,
+      "sha256": "dd6b2de74ef4a74add2a6508f4d9bd487b0c6eb59c51b9c4df10eea66cf9605f"
+    },
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 3138,
+      "sha256": "cb83c5a8f145f13655c341627ff5e2da3f1f241a143d78431e7f46c4e30f6045"
+    },
+    "scripts/alpha_holdem/aggregate_v6_online_mgda_smoke.py": {
+      "type": "file",
+      "bytes": 5408,
+      "sha256": "e37e2385e5428df9c4b4b243eb416af5a216132df87821be3fda87df47defd56"
+    },
+    "scripts/alpha_holdem/test_ppo_opponent_seat_gradient_diagnostics.py": {
+      "type": "file",
+      "bytes": 6395,
+      "sha256": "00b4d8141e856c3aa93de77dfd1477b3e9b39b3bc6aa12399c9dc8690dac7b1e"
+    }
+  }
+}

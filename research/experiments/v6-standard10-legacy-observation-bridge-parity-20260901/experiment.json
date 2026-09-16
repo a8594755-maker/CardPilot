@@ -1,0 +1,144 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-legacy-observation-bridge-parity-20260901",
+  "title": "Generic Standard10 legacy-observation bridge parity",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T10:15:56+00:00",
+  "updated_at": "2026-09-01T10:24:25+00:00",
+  "started_at": "2026-09-01T10:15:56+00:00",
+  "ended_at": "2026-09-01T10:24:25+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A generic v6 ChipState-to-v4 observation bridge can reproduce the frozen Standard10 historical greedy deployment action exactly on every one of 20,000 deterministic general live states while retaining v6 legality and without tactical overrides.",
+  "material_change": "Add a default-isolated learned-policy inference module that reconstructs the legacy v4 observation from an audited v6 physical state, runs the unchanged Standard10 network, and requires its physical action to exist exactly in the v6 legal table. Compare end-to-end against play_slumbot.decide_action under the old checkpoint contract. No training or Slumbot hands.",
+  "baseline": "The preceding 50,000-state diagnostic found 100% state/action physical identifiability but only 61.04% preflop greedy agreement after naive v6 observation rebinding.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/analysis.json",
+  "command": "python research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/run_parity.py --states 20000 --seed 2026090108 --device cpu",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/run_parity.py --states 20000 --seed 2026090108 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:15:56+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_legacy_observation_bridge_v6.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:24:25+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/audit_evidence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:24:25+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e4ed1c179f84f8f3e9abe1c1651ef8afffd9ecea6113ee26c243e98abcaedd12",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T10:15:56+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/code.patch",
+    "patch_sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9",
+    "source_manifest": "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/source_manifest.json",
+    "source_manifest_sha256": "b26abeaa9c12100ab63b3d480c4e7d17e399e25a975b30bae319de9782dc22c3",
+    "source_files": 74
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 509.0,
+    "target_states": 20000,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "evaluated_states": 20000
+  },
+  "metrics": {
+    "exact_action_parity_gate": 1.0,
+    "exact_v6_legality_gate": 1.0,
+    "exact_action_parity": 1.0,
+    "exact_legacy_slot_parity": 1.0,
+    "exact_v6_legality": 1.0
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/code.patch",
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/source_manifest.json",
+    "scripts/alpha_holdem/legacy_observation_bridge_v6.py",
+    "scripts/alpha_holdem/test_legacy_observation_bridge_v6.py",
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/analysis.json",
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/raw_parity.jsonl.gz",
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/evidence_audit.json"
+  ],
+  "notes": [
+    "This is generic contract compatibility, not Slumbot imitation and not evidence of strength. Any mismatch closes the bridge before external evaluation."
+  ],
+  "result": {
+    "summary": "The generic legacy-v4 observation bridge reproduced the historical Standard10 direct greedy execution on all 20,000 deterministic general states, with 5,000 states per street. Legacy slot parity, physical action parity, and exact v6 legality were each 100%; raw evidence audit passed. Zero training and Slumbot hands.",
+    "conclusion": "The historical execution behavior can be preserved exactly while using repaired v6 physical state/rules. The bridge contains no tactical override and rejects any non-exact physical mapping. This establishes execution identity only, not strength.",
+    "decision": "ADMIT_FRESH5K_GENERIC_GREEDY_CALIBRATION",
+    "next_step": "Integrate the default-off bridge into the journaled v6 client, prove unchanged default behavior and bridge telemetry, then run exactly one eight-session fresh5k greedy calibration with the frozen Standard10 checkpoint."
+  },
+  "tags": [
+    "execution-contract",
+    "parity",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795324,
+      "sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13653,
+      "sha256": "b26abeaa9c12100ab63b3d480c4e7d17e399e25a975b30bae319de9782dc22c3"
+    },
+    "scripts/alpha_holdem/legacy_observation_bridge_v6.py": {
+      "type": "file",
+      "bytes": 7805,
+      "sha256": "c069ee8345311db08a208cf3ad5708700631aca5868979fc1c61a1e31bb34fbe"
+    },
+    "scripts/alpha_holdem/test_legacy_observation_bridge_v6.py": {
+      "type": "file",
+      "bytes": 1227,
+      "sha256": "664cb0bdd371c99bf25ed7ddb46f0b6567f279c6bdbe6da69983b704d145589c"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 2791,
+      "sha256": "eb010246f49b0caa6fa60cb54cf1535d7001b25cee6f37c4ef06889d2f13c16d"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/raw_parity.jsonl.gz": {
+      "type": "file",
+      "bytes": 170202,
+      "sha256": "56b9fe702c701b3d2b8a358faf664a9216dd6ff247a72cc07ff5d97e567f2056"
+    },
+    "research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/evidence_audit.json": {
+      "type": "file",
+      "bytes": 526,
+      "sha256": "46c4d19bc5c34bdb6cdd1e188bf13f06762d01477f36abc8222eef6632e94c52"
+    }
+  }
+}

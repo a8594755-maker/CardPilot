@@ -1,0 +1,392 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "monte-carlo-gae-pilot-20260830",
+  "title": "Monte-Carlo hand-return GAE pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T16:12:27+00:00",
+  "updated_at": "2026-08-30T17:11:08+00:00",
+  "started_at": "2026-08-30T16:12:27+00:00",
+  "ended_at": "2026-08-30T17:11:08+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Because poker rewards are terminal and the inherited critic can bias short-horizon bootstrapped advantages, setting GAE lambda to 1.0 will give the actor exact discounted full-hand Monte-Carlo credit and improve robust learned-policy strength over the untouched lambda-0.95 all-heads control.",
+  "material_change": "Change only --gae-lambda from the default 0.95 to 1.0. Retain Standard10 initialization, global advantage normalization, frozen representation, both policy heads, optimizer, fixed three-anchor adaptive league, training seeds/deals, actual-hand budget, and frozen evaluation schedule from adaptive-league-all-heads-pilot-20260830.",
+  "baseline": "adaptive-league-all-heads-pilot-20260830 untouched lambda-0.95 all-policy-heads control",
+  "source": "Terminal-only reward structure and repeated failure of variance, replay, league-selection, and representation-capacity treatments motivate isolating critic-bootstrap bias in actor credit.",
+  "parent_id": "mirrored-selfplay-deals-pilot-20260830",
+  "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+  "commands": [
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T16:12:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 4096 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --gae-lambda 1.0 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/monte-carlo-gae-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id monte_carlo_gae_smoke_20260830 --run-dir research/experiments/monte-carlo-gae-pilot-20260830/smoke --out research/experiments/monte-carlo-gae-pilot-20260830/smoke/latest.pt --seed 20260851 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T16:13:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/monte-carlo-gae-pilot-20260830/smoke --expected-target-hands 4096 --expected-final-iteration 1 --expected-pool-size 3 --expected-archive-every 999999 --expected-normalization global --workspace . --out research/experiments/monte-carlo-gae-pilot-20260830/smoke_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T16:14:42+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --gae-lambda 1.0 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/monte-carlo-gae-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id monte_carlo_gae_all_heads_262k_20260830 --run-dir research/experiments/monte-carlo-gae-pilot-20260830/production --out research/experiments/monte-carlo-gae-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T16:14:42+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/monte-carlo-gae-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-pool-size 3 --expected-archive-every 16 --expected-normalization global --workspace . --out research/experiments/monte-carlo-gae-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:01:11+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065824.pt --candidate-label monte_carlo_gae_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16.json --out-md research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16.md --execution-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16.json --out research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131801.pt --candidate-label monte_carlo_gae_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32.json --out-md research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32.md --execution-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32.json --out research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter32.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197620.pt --candidate-label monte_carlo_gae_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48.json --out-md research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48.md --execution-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48.json --out research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter48.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263581.pt --candidate-label monte_carlo_gae_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64.json --out-md research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64.md --execution-json research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64.json --out research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter64.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:11:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "140ca3b4b125822857452b59283216279e644c665520d64161c2d3ef724ac4b3",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py"
+    ],
+    "captured_at": "2026-08-30T16:12:27+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/monte-carlo-gae-pilot-20260830/code.patch",
+    "patch_sha256": "3eb0433ec20d15d46369145cda022bbb0a7239f77e65f02548fb667b16d01143",
+    "source_manifest": "research/experiments/monte-carlo-gae-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "5166bc3c7868402aaa2bfffad05ee835c81818716558927c8f69056f1c949b3a",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 267717,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 3521.0
+  },
+  "metrics": {
+    "smoke_gate": "PASS",
+    "smoke_actual_hands": 4136,
+    "smoke_gae_lambda": 1,
+    "smoke_reference_policy_kl": 8.272728882730007e-05,
+    "smoke_clip_fraction": 0,
+    "smoke_kl_early_stops": 0,
+    "production_gate": "PASS",
+    "production_actual_hands": 263581,
+    "production_final_iteration": 64,
+    "production_gae_lambda": 1,
+    "production_max_source_policy_kl": 0.0012051260897091457,
+    "production_max_clip_fraction": 0,
+    "production_kl_early_stops": 0,
+    "production_optimizer_step": 1794,
+    "matched_rows": 12,
+    "positive_paired_deltas": 3,
+    "negative_paired_deltas": 9,
+    "mean_paired_delta_bb100": -1.2388509114583333,
+    "median_paired_delta_bb100": -0.493896484375,
+    "all_paired_ci_cross_zero": true,
+    "terminal_standard10_delta_bb100": 0.341796875,
+    "terminal_slumbot_free_delta_bb100": 0.34765625,
+    "terminal_cfr96_delta_bb100": -0.59716796875,
+    "slumbot_hands": 0
+  },
+  "artifacts": [
+    "research/experiments/monte-carlo-gae-pilot-20260830/code.patch",
+    "research/experiments/monte-carlo-gae-pilot-20260830/source_manifest.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/latest.pt",
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/latest_train.log",
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke_session_audit.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/latest.pt",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/run_manifest.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/latest_train.log",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065824.pt",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131801.pt",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197620.pt",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263581.pt",
+    "research/experiments/monte-carlo-gae-pilot-20260830/production_session_audit.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/result_summary.md",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16.md",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter16.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32.md",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter32.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48.md",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter48.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64.md",
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter64.json"
+  ],
+  "notes": [
+    "Preregistered gates: py_compile and an exact synthetic terminal-block check first; 4,096-hand smoke must have finite losses, no KL stop, lambda=1 manifest/metrics evidence, exact fixed-pool accounting, and unchanged architecture. On PASS, run 262,144 actual hands with seed 20260852/worker seed 2026085200 and archive every 16 updates. Evaluate four frozen archives on the untouched seed20260853 1,024-pair three-anchor curve; Slumbot only if paired deltas are direction-consistent and robust.",
+    "Synthetic two-hand terminal-block check PASS: lambda=1 returns equal exact discounted Monte-Carlo returns [1.998, 2.0, -0.999, -1.0] despite arbitrary inherited value estimates.",
+    "Smoke gate PASS at 4,136 actual hands: manifest and trainer stdout prove gae_lambda=1.0; fixed-pool terminal audit passed with exact anchors, assignment chain, global normalization, preserved architecture, optimizer step 28, zero KL stops, max source KL 0.00008273, and zero clip fraction.",
+    "Production gate PASS: 263,581 actual environment hands across 64 updates with manifest gae_lambda=1.0. Terminal audit verified immutable fixed anchors, assignment RNG/hash chain, global normalization, optimizer step 1794, four archive boundaries and hashes, zero KL stops, max source KL 0.00120513, and zero clip fraction.",
+    "Frozen matched curve used four archived checkpoints, the untouched seed-20260853 1,024-pair stream, all three original anchors, and aligned raw pair outcomes. Only 3/12 deltas were positive, mean -1.239 and median -0.494 bb/100, no checkpoint improved all anchors, and every paired 95% interval crossed zero."
+  ],
+  "result": {
+    "summary": "A valid 263,581-hand lambda-1 Monte-Carlo GAE treatment remained numerically stable but produced only 3/12 positive matched deltas and a negative mean/median versus the untouched lambda-0.95 control.",
+    "conclusion": "Eliminating critic bootstrap from actor advantages did not improve robust general strength in the head-only PPO lineage; the matched curve was predominantly negative and no checkpoint cleared the multi-anchor gate.",
+    "decision": "REJECT_MONTE_CARLO_GAE_NO_ROBUST_GAIN",
+    "next_step": "Do not scale or Slumbot-test lambda 1.0 unchanged. Select a more substantial optimization-target or policy-data intervention; retain lambda 0.95 as the current control default."
+  },
+  "tags": [
+    "credit-assignment",
+    "learned-policy",
+    "monte-carlo",
+    "ppo"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 13,
+    "command_count": 13
+  },
+  "artifact_integrity": {
+    "research/experiments/monte-carlo-gae-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 200947,
+      "sha256": "3eb0433ec20d15d46369145cda022bbb0a7239f77e65f02548fb667b16d01143"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "5166bc3c7868402aaa2bfffad05ee835c81818716558927c8f69056f1c949b3a"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 133303604,
+      "sha256": "2efc78c430e768fd0ee55a9c859ba19b5d8a4beeb1144356c3949aec0b466f55"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 53959,
+      "sha256": "23ac7aa40569af7253e098a09c7740d50b18467449ed863dcfefcfbdcdb48770"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 24217,
+      "sha256": "d132ce32dbb6caf2ed6b0ff7b9d72a064a4c5949045e27df8ee8820d2fe604e6"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2516,
+      "sha256": "a77220a79e112ee1b492f1186ba0262eb87246d02482fd0977c635553a6f67b3"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke/latest_train.log": {
+      "type": "file",
+      "bytes": 421,
+      "sha256": "72057212e88bbab4e868edfe90cd4a2eaf0a64c465144ea56a38d82e395847c8"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/smoke_session_audit.json": {
+      "type": "file",
+      "bytes": 2448,
+      "sha256": "1b8efa42019d0424c2dea5c26f0dd41a70248296cdfe169ad9121714bb3c0ac1"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 133303604,
+      "sha256": "6389191945108d257129437ce663172ffcaaad53d68f095554300ea8d4eae4b5"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 53650,
+      "sha256": "9b47ff5b4a915bbf475e6133da26ec2ddd14f0fdd1f65d85c3c5f532b29f8fe6"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1518562,
+      "sha256": "10c271793832d951a431036e7b512e0fb47d8873808a68b2bb192c2b7cdec1a9"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 166660,
+      "sha256": "34feedfe43d8c0f462a18e8d87ed4009c0b55d5a7a7b86984e8d35386ba548e7"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/latest_train.log": {
+      "type": "file",
+      "bytes": 27023,
+      "sha256": "c6ba9d43f87fc2db7b7e5f8fbdf201a1468d85a7b7688606e19f6875d34aaaf1"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065824.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "434b189e742b2fedc9a6292cd818f03fe85514eb6ff6a08036aec46d7d92b48e"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131801.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "03fdfdfb8573eda18c0160544ee3149aeed0a6d0660220994b7ee1fcbb04d861"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197620.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "e7e48f1cae7473021ffb9b019ce3676e8b0bc4ddfb9e767f6f702554f43d1327"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263581.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "e5f4d6f73d11981db721026c70988d6ed9067c0aa4b3428edbdaad7d77e921fa"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 3854,
+      "sha256": "bca333425248567b79ddf7c80f7ced6b311380b3a58e7dbf15acfa6d76c3b8c7"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 2707,
+      "sha256": "dc9bd9e9f7e804d10917cd64eb68571518308be948d87e2b90b35e6086498e73"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 173084,
+      "sha256": "907e9a969f87fa9fb27bb569c6a4aa464a586fbfe2b61eb9cc507624317d51b6"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16.md": {
+      "type": "file",
+      "bytes": 1568,
+      "sha256": "3789f65de9a0462ebfd938ba502f6ef330c05b8786ae61fc07b24cb63e11b47e"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1815,
+      "sha256": "f55b7ccd301279cd3b12096fea52e88c671a73ecc09db7768115c8591ff4bad0"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter16.json": {
+      "type": "file",
+      "bytes": 4927,
+      "sha256": "5646716af87b55d15301505e39be7032837f7689414fb412e3b8e575431a9318"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 172866,
+      "sha256": "551f479cde177ca128a579f7b26c71ca92f8518916ee1365aae6ba46747ce6ae"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32.md": {
+      "type": "file",
+      "bytes": 1568,
+      "sha256": "5fa6b6e7e9c859aefa31e5475e71f585832f5f25847e8312ba6296f42ce1781d"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1815,
+      "sha256": "beac00fa3d7cfb14ab77e43fde3091c29703de6d729e0855906fe7fe3afa6d95"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter32.json": {
+      "type": "file",
+      "bytes": 4931,
+      "sha256": "d3b64ba3fe9eb3b2bc754f194e09144719df9190a39afe16939c4e9a49de3bad"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 172927,
+      "sha256": "19326f60ba57d56eac41070944071d66e5e95e39ebc920c80343b68feb49c36a"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48.md": {
+      "type": "file",
+      "bytes": 1567,
+      "sha256": "aed1d008bfa401c0ab1352aa0f81c8d544aa2ac8644b58cb3efd0d26f5d40333"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1815,
+      "sha256": "e3ab95fce4041bd0bfe90cabc405eb956a29869b8979fd05b4f0e0f8144f14b8"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter48.json": {
+      "type": "file",
+      "bytes": 4940,
+      "sha256": "a283c1d57805d0610922ed66aeeee9ff7cec7d297ce616157998e1c3a3c3f067"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 172921,
+      "sha256": "180a5d4ddcb726d4b5a8b9be90449dacd358f29d0505706e9506c77da846c133"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64.md": {
+      "type": "file",
+      "bytes": 1568,
+      "sha256": "1f8a5afd89a8e7f05003354e88ac6def4d6125f91eb7dc36cfcc238c8c66b0a1"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1814,
+      "sha256": "c4ca7e751d322301305a1bb75f016058f1be7bb4ee643d95eff047ce0ffc94eb"
+    },
+    "research/experiments/monte-carlo-gae-pilot-20260830/paired_delta/iter64.json": {
+      "type": "file",
+      "bytes": 4946,
+      "sha256": "2def37525cd1017e7117f8b37f8b973b2e453f0daa0764f160b24441f89aae11"
+    }
+  }
+}

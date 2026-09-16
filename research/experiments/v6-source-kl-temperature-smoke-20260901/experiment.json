@@ -1,0 +1,187 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-kl-temperature-smoke-20260901",
+  "title": "Top-action-weighted source-KL temperature smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T07:00:14+00:00",
+  "updated_at": "2026-09-01T07:08:17+00:00",
+  "started_at": "2026-09-01T07:00:14+00:00",
+  "ended_at": "2026-09-01T07:08:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Applying a lower temperature only inside the Standard10 source-KL loss will better preserve the mature reference's greedy top-action ordering while leaving rollout and PPO sampling at T=1, improving a matched three-anchor greedy panel over ordinary source-KL.",
+  "material_change": "Add an independently configurable source-policy KL temperature with exact inherit-by-default compatibility. Reuse the audited ordinary source-KL T=1 control; train one fresh Standard10-start treatment on the identical seed, fixed deals, adaptive three-policy league, optimizer, and about 10k physical-hand boundary, changing only source-KL temperature from 1 to 0.5. Evaluate on untouched common decks; no Slumbot.",
+  "baseline": "Ordinary source-KL control from v6-greedy-advantage-margin-smoke; direct current-greedy margin, source-greedy margin, and hero/PPO low temperature all failed scale gates. Standard10 greedy historical fresh20k remains -11.4275 bb/100 CI[-28.7124,5.8574]; single imitation-teacher fresh20k -18.5025 is negative evidence.",
+  "source": "models/baseline/standard10/latest.pt SHA91b0...; reused audited control d806... from v6-greedy-advantage-margin-smoke-20260901.",
+  "parent_id": "v6-low-temperature-65k-pilot-20260901",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-source-kl-temperature-smoke-20260901/tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-source-kl-temperature-smoke-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:00:14+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-kl-temperature .5 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --hero-policy-temperature 1 --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111400 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_source_kl_temperature_treatment_20260901 --run-dir research/experiments/v6-source-kl-temperature-smoke-20260901/treatment --out research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/latest.pt --seed 20261114 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:01:10+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-source-kl-temperature-smoke-20260901/treatment --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:03:25+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-smoke-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:04:16+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-smoke-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:07:30+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/test_source_policy_kl_temperature.py"
+    ],
+    "captured_at": "2026-09-01T07:00:14+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-kl-temperature-smoke-20260901/code.patch",
+    "patch_sha256": "0dfa1c7d22f208160d8f21f5f571e8064dcd44805447155076113b18ef3e267c",
+    "source_manifest": "research/experiments/v6-source-kl-temperature-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "3ac73f44d4fa921cdc0464770559e8b649cc5a3ba1fbf7975da64832295e9a61",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 6144,
+    "wall_time_seconds": 483.0,
+    "environment_training_hands": 10407,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "pooled_delta_bb100": 12.492838541666666,
+    "pooled_ci95_lower": -3.8652820484656036,
+    "pooled_ci95_upper": 28.850959131798938,
+    "positive_anchors": 2
+  },
+  "artifacts": [
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/code.patch",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/tests.xml",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/latest.pt",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/run_manifest.json",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/h1_training_metrics.jsonl",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/session_audit.json",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/eval",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/analysis.json",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/reviewed_analysis.json",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/result_summary.md",
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/execution_code"
+  ],
+  "notes": [
+    "This isolates top-action-weighted preservation from the failed hero-temperature intervention: rollout behavior and PPO likelihoods remain T=1 in both arms.",
+    "20 pre-run tests passed; starting the sole fresh treatment arm.",
+    "Treatment completed iter2 at 10,407 physical/8,235 transition hands; source-KL(T=0.5) final 0.0003, no KL stop.",
+    "Treatment fixed-pool session audit PASS; launching one-shot 1024-pair-by-3-anchor greedy evaluation against the prior audited common-deck control.",
+    "This is a promising but inconclusive smoke; the CI crosses zero and no external generalization is claimed."
+  ],
+  "result": {
+    "summary": "A source-KL-only temperature of 0.5, with hero rollout/PPO held at T=1, completed 10,407 new physical hands and a raw-audited common-deck three-anchor smoke.",
+    "conclusion": "Treatment-control pooled +12.492839 bb/100 with paired 95% CI [-3.865282,28.850959], 2/3 positive anchors. Crucially Standard10 was +19.907227 rather than the negative direction seen with hero low temperature. Training iteration1 assignments matched exactly; adaptive iteration2 assignments diverged under asynchronous outcomes, while seeds and pool identities remained fixed.",
+    "decision": "ADMIT_MATCHED_65K_SOURCE_KL_TEMPERATURE",
+    "next_step": "Run fresh matched T1 versus source-KL-T0.5 arms to about 65k physical hands per arm with fixed seeds/deals and a new untouched multi-anchor endpoint gate. Do not spend Slumbot unless the longer-horizon gate passes."
+  },
+  "tags": [
+    "deployment-alignment",
+    "source-kl",
+    "temperature",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 330988,
+      "sha256": "0dfa1c7d22f208160d8f21f5f571e8064dcd44805447155076113b18ef3e267c"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 651,
+      "sha256": "3ac73f44d4fa921cdc0464770559e8b649cc5a3ba1fbf7975da64832295e9a61"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 3369,
+      "sha256": "2eb68d377eb2a252a59e5bb9d40b44af7ae6162dca7a7baa2b6f196146c3fb9f"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/latest.pt": {
+      "type": "file",
+      "bytes": 133306996,
+      "sha256": "d413f3fd2b980a9eeab47d11331b9db0c899ebbf350610306daa50493882ecfe"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/run_manifest.json": {
+      "type": "file",
+      "bytes": 60157,
+      "sha256": "4c26163e95ec601355a62fb82e4da42f644a230c978781b7b373e7052e376353"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 55807,
+      "sha256": "b5c2eaab0363f4e81b5eb9a37cad12723b214bf9b70acbf926602d23495875c6"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 5272,
+      "sha256": "393c8693d4889e30bce458e5a90b85e227ded1b8d6dc7d68155ac84b0366a98d"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/eval": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1485,
+      "sha256": "96868a3e2abcc58a588d036c5e781ad0c9a66f4301733c2f8b1a89c5abc1affe"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1480,
+      "sha256": "50ec0d1355af567f3f8bff133e8d9933732bcb591bc8746a14fd300fce6bcc81"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 269,
+      "sha256": "fb0c66eba06cb8566366e9b631e26185d9cb16a5ce0244082f5390a83ef17392"
+    },
+    "research/experiments/v6-source-kl-temperature-smoke-20260901/execution_code": {
+      "type": "directory",
+      "sha256": null
+    }
+  }
+}

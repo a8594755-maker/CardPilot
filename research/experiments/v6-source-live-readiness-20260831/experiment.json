@@ -1,0 +1,296 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-live-readiness-20260831",
+  "title": "Corrected-v6 source live protocol readiness",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T11:50:25+00:00",
+  "updated_at": "2026-08-31T11:53:17+00:00",
+  "started_at": "2026-08-31T11:50:25+00:00",
+  "ended_at": "2026-08-31T11:53:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The frozen source and offline-validated journaled client preserve exact action/terminal/session evidence on the real Slumbot API.",
+  "material_change": "Two sequential fresh8hand sessions from one frozen v6 source;16hand protocol probe only, no strength gate or candidate promotion; active internal matrix unchanged.",
+  "baseline": "Corrected-v6 source; prior old-contract baselines are not directly comparable.",
+  "source": "v6-full-network-learning-curve-20260831",
+  "parent_id": "v6-journaled-client-readiness-20260831",
+  "command": "python research/experiments/v6-source-live-readiness-20260831/run_probe.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-source-live-readiness-20260831/run_probe.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:50:25+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-source-live-readiness-20260831/run_probe.py research/experiments/v6-source-live-readiness-20260831/test_probe.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:19+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\test_probe.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\run_probe.py --offline-load-check",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\frozen\\source.pt --hands 8 --seed 2026092801 --session-id v6_source_live_20260831_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_v6_session.py --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01 --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\frozen\\source.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:34+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\frozen\\source.pt --hands 8 --seed 2026092802 --session-id v6_source_live_20260831_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:39+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_v6_session.py --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02 --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\frozen\\source.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:46+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_v6_session.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\frozen\\source.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:51:51+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-source-live-readiness-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:53:16+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-live-readiness-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:53:17+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-source-live-readiness-20260831/run_probe.py",
+      "research/experiments/v6-source-live-readiness-20260831/test_probe.py",
+      "research/experiments/v6-source-live-readiness-20260831/preregistration.md",
+      "scripts/alpha_holdem/play_slumbot_v6_journaled.py",
+      "scripts/alpha_holdem/audit_slumbot_v6_session.py"
+    ],
+    "captured_at": "2026-08-31T11:50:25+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-live-readiness-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-source-live-readiness-20260831/source_manifest.json",
+    "source_manifest_sha256": "0fe07b92844b0fc0e570d8c69b326e78311673ffd8448ab66f97a0ffe34b2468",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 16,
+    "wall_time_seconds": 172.0,
+    "slumbot_hands": 16
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-source-live-readiness-20260831/code.patch",
+    "research/experiments/v6-source-live-readiness-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\frozen\\source.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\loader_check.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s01_audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s02_audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\review_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\review_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\review_code\\copy_manifest.json"
+  ],
+  "notes": [
+    "Fixed live probe terminal; valid durable raw hands counted separately from observed terminal claims/ambiguous requests. No retries, replacements, pooling or strength admission."
+  ],
+  "result": {
+    "summary": "Exactly16real source hands/2fresh sessions passed journaled live protocol and frozen-model replay; no strength inference.",
+    "conclusion": "Observed live protocol evidence is valid; coverage is limited and server RNG independence/100k strength remain unproven.",
+    "decision": "OBSERVED_LIVE_PROTOCOL_READY",
+    "next_step": "Preregister a separate fixed fresh corrected-v6 source Slumbot baseline; exclude all16probe hands and keep active league matrix unchanged."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-live-readiness-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-source-live-readiness-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1093,
+      "sha256": "0fe07b92844b0fc0e570d8c69b326e78311673ffd8448ab66f97a0ffe34b2468"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13594,
+      "sha256": "241f3e3121747507252f447d92bb4ae429b4b9815c735e3a4dd320bb2f4f57c6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22773,
+      "sha256": "3d376ce165baf16b6370f4a29b9cb08e167c805b339fc9a4fc22fe123bc7f024"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\frozen\\source.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 817,
+      "sha256": "7859e559880a85e0b795825fb1879cdc2a2b2cc73dac3e3d5c967ca082b6ba24"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\loader_check.json": {
+      "type": "file",
+      "bytes": 3910,
+      "sha256": "080e33f000c59d1af5cdd6a55511d9f3887e0475895449f1e3b7eb536af9d352"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s01_stdout.log": {
+      "type": "file",
+      "bytes": 5525,
+      "sha256": "6b70aa729415cae5c90daa5d86a1670f1e4438f7fa4214f55af46f043b3c88bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01\\journal.jsonl": {
+      "type": "file",
+      "bytes": 64402,
+      "sha256": "4b6052eea7af71b234ea9c2dd4aa39a4d7688738e85031a67cbbcf940eec6ac9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 29207,
+      "sha256": "abea263f58768a82066f754f03729a4dd059702c04c106577190573fe1f7c126"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s01\\summary.json": {
+      "type": "file",
+      "bytes": 5411,
+      "sha256": "23aa994530a6f42d11dc5fd4e17ce93d46115303e6ea1f63fdaae6885ddd8718"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s01_audit_stdout.log": {
+      "type": "file",
+      "bytes": 965,
+      "sha256": "deff46679b92b4d356a3cac25f9c30a12b46cc22e9ebdf704347993297e0fee9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s02_stdout.log": {
+      "type": "file",
+      "bytes": 5526,
+      "sha256": "090f1b6f8eb914b1e0fbed4e19b349974bbe2aaedfd95b731ca4d99a11ef627a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02\\journal.jsonl": {
+      "type": "file",
+      "bytes": 58524,
+      "sha256": "b03a19a0bf19bbc40e33b2ed1c6994e1b0e9858553e992de6f29b4998fd00900"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02\\hands.jsonl": {
+      "type": "file",
+      "bytes": 26919,
+      "sha256": "ffad78ec8f03b8cdd6f7f0372e2a6514949720d5c8ca675ac86a3cfcfc61816f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\sessions\\s02\\summary.json": {
+      "type": "file",
+      "bytes": 5412,
+      "sha256": "f5c444241a870979722b014ac62a77cc37e0a7825f08eb0f76c3ad06739b4ccf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\s02_audit_stdout.log": {
+      "type": "file",
+      "bytes": 966,
+      "sha256": "1f733a227d62a60a8483bc562b43b522d94a0e380379c9c18c797c2e12dc4762"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\combined_audit.json": {
+      "type": "file",
+      "bytes": 2159,
+      "sha256": "c0478e452a6c7e40ab302673ed59c933bdf187dcd2ffdaf150d95097e56af1b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 1838,
+      "sha256": "599d02c1656922c534908597cacb9145cf93891a588777d2c86cd0e1a9fc02da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 903,
+      "sha256": "c7f0c2980c6e97f733c68be595ba2a1461c5ea030fa11e558ba413a45da55878"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 887,
+      "sha256": "d2a3f75b626fd09c3b08aabc66686dd568e78d603f3d8273115f4020e3f73f61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 874,
+      "sha256": "fefbc2510c74b99fbf4a8588314c13062412be011a0b47290b1f500cd2eca4b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\review_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 316,
+      "sha256": "897a5691a51d1d6972a2b6b9dc9fc7d8f4f5abdcb6343dffb93bf40740331baf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\review_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\review_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 358,
+      "sha256": "acdb2f4ed999953f7b60604586fadab9a47db1e23f44e84ad5f89d834ae2f786"
+    }
+  }
+}

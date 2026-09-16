@@ -1,0 +1,141 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "deployment-cap2-solver-profile-20260830",
+  "title": "Deployment cap-2 solver feasibility profile",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T00:42:16+00:00",
+  "updated_at": "2026-08-30T02:18:48+00:00",
+  "started_at": "2026-08-30T00:42:16+00:00",
+  "ended_at": "2026-08-30T01:25:32+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A second postflop raise per street will materially increase exact live legal-mask/history support by supplying targets at raise-versus-raise decisions, and a low-bucket exact-grid tree will fit the 128GB host well enough to measure convergence and plan a tractable teacher.",
+  "material_change": "Add explicit deployment_v55 SRP/3BP 200bb cap-2 configs shared by solving, range loading, preflop context, and conversion; test tree/action contracts; then profile one deterministic board at increasing buckets and iterations before any distillation.",
+  "baseline": "Cap-1 four-board teacher covers 70.34% of live postflop public shape+mask but only 39.55% of history+pot+SPR+mask; SRP cap-2 betting tree has 1,073,360 action nodes versus 223,924 at cap-1 (4.79x).",
+  "source": "packages/cfr-solver/src/tree/tree-config.ts",
+  "parent_id": "deployment-mask-aware-distill-20260830",
+  "command": "node --max-old-space-size=65536 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_<root>_cap2_200bb --flops 1 --iterations <N> --buckets <B> --seed 20260830 --output-dir <experiment-dir>",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "provenance_gap": "Historical record predates automatic patch/source-manifest capture; the exact dirty worktree cannot be reconstructed post hoc."
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 2596.0,
+    "cap2_profile_rows": 127442,
+    "cap2_srp_b4_i200_infosets": 28243942,
+    "cap2_threebp_b4_i200_infosets": 1720377,
+    "cap2_compact_i200_rows": 362756
+  },
+  "metrics": {
+    "srp_cap1_action_nodes": 223924,
+    "srp_cap2_action_nodes": 1073360,
+    "threebp_cap1_action_nodes": 35360,
+    "threebp_cap2_action_nodes": 71650,
+    "cap2_srp_b4_i10_infosets": 7393350,
+    "cap2_srp_b4_i10_solve_seconds": 30.2,
+    "cap2_srp_b4_i10_observed_working_gb": 5.46,
+    "cap2_threebp_b4_i10_infosets": 494637,
+    "cap2_mask_exact_fraction": 0.719198,
+    "cap1_mask_exact_fraction_comparable": 0.547348,
+    "cap2_live_public_shape_mask": 0.965506,
+    "cap1_live_public_shape_mask_comparable": 0.941872,
+    "cap2_srp_b4_i50_infosets": 15503476,
+    "cap2_srp_b4_i50_solve_seconds": 162.045,
+    "cap2_srp_b4_i50_peak_memory_mb": 9471,
+    "cap2_threebp_b4_i50_infosets": 1064918,
+    "cap2_srp_i10_i50_mean_tv": 0.061355,
+    "cap2_srp_i10_i50_p90_tv": 0.293333,
+    "cap2_srp_i10_i50_argmax_agreement": 0.796219,
+    "cap2_srp_b4_i200_solve_seconds": 678.287,
+    "cap2_srp_b4_i200_peak_memory_mb": 17600,
+    "cap2_srp_i50_i200_mean_tv": 0.116901,
+    "cap2_srp_i50_i200_root_tv": 0.219964,
+    "cap2_live_history_shape_mask": 0.89407,
+    "cap2_live_history_pot_spr_mask": 0.273821,
+    "cap2_compact_mask_exact_fraction": 0.753584
+  },
+  "artifacts": [
+    "research/experiments/deployment-cap2-solver-profile-20260830/bridge_cap2_b4_i10_v3.json",
+    "research/experiments/deployment-cap2-solver-profile-20260830/live_coverage_cap2_oneboard_v2.json",
+    "research/experiments/deployment-cap2-solver-profile-20260830/drift_srp_b4_i10_i50.json",
+    "research/experiments/deployment-cap2-solver-profile-20260830/bridge_cap2_b4_i200_sharded.json",
+    "research/experiments/deployment-cap2-solver-profile-20260830/drift_srp_b4_i50_i200.json",
+    "research/experiments/deployment-cap2-solver-profile-20260830/live_coverage_cap2_oneboard_i200_sharded.json"
+  ],
+  "notes": [
+    "Fixed compact/deployment aggressive-action count split and exact semantic ALLIN replay. All 127,442 cap2 rows now have zero state/target/replay mismatches. Escalate same board b4 from i10 to i50 to measure sampled-history saturation.",
+    "b4/i50 remains materially different from i10 but fits comfortably. Escalate the identical seeded board to i200 to measure convergence and upper-bound one-board resource needs.",
+    "Discovered and fixed a single-Map 2^23 converter ceiling hidden by a broad catch. Sharded loading increased i200 SRP compact output from 99,417 to 334,367 rows and restored live coverage.",
+    "Post-hoc infrastructure repair refreshed verifiable wall-time and artifact-integrity fields. The exact historical dirty-worktree patch/source manifest and placeholder commands cannot be reconstructed without falsifying provenance; the record explicitly preserves that gap."
+  ],
+  "result": {
+    "summary": "Exact-grid cap2 is hardware-feasible at b4/i200 (28.24M SRP infosets, 678s solve, 17.6GB peak) and raises comparable live public-shape+mask coverage from 94.19% to 96.55%, but i200 remains materially unconverged (i50-to-i200 mean TV .117; root TV .220).",
+    "conclusion": "Cap2 is a useful future supplemental topology, not yet a full replacement teacher. The profile exposed a more urgent data bug: all prior deep SRP conversions silently truncated at 8,388,608 unique keys because a single V8 Map capacity exception was swallowed. Fixing that recovers most missing rows without new solve compute.",
+    "decision": "FEASIBLE_DEFER_SCALE_FIX_TRUNCATED_TEACHERS_FIRST",
+    "next_step": "Reconvert the existing eight-board b8/i200 cap1 SRP and 3BP checkpoints with the sharded loader and deployment raise-count contract, validate every row, retrain the same H64 dual-mask adapter, and compare on the identical 4096/10000 mirror gates before any Slumbot."
+  },
+  "tags": [
+    "200bb",
+    "cap2",
+    "cfr"
+  ],
+  "commands": [
+    {
+      "command": "node --max-old-space-size=65536 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_<root>_cap2_200bb --flops 1 --iterations <N> --buckets <B> --seed 20260830 --output-dir <experiment-dir>",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-30T00:42:16+00:00"
+    }
+  ],
+  "reproducibility": {
+    "exact_command_available": false,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 0,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/deployment-cap2-solver-profile-20260830/bridge_cap2_b4_i10_v3.json": {
+      "type": "file",
+      "bytes": 3614,
+      "sha256": "80a817c69c044af3588d57264fed0ad37193b51957ffe41dc9ddfa10e52b9272"
+    },
+    "research/experiments/deployment-cap2-solver-profile-20260830/live_coverage_cap2_oneboard_v2.json": {
+      "type": "file",
+      "bytes": 36517,
+      "sha256": "aebe3ec7f8e33eefab59b53ff837900581b9dba6573b466f85fb496cb6a89cd5"
+    },
+    "research/experiments/deployment-cap2-solver-profile-20260830/drift_srp_b4_i10_i50.json": {
+      "type": "file",
+      "bytes": 9177,
+      "sha256": "eb289edf4ebc613d685250a555a494d3c06704010ce6a83f2f9813e8d655d0b0"
+    },
+    "research/experiments/deployment-cap2-solver-profile-20260830/bridge_cap2_b4_i200_sharded.json": {
+      "type": "file",
+      "bytes": 3752,
+      "sha256": "0368e319455fccc3cff73a986bb211b814e5254fb900dd757a5a7163d045a6c3"
+    },
+    "research/experiments/deployment-cap2-solver-profile-20260830/drift_srp_b4_i50_i200.json": {
+      "type": "file",
+      "bytes": 9315,
+      "sha256": "6958d5ffe0c41ca3d43c957c0f82700a63069f8af7a7e3bf01757d8d5b924a73"
+    },
+    "research/experiments/deployment-cap2-solver-profile-20260830/live_coverage_cap2_oneboard_i200_sharded.json": {
+      "type": "file",
+      "bytes": 36536,
+      "sha256": "d8c213d3934987cd41f47dd8d5f12a90555c6559fac54857f9ba865ef3b6a9f1"
+    }
+  }
+}

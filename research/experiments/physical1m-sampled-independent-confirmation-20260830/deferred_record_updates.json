@@ -1,0 +1,15 @@
+{
+  "reason": "Supplemental reporting/read-only review while the original confirmation writer runs; merge after its exit before finish. Do not rerun completed games.",
+  "commands": [
+    "python scripts/alpha_holdem/play_slumbot.py --strategy model --model research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt --device cpu --policy-mode sample --temperature 1 --hands 0 --result-json research/experiments/physical1m-sampled-independent-confirmation-20260830/deployment_dry_run.json",
+    "python -m py_compile research/experiments/physical1m-sampled-independent-confirmation-20260830/report_completed_confirmation.py"
+  ],
+  "artifacts": [
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/deployment_dry_run.json",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/report_completed_confirmation.py",
+    "research/experiments/physical1m-sampled-independent-confirmation-20260830/external_readiness_review.md"
+  ],
+  "notes": [
+    "Read-only external-readiness review identified that current full deal/action fingerprinting can miss shared deals when stochastic policies choose different actions. No current internal evaluation semantics were changed and no external sessions were started. If independent replication passes, strengthen/test action-independent deal auditing before sampled external assessment."
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-greedy-margin-preservation-smoke-20260901",
+  "title": "Advantage-gated source-greedy margin preservation smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T05:47:29+00:00",
+  "updated_at": "2026-09-01T05:58:50+00:00",
+  "started_at": "2026-09-01T05:47:29+00:00",
+  "ended_at": "2026-09-01T05:58:50+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Preserving the frozen Standard10 source argmax boundary on sampled self-play states, while releasing rows only when a different sampled action has normalized advantage above a fixed threshold, will retain the stronger greedy execution contract better than source KL alone without preventing evidence-backed learned changes.",
+  "material_change": "Add a default-off hinge whose target is the frozen source policy legal-argmax logit margin capped at0.1. Candidate logits must retain that source margin except on rows where the sampled action differs from source argmax and normalized advantage exceeds1.0. The term never forces a new action over the source action; ordinary PPO supplies improvements. Add metrics, validation, tests, and a bounded matched corrected-v6 smoke before any scale or Slumbot.",
+  "baseline": "Standard10 historical greedy fresh20k -11.4275 bb/100 versus strict sampled -48.9778; scaled imitation teacher fresh20k -18.5025; source-KL/margin/league candidates failed external confirmation. The preceding current-greedy promotion smoke was stable but pooled -0.266 bb/100 with1/3 positive anchors.",
+  "source": "Frozen Standard10 learned policy as initialization and source-argmax reference; sampled PPO adaptive learned-opponent league supplies new reward evidence.",
+  "parent_id": "v6-greedy-advantage-margin-smoke-20260901",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_source_greedy_margin_preservation.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_greedy_margin_preservation.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:47:29+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/test_source_greedy_margin_preservation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:50:25+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_greedy_margin_preservation.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:50:25+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-greedy-margin-coef .1 --source-greedy-margin-max .1 --source-greedy-margin-release-advantage 1 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111400 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_source_greedy_preservation_treatment_20260901 --run-dir research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment --out research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/latest.pt --seed 20261114 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:51:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:54:17+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_greedy_margin_preservation.py scripts/alpha_holdem/test_greedy_advantage_margin.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:54:20+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:54:24+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:57:57+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47033c27fa206206a4bc354bc269d2c2852c14562874f2769dbe7d2bdbc27247",
+    "code_paths": [
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-09-01T05:47:29+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/code.patch",
+    "patch_sha256": "f29cedbd9054ebc404d920150ff593527f10469343fac930cc440c80f372e3cd",
+    "source_manifest": "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "d1ac9a0304084647b463620cb0d87dafd1343f969025b8f9be6d52a1a3008fed",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 6144,
+    "wall_time_seconds": 681.0,
+    "environment_training_hands": 10688,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "pooled_treatment_minus_control_bb100": -3.8020833333333335,
+    "pooled_paired_ci95_lower_bb100": -32.376511972968416,
+    "pooled_paired_ci95_upper_bb100": 24.77234530630175,
+    "positive_anchors": 1,
+    "reused_control_evaluation_hands": 6144
+  },
+  "artifacts": [
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/code.patch",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/source_manifest.json",
+    "scripts/alpha_holdem/test_source_greedy_margin_preservation.py",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/latest.pt",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/run_manifest.json",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/h1_training_metrics.jsonl",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/opponent_assignments.jsonl",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/session_audit.json",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/eval",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/tests.xml",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/execution_code",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/run_eval.py",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/audit_review.py",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/analysis.json",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/reviewed_analysis.json",
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/result_summary.md"
+  ],
+  "notes": [
+    "This is policy preservation around the best mature external learned reference, not imitation of Slumbot actions and not benchmark-specific logic. Single-teacher imitation negative evidence is explicitly treated as a warning. Control is source-KL-only; treatment adds source-argmax preservation. No Slumbot unless a later independent gate justifies it.",
+    "Reusing prior audited source-KL-only control SHA d806394b... at10748physical hands. Starting only matched treatment with source margin coef0.1,max0.1,release normalized advantage1.0; same seed/deal/pool/trainer settings.",
+    "Treatment completed2 updates at10688 physical hands. Margin active: final loss0.0007663,37162 eligible,370 released,593 violations; ref KL0.000265, no KL stop. Training audit PASS. Starting only new treatment common-deck eval against prior raw control."
+  ],
+  "result": {
+    "summary": "Reused the audited source-KL-only control without rerunning it, trained one matched source-greedy-margin treatment for10,688 new physical hands, and evaluated6,144 new common-deck greedy hands. Training/session/code audits and23 tests passed. Pooled treatment-control was -3.802 bb/100,95%CI[-32.377,24.772], with1/3 positive anchors.",
+    "conclusion": "Capped source-argmax margin preservation was active, stable, and released strong positive-advantage alternatives as designed, but it did not establish positive efficacy. Standard10 and Slumbot-free directions remained negative while only CFR96 was weakly positive. The Standard10 greedy execution advantage cannot be converted into improvement by this local regularizer alone.",
+    "decision": "DO_NOT_SCALE_SOURCE_GREEDY_MARGIN_PRESERVATION",
+    "next_step": "Keep the implementation default-off. Do not allocate Slumbot or larger training to either greedy-margin objective. Reassess the learning signal itself: seek lower-variance counterfactual or opponent-conditioned targets that can rank actions before changing Standard10 argmax boundaries, while treating single-teacher imitation and internal proxy gains as negative controls."
+  },
+  "tags": [
+    "greedy-deployment",
+    "ppo",
+    "safe-policy-improvement",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 8,
+    "command_count": 8
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 310426,
+      "sha256": "f29cedbd9054ebc404d920150ff593527f10469343fac930cc440c80f372e3cd"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "d1ac9a0304084647b463620cb0d87dafd1343f969025b8f9be6d52a1a3008fed"
+    },
+    "scripts/alpha_holdem/test_source_greedy_margin_preservation.py": {
+      "type": "file",
+      "bytes": 5062,
+      "sha256": "b5a29aaf348b9ede45a246543e7a0e0083c9038861abc8f41ac198d61c621934"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/latest.pt": {
+      "type": "file",
+      "bytes": 133306996,
+      "sha256": "b3d2166eae7c7c3621b75c00688ae0c9ee8efe4b3c9323aa481a8038deb158c4"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/run_manifest.json": {
+      "type": "file",
+      "bytes": 60285,
+      "sha256": "594533d4c2f8869f61abe572dcc0bae474443ba8965f4eaa60ffe36d2c4557e7"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 56217,
+      "sha256": "e757a17ea7fd39f924630fd09ac6c3e88710323486cca54787b5f2ef3c06ba69"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5155,
+      "sha256": "ccd063f9a065f101008e9c5bcd3d7290db523a61a2e1268112da88ce4cc4d41b"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 5325,
+      "sha256": "4eaf00cf337da09c155f0602b4cb7af08be92e73a20183abde7bc982e6663de3"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/eval": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 3881,
+      "sha256": "9b7267d8178a7f5cce8f99827fadee3d8523af4d8f7e0b1109aec59d343db3c2"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/execution_code": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/run_eval.py": {
+      "type": "file",
+      "bytes": 4903,
+      "sha256": "1194a881e298dfdb29f2db25b09ea75f07b69bf1736b2e28b3c0f5729de9566b"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/audit_review.py": {
+      "type": "file",
+      "bytes": 9358,
+      "sha256": "8d04aa9c7322b8348d085de62311dec89759b2e58071bd882bf2a610da1f6a10"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1562,
+      "sha256": "0497f6a0cae3d06a92903d88fe4b6fc8020f4913c0c26a76d5aeb2f989110466"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1557,
+      "sha256": "bb3aec3c8388bd4d57dca1d4db55769bef78ae79758fbe7177460cbdc436836d"
+    },
+    "research/experiments/v6-source-greedy-margin-preservation-smoke-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 360,
+      "sha256": "b551b0b95eecacfb96a225d2e598e5d4693d46712733576498ecb5de6f11fa6c"
+    }
+  }
+}

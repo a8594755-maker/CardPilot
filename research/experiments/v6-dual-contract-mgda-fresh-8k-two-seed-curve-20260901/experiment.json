@@ -1,0 +1,194 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901",
+  "title": "Dual-contract MGDA fresh 8k two-seed learning curve",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T17:40:40+00:00",
+  "updated_at": "2026-09-01T18:03:13+00:00",
+  "started_at": "2026-09-01T17:40:40+00:00",
+  "ended_at": "2026-09-01T18:03:13+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "With fresh on-policy data, MGDA residual updates will retain common-descent geometry and produce a nonnegative 4k-to-8k matched learning slope across two seeds while preserving Standard10, both seats, and cross-anchor breadth.",
+  "material_change": "Train ordinary control and MGDA treatment on their own fresh on-policy trajectories for two seeds, 8,192 hands per arm per seed (32,768 actual environment hands). Persist Adam across two 4,096-hand chunks, save frozen checkpoints at 4k and 8k, and evaluate all checkpoints on preregistered common untouched decks: 512 mirrored pairs per three anchors per seed. Fixed Standard10 base, +/-0.25 residual cap, 32 stratified update steps per chunk.",
+  "baseline": "Two offline cohorts reproduced MGDA common descent on 64/64 steps. Combined 24,576-hand matched evaluation was pooled +3.907 bb/100 CI[-5.580,13.393], with all anchor and seat point estimates positive; one cohort passed all breadth gates and one was mixed.",
+  "source": "Frozen Standard10 plus three fixed learned anchors; new on-policy physical-v6 hands.",
+  "parent_id": "v6-dual-contract-mgda-independent-cohort-replication-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_mgda_fresh_curve.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --seed 20261500 --seeds 2 --hands-per-dose 4096 --doses 2 --steps-per-dose 32 --group-batch-size 256 --pairs-per-anchor 512 --device cuda --out-dir research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_mgda_fresh_curve.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --seed 20261500 --seeds 2 --hands-per-dose 4096 --doses 2 --steps-per-dose 32 --group-batch-size 256 --pairs-per-anchor 512 --device cuda --out-dir research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:40:40+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:03:13+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8a3435af859fa3b066500de8a4080f1194ed83ba264b33e06834dd8f9efa1cf6",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T17:40:40+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/source_manifest.json",
+    "source_manifest_sha256": "01e4238deded94c07c70f83ce6eaf23d80138fb0cc16dbc64cb6c9bbde84cb0f",
+    "source_files": 127
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 32768,
+    "lineage_training_hands": 8192,
+    "offline_samples": 0,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 1353.0,
+    "planned_environment_training_hands": 32768,
+    "planned_evaluation_hands": 24576
+  },
+  "metrics": {
+    "transition_rows": 72329,
+    "pooled_4k_delta_bb100": 2.052408854166667,
+    "pooled_8k_delta_bb100": 11.567708333333332,
+    "pooled_8k_ci95_low_bb100": -4.600447833080296,
+    "pooled_8k_ci95_high_bb100": 27.73586449974696,
+    "paired_4k_to_8k_slope_bb100": 9.515299479166666,
+    "paired_slope_ci95_low_bb100": -8.545599496858042,
+    "paired_slope_ci95_high_bb100": 27.576198455191374,
+    "standard10_8k_delta_bb100": -2.1728515625,
+    "slumbot_free_8k_delta_bb100": 4.205078125,
+    "cfr96_8k_delta_bb100": 32.67089843749999,
+    "seat0_8k_delta_bb100": 23.859049479166664,
+    "seat1_8k_delta_bb100": -0.7236328125000008,
+    "seed0_8k_pooled_delta_bb100": 15.603515624999996,
+    "seed1_8k_pooled_delta_bb100": 7.531901041666666,
+    "mgda_positive_geometry_steps": 128,
+    "mgda_total_steps": 128,
+    "tests_passed": 230
+  },
+  "artifacts": [
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/code.patch",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/source_manifest.json",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/summary.json",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/training_hands.jsonl.gz",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/update_schedules.jsonl.gz",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_control_4096.pt",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_4096.pt",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_control_8192.pt",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_control_4096.pt",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_treatment_4096.pt",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_control_8192.pt",
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_treatment_8192.pt"
+  ],
+  "notes": [
+    "Admission beyond 8k requires: exact actual hand accounting; base/cap/checkpoint integrity; MGDA positive worst-group alignment on >=75% of steps in every seed/dose; at 8k both seed pooled deltas >0, combined pooled >0, >=2/3 combined anchor points positive, Standard10 >=0, both seats >=0; and nonnegative combined paired 4k-to-8k delta slope on common evaluation decks. CI need not exclude zero at this scale. Failure is classified as mechanism failure, adverse learning curve, or underpowered mixed evidence rather than automatically closing all long-horizon multi-objective methods.",
+    "Independent raw accounting confirmed exactly 32,768 training hands with eight equal 4,096-hand seed/dose/arm cells, 72,329 transition rows, 6,144 evaluation pairs / 24,576 hands, training SHA c3b3034e759ccc027a3455bda3d6315c14c0a7be190f4d1d397994a78b74ca0f and evaluation SHA 53f0de01f216c033d7f1112487511c9db177b9d2d4dc8ce4e72ad621fbde69d5.",
+    "At 8k, absolute treatment/control seat-averaged bb/100 versus anchors were Standard10 19.165/21.338, Slumbot-free 104.464/100.259, CFR96 66.203/33.532. Thus the relative Standard10 delta -2.173 is not catastrophic source loss: both learned arms beat the frozen base in this internal head-to-head panel."
+  ],
+  "result": {
+    "summary": "Two fresh seeds and both doses completed 32,768 actual training hands. MGDA maintained positive worst-group alignment on 128/128 steps. Both 8k seed pooled treatment-control deltas were positive (+15.604,+7.532); combined rose from +2.052 at 4k to +11.568 at 8k with paired slope +9.515 CI[-8.546,27.576]. At 8k Slumbot-free +4.205 and CFR96 +32.671 were positive, while relative Standard10 -2.173 and seat1 -0.724 were slightly negative with very wide intervals.",
+    "conclusion": "The fresh learning curve supports continued interest: mechanism replication is exact, both seeds are positive at 8k, and the relative pooled slope is favorable. However the preregistered next-scale gate correctly holds because treatment did not beat the ordinary control on Standard10 or seat1 point estimates. Absolute treatment performance versus Standard10 remained strongly positive (+19.165 bb/100 internally), so this is a relative-preservation ambiguity rather than collapse or evidence to close long-horizon MGDA.",
+    "decision": "HOLD_MGDA_GEOMETRIC_SCALE_PENDING_PRESERVATION_DIAGNOSTIC",
+    "next_step": "Use frozen 4k/8k checkpoints for an outcome-blind common-state preservation and action-drift audit across anchors/seats, plus absolute-versus-base interpretation. Resume fresh geometric scaling only if the small relative Standard10/seat1 negatives are consistent with noise or controlled tradeoff rather than growing source-boundary erosion."
+  },
+  "tags": [
+    "fresh-training",
+    "learning-curve",
+    "mgda",
+    "multi-seed",
+    "residual"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 23711,
+      "sha256": "01e4238deded94c07c70f83ce6eaf23d80138fb0cc16dbc64cb6c9bbde84cb0f"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 14590,
+      "sha256": "e080352035e1a33d9965e28a5e95677be8616156354908c0dac4f97da4567832"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 2218595,
+      "sha256": "c3b3034e759ccc027a3455bda3d6315c14c0a7be190f4d1d397994a78b74ca0f"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/update_schedules.jsonl.gz": {
+      "type": "file",
+      "bytes": 867694,
+      "sha256": "7d3b03c08a247d86286f9554e644ef35f64c7ffb5d44098ece318c7ed3ba5532"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 396121,
+      "sha256": "53f0de01f216c033d7f1112487511c9db177b9d2d4dc8ce4e72ad621fbde69d5"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_control_4096.pt": {
+      "type": "file",
+      "bytes": 1391938,
+      "sha256": "3fda50d961052dd39ff68ee76aeea6a16d9f8067709446380402bb31bbdba3b0"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_4096.pt": {
+      "type": "file",
+      "bytes": 1394458,
+      "sha256": "1cd832786b11da0d13152ed5619ae7bd00a52ee5e0fbcde90581442e0113dfc0"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_control_8192.pt": {
+      "type": "file",
+      "bytes": 1391938,
+      "sha256": "d9c2ffe2fa8982b1c27b404d9b2f5999859bae7327e77e3e2e9b775d88c16651"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt": {
+      "type": "file",
+      "bytes": 1394458,
+      "sha256": "de70dd34888a7b860632d44d7b2089a8bc9ff946b9416a3507448461c3b32738"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_control_4096.pt": {
+      "type": "file",
+      "bytes": 1391938,
+      "sha256": "4069b3048e277c944db144fca2c33bd287323d911bd1eac037262d613b32381d"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_treatment_4096.pt": {
+      "type": "file",
+      "bytes": 1394458,
+      "sha256": "d379d04a5b3d701a54717cbffd0daa87054de49fe613311f542b576334ce31e9"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_control_8192.pt": {
+      "type": "file",
+      "bytes": 1391938,
+      "sha256": "e5c8058477509423ed719c6507b618961471bda1441efbd6587ef2f81e32d581"
+    },
+    "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_treatment_8192.pt": {
+      "type": "file",
+      "bytes": 1394458,
+      "sha256": "a569d8f781b93738e733b6621d0534caab59da97d83f2dacbb350ab828e0645a"
+    }
+  }
+}

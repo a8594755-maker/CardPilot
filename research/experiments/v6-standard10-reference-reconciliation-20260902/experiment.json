@@ -1,0 +1,103 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-reference-reconciliation-20260902",
+  "title": "Standard10 historical/current reference reconciliation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T16:45:16+00:00",
+  "updated_at": "2026-09-02T16:45:42+00:00",
+  "started_at": "2026-09-02T16:45:16+00:00",
+  "ended_at": "2026-09-02T16:45:42+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The historical -11.4275 and exact legacy-bridge -24.5683 fresh20k results are statistically unresolved samples of the same frozen greedy policy rather than evidence of a recoverable execution-contract loss, because the bridge has exact 20,000-state action parity and the independent score-difference CI contains zero.",
+  "material_change": "Read-only reconcile the two summary estimates with the audited 20,000-state exact action/slot/legality parity evidence; calculate the independent difference CI and a clearly non-goal-qualifying summary-only inverse-variance reference. No policy queries, poker hands, or training.",
+  "baseline": "Historical Standard10 fresh20k -11.4275 CI[-28.7124,5.8574]; current exact bridge fresh20k -24.5683 CI[-42.8407,-6.2959], an apparent 13.1408 point gap.",
+  "source": "research/experiments/baseline-standard10-20260829/experiment.json",
+  "parent_id": "v6-public-opponent-external-alignment-audit-20260902",
+  "command": "python scripts/alpha_holdem/v6_standard10_reference_reconciliation.py --historical research/experiments/baseline-standard10-20260829/experiment.json --current research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/experiment.json --parity research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/experiment.json --out research/experiments/v6-standard10-reference-reconciliation-20260902/analysis.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_standard10_reference_reconciliation.py --historical research/experiments/baseline-standard10-20260829/experiment.json --current research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/experiment.json --parity research/experiments/v6-standard10-legacy-observation-bridge-parity-20260901/experiment.json --out research/experiments/v6-standard10-reference-reconciliation-20260902/analysis.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T16:45:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "f9043c568559a1f49f460da88e40c3bad2a2c3932458e9343983643e6ad8bd5f",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T16:45:16+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-reference-reconciliation-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-standard10-reference-reconciliation-20260902/source_manifest.json",
+    "source_manifest_sha256": "f4042cd50af09c1a27b03e91b6bd042b7d679d35c905dfc340c21c1ba63249e7",
+    "source_files": 220
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 26.0
+  },
+  "metrics": {
+    "historical_minus_current_bb100": 13.1408,
+    "difference_ci95_low": -12.011734033765249,
+    "difference_ci95_high": 38.29333403376525,
+    "exact_action_parity": 1,
+    "descriptive_pooled_bb100": -17.633218299952116
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-reference-reconciliation-20260902/code.patch",
+    "research/experiments/v6-standard10-reference-reconciliation-20260902/source_manifest.json",
+    "research/experiments/v6-standard10-reference-reconciliation-20260902/analysis.json"
+  ],
+  "notes": [
+    "The historical record lacks raw hand evidence, so any pooled estimate is descriptive research context only and cannot count toward the benchmark."
+  ],
+  "result": {
+    "summary": "The 13.1408 bb/100 historical-minus-current point gap has an independent 95% interval [-12.0117,38.2933], both point estimates lie inside the other's interval, and the current legacy bridge already has exact action, slot, and v6-legality parity on 20,000 general states. A summary-only 40k inverse-variance reference is -17.6332 CI[-30.1901,-5.0763], but historical raw hands are unavailable and it is explicitly not formal goal evidence.",
+    "conclusion": "There is no identified execution-contract loss to repair. The -11.4275 and -24.5683 results are compatible samples of the same frozen greedy Standard10 policy; treating the historical point as a distinct stronger deployable policy would be selection on noise.",
+    "decision": "RECONCILE_AS_SAME_POLICY_UNRESOLVED_SAMPLE_VARIATION",
+    "next_step": "Retain exact legacy-bridge Standard10 as the learned-policy anchor and use -11.4275 only as historical context. Do not spend training or Slumbot budget trying to recover a nonexistent contract difference. Return to learned-weight methods with robust multi-seed geometric evidence and sparse external calibration."
+  },
+  "tags": [
+    "Standard10",
+    "audit",
+    "execution-contract"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-reference-reconciliation-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-standard10-reference-reconciliation-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 41790,
+      "sha256": "f4042cd50af09c1a27b03e91b6bd042b7d679d35c905dfc340c21c1ba63249e7"
+    },
+    "research/experiments/v6-standard10-reference-reconciliation-20260902/analysis.json": {
+      "type": "file",
+      "bytes": 1782,
+      "sha256": "19874d0cc057745b3786c87930ea32a822770db8e92fab02dfcb6c2f545dbd42"
+    }
+  }
+}

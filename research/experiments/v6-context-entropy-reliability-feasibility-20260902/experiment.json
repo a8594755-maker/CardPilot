@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-context-entropy-reliability-feasibility-20260902",
+  "title": "Outcome-blind context entropy reliability feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T06:33:29+00:00",
+  "updated_at": "2026-09-02T06:34:40+00:00",
+  "started_at": "2026-09-02T06:33:29+00:00",
+  "ended_at": "2026-09-02T06:34:40+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The calibrated classifier's normalized posterior reliability (1 - entropy/log6) separates untouched seen-policy sessions from SHA-disjoint unseen-policy sessions strongly enough to gate residual magnitude without reward tuning: seen median at least 0.40, holdout median at most 0.40, mean gap at least 0.15, and discrimination AUC at least 0.75.",
+  "material_change": "Hash-freeze the 84 session-feature rows and admitted regularized 64-hand classifier. Compute entropy reliability on the original 48 selection, 24 untouched seen-test, and 12 unseen holdout sessions; use no rewards, policy checkpoints, or environment simulation.",
+  "baseline": "Posterior-centered learned heads improved seen policies but were -1.302 ±7.491 bb/100 versus Standard10 on unseen holdouts. An entropy multiplier is only justified if classifier uncertainty independently distinguishes those domains.",
+  "source": "research/experiments/v6-opponent-session-context-feasibility-20260902/run/session_features.jsonl",
+  "parent_id": "v6-posterior-context-breadth-audit-20260902",
+  "command": "python scripts/alpha_holdem/v6_context_reliability_feasibility.py --features research/experiments/v6-opponent-session-context-feasibility-20260902/run/session_features.jsonl --expected-features-sha256 32186f482c62afca936e66c779231181274964393ce796563951b398d70ca49f --classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --train-sessions-per-policy 8 --out-dir research/experiments/v6-context-entropy-reliability-feasibility-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_context_reliability_feasibility.py --features research/experiments/v6-opponent-session-context-feasibility-20260902/run/session_features.jsonl --expected-features-sha256 32186f482c62afca936e66c779231181274964393ce796563951b398d70ca49f --classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --train-sessions-per-policy 8 --out-dir research/experiments/v6-context-entropy-reliability-feasibility-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:33:29+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-context-entropy-reliability-feasibility-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:34:40+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "a91fff9c21097095024c2664af7a862abbe07966eaa57a88c40129fa730fc2bf",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_context_reliability_feasibility.py"
+    ],
+    "captured_at": "2026-09-02T06:33:29+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-context-entropy-reliability-feasibility-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-context-entropy-reliability-feasibility-20260902/source_manifest.json",
+    "source_manifest_sha256": "a28ae6a313ebe09c03fb0907e92cac2662e8cd031860093c9176e58eb452f124",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 16896,
+    "offline_samples": 84,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 71.0,
+    "planned_training_hands": 0,
+    "planned_evaluation_hands": 0,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "seen_reliability_mean": 0.5825134172659153,
+    "seen_reliability_median": 0.5843939499904659,
+    "holdout_reliability_mean": 0.3488537437843224,
+    "holdout_reliability_median": 0.2962747134814092,
+    "seen_holdout_mean_gap": 0.2336596734815929,
+    "seen_vs_holdout_auc": 0.7986111111111112,
+    "tests_passed": 282,
+    "admitted": true
+  },
+  "artifacts": [
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/code.patch",
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/source_manifest.json",
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/run",
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_context_reliability_feasibility.py",
+    "scripts/alpha_holdem/test_v6_context_reliability_feasibility.py"
+  ],
+  "notes": [
+    "Thresholds are preregistered before reading the sealed reliability outputs. Passing admits only a fresh shrinkage control, not strength.",
+    "Reliability thresholds were fixed before querying the sealed 24 seen-test and 12 SHA-disjoint holdout sessions. No reward, policy checkpoint, or environment hand was read or generated."
+  ],
+  "result": {
+    "summary": "Normalized posterior reliability separated seen and unseen 64-hand contexts: seen mean/median 0.583/0.584 versus unseen 0.349/0.296, a mean gap of 0.234 and AUC 0.799. All preregistered feasibility gates passed.",
+    "conclusion": "Classifier entropy contains independently validated OOD information and supports a deterministic learned-policy uncertainty multiplier. This admits exactly one fresh matched shrinkage control; it does not establish poker strength or justify selecting a multiplier from reward outcomes.",
+    "decision": "ADMIT_FIXED_ENTROPY_RELIABILITY_SHRINKAGE_CONTROL",
+    "next_step": "Implement the fixed multiplier 1 - posterior_entropy/log(6), verify zero-context/uniform-posterior identity, then evaluate both frozen recovery checkpoints on fresh common decks against base and the unshrunk policy across training and holdout opponents."
+  },
+  "tags": [
+    "calibration",
+    "feasibility",
+    "ood",
+    "zero-new-hands"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 303,
+      "sha256": "a28ae6a313ebe09c03fb0907e92cac2662e8cd031860093c9176e58eb452f124"
+    },
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-context-entropy-reliability-feasibility-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 42707,
+      "sha256": "ad700ae42e942371632eec05703e06628f8c199d8ccb4b769bfb9a754d6996cc"
+    },
+    "scripts/alpha_holdem/v6_context_reliability_feasibility.py": {
+      "type": "file",
+      "bytes": 5235,
+      "sha256": "e1eea01fe513b0dcd11a28c2fb23b34990ab8af1df5aefa43640a6f6278345cf"
+    },
+    "scripts/alpha_holdem/test_v6_context_reliability_feasibility.py": {
+      "type": "file",
+      "bytes": 583,
+      "sha256": "a1aa151ff48d2034c4579d9638302a83e03d74c8cb85e39e788f73670572e610"
+    }
+  }
+}

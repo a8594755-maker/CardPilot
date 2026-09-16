@@ -1,0 +1,128 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-residual-scale-control-20260901",
+  "title": "Frozen Standard10 residual-regret scale dose control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:38:20+00:00",
+  "updated_at": "2026-09-01T15:48:29+00:00",
+  "started_at": "2026-09-01T15:38:20+00:00",
+  "ended_at": "2026-09-01T15:48:29+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The positive scale1 residual-regret smoke contains a useful state-conditioned direction that remains positive after shrinking deployment residuals enough to preserve at least 75% of Standard10 greedy decisions.",
+  "material_change": "Without retraining, scan frozen residual scales 0.003,0.01,0.03,0.1,0.3,1 on 256-pair development panels. Select the smallest scale with 1-25% max greedy disagreement, positive Standard10 delta and at least 3/4 positive anchors, then evaluate only that scale on disjoint 1,024-pair confirmation panels.",
+  "baseline": "Frozen scale1 residual bundle SHA256 0748af53a24b4836079e6806e16420d4dd741c7c4f953410bd9af875348684be had 4/4 positive smoke points but 83.5-88.9% greedy disagreement and wide CIs.",
+  "source": "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/residual_policy.pt",
+  "parent_id": "v6-standard10-residual-regret-mechanism-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_standard10_residual_scale_control.py --bundle research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/residual_policy.pt --standard10 models/baseline/standard10/latest.pt --scales 0.003 0.01 0.03 0.1 0.3 1.0 --development-pairs 256 --confirmation-pairs 1024 --development-seed 60912 --confirmation-seed 160912 --output-dir research/experiments/v6-standard10-residual-scale-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_standard10_residual_scale_control.py --bundle research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/residual_policy.pt --standard10 models/baseline/standard10/latest.pt --scales 0.003 0.01 0.03 0.1 0.3 1.0 --development-pairs 256 --confirmation-pairs 1024 --development-seed 60912 --confirmation-seed 160912 --output-dir research/experiments/v6-standard10-residual-scale-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:38:20+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "9089784d581855ff0df9d64f4f89b6fad627f818d7e98d3e86eebd3394a1daa2",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_standard10_residual_scale_control.py",
+      "scripts/alpha_holdem/v6_standard10_residual_regret_smoke.py"
+    ],
+    "captured_at": "2026-09-01T15:38:20+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-residual-scale-control-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-standard10-residual-scale-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "d688873eb70212e99cf8e396a00642fa077a46a9a439b439362268da714caa7f",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 40960,
+    "wall_time_seconds": 609.0,
+    "environment_training_hands": 0,
+    "planned_evaluation_hands": 40960,
+    "development_evaluation_hands": 24576,
+    "confirmation_evaluation_hands": 16384
+  },
+  "metrics": {
+    "selected_scale": 0.01,
+    "confirmation_standard10_delta_bb100": -1.0009765625,
+    "confirmation_standard10_ci95_lower": -9.519940371213357,
+    "confirmation_standard10_ci95_upper": 7.517987246213358,
+    "confirmation_positive_anchor_points": 3,
+    "confirmation_max_greedy_disagreement": 0.017358490566037735
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-residual-scale-control-20260901/code.patch",
+    "research/experiments/v6-standard10-residual-scale-control-20260901/source_manifest.json",
+    "research/experiments/v6-standard10-residual-scale-control-20260901/run/summary.json",
+    "research/experiments/v6-standard10-residual-scale-control-20260901/run/decks.json",
+    "research/experiments/v6-standard10-residual-scale-control-20260901/run/confirmation.jsonl.gz",
+    "research/experiments/v6-standard10-residual-scale-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "Frozen posthoc dose control only. Selection rule and disjoint confirmation are preregistered; no Slumbot or training hands."
+  ],
+  "result": {
+    "summary": "A six-dose frozen development scan selected scale0.01, then 16,384 disjoint confirmation hands showed only 0.81-1.74% greedy disagreement and positive generic-anchor deltas, including positive lower bounds versus uniform and min-bet. The direct Standard10 delta was -1.0010 bb/100, CI [-9.5199,7.5180], so the preregistered learned-anchor gate failed.",
+    "conclusion": "Posthoc shrinkage converts the scale1 residual into a genuinely preservation-compatible policy and its generic exploit gains replicate, but it does not establish improvement over the mature learned reference. The frozen candidate is rejected for promotion and Slumbot.",
+    "decision": "REJECT_FROZEN_RESIDUAL_SCALE_TRANSFER",
+    "next_step": "Run at most one matched small-root control that trains the residual under scale0.01 visitation rather than scale1 then posthoc shrinkage, and evaluate on learned-policy anchors; stop this route if the learned-anchor direction does not improve."
+  },
+  "tags": [
+    "frozen-evaluation",
+    "preservation",
+    "residual-regret",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-residual-scale-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-standard10-residual-scale-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 500,
+      "sha256": "d688873eb70212e99cf8e396a00642fa077a46a9a439b439362268da714caa7f"
+    },
+    "research/experiments/v6-standard10-residual-scale-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 17576,
+      "sha256": "016a390fdbaf2dce79f5afeba4cd044fe2412c533bcf126cb6cc14858d1b977d"
+    },
+    "research/experiments/v6-standard10-residual-scale-control-20260901/run/decks.json": {
+      "type": "file",
+      "bytes": 256093,
+      "sha256": "65c6ee43ac0986a4fd160682d9e0fc0f446c7944e4d9cc8ca1cd2d0da50cdcf8"
+    },
+    "research/experiments/v6-standard10-residual-scale-control-20260901/run/confirmation.jsonl.gz": {
+      "type": "file",
+      "bytes": 244814,
+      "sha256": "389635555ae1ff1ca22a89fc7bad06be5704e3d03f973c67f293c39de4852caf"
+    },
+    "research/experiments/v6-standard10-residual-scale-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1557,
+      "sha256": "dc73008f2f2cf4fe37154020f5b3ed5037ad4c6803f7a8d9b4a7c7732a74737a"
+    }
+  }
+}

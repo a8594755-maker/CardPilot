@@ -1,0 +1,24 @@
+{
+  "status": "PENDING_MERGE_ONLY_AFTER_ORIGINAL_WRAPPER_EXIT",
+  "reason": "Keep the live external wrapper as the sole experiment-record writer. These new post-run files are outside its frozen execution sources and do not affect any session.",
+  "commands": [
+    "python -m pytest research/experiments/standard10-native-sampled-slumbot20k-20260830/test_completed_baseline_review.py -q",
+    "python -m py_compile research/experiments/standard10-native-sampled-slumbot20k-20260830/review_completed_baseline.py",
+    "python research/experiments/standard10-native-sampled-slumbot20k-20260830/check_initial_prefixes.py"
+  ],
+  "metrics": {
+    "supplemental_independent_review_tests_passed": 8
+  },
+  "artifacts": [
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/review_completed_baseline.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/test_completed_baseline_review.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/check_initial_prefixes.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/initial100_deal_prefix_check.json"
+  ],
+  "notes": [
+    "Added a post-completion-only independent chip-unit CI/hand-count/hash review and tests while the original8external sessions continued unchanged. It refuses live writers, incomplete20k evidence, repeated/missing attempts, extra raw files and disagreement with saved raw/cluster statistics. It never mutates hand evidence or selects outcomes.",
+    "After original wrapper exits successfully, run review_completed_baseline.py once, merge this supplemental provenance and test result through experiment_log.py, then finish the same record with the actual outcome. If the wrapper terminates invalid/incomplete, preserve evidence and diagnose instead of running this completion-only report or automatically restarting.",
+    "An outcome-blind first100-completed-hand prefix check across8sessions found no aligned3-hand or arbitrary-offset5-hand initial-card/seat replay. This is provisional evidence over800 existing hands,adds zero hands,and does not replace the final full strict audit. Prefix observations and hashes are retained in initial100_deal_prefix_check.json.",
+    "Read-only inspection of the frozen checkpoint confirmed200bb,v4,preflop_pot_fraction_v2,GroupNorm,separate preflop head and no policy_logit_bias/range/context/preflop-profile overrides. The post-completion report repeats these semantic metadata checks without altering the policy."
+  ]
+}

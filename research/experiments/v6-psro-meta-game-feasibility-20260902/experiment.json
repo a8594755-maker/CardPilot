@@ -1,0 +1,146 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-psro-meta-game-feasibility-20260902",
+  "title": "Three-seed PSRO empirical meta-game feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T10:33:26+00:00",
+  "updated_at": "2026-09-02T11:06:24+00:00",
+  "started_at": "2026-09-02T10:33:26+00:00",
+  "ended_at": "2026-09-02T11:06:24+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A Nash meta-strategy over six heterogeneous historical training policies will retain at least three material support policies, improve training worst-case exposure over uniform/ELO-K5, remain stable across deck seeds, and preserve worst-case performance on three SHA-disjoint holdouts.",
+  "material_change": "Evaluate a three-seed seat-paired nine-policy greedy payoff matrix and solve the six-policy zero-sum restricted game. No policy weights are trained.",
+  "baseline": "Current loss-Kbest/ELO-Kbest selectors showed self-family overfit or no robust gain at ~263k hands; uniform and top-row-mean K5 are matched meta-strategy controls.",
+  "source": "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json",
+  "parent_id": "v6-posterior-context-proxy-action-support-audit-20260902",
+  "command": "python scripts/alpha_holdem/v6_psro_meta_game_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --pairs-per-matchup 256 --seeds 3 --seed 20264001 --device cuda --out-dir research/experiments/v6-psro-meta-game-feasibility-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_psro_meta_game_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --pairs-per-matchup 256 --seeds 3 --seed 20264001 --device cuda --out-dir research/experiments/v6-psro-meta-game-feasibility-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T10:33:26+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_psro_meta_game_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --pairs-per-matchup 256 --seeds 3 --seed 20264001 --device cuda --resume-complete-seeds 1 --out-dir research/experiments/v6-psro-meta-game-feasibility-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T10:44:36+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1624d0e7cfc5146be7fb871d8b1055f227be7f6e9e5a50af82fe0e2479b50348",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_psro_meta_game_feasibility.py",
+      "scripts/alpha_holdem/test_v6_psro_meta_game_feasibility.py"
+    ],
+    "captured_at": "2026-09-02T10:33:26+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-psro-meta-game-feasibility-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-psro-meta-game-feasibility-20260902/source_manifest.json",
+    "source_manifest_sha256": "008f38186e0fc7d005baefa99e6c126adec7b75aff046ad2173c0947a4532b3c",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 55296,
+    "wall_time_seconds": 1978.0,
+    "training_hands": 0
+  },
+  "metrics": {
+    "aggregate_nash_support_at_1pct": 1,
+    "aggregate_nash_maximum_weight": 1.0,
+    "aggregate_nash_training_worst_bb100": 0.0,
+    "aggregate_uniform_training_worst_bb100": -114.85036892361109,
+    "aggregate_nash_holdout_worst_bb100": 94.58723958333334,
+    "aggregate_uniform_holdout_worst_bb100": -130.16471354166666,
+    "aggregate_elo_k5_holdout_worst_bb100": -137.41640624999997,
+    "median_seed_weight_l1_to_aggregate": 1.5106461036755214
+  },
+  "artifacts": [
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/code.patch",
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/source_manifest.json",
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/seed0_payoffs.jsonl.gz",
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/seed1_payoffs.jsonl.gz",
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/seed2_payoffs.jsonl.gz",
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/summary.json",
+    "scripts/alpha_holdem/v6_psro_meta_game_feasibility.py",
+    "scripts/alpha_holdem/test_v6_psro_meta_game_feasibility.py"
+  ],
+  "notes": [
+    "Primary motivation: Lanctot et al. 2017 PSRO trains approximate best responses to empirical-game meta-strategies; AlphaHoldem instead uses ELO K-best historical policies. This feasibility tests selector geometry only.",
+    "Seed0 completed all18432 hands before reporting failed on a 6-weight by9-row holdout matrix dimension error. Payoff gzip recovered as complete 9216 paired rows and exactly skew-symmetric. Recovery slices training rows for mixture scoring and resumes only complete seeds; seed0 is neither regenerated nor overwritten.",
+    "Post-run raw audit recovered exactly 9216 paired rows and 36/36 unordered matchups per seed; every matrix had max skew-symmetry error 0 and all gzip SHA256 values matched summary.json. Tests: PSRO 2 passed; full AlphaHoldem suite 296 passed."
+  ],
+  "result": {
+    "summary": "Completed exactly 55296 frozen greedy seat-paired internal evaluation hands across three deck seeds and nine SHA-distinct policies. The aggregate restricted-game Nash solution collapsed to pure diverse_league5 (support 1, max weight 1.0), while seed1/2 required materially different three-policy mixtures; median seed-to-aggregate weight L1 was 1.5106. Four of seven preregistered gates passed and three failed.",
+    "conclusion": "The present 256-pair-per-matchup empirical matrix is not stable enough to justify a deployable PSRO meta-strategy: aggregate diversity and concentration gates failed and seed weights were unstable. This is a selector-feasibility rejection only, not evidence that PSRO oracle learning or longer-horizon league training fails; this experiment generated zero training hands.",
+    "decision": "REJECT_CURRENT_EMPIRICAL_META_NASH_SELECTOR",
+    "next_step": "Audit the provenance, learning curve, cross-opponent breadth, seat balance, Standard10 preservation, and external evidence of diverse_league5, which dominated the aggregate training pool. Use that evidence to choose between a higher-confidence matrix/control, a genuine learned best-response PSRO step, or another scalable self-play/league route; scale only a mechanism with reproducible geometric-slope and proxy/external alignment."
+  },
+  "tags": [
+    "meta-game",
+    "opponent-league",
+    "psro"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 490,
+      "sha256": "008f38186e0fc7d005baefa99e6c126adec7b75aff046ad2173c0947a4532b3c"
+    },
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/seed0_payoffs.jsonl.gz": {
+      "type": "file",
+      "bytes": 578887,
+      "sha256": "84b9ecd51867bcde7d3ebfc24e9358777314a38d6b27c9ec17aa54ce18eeffc5"
+    },
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/seed1_payoffs.jsonl.gz": {
+      "type": "file",
+      "bytes": 579887,
+      "sha256": "4a184daae1d903b65e90ecb1e64edb01135a8faae37e1d64d1a6c26291901995"
+    },
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/seed2_payoffs.jsonl.gz": {
+      "type": "file",
+      "bytes": 579457,
+      "sha256": "dcc6e7af3ed249a522f531cc812ca274bd0967932ce316a315b82bc24a2ef5c2"
+    },
+    "research/experiments/v6-psro-meta-game-feasibility-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 23995,
+      "sha256": "634026850b1cbafca9f5ae295744b66728894c8a68162e5de439bc23eab39fed"
+    },
+    "scripts/alpha_holdem/v6_psro_meta_game_feasibility.py": {
+      "type": "file",
+      "bytes": 11571,
+      "sha256": "28f97774f3227b34b628f0ebb728915369d2d44212cfba075416751f4d83f22f"
+    },
+    "scripts/alpha_holdem/test_v6_psro_meta_game_feasibility.py": {
+      "type": "file",
+      "bytes": 688,
+      "sha256": "6671ee42422a668b6f9eb089296044d3cb1fce446f5a969d230ace48fb5950e7"
+    }
+  }
+}

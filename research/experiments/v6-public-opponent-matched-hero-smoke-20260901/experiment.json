@@ -1,0 +1,228 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-public-opponent-matched-hero-smoke-20260901",
+  "title": "Matched minority public-opponent hero learned-weight smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T16:15:54+00:00",
+  "updated_at": "2026-09-01T16:40:30+00:00",
+  "started_at": "2026-09-01T16:15:54+00:00",
+  "ended_at": "2026-09-01T16:40:30+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Replacing 25% of external-opponent hands (18.75% overall at 25% self-play) with the frozen public Slumbot behavior model will add opponent-conditioned reward signal without reviving hero imitation, yielding a broader frozen greedy policy than an otherwise identical Standard10-initialized diverse learned-league control.",
+  "material_change": "Train matched 8,192-physical-hand control and treatment from frozen Standard10 with identical PPO, fixed learned opponents, self-play share, worker/deal seeds, and source KL. Treatment alone activates the frozen public opponent at 0.25 of external hands. Freeze endpoints and compare on untouched common-deck learned-policy anchors.",
+  "baseline": "Standard10 is the reproducible frontier parent. Historical single imitation was -18.5025 fresh20k. Public model is opponent-only, session-disjoint, and worker-contract qualified; Standard10 exploited it at +97.7959 internally, so its share is capped.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-public-opponent-worker-integration-smoke-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026135000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_public_opponent_control_20260901 --run-dir research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control --out research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/latest.pt --seed 20261350 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026135000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_public_opponent_control_20260901 --run-dir research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control --out research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/latest.pt --seed 20261350 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:15:54+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026135000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --public-opponent-checkpoint research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --public-opponent-fraction .25 --run-id v6_public_opponent_treatment_20260901 --run-dir research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment --out research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment/latest.pt --seed 20261350 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:17:35+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026135000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --public-opponent-checkpoint research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --public-opponent-fraction .25 --run-id v6_public_opponent_treatment_recovery_20260901 --run-dir research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery --out research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery/latest.pt --seed 20261350 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:26:06+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026135000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --public-opponent-checkpoint research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --public-opponent-fraction .25 --run-id v6_public_opponent_treatment_recovery2_20260901 --run-dir research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2 --out research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/latest.pt --seed 20261350 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:28:11+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/latest.pt --treatment research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --anchor freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --pairs-per-anchor 2048 --seed 20261362 --device cuda --out-dir research/experiments/v6-public-opponent-matched-hero-smoke-20260901/evaluation",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:32:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_audit.py --base-dir research/experiments/v6-public-opponent-matched-hero-smoke-20260901 --out research/experiments/v6-public-opponent-matched-hero-smoke-20260901/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:40:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "29f2c26a31885989e44ef0225084e6d7e041e1c7f3bfff30abfd34c2d2301e31",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T16:15:54+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/code.patch",
+    "patch_sha256": "96ebe837d6dbabb0b8875732cb05e9f50a2e7036e0272f7e25fdc053f24a7156",
+    "source_manifest": "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "85bf48164b8d6ed7d6a28409d37c763e769fa3b3dd5f61c01a4fe484265e64bd",
+    "source_files": 114
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 32768,
+    "wall_time_seconds": 1476.0,
+    "planned_environment_training_hands": 16384,
+    "planned_evaluation_hands": 32768,
+    "control_environment_training_hands": 10005,
+    "control_transition_hands": 8266,
+    "treatment_environment_training_hands": 10750,
+    "treatment_transition_hands": 8206,
+    "treatment_public_opponent_hands": 2281,
+    "treatment_public_opponent_decisions": 4557,
+    "evaluator_contract_validation_hands": 8,
+    "environment_training_hands": 20755,
+    "transition_training_hands": 16472,
+    "discarded_interrupted_environment_hands": 4201,
+    "worker_contract_validation_hands": 1537
+  },
+  "metrics": {
+    "pooled_treatment_minus_control_bb100": -9.98828125,
+    "pooled_delta_ci95_low_bb100": -19.66360745310712,
+    "pooled_delta_ci95_high_bb100": -0.3129550468928821,
+    "standard10_treatment_minus_control_bb100": -1.03759765625,
+    "positive_anchor_count": 0,
+    "realized_public_opponent_fraction": 0.2121860465116279,
+    "regression_tests_passed": 222
+  },
+  "artifacts": [
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/code.patch",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/latest.pt",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/run_manifest.json",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/h1_training_metrics.jsonl",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment/interruption_evidence_20260901T1224.txt",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/worker_shutdown_fix_validation/summary.json",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery/interruption_evidence.txt",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/execution_mask_validation/summary.json",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/latest.pt",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/run_manifest.json",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/h1_training_metrics.jsonl",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/eval_validation/summary.json",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/evaluation/summary.json",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/evaluation/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/session_audit.json"
+  ],
+  "notes": [
+    "No Slumbot network calls. Public-history outcomes are not training labels. Treatment fraction and all promotion gates fixed before training.",
+    "Untouched production gate fixed before evaluation: 2,048 common-deck mirrored pairs per candidate per each of four legacy-v4 learned anchors (32,768 hands total). Promote only if treatment-minus-control point estimate is positive on at least 3/4 anchors, pooled paired delta is positive, Standard10 delta is nonnegative, and pooled seat-0 and seat-1 deltas are each nonnegative. Confidence intervals are reported diagnostically; this smoke is not a Slumbot milestone."
+  ],
+  "result": {
+    "summary": "Matched Standard10-initialized PPO smoke completed after two rejected infrastructure attempts preserved in place. Accepted control and treatment each completed two updates; treatment saw 2,281 public-opponent hands and 4,557 bypassed decisions across all 12 workers. Untouched four-anchor common-deck evaluation covered 32,768 hands.",
+    "conclusion": "The public Slumbot opponent model is behaviorally learnable and executable, but adding it as a 25% external-opponent minority member harmed general learned-anchor performance. Treatment-control deltas were negative on all four anchors; pooled paired delta was -9.9883 bb/100 with 95% CI [-19.6636,-0.3130]. Raw evidence, frozen hashes, accounting, and 12-worker audit all passed.",
+    "decision": "REJECT_PUBLIC_OPPONENT_TREATMENT_AND_CLOSE_ROUTE",
+    "next_step": "Retain the matched control as the only candidate from this experiment. Do not scale public-opponent mixture or revisit imitation. Compare the control against relevant prior Standard10-preserving PPO results and select the highest-information independent confirmation or fresh Slumbot gate."
+  },
+  "tags": [
+    "learned-weight",
+    "matched-control",
+    "opponent-model",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12814060,
+      "sha256": "96ebe837d6dbabb0b8875732cb05e9f50a2e7036e0272f7e25fdc053f24a7156"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 21193,
+      "sha256": "85bf48164b8d6ed7d6a28409d37c763e769fa3b3dd5f61c01a4fe484265e64bd"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/latest.pt": {
+      "type": "file",
+      "bytes": 133307956,
+      "sha256": "6cdc7c46738f9330037bbc8f5f8c9cfbed5ec10599969ef29d2a54f36aa8d20a"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/run_manifest.json": {
+      "type": "file",
+      "bytes": 60584,
+      "sha256": "ca11e46ecbff129734dd5155d811696685590350b3f916bee0e7082edc71b1ed"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 55707,
+      "sha256": "e2bdf4e4c885c8616b008eeac95427cc172fafcb16369a812fab173e201f0417"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment/interruption_evidence_20260901T1224.txt": {
+      "type": "file",
+      "bytes": 774,
+      "sha256": "75ce84a52c7efcd59db824d097002e6f4b72f0443cbb6da8b3799159d666b334"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/worker_shutdown_fix_validation/summary.json": {
+      "type": "file",
+      "bytes": 1452,
+      "sha256": "25cdceb7e7b404bda092f5544fa3d6a906baab75965c6736eb61bf48d6d7dd56"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery/interruption_evidence.txt": {
+      "type": "file",
+      "bytes": 514,
+      "sha256": "46692a4cc13cc62663a444d765894afa83162fda63f6709f0314a2755920f595"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/execution_mask_validation/summary.json": {
+      "type": "file",
+      "bytes": 1457,
+      "sha256": "732022a5202d8ab0a6dce4b5896cfab5ab2f8735b9af8d6c75e70bacc6d8fc12"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/latest.pt": {
+      "type": "file",
+      "bytes": 133308148,
+      "sha256": "544fa450028efc603d8d66c4021c8e26145ced9e9ab4f1f423298e376d8c18e0"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/run_manifest.json": {
+      "type": "file",
+      "bytes": 60526,
+      "sha256": "9954c2134d573682c2c2e541c9ef3202c37f6553fe307453448b75aafe48a131"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/treatment_recovery2/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 55433,
+      "sha256": "48a14251a637e5e04ad353516abc13f713d91b6a842488e7b1afb06ee9a12729"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/eval_validation/summary.json": {
+      "type": "file",
+      "bytes": 4230,
+      "sha256": "7194f1b36581ab67243f36c6bd2542c0a6faf6c5496fa1155dd24de01c709734"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/evaluation/summary.json": {
+      "type": "file",
+      "bytes": 11297,
+      "sha256": "b5f6884e03f3d937fd51fb72943180adcba3515f99f5c241a4bf5f79cf8b0f82"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/evaluation/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 552494,
+      "sha256": "badfbf8a1fd7e96faa80591eee58ec2e446606b8386e2d572392cc83a1359404"
+    },
+    "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/session_audit.json": {
+      "type": "file",
+      "bytes": 2847,
+      "sha256": "5122674f820392869a510c571be3c6685565f216495c11731c551e04696b40f0"
+    }
+  }
+}

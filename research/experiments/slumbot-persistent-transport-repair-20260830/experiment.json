@@ -1,0 +1,205 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "slumbot-persistent-transport-repair-20260830",
+  "title": "Persistent Slumbot HTTP transport and strict execution",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T23:46:08+00:00",
+  "updated_at": "2026-08-30T23:52:11+00:00",
+  "started_at": "2026-08-30T23:46:08+00:00",
+  "ended_at": "2026-08-30T23:52:11+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Per-process connection reuse reduces avoidable connection churn; strict execution stops immediately after any ambiguous or failed hand without retry or substitution.",
+  "material_change": "Offline-only persistent Session transport, explicit zero POST retries, no cross-request cookies, and opt-in strict policy execution with matching evidence metadata.",
+  "baseline": "Unchanged native-sampled Standard10; no policy change",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "standard10-native-sampled-slumbot20k-20260830",
+  "command": "python -m pytest scripts/alpha_holdem/test_slumbot_execution_telemetry.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_slumbot_execution_telemetry.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:46:08+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_slumbot_transport.py scripts/alpha_holdem/test_slumbot_execution_telemetry.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:49:44+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_slumbot_transport.py scripts/alpha_holdem/test_slumbot_execution_telemetry.py scripts/alpha_holdem/test_stochastic_slumbot_evidence.py scripts/alpha_holdem/test_slumbot_ci_from_hands.py scripts/alpha_holdem/test_sampled_mirror_eval.py research/test_experiment_log.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:50:14+00:00"
+    },
+    {
+      "command": "python research/experiments/slumbot-persistent-transport-repair-20260830/validate_transport.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:51:57+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_slumbot_transport.py scripts/alpha_holdem/test_slumbot_execution_telemetry.py scripts/alpha_holdem/test_stochastic_slumbot_evidence.py scripts/alpha_holdem/test_slumbot_ci_from_hands.py scripts/alpha_holdem/test_sampled_mirror_eval.py research/test_experiment_log.py -q --tb=short --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\test_results.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:51:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\final_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --hands 0 --device cpu --strategy model --policy-mode sample --temperature 1 --policy-seed 2026090600 --strict-policy-execution --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\strict_zero_hand_loader.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:52:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1dad496de043e62686ccfa512491d8be59c4b33610cb8f10421614978b05c8e9",
+    "code_paths": [
+      "scripts/alpha_holdem/play_slumbot.py",
+      "scripts/alpha_holdem/audit_slumbot_hand_evidence.py",
+      "scripts/alpha_holdem/test_slumbot_execution_telemetry.py"
+    ],
+    "captured_at": "2026-08-30T23:46:08+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/slumbot-persistent-transport-repair-20260830/code.patch",
+    "patch_sha256": "dd19891f909c8757b8a41829164bdc3fa3e2d0b99b5f2ab8e0ffee8985ca030b",
+    "source_manifest": "research/experiments/slumbot-persistent-transport-repair-20260830/source_manifest.json",
+    "source_manifest_sha256": "f1d2e5c4589372da26278bb52e4ab16d4d88260a67053db93f59b90c912f8025",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 363.0
+  },
+  "metrics": {
+    "initial_test_passes": 30,
+    "initial_test_failures": 1,
+    "second_test_passes": 82,
+    "second_test_failures": 1,
+    "tests_passed": 83,
+    "actual_slumbot_hands": 0,
+    "control_connections": 120,
+    "pooled_connections": 1,
+    "final_source_hash_checks_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/slumbot-persistent-transport-repair-20260830/code.patch",
+    "research/experiments/slumbot-persistent-transport-repair-20260830/source_manifest.json",
+    "research/experiments/slumbot-persistent-transport-repair-20260830/preregistration.md",
+    "research/experiments/slumbot-persistent-transport-repair-20260830/final_code/code.patch",
+    "research/experiments/slumbot-persistent-transport-repair-20260830/final_code/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\final_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\validate_transport.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\test_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\loader_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\test_results.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\local_http_probe.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\strict_zero_hand_loader.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\transport_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\result_summary.md"
+  ],
+  "notes": [
+    "Aborted baseline is terminal with4168 preserved hands; its partial mean does not qualify a fresh100k. This experiment performs zero actual poker games and does not modify Windows networking settings.",
+    "First development run:30passed/1failed. Failure was same-process PyTorch inter-op initialization in the parametrized main fixture, before exercising strict logic; isolated that one-shot initialization in the test only. Local120-vs120 POST reuse and failure-no-replay probes passed.",
+    "Second development run:82passed/1failed. The fast mocked legacy main uncovered elapsed=0 console throughput division; guarded display division and added deterministic zero-clock-resolution coverage. No real games were played."
+  ],
+  "result": {
+    "summary": "Offline persistent transport passed83tests. Exactly120fixture POSTs use1connection versus120in control; no POST retries, cookie carryover or strict hand fallback. Real Standard10 strict zero-hand loader passed.",
+    "conclusion": "Client connection reuse and fail-fast evidence contracts are verified without changing learned weights or historical evidence. This addresses avoidable connection churn,not a proven system-wide exhaustion cause or policy strength.",
+    "decision": "READY_FOR_NEW_STRICT_FRESH_BASELINE",
+    "next_step": "Preregister a separate fixed20k native-sampled Standard10 baseline with new seeds and strict transport. Never resume or combine aborted parent hands."
+  },
+  "tags": [
+    "infrastructure"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/slumbot-persistent-transport-repair-20260830/code.patch": {
+      "type": "file",
+      "bytes": 27349,
+      "sha256": "dd19891f909c8757b8a41829164bdc3fa3e2d0b99b5f2ab8e0ffee8985ca030b"
+    },
+    "research/experiments/slumbot-persistent-transport-repair-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 661,
+      "sha256": "f1d2e5c4589372da26278bb52e4ab16d4d88260a67053db93f59b90c912f8025"
+    },
+    "research/experiments/slumbot-persistent-transport-repair-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 2266,
+      "sha256": "2b48a8bdee360656a75e6a62942811bdc565207e819d73bb2d1d8cd48f542d2c"
+    },
+    "research/experiments/slumbot-persistent-transport-repair-20260830/final_code/code.patch": {
+      "type": "file",
+      "bytes": 365811,
+      "sha256": "dcf1fcedcc541e02df426691edb19e21c6a18d4c264cfaaf0d2326eaae63b57d"
+    },
+    "research/experiments/slumbot-persistent-transport-repair-20260830/final_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 11443,
+      "sha256": "f1cb8b3f3f1d320e02ea508a3056fea7e3966c18d60be43fd90a3014ee7e3349"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\final_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 19583,
+      "sha256": "1761129a6d488b617017940f023762e9b1418c9c5d4f6a77bbfb6feb91279c12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\validate_transport.py": {
+      "type": "file",
+      "bytes": 9756,
+      "sha256": "4efc03d6a6589298a9d391f11f698be4d6d324a455987e751a2b64c515bf0191"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\test_stdout.log": {
+      "type": "file",
+      "bytes": 317,
+      "sha256": "3eb27460d80ee31004ad28374ce66fcc192f28aa428c14f9510e3416fb1f803e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\loader_stdout.log": {
+      "type": "file",
+      "bytes": 509,
+      "sha256": "d5a9967f8948293c0a5d1e3099ed35a353119a9908b85114c0ef7f5ed5e9f754"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\test_results.xml": {
+      "type": "file",
+      "bytes": 12206,
+      "sha256": "afb6f70bab8bfdfe119c4aa568950de3f63a5cef19a6bcfc648f177f2bdfe893"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\local_http_probe.json": {
+      "type": "file",
+      "bytes": 33334,
+      "sha256": "091092fefaaf202e60b57029ea695252c49e2f27cb0100ab758573c860070582"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\strict_zero_hand_loader.json": {
+      "type": "file",
+      "bytes": 1058,
+      "sha256": "6e26607eb00f53ac1b1a37e58ec84a0f7574cd6251d2e4ffe722d31294ac119c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\transport_analysis.json": {
+      "type": "file",
+      "bytes": 6674,
+      "sha256": "ae4c4b59bd6f789c39ae8d5285ea712ec97e56fc78c3b12869f5c2be5f9a8682"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\slumbot-persistent-transport-repair-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 1645,
+      "sha256": "0839816be051e0bc23794014fd23ef3bc8908a7449b324cdd95f4b4e88fce4d6"
+    }
+  }
+}

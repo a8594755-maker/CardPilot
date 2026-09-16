@@ -1,0 +1,149 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-parent-kl-state-preservation-gate-20260901",
+  "title": "Parent-KL outcome-free state preservation gate",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T02:53:01+00:00",
+  "updated_at": "2026-09-01T02:55:40+00:00",
+  "started_at": "2026-09-01T02:53:01+00:00",
+  "ended_at": "2026-09-01T02:55:40+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The strong parent-KL treatment retains its internal gain while changing materially fewer greedy decisions than the failed weakly regularized tail on the externally strongest parent's real decision-state support.",
+  "material_change": "Offline replay candidate and exact parent on all 15056 decisions from the parent's completed audited generic-greedy fresh5k; compute outcome-free TV, KL, entropy, greedy disagreement and slot mixes overall/by street-seat.",
+  "baseline": "Failed weak-KL tail vs parent: overall TV 0.01923, disagreement 1.591%, max partition TV 0.04552",
+  "source": "candidate sha=1c050edb...; parent sha=9fd38ad3...; parent greedy fresh5k state corpus",
+  "parent_id": "v6-parent-kl-conservative-tail-recovery-20260901",
+  "command": "python research/experiments/v6-parent-kl-state-preservation-gate-20260901/run_gate.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-parent-kl-state-preservation-gate-20260901/run_gate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:53:01+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T02:53:01+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-parent-kl-state-preservation-gate-20260901/code.patch",
+    "patch_sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91",
+    "source_manifest": "research/experiments/v6-parent-kl-state-preservation-gate-20260901/source_manifest.json",
+    "source_manifest_sha256": "bc173523739a54ef6714b178a5a349b7de7ec9389c9c3f9f7ee2e0b110eb9c5e",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 29926,
+    "wall_time_seconds": 159.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 10.75,
+    "states": 14963,
+    "overall_total_variation": 0.007613897424589161,
+    "overall_greedy_disagreement": 0.008086613646995923,
+    "max_partition_total_variation": 0.016711636341890056,
+    "max_partition_greedy_disagreement": 0.01417004048582996
+  },
+  "artifacts": [
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/code.patch",
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\state_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\analysis.json",
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/result_summary.md",
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/reviewed_analysis.json",
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/state_metrics.jsonl"
+  ],
+  "notes": [
+    "No hand outcomes enter metrics or labels. No network calls or live hands.",
+    "Preregistration inherited the 15056 decision count from the separate sampled parent cohort. The specified generic-greedy parent cohort has exactly 14963 raw decisions; no rows were selected, added, or dropped, and all were replayed.",
+    "Record-order repair: the first reviewer invocation failed before reading evidence because repo root was absent from sys.path, while the following PowerShell statement prematurely finished the record. Added the import path, then ran the independent review successfully before this corrected finalization; no evidence or decision values changed."
+  ],
+  "result": {
+    "summary": "Candidate-parent outcome-free replay across all 14963 decisions in the audited parent greedy cohort passed every strict preservation threshold; independent review completed after a documented import-order repair.",
+    "conclusion": "Strong parent KL reduced overall TV to 0.00761 and greedy disagreement to 0.809%; all street/seat partitions remained below TV 0.025 and disagreement 5%. This admits one separate fresh5k but is not strength evidence.",
+    "decision": "ADMIT_INDEPENDENT_GREEDY_FRESH5K",
+    "next_step": "Freeze candidate SHA 1c050edb088eaaf4bdc653a7b7b4708191854a7ca216f913ca2b7c1c6cd412c4 and run exactly one new 8x625 generic-greedy Slumbot pilot with fresh tokens; do not pool or extend unless the new transfer gate passes."
+  },
+  "tags": [
+    "offline-diagnostic",
+    "policy-preservation",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12742975,
+      "sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91"
+    },
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "bc173523739a54ef6714b178a5a349b7de7ec9389c9c3f9f7ee2e0b110eb9c5e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 12922,
+      "sha256": "1185244443c6cb95c7cc8c56cbf77617bff2e857866fbac519aa592321260b07"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 2499,
+      "sha256": "a539fa35c1b44d7c1854f09ef5f8897feb80d74fcf8cc70c52bb2cf84966da31"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12075662,
+      "sha256": "9f44d5b32310a5a300beb512db103367f8b71abe97217cb2175b715f646a2daf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-parent-kl-state-preservation-gate-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 16885,
+      "sha256": "97d9154efe6628ac81e41e9822ed9f501b6cdbe07399186dde2bfb3f6c4127a7"
+    },
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 631,
+      "sha256": "34500a0f33b94fa5a519806c7b673d1d6ec2ce0edd8f5cabf3b259f7fc866ade"
+    },
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 547,
+      "sha256": "71bb33facc812d52bfb55f095cec13ed37ddf5384488c19f869d6fcf9edd4de9"
+    },
+    "research/experiments/v6-parent-kl-state-preservation-gate-20260901/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12075662,
+      "sha256": "9f44d5b32310a5a300beb512db103367f8b71abe97217cb2175b715f646a2daf"
+    }
+  }
+}

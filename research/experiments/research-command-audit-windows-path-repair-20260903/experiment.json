@@ -1,0 +1,100 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "research-command-audit-windows-path-repair-20260903",
+  "title": "Windows absolute evaluator command audit repair",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T17:56:15+00:00",
+  "updated_at": "2026-09-03T17:56:16+00:00",
+  "started_at": "2026-09-03T17:56:15+00:00",
+  "ended_at": "2026-09-03T17:56:16+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Actual directly rerunnable Windows absolute .exe commands can be admitted without weakening placeholder or descriptive-command rejection.",
+  "material_change": "Extend command prefix classification to unquoted whitespace-free Windows absolute .exe paths and add positive/negative regression cases.",
+  "baseline": "The logger rejected actual C:\\\\...\\\\python.exe evaluator commands as not_an_executable_command.",
+  "source": "research/experiment_log.py",
+  "parent_id": null,
+  "command": "python -m pytest -q research/test_experiment_log.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q research/test_experiment_log.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:56:15+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py validate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:56:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "d4174a1c212395e3e746fa8a260125f381656353162813e7d7de4a84e76161e9",
+    "code_paths": [
+      "research/experiment_log.py",
+      "research/test_experiment_log.py"
+    ],
+    "captured_at": "2026-09-03T17:56:15+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/research-command-audit-windows-path-repair-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/research-command-audit-windows-path-repair-20260903/source_manifest.json",
+    "source_manifest_sha256": "f838b21c2bec5bad1baa362a1b3b135aa455790ac387d6fea3b6f18fe3ca36d8",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1.0,
+    "environment_training_hands": 0
+  },
+  "metrics": {
+    "tests_passed": 4
+  },
+  "artifacts": [
+    "research/experiments/research-command-audit-windows-path-repair-20260903/code.patch",
+    "research/experiments/research-command-audit-windows-path-repair-20260903/source_manifest.json"
+  ],
+  "notes": [
+    "Discovered only after preserving the evaluator-emitted exact commands; no policy, checkpoint, training, evaluation, or Slumbot evidence changed."
+  ],
+  "result": {
+    "summary": "Command auditor now accepts actual whitespace-free Windows absolute .exe commands; 4/4 logger tests pass and 322 pre-existing records validate.",
+    "conclusion": "The former warning was a classifier false positive, not a missing-command provenance defect. Placeholder, descriptive, and non-executable Windows paths remain rejected.",
+    "decision": "ACCEPT_WINDOWS_ABSOLUTE_EXECUTABLE_COMMANDS",
+    "next_step": "Retain evaluator-emitted exact commands and continue policy research with zero evidence loss."
+  },
+  "tags": [
+    "infrastructure",
+    "provenance"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/research-command-audit-windows-path-repair-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/research-command-audit-windows-path-repair-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 438,
+      "sha256": "f838b21c2bec5bad1baa362a1b3b135aa455790ac387d6fea3b6f18fe3ca36d8"
+    }
+  }
+}

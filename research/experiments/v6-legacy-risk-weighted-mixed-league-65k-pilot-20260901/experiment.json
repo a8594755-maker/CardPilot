@@ -1,0 +1,249 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901",
+  "title": "Risk-weighted legacy-contract mixed league 65k pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T12:22:35+00:00",
+  "updated_at": "2026-09-01T12:36:07+00:00",
+  "started_at": "2026-09-01T12:22:35+00:00",
+  "ended_at": "2026-09-01T12:36:07+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The smoke-validated public-risk source-margin objective can retain Standard10 high-leverage greedy boundaries while the previously promising mixed FIFO league accumulates enough fresh self-play/procedural experience to create a stronger transferable frozen policy.",
+  "material_change": "Scale the risk-weighted treatment from 8k to 65,536 target physical hands with fresh seeds/deals; retain the prior 65k legacy-contract mixed-league architecture, low LR, source KL, opponent mixture, FIFO cadence, and trainable tensor scope while adding source-greedy margin coefficient 0.1 and max public-risk weight 4 at a 0.15 pot/effective-stack threshold.",
+  "baseline": "Prior unweighted 69,288-hand mixed league iter16 passed fresh internal replication at +14.9376 bb/100 adjusted CI[2.3311,27.5441] but failed fresh20k Slumbot at -37.1617 CI[-58.9246,-15.3988]. Its outcome-blind audit found amplified high-risk drift. The matched 8k risk smoke reduced >=30bb TV 0.01039->0.00946, disagreement 0.976%->0.878%, and margin deficit 0.001628->0.001379; this is mechanism, not strength evidence.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-legacy-risk-weighted-source-margin-smoke-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --source-greedy-margin-coef .1 --source-greedy-margin-max .1 --source-greedy-margin-release-advantage 1 --source-greedy-risk-max-weight 4 --source-greedy-risk-full-pot-fraction .15 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --k-best 4 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120200 --fixed-training-deal-stream --fixed-training-deal-start-index 13000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 4 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_legacy_risk_weighted_mixed_league_65k_20260901 --run-dir research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training --out research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/latest.pt --seed 20261202 --max-runtime-seconds 1200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --source-greedy-margin-coef .1 --source-greedy-margin-max .1 --source-greedy-margin-release-advantage 1 --source-greedy-risk-max-weight 4 --source-greedy-risk-full-pot-fraction .15 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --k-best 4 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120200 --fixed-training-deal-stream --fixed-training-deal-start-index 13000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 4 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_legacy_risk_weighted_mixed_league_65k_20260901 --run-dir research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training --out research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/latest.pt --seed 20261202 --max-runtime-seconds 1200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:22:35+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/audit_session.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:31:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evaluate_curve_drift.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:31:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/compare_unweighted_risk_endpoint.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:32:09+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evaluate_panel.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:33:48+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/audit_evidence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:35:49+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8d2c324af911558f2475eaede281f252d61f9df50b25e0ef083da10aac14ff2b",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T12:22:35+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/code.patch",
+    "patch_sha256": "4637b74f7b3587798954190d33deeb3c873887aef901bbf0f28d3dc2467c0b51",
+    "source_manifest": "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "cf3a69f00ba3ddeae3b55ea6e9e09a11fd4ed3ef98e0a275e4c6a5f1e0c52aa4",
+    "source_files": 77
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 69236,
+    "lineage_training_hands": 69236,
+    "offline_samples": 350000,
+    "evaluation_hands": 81920,
+    "wall_time_seconds": 812.0,
+    "target_environment_hands": 65536,
+    "slumbot_hands": 0,
+    "environment_training_hands": 69236,
+    "transition_hands": 65810
+  },
+  "metrics": {
+    "source_tv_mean_max": 0.1,
+    "source_greedy_disagreement_max": 0.15,
+    "risk_max_weight": 4,
+    "risk_full_pot_fraction": 0.15,
+    "session_audit_pass": 1,
+    "iter16_source_tv_mean": 0.01828822111583645,
+    "iter16_source_greedy_disagreement": 0.0207,
+    "max_reference_policy_kl": 0.0013612418125073114,
+    "iter16_high_risk_tv_vs_unweighted_delta": 0.007574425856098444,
+    "iter16_high_risk_disagreement_vs_unweighted_delta": 0.010357561019544267,
+    "iter16_high_risk_margin_deficit_vs_unweighted_delta": 0.004948120628004888,
+    "iter16_pooled_delta_bb100": 17.583740234375,
+    "iter16_pooled_bonferroni_lower": -3.315046417006407,
+    "eligible_candidates": 0,
+    "evidence_audit_pass": 1,
+    "iter16_high_risk_tv": 0.042143406306114364,
+    "iter16_high_risk_disagreement": 0.04917589840583626
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/code.patch",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/latest.pt",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/run_manifest.json",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/h1_training_metrics.jsonl",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/audit_session.py",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evaluate_curve_drift.py",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/session_audit.json",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/curve_drift_analysis.json",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/curve_drift_raw.jsonl.gz",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/compare_unweighted_risk_endpoint.py",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/source_drift_analysis.json",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/source_drift_raw.jsonl.gz",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evaluate_panel.py",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/panel",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/panel_analysis.json",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/audit_evidence.py",
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evidence_audit.json"
+  ],
+  "notes": [
+    "Before outcomes: audit exact session and tensor scope; evaluate iter4/8/12/16 on one common 50k outcome-blind source-state set including >=30bb strata. Then run a fresh common-randomness four-anchor internal panel. No Slumbot unless a frozen archive passes a preregistered multiplicity-aware lower-bound gate, >=3/4 positive anchors, both seats nonnegative, and raw evidence audit.",
+    "Training completed normally at 69,236 physical hands, 65,810 transition-bearing hands, iteration 16. Frozen archives and evidence are now under audit; no external hands were spent.",
+    "Fresh common-state endpoint comparison falsified scaled high-risk improvement: despite lower overall drift, risk-weighted iter16 is worse than prior unweighted iter16 on every >=30bb preservation metric. Complete the preregistered archive-level strength panel before deciding whether any earlier archive is useful.",
+    "Fresh 81,920-hand internal panel produced no eligible archive. Iter16 was strongest at +17.5837 bb/100 pooled, 3/4 positive anchors and both seat points positive, but its four-comparison adjusted lower bound was -3.3150; no Slumbot is authorized."
+  ],
+  "result": {
+    "summary": "The risk-weighted mixed league completed 69,236 audited physical hands and produced four frozen archives. All archives passed broad source-preservation gates, but scaled iter16 worsened >=30bb source preservation versus the prior unweighted iter16 and no archive passed the fresh 81,920-hand internal promotion gate.",
+    "conclusion": "Risk weighting improved aggregate iter16 source drift relative to the prior unweighted pilot (mean TV about 0.0183 vs 0.0241; disagreement 2.23% vs 3.02% on one fresh comparison) but did not preserve the intended high-leverage states at scale: >=30bb TV rose by 0.00757, disagreement by 1.04 percentage points, and margin deficit by 0.00495. Iter16 had a promising internal +17.5837 bb/100 point with 3/4 anchors and both seat points positive, but adjusted lower bound -3.3150 failed. The fixed release threshold likely lets large raw high-pot advantages release protection disproportionately; this is a hypothesis for a new mechanism test, not a retrospective explanation treated as fact.",
+    "decision": "REJECT_EXTERNAL_PROMOTION_ADMIT_RISK_SCALED_RELEASE_MECHANISM_SMOKE",
+    "next_step": "Implement a default-off option that scales the source-margin release threshold by the same public risk weight, so high-pot boundaries require proportionally stronger advantage evidence to release. First run a small matched smoke measuring released/violation rows and common-state >=30bb drift; do not scale or spend Slumbot unless the direct high-risk mechanism improves without blocking all reward-supported release."
+  },
+  "tags": [
+    "learned-weights",
+    "opponent-league",
+    "ppo",
+    "preservation",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12801722,
+      "sha256": "4637b74f7b3587798954190d33deeb3c873887aef901bbf0f28d3dc2467c0b51"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 14230,
+      "sha256": "cf3a69f00ba3ddeae3b55ea6e9e09a11fd4ed3ef98e0a275e4c6a5f1e0c52aa4"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/latest.pt": {
+      "type": "file",
+      "bytes": 166112778,
+      "sha256": "d562ce6eaab3d70a88995683ddf688d44622e1982556be3951eb3e10e7eb85ce"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/run_manifest.json": {
+      "type": "file",
+      "bytes": 184501,
+      "sha256": "0ee0a2ceb02e5af959137655cee6b55ba7c7377d2b71a06a311f0038ae67df5f"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 443053,
+      "sha256": "ac7503f869f731ddf5fbdcf503e0847c8fa5f978725d9eec8a324eef71d5c1c3"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 39855,
+      "sha256": "463dc46f60539d5768f1e90bbb3a8d4431cf2602be67c0de9d90d33dcdf166e4"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/audit_session.py": {
+      "type": "file",
+      "bytes": 680,
+      "sha256": "d492cdf807262fc71d74bd975654be0e46c97b14b67f7056923ed380f173e7b3"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evaluate_curve_drift.py": {
+      "type": "file",
+      "bytes": 1098,
+      "sha256": "38b00574f653757603f64068703915ec6714071d8f4eae78f8400d981f3db4a7"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/training/session_audit.json": {
+      "type": "file",
+      "bytes": 3797,
+      "sha256": "9b4ad06ce89f7772d6f14e9d70d9787671532eaf1bce745b917181c625dedc83"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/curve_drift_analysis.json": {
+      "type": "file",
+      "bytes": 10624,
+      "sha256": "ec5c99db9712ac0203973f6d24385ce46572a2f48c51bce66759934fca35a22d"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/curve_drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 2521031,
+      "sha256": "5d1366175521b692051cabe4f8a052aff2600d34b15281ca920e97eb5aae3d08"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/compare_unweighted_risk_endpoint.py": {
+      "type": "file",
+      "bytes": 1054,
+      "sha256": "7b7d269b5c21fc94c0fc9856a89f7bf162feb1df64e4473ef89339af9599e60f"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/source_drift_analysis.json": {
+      "type": "file",
+      "bytes": 10456,
+      "sha256": "aac803f60f7ab2fa338134eee79378825fd861658a0149d280a343630260b776"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/source_drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 1553466,
+      "sha256": "9fdf059e564151333727bc9403b30c5d3c66b879d8a233a504a766d0fdde100f"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evaluate_panel.py": {
+      "type": "file",
+      "bytes": 6887,
+      "sha256": "d7377ba1cc12e1cfd2d23a294e8cfa1cb273d0057f555f09fd6a6fab62fd7bfa"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/panel": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/panel_analysis.json": {
+      "type": "file",
+      "bytes": 8526,
+      "sha256": "7348233d36e0196250aa0eb49707024658a24697aff3e507007c102ec832101e"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/audit_evidence.py": {
+      "type": "file",
+      "bytes": 8255,
+      "sha256": "35680ddbec69c19f7ab475757ad0c118b4d5bc3a4109fdc9a177e7b9455a98f7"
+    },
+    "research/experiments/v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901/evidence_audit.json": {
+      "type": "file",
+      "bytes": 12983,
+      "sha256": "41dc8cfe5a7a0497e93b9a9652996c2134ae6c577e34918f5e349ae71c905d75"
+    }
+  }
+}

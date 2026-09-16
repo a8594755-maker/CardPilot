@@ -1,0 +1,15 @@
+Observed at 2026-09-01 approximately 12:24 America/New_York.
+
+Treatment process PID 23268 remained alive more than five minutes after its only
+persisted iteration.  h1_training_metrics.jsonl contained exactly one line and
+latest_train.log contained exactly one iteration:
+
+  iteration=1 transition_hands=4100 completed_environment_hands=4201
+
+The checkpoint, manifest, metrics, and train log had not changed since
+2026-09-01 12:18:34 local.  No child rollout processes remained.  The Python
+main thread was in Windows Wait/UserRequest state.  The process was therefore
+classified as hung after worker shutdown, not as a completed treatment.
+
+The persisted iteration-1 checkpoint and evidence were retained.  No restart
+or overwrite was performed before capturing this note.

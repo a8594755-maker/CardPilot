@@ -1,0 +1,287 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-fixed-regimen-two-seed-2m-20260908",
+  "title": "Bounded unchanged-regimen two-seed 1M to 2M continuation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T08:19:01+00:00",
+  "updated_at": "2026-09-08T10:06:33+00:00",
+  "started_at": "2026-09-08T08:19:01+00:00",
+  "ended_at": "2026-09-08T10:06:33+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A longer stationary learned-weight continuation may resolve scale-limited uncertainty without another hyperparameter branch; no positive slope is assumed.",
+  "material_change": "Original replay-control parents seeds1,3 plus1048576 physical hands each, unchanged recipe and restored Adam/replay; fixed dual-baseline eight-anchor evaluation.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-current-actor-gradient-probe-20260908",
+  "command": "python -B research/experiments/v6-fixed-regimen-two-seed-2m-20260908/test_contract.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-fixed-regimen-two-seed-2m-20260908/test_contract.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T08:19:01+00:00"
+    },
+    {
+      "command": "python -B -u research/experiments/v6-fixed-regimen-two-seed-2m-20260908/run_probe.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T08:19:18+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 17845404 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T08:19:37+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 17848653 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T08:54:01+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609082100 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_extension_start",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T09:28:22+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609082100 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_earlier_root",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T09:37:31+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fresh-only-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609082300 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_extension_start",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T09:46:45+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609082300 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_earlier_root",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T09:55:31+00:00"
+    },
+    {
+      "command": "C:/Users/a8594/AppData/Local/Programs/Python/Python312/python.exe research/experiments/v6-fixed-regimen-two-seed-2m-20260908/review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:06:33+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-fixed-regimen-two-seed-2m-20260908"
+    ],
+    "captured_at": "2026-09-08T08:19:02+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/source_manifest.json",
+    "source_manifest_sha256": "f927261483ba90f1103b4a5db7031fc9a6b8a33277c074eeaa67b74202eb9dff",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 131072,
+    "wall_time_seconds": 6452.0,
+    "training_hands": 2101842,
+    "final_qualification_hands": 0,
+    "transition_hands": 1893614
+  },
+  "metrics": {
+    "controller_phase": "FIXED_2M_COMPLETE_REVIEW_REQUIRED",
+    "transition_hands": 1893614,
+    "replay_rows": 3374686,
+    "wall_time_seconds": 6305.81260620011
+  },
+  "artifacts": [
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/protocol.md",
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/code.patch",
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/source_manifest.json",
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/test_contract.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed1_extension_start\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_extension_start\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_extension_start\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed1_earlier_root\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_earlier_root\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_earlier_root\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed3_extension_start\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_extension_start\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_extension_start\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed3_earlier_root\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_earlier_root\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_earlier_root\\common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/post_terminal_review.json",
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/decision.md",
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/review.py",
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/test_review.py"
+  ],
+  "notes": [
+    "Two command/scope tests passed: only lifecycle paths, target and runtime cap differ from original training commands; no diagnostic flag, optimizer reset, hand reset, recipe change or probe-descendant substitution."
+  ],
+  "result": {
+    "summary": "Both fixed two-seed continuations and four evaluations complete; independent terminal review passed. No replicated positive learning direction.",
+    "conclusion": "Endpoint-minus-start Seed1 -9.8206 CI[-22.5773,2.9362], Seed3 -6.0381 CI[-18.6100,6.5338]; both transfer means negative. Directional breadth condition false; no severe-collapse gate. Conditional unadjusted internal evidence, not impossibility or equivalence.",
+    "decision": "Do not automatically scale unchanged recipe to4M or promote endpoints to Slumbot; preserve all evidence.",
+    "next_step": "Reassess learning objective and effective update signal from retained evidence; preregister one major learning-method control, not another pool/replay/ensemble sweep."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 9,
+    "command_count": 9
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/protocol.md": {
+      "type": "file",
+      "bytes": 2734,
+      "sha256": "75dcc8aac5994c46b15a4ff0ab41ac4f3f81da9ceb3e671694b840f2b03dfbbb"
+    },
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 932,
+      "sha256": "f927261483ba90f1103b4a5db7031fc9a6b8a33277c074eeaa67b74202eb9dff"
+    },
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/test_contract.py": {
+      "type": "file",
+      "bytes": 1494,
+      "sha256": "3eb90f045d5d155610cff853e0f05da862151ec9574a062889db3a9b2089a3f1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3554,
+      "sha256": "1a66b7b036e1f378e8708bd3012c16b8738e3c078dee1a8f9e8f8f929d2b54cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 4599405,
+      "sha256": "0b29cb43c04c8a3240dd48ab08c2831b9712cbf798591eda1082664a8790b996"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "620c2edabbba558a8de900066bb665f3fad61345765b72e68b10d7f955edd4ae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3554,
+      "sha256": "95b7494f84161c4b4452517bb04baa2606482fd6217abcef672bbf744d9fe5a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 4643356,
+      "sha256": "71f79b4f6261f9b609a68b8b79f6fc5a8ce02d8bb094e71e267662edc85ed53d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "7fbefe4e1674ee3ddb726b7fd4f31e40c5e07f8d4661112a432ae931d2eb4ac4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed1_extension_start\\command.json": {
+      "type": "file",
+      "bytes": 1949,
+      "sha256": "504eb66fc633b6d1d140cbc83a835fe7b2ddd5451e4512721a2f30a771a5ffa1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_extension_start\\summary.json": {
+      "type": "file",
+      "bytes": 21019,
+      "sha256": "c117486eddc3a1a11a031ebf4222960e227813ba5780b15bc70824442b737fb8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_extension_start\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 543102,
+      "sha256": "e7a8ff864a7307f36a7dc02898a274852aa1e221878e6ef26be271474b916613"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed1_earlier_root\\command.json": {
+      "type": "file",
+      "bytes": 1953,
+      "sha256": "3141c867dfbc8ff3f81f7654f0ecef29d39752854c9c54ab2373a00ff5c36b0e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_earlier_root\\summary.json": {
+      "type": "file",
+      "bytes": 21028,
+      "sha256": "fb0160fac993665eee65cfb9557cc049c9513f78c1b7dc0c9e2aaed44f2dd1aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed1_earlier_root\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 542849,
+      "sha256": "c32a781cc4e7149eaf29895c5b41af28bc6a071edffdc46957c8b10fedb45fa5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed3_extension_start\\command.json": {
+      "type": "file",
+      "bytes": 1949,
+      "sha256": "c49c17e550809c0adc07791f8aa043687317cf592c5ef1f482bd6e133abf606d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_extension_start\\summary.json": {
+      "type": "file",
+      "bytes": 20987,
+      "sha256": "cf2ff52a53e41f1417a8b581f1880a46db1b5c28943173f572f16a1adc834e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_extension_start\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 541585,
+      "sha256": "52b51fbcbc2a432fc2e8771eeb31f61d0191b0a1344c3546d28d684d781768c9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\job_seed3_earlier_root\\command.json": {
+      "type": "file",
+      "bytes": 1953,
+      "sha256": "488e355a8500082182b4029f8dd9d745c2d706f6e42d9aa84ebebc598654135d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_earlier_root\\summary.json": {
+      "type": "file",
+      "bytes": 21019,
+      "sha256": "b2a2398bcdbba74d1a4691c5f1266992ae7162892caafb43b6073c1cde18ef6c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\eval_seed3_earlier_root\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 541937,
+      "sha256": "f0145922bb5dc64533e75dc2a93f782ed1bedce668d8a38963ddd77b35867612"
+    },
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/post_terminal_review.json": {
+      "type": "file",
+      "bytes": 98277,
+      "sha256": "8f300b58f65fa4d412f8d58f4e4ef64327b7e043d4b7c20c34c8ad4f0123e3df"
+    },
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/decision.md": {
+      "type": "file",
+      "bytes": 2706,
+      "sha256": "0a56dd9b5e40d16e76feef7a6c00b282df423eaa7c341fe4830cd7c1f3590c7a"
+    },
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/review.py": {
+      "type": "file",
+      "bytes": 9269,
+      "sha256": "b6c6130ac25dc7be1061b2cdbd10759ffe56cd7cc2b7022e9eb42b4041a39844"
+    },
+    "research/experiments/v6-fixed-regimen-two-seed-2m-20260908/test_review.py": {
+      "type": "file",
+      "bytes": 1632,
+      "sha256": "43bef8294e52f9285ff186c2283bbcd8b5c22764dac5df2cc3285e2d78d95e18"
+    }
+  }
+}

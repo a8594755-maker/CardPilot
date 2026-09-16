@@ -1,0 +1,98 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-regularized-return-kernel-20260908",
+  "title": "Zero-sum regularized trajectory return kernel",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T15:08:20+00:00",
+  "updated_at": "2026-09-08T15:08:34+00:00",
+  "started_at": "2026-09-08T15:08:20+00:00",
+  "ended_at": "2026-09-08T15:08:34+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Propagating future own and opponent reference costs through returns is a substantive mechanism distinct from local KL penalties; benefit remains unproven.",
+  "material_change": "Isolated on-policy full-chronology reward-transform kernel and six deterministic algebra/guard tests, no production integration or poker hands.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-current-sampled-endpoint-eval-20260908",
+  "command": "python research/experiments/v6-regularized-return-kernel-20260908/test_kernel.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-regularized-return-kernel-20260908/test_kernel.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T15:08:20+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-regularized-return-kernel-20260908"
+    ],
+    "captured_at": "2026-09-08T15:08:20+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-regularized-return-kernel-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-regularized-return-kernel-20260908/source_manifest.json",
+    "source_manifest_sha256": "a900e87ecf306053b419f3a68a173aefa2a49da7914ca936652f6b52a2b393fa",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 14.0,
+    "training_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-regularized-return-kernel-20260908/scope.md",
+    "research/experiments/v6-regularized-return-kernel-20260908/code.patch",
+    "research/experiments/v6-regularized-return-kernel-20260908/source_manifest.json",
+    "research/experiments/v6-regularized-return-kernel-20260908/test_result.json"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "Isolated regularized zero-sum return kernel implemented; six deterministic tests passed with zero poker hands.",
+    "conclusion": "Sign, temporal propagation, zero/reference identity, player symmetry and expected KL-cost algebra pass. Full trajectory capture, behavior correction, actor/critic integration and resume are not qualified. Not a complete RNaD implementation or strength result.",
+    "decision": "Proceed to complete-hand rollout adapter with explicit on-policy/chronology checks; keep production training unchanged until real-path qualification.",
+    "next_step": "Inspect existing both-player rollout evidence and implement adapter rejecting incomplete chronology, missing log probabilities and unsupported replay/behavior mixtures; validate actual retained-model trajectories before learned pilot."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-regularized-return-kernel-20260908/scope.md": {
+      "type": "file",
+      "bytes": 2347,
+      "sha256": "2c9e13419c14784fddd87ff24ec8e90eebd912728bca468fa2488f7bdc02cff8"
+    },
+    "research/experiments/v6-regularized-return-kernel-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-regularized-return-kernel-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 936,
+      "sha256": "a900e87ecf306053b419f3a68a173aefa2a49da7914ca936652f6b52a2b393fa"
+    },
+    "research/experiments/v6-regularized-return-kernel-20260908/test_result.json": {
+      "type": "file",
+      "bytes": 72,
+      "sha256": "e1a0e0f1f4a614f18427e3b2abe4028cef8c69b3d5f7807a00d7a4b9aaee15cd"
+    }
+  }
+}

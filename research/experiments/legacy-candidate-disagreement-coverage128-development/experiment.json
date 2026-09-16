@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-candidate-disagreement-coverage128-development",
+  "title": "candidate_disagreement_coverage128_development",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/candidate_disagreement_coverage128_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/candidate_disagreement_coverage128_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "Balanced 128-state all-legal producer completed 32 rows per BB/SB flop/turn route with 192 samples per legal action and zero stderr. Half-to-full best-action agreement was 0.84375 with 0.09645 bb mean regret, but three-opponent best-action unanimity was only 0.34375 and minimum pairwise agreement 0.39844. Same-sample minimax results are selection-biased and not a training gate.",
+    "conclusion": "Do not train directly from same-sample marginal argmax/LCB or present in-sample robust-selector value as heldout evidence.",
+    "decision": "COMPLETED_REQUIRES_INDEPENDENT_HELDOUT",
+    "next_step": "Use exact-state independent hidden-hole/runout samples to cross-evaluate a source-relative robust target, then require cross-seed learned-weight stability."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-seed0-8k-12k-frozen-curve-20260901",
+  "title": "MGDA seed0 frozen 8k-to-12k learning-curve evaluation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T18:24:35+00:00",
+  "updated_at": "2026-09-01T18:30:12+00:00",
+  "started_at": "2026-09-01T18:24:35+00:00",
+  "ended_at": "2026-09-01T18:30:12+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The unconstrained six-objective MGDA seed0 continuation from 8k to 12k improves matched cross-anchor reward enough to justify replication despite a known, bounded 1.87-point increase in Standard10-boundary disagreement.",
+  "material_change": "No training. Freeze and compare the immutable seed0 treatment 8k checkpoint against its exact six-objective 12k continuation control on 1,024 wholly new mirrored pairs per three anchors. Recompute both checkpoints on the existing outcome-blind 6,144-state panel and verify lineage/hashes.",
+  "baseline": "Seed0 six-objective MGDA improved from +6.449 at 4k to +15.604 at 8k relative to ordinary control. Its 8k Standard10 agreement was 98.32%; the already-audited 12k control agreement is 96.45%. The seventh-objective alternative is rejected.",
+  "source": "Frozen 8k parent SHA de70dd34 and six-objective 12k continuation SHA 7831a754.",
+  "parent_id": "v6-mgda-source-objective-seed0-continuation-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_mgda_frozen_checkpoint_curve.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --earlier-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt --later-checkpoint research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt --state-panel research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz --pairs-per-anchor 1024 --seed 20261500 --device cuda --out-dir research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_mgda_frozen_checkpoint_curve.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --earlier-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt --later-checkpoint research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt --state-panel research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz --pairs-per-anchor 1024 --seed 20261500 --device cuda --out-dir research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:24:35+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:30:12+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "a0b716d6a08d31cc1db4654372cc73cfb3549767fdd746eb74dfef9657f0f1a8",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T18:24:35+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/source_manifest.json",
+    "source_manifest_sha256": "a0a7a6c1960861a6b2013fae84cb56b167908cff3ff852a073068d2838ac1005",
+    "source_files": 133
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 12288,
+    "offline_samples": 6144,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 337.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 12288
+  },
+  "metrics": {
+    "pooled_delta_bb100": 21.75830078125,
+    "pooled_ci95_low_bb100": 4.758520400017762,
+    "pooled_ci95_high_bb100": 38.75808116248224,
+    "standard10_delta_bb100": 28.466796875,
+    "slumbot_free_delta_bb100": 31.33935546875,
+    "cfr96_delta_bb100": 5.46875,
+    "seat0_delta_bb100": 15.188151041666666,
+    "seat1_delta_bb100": 28.328450520833332,
+    "later_greedy_agreement": 0.9645182490348816,
+    "disagreement_growth": 0.018717467784881592,
+    "tests_passed": 233
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/code.patch",
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/run/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/run/evaluation_pairs.jsonl.gz"
+  ],
+  "notes": [
+    "Admission to seed1 8k-to-12k replication requires later-minus-earlier pooled >0, >=2/3 anchors positive, Standard10 >=0, both seats >=0, exact lineage/hashes, 12k Standard10 greedy agreement >=95%, 8k-to-12k disagreement growth <=2 percentage points, and cap <=0.25. CI may cross zero at this internal dose. Failure holds six-objective scaling at 8k rather than treating small-scale absolute performance as a benchmark verdict.",
+    "Independent raw recomputation confirmed 3,072 matched pairs / 12,288 hands, SHA d50168f876445228428d05c231af3d68371efef058f715a74f2d9c1d41c9ed85, pooled +21.758301 bb/100 and 95% CI [4.758520,38.758081]. This internal paired CI excludes zero but is not Slumbot evidence."
+  ],
+  "result": {
+    "summary": "On wholly new common decks, the frozen six-objective MGDA 12k continuation beat its exact 8k parent by pooled +21.758 bb/100 CI[4.759,38.758]. All anchors improved (Standard10 +28.467, Slumbot-free +31.339, CFR96 +5.469) and both seats improved. Standard10 greedy agreement remained 96.45%; disagreement grew 1.872 points, within the preregistered 2-point bound.",
+    "conclusion": "For seed0, unconstrained MGDA continued to learn from 8k to 12k with broad, statistically positive internal paired improvement, despite controlled source-boundary movement. This contradicts a premature small-dose rejection and justifies only an exact seed1 continuation replication before further scaling.",
+    "decision": "ADMIT_SEED1_12K_REPLICATION",
+    "next_step": "Resume seed1 from its exact frozen 8k MGDA checkpoint and Adam for one fresh 4,096-hand six-objective continuation, then evaluate 8k versus 12k on new common decks and the same preservation panel. Require multi-seed direction before scaling beyond 12k."
+  },
+  "tags": [
+    "frozen-evaluation",
+    "learning-curve",
+    "mgda",
+    "preservation"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 24878,
+      "sha256": "a0a7a6c1960861a6b2013fae84cb56b167908cff3ff852a073068d2838ac1005"
+    },
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 4189,
+      "sha256": "3e8bbbca05e5ff07f9354aa62db5be1f159e9249bc9c3428972b1ae3223202f5"
+    },
+    "research/experiments/v6-mgda-seed0-8k-12k-frozen-curve-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 195340,
+      "sha256": "d50168f876445228428d05c231af3d68371efef058f715a74f2d9c1d41c9ed85"
+    }
+  }
+}

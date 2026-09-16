@@ -31,6 +31,7 @@ export interface SolveParams {
   ipRange: WeightedCombo[]; // weighted combos in IP range
   iterations: number;
   bucketCount: number; // buckets per street (e.g. 50)
+  seed?: number;
   onProgress?: (iter: number, elapsed: number, exploitEst: number) => void;
 }
 
@@ -43,6 +44,7 @@ export interface SolveParamsMultiWay {
   numPlayers: number;
   iterations: number;
   bucketCount: number;
+  seed?: number;
   onProgress?: (iter: number, elapsed: number, exploitEst: number) => void;
 }
 
@@ -83,7 +85,7 @@ export function solveCFR(params: SolveParams): void {
   const riverBucketCache = new Map<string, number>();
 
   const startTime = Date.now();
-  let rngState = Date.now() & 0x7fffffff;
+  let rngState = (params.seed ?? Date.now()) & 0x7fffffff;
 
   // Signal that setup is complete (equity buckets + deck built)
   if (onProgress) onProgress(0, 0, 0);
@@ -558,7 +560,7 @@ export function solveCFRMultiWay(params: SolveParamsMultiWay): void {
   const riverBucketCache = new Map<string, number>();
 
   const startTime = Date.now();
-  let rngState = Date.now() & 0x7fffffff;
+  let rngState = (params.seed ?? Date.now()) & 0x7fffffff;
 
   for (let iter = 0; iter < iterations; iter++) {
     // 1. Sample hands for each player (no card conflicts)

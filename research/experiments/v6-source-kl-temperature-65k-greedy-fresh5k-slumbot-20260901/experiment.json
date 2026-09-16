@@ -1,0 +1,1136 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901",
+  "title": "Frozen source-KL-temperature generic-greedy fresh5k Slumbot pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T07:40:41+00:00",
+  "updated_at": "2026-09-01T07:45:44+00:00",
+  "started_at": "2026-09-01T07:40:41+00:00",
+  "ended_at": "2026-09-01T07:45:44+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The top-action-weighted source-KL treatment's small positive matched internal edge and preserved Standard10 direction may transfer to a positive generic-greedy fresh5k Slumbot point estimate.",
+  "material_change": "Freeze exact treatment SHA9e156681... and run eight parallel, independent, never-retried 625-hand journaled Slumbot sessions under learned-logit legal argmax execution. Audit every raw hand, terminal counter, action contract, token-chain uniqueness, model SHA, and session independence. Admit fresh20k only if pooled point >0 and at least4/8 sessions positive.",
+  "baseline": "Standard10 historical generic-greedy fresh20k -11.4275 bb/100 CI[-28.7124,5.8574]. Current treatment's 65k internal delta versus T1 is +1.3412 CI[-10.0687,12.7510], 2/3 anchors positive; this is weak admission evidence, not external proof. Single imitation teacher fresh20k -18.5025 remains negative evidence.",
+  "source": "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/frozen/treatment_iter15.pt SHA256 9e1566812f6550415be4d7d90b21180080a8c3f6f9b0096457a04a98a54b0847",
+  "parent_id": "v6-source-kl-temperature-65k-pilot-20260901",
+  "command": "python research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:40:41+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:40:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111901 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111902 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111903 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111904 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111905 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111906 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111907 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026111908 --session-id v6_source_kl_temperature_65k_greedy_fresh5k_20260901_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:41:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:43:28+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:45:14+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/run_pilot.py",
+      "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/pilot_stats.py",
+      "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/test_pilot.py",
+      "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/review_finish.py"
+    ],
+    "captured_at": "2026-09-01T07:40:41+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/source_manifest.json",
+    "source_manifest_sha256": "680f35ee9b5859fa6bba3d9201473b770f5efe2e7e372feb1795bd943ffeea05",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 5000,
+    "wall_time_seconds": 303.0,
+    "slumbot_hands": 5000
+  },
+  "metrics": {
+    "wall_time_seconds": 263.3280000000377,
+    "bb_per_100": -142.7232,
+    "raw_ci95_lower": -200.64253657181507,
+    "raw_ci95_upper": -84.80386342818493,
+    "positive_sessions": 0
+  },
+  "artifacts": [
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/code.patch",
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\session_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\pilot_stats.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\run_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s08_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\test_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\__pycache__\\pilot_stats.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\analyze_dump.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_allin_runout_ev_log.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_policy_replay_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_replay_dataset.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_mirrored_selfplay_log.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_paired_seat_average_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_hand_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_session_independence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_dynamic_pool_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_elo_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_replay_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\combine_slumbot_logs.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\counterfactual_q_replay.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\distill_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v55.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\execution_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network_hybrid_h1.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\policy_contract_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\ppo_hand_gradient_noise.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\rules_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_ci_from_hands.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_journal_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_terminal_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_transport.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\teacher_live_coverage_audit.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_counterfactual_policy_only.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_distill_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_environment_hand_accounting.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_greedy_advantage_margin.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_hero_policy_temperature.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_paired_seat_actor_returns.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_diagnostics.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_update_equivalence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_hand_gradient_noise.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_sampled_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_ci_from_hands.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_execution_telemetry.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_transport.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_greedy_margin_preservation.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_policy_kl_temperature.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_stochastic_slumbot_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_teacher_live_coverage_audit.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_allin_ev.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_dynamic_pool.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_elo_pool.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_mirror_deals.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_procedural_opponent.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_replay.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_v5.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_exp_w1_value_warmup.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h1_critic.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h2_targets.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_loss_report.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_promotion_gate.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_training_curve_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v6_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_compact_v55_bridge.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_train_v5_replay_resume.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__init__.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\auto_converge.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\batched_traversal.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\check_encoding_collisions.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\compare_strategies.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\distill.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\encoding.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\eval_agent.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_fresh_buffer.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_fast.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_improved.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_policy_net.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_tabular_sdcfr.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\export.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\game_state.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\hand_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\networks.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\reservoir.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\run_hunl.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr_leduc.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\train.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\validate_fixes.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__init__.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment_v55.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\execution_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\network.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot_v6_journaled.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\policy_contract_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\rules_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_journal_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_terminal_v6.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_transport.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\v5_mirror_eval.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\__init__.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\game_state.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\hand_eval.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\__init__.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\summary.json",
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/reviewed_analysis.json",
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/result_summary.md"
+  ],
+  "notes": [
+    "Pilot hands are excluded from the 100k qualification target. No session may be restarted or replaced; any failure is preserved and separately analyzed.",
+    "Pilot hands are not qualification hands; Goal remains unachieved."
+  ],
+  "result": {
+    "summary": "The exact frozen source-KL-temperature policy completed eight independent 625-hand generic-greedy Slumbot sessions with 5,000 durable, fully audited raw hands.",
+    "conclusion": "The transfer gate failed decisively: -142.7232 bb/100, raw 95% CI [-200.6425,-84.8039], equal-session t7 CI [-220.3165,-65.1299], 0/8 positive sessions. All model/action/terminal/session/token evidence passed. The positive matched three-anchor signal did not transfer and must not be scaled.",
+    "decision": "FRESH5K_TRANSFER_GATE_NOT_PASSED",
+    "next_step": "Do not run fresh20k or continue source-KL-temperature scaling. Treat the current fixed-anchor proxy as invalid for external promotion and perform an outcome-blind policy-state/contract diagnostic against Standard10 and prior less-bad external policies before choosing the next learned training objective."
+  },
+  "tags": [
+    "fresh5k",
+    "greedy",
+    "slumbot",
+    "source-kl",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 1033,
+      "sha256": "680f35ee9b5859fa6bba3d9201473b770f5efe2e7e372feb1795bd943ffeea05"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1195,
+      "sha256": "19edf34b476b411d26abb1950caf82f46e04760594644ad713ae51f8cb852588"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2001,
+      "sha256": "7a57120035addb406bebc25a6bd369c971be14689ac5996f1e1b3f2da27d8635"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 4659,
+      "sha256": "b7d0a883828b514691606972cd0b95f89707717ca1f8432919599338f054bf19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 133307060,
+      "sha256": "9e1566812f6550415be4d7d90b21180080a8c3f6f9b0096457a04a98a54b0847"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 4401,
+      "sha256": "3829aab3e6a724f1decef16d491f628e42328bde049aa2dd5f7a23ab6a6da7db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\session_commands.json": {
+      "type": "file",
+      "bytes": 6899,
+      "sha256": "2ea27f9acc4e8513b0e163d1a6f0eb86ea89ee589f6082a328e75205cb3ce30a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8513,
+      "sha256": "e00b89c1ddbef7cace63c04574dc26cad8ea03288e7d30b318c194d89ea388f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 1072,
+      "sha256": "766945ecd780ce7a8dcdfd044da30893fce214c24bf5cfe99c983141c7a2ea4e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 8257,
+      "sha256": "fec128432efb54ae06e1075ce09e6668ba5423d7ec8ef1f44849f80677c7e8fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\pilot_stats.py": {
+      "type": "file",
+      "bytes": 1806,
+      "sha256": "4ae5e25b262ac1d3bab4aec3681be2714c9a9e1f063167bb1358c4d00a276bab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\review_finish.py": {
+      "type": "file",
+      "bytes": 4585,
+      "sha256": "af62ec412211071b88621830359daea700dd44b93691e04163ea6518f500e4b1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\run_pilot.py": {
+      "type": "file",
+      "bytes": 1362,
+      "sha256": "fb3bf4aa58695c1b971d9e5154ceb5ec3bac214d1a601bb45445f75aa7d1bcaa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s01_stdout.log": {
+      "type": "file",
+      "bytes": 5931,
+      "sha256": "052e0490f8813e0a5dcf42f7c17dd5d3ebe9842a1c161e06dac904b2b9373aad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s02_stdout.log": {
+      "type": "file",
+      "bytes": 5932,
+      "sha256": "e0fbafcec1f57f35e77479800c2a26ed174fcc0efc5e8a35413918588f83bda6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s03_stdout.log": {
+      "type": "file",
+      "bytes": 5934,
+      "sha256": "c28bd0d8efc10afd200e5b6f5f93a5e7d8df83e57287f6d2746de5f975f69982"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s04_stdout.log": {
+      "type": "file",
+      "bytes": 5934,
+      "sha256": "dc03c5820dfc1afd38090d61a7c1aef568913727547b07066f4223676a2fd1e7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s05_stdout.log": {
+      "type": "file",
+      "bytes": 5933,
+      "sha256": "55137158b6d4eea78151cf742e32ab1890b5f715e1b55d3d2ed00bd63716dd8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s06_stdout.log": {
+      "type": "file",
+      "bytes": 5932,
+      "sha256": "b13c379503612451d8b8b5079d4cb43abdaa79e34417d3513348f1f331a9f872"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s07_stdout.log": {
+      "type": "file",
+      "bytes": 5932,
+      "sha256": "f1cd007a7a97f4cf618921cd859875106bf08e4cfd721a44628350403d0a0e88"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\s08_stdout.log": {
+      "type": "file",
+      "bytes": 5932,
+      "sha256": "f80941b7a1b4d95a8c36b3fb0da5570e93ed9866251850b58db39be06d03598c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\test_pilot.py": {
+      "type": "file",
+      "bytes": 1007,
+      "sha256": "fe3d9aaca89b5cfeb52b871df6e832491585dcb5340d61ef338f9cae32aca0ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\__pycache__\\pilot_stats.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 3118,
+      "sha256": "fa077d55c6646b44d88171d395d4d09d127e4c5439c7fe99dc14e6def3bfe2cb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 2401,
+      "sha256": "9ba2c7875e8ccc30136de252e0c8fd9328aee4287f8aaf015f9a8fccd4272b69"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\analyze_dump.py": {
+      "type": "file",
+      "bytes": 9106,
+      "sha256": "491ff1cd45d812f80777ae5918313dcf0f047fdb558f221a52fc076624386eb0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_allin_runout_ev_log.py": {
+      "type": "file",
+      "bytes": 5216,
+      "sha256": "ba53f33b4e68ac148609a160b7c3d0fc61fa81a698c11e036388aca86a83f592"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_policy_replay_session.py": {
+      "type": "file",
+      "bytes": 8492,
+      "sha256": "8c8c3445387ec1931f56628a876fd4e7ec5ac7a26762148b9fdf77288c53a7d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_counterfactual_replay_dataset.py": {
+      "type": "file",
+      "bytes": 3043,
+      "sha256": "f7c00dc8f595b9c622faaba88258a24e93f6de13c606ecd28cd430c34c637105"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_mirrored_selfplay_log.py": {
+      "type": "file",
+      "bytes": 5677,
+      "sha256": "cf56d719ac4d0d46f1e1a6a3c8d75ee6be64b153fecf71772c8c2945c6f9cd85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_paired_seat_average_session.py": {
+      "type": "file",
+      "bytes": 3758,
+      "sha256": "cdea3d0b91196c12cbcfe7071acf47f32fc28fdbe61bb16c046c24b09b0f6f3e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_hand_evidence.py": {
+      "type": "file",
+      "bytes": 11383,
+      "sha256": "38aa472cc4034c4b26c371afd385ce31dcdff6bb8db2c1368919085d1f87f4e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_session_independence.py": {
+      "type": "file",
+      "bytes": 9936,
+      "sha256": "60ca9fee6ee8428354b9601ff6e69104bfff4ccf447d5ced890184cac75546e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py": {
+      "type": "file",
+      "bytes": 17069,
+      "sha256": "70c84a63cf8bc3c6b96161b9ed6cb7dd8520f093f5bd66b36102a9d97689eb1b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_dynamic_pool_session.py": {
+      "type": "file",
+      "bytes": 10042,
+      "sha256": "4c4cbfe1b593eba0711820903e343ff8694d31ade8b77d95a624a719d0103dfe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_elo_session.py": {
+      "type": "file",
+      "bytes": 15098,
+      "sha256": "01c525da223927da011cde61fb104a4033811566ea21a68b32ecc5ce8e052ac9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py": {
+      "type": "file",
+      "bytes": 14926,
+      "sha256": "05ec950ec4760747d5ab8d39fef90583e8ae4173efe5194031c1de4cb05b4b6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_train_v5_replay_session.py": {
+      "type": "file",
+      "bytes": 8186,
+      "sha256": "e24dbdee59ee6c734a2c717d8c68bdcc42d8f032d97beaa9d4ad49dd09e2553f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\combine_slumbot_logs.py": {
+      "type": "file",
+      "bytes": 3856,
+      "sha256": "ad2d61219e911e5948efd59f6143ddbcaf7a8e1d497b89d6f1f4a31100296c4c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\counterfactual_q_replay.py": {
+      "type": "file",
+      "bytes": 31450,
+      "sha256": "6148e45cae4bbc39fb7be01ed0f3fb4ccf88c93e7d3f4363abd060b54f4b56cf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\distill_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 40164,
+      "sha256": "6cbf21ae4ee83b22a9d6bbd401420eeae9ca4fb160c542b60529a5253553015f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment.py": {
+      "type": "file",
+      "bytes": 14242,
+      "sha256": "764c838ff060881705b91477d8bf3a5df6949f94a6e503fcb816c6f1b4c57f9b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v55.py": {
+      "type": "file",
+      "bytes": 19558,
+      "sha256": "39ac67a5939035497da4bfb07da63e00a8418262e75f5552185718ffe1eba6ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\environment_v6.py": {
+      "type": "file",
+      "bytes": 5168,
+      "sha256": "e97c05c59d28e23594ea2ee1b860411f514dc27b82c6a02b82933cf45c96c221"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate.py": {
+      "type": "file",
+      "bytes": 8315,
+      "sha256": "adddb47ddec6dc1ed0d5fe82cc10ae1d7c42633dc2cc63ec7b86dbd95b32de12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\evaluate_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 3053,
+      "sha256": "909a0b0b7ac54df5a5825107dda0a5ea5f449adafa788ded2779e189447fbb8e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\execution_v6.py": {
+      "type": "file",
+      "bytes": 3473,
+      "sha256": "28c13c4ae6c8ccbde821c322d951f7a8e61f41e4e6dffd345f1c6bf5d1aefa25"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network.py": {
+      "type": "file",
+      "bytes": 24761,
+      "sha256": "64667d2b379775de17ceef916c32f7c2b7ac9a01e821a5677f6997c196b7325e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\network_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 40887,
+      "sha256": "95fe31834a3c55bb0ad7a13da7188d74bfb9513da9c10396acad94a7c563b406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py": {
+      "type": "file",
+      "bytes": 4985,
+      "sha256": "73ff5c2d43bfeccc2998abebc16f369903590a0b27ec3808fa32a2cd4e4dd955"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot.py": {
+      "type": "file",
+      "bytes": 110759,
+      "sha256": "2465373a2dcb7d84adf9618e9cb8953156623ad5b38bef32395339b9e7db5d01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6.py": {
+      "type": "file",
+      "bytes": 4231,
+      "sha256": "5694199b675d9fab3e33ea73d25e3c720dbb6d3440465d68e2ff970e2a5fab75"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py": {
+      "type": "file",
+      "bytes": 12210,
+      "sha256": "0cd7f92cf8e88aac06d3cec92935b33b30d9aef1c46661fdf0c5902c5b641be8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\policy_contract_v6.py": {
+      "type": "file",
+      "bytes": 7593,
+      "sha256": "abc4a0b5b305bd3e0aef7d234441db7af12caccca6091d0de332777723a0ec86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 8114,
+      "sha256": "be1117bc9740ccf916c0d9ccda0c3f58182872578e436a2eded3ff3594557d5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\rules_v6.py": {
+      "type": "file",
+      "bytes": 6916,
+      "sha256": "f2e4b5acb76d2d18897ae75babc5a2e4b932dc9ef351f1220d6df5e7908f7ef1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_ci_from_hands.py": {
+      "type": "file",
+      "bytes": 8477,
+      "sha256": "9537f97bc38a7dc87da0ee3e4940978de729e120c005110e95d48755135eb547"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_journal_v6.py": {
+      "type": "file",
+      "bytes": 3028,
+      "sha256": "7ec409e78891be84698acb9ba14fcd02a9c0456041950c58f1652754b23dc69e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_terminal_v6.py": {
+      "type": "file",
+      "bytes": 6552,
+      "sha256": "83324c9213a7ed8453a83f1db338f7477e1528de39b6cdd1b41acc64008f5f44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\slumbot_transport.py": {
+      "type": "file",
+      "bytes": 2383,
+      "sha256": "b6ecaf23a18dde031cbe6369deacec863273b68104590f8a9a80fa1f806a9554"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\teacher_live_coverage_audit.py": {
+      "type": "file",
+      "bytes": 14089,
+      "sha256": "726e8b3b16b68ba96099d2e3f2351d4d12f4dcb55ee3357daf6da84da69d8a0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_counterfactual_policy_only.py": {
+      "type": "file",
+      "bytes": 2372,
+      "sha256": "5f6880542a4f95e8764742cca5398b57afd8d319cab0bc9181d9251926a5aaa2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_distill_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 4928,
+      "sha256": "6ac71f060cffcaf050ae3aff759ee9c88fc201a56eaa9f204a39eb85744c140f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_environment_hand_accounting.py": {
+      "type": "file",
+      "bytes": 3966,
+      "sha256": "71f1b05164b8d1ec6030dfd97e8f033e1ac82d5a8417877a914f33ca03a78e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_greedy_advantage_margin.py": {
+      "type": "file",
+      "bytes": 4634,
+      "sha256": "73a7dc5d1b38537d67b7b17dfe4e2bb8da99343012ed28742514f697c9e6d1be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_hero_policy_temperature.py": {
+      "type": "file",
+      "bytes": 3142,
+      "sha256": "012cbd3620390ba29fcc634cbc0e1fae86ea56a63efff338f2e7b1fa0fc2fda8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_paired_seat_actor_returns.py": {
+      "type": "file",
+      "bytes": 3684,
+      "sha256": "a08f2b10f376dbd68c8d8c59e395644ebe04d815c02b3f03323ce4b0543984bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_diagnostics.py": {
+      "type": "file",
+      "bytes": 2945,
+      "sha256": "88e0b249923068bcf583c9891c32b6eab407d945360e776f813318d6e088436b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_gradient_update_equivalence.py": {
+      "type": "file",
+      "bytes": 2571,
+      "sha256": "6070708475fbef3344a7acec06beaa5e3d1fd57da4da2cce1bc904fa2867e4e1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 10004,
+      "sha256": "435f63652a3855c3b91fefb6e167cd12bb4daa3c2877f29f88729d880d826863"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_sampled_mirror_eval.py": {
+      "type": "file",
+      "bytes": 3863,
+      "sha256": "b2a1b9d4ba54e5397657301bacb32c41e9cb6fc9a14ee3ca28a8693a490dfe5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_ci_from_hands.py": {
+      "type": "file",
+      "bytes": 1615,
+      "sha256": "d140f220817e79b86e927534884fbb7b26919cc2a512f4886d35923760173fc9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_execution_telemetry.py": {
+      "type": "file",
+      "bytes": 3639,
+      "sha256": "ddcf66ec7802072c6ca88b7da2fcb14fd6deb0420ae25c2dfd79eead97894ca9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_slumbot_transport.py": {
+      "type": "file",
+      "bytes": 12026,
+      "sha256": "0a06b76e8582feb406d58565893651b546680347afcc7ed4a45e4692b790ff6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_greedy_margin_preservation.py": {
+      "type": "file",
+      "bytes": 5062,
+      "sha256": "b5a29aaf348b9ede45a246543e7a0e0083c9038861abc8f41ac198d61c621934"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_source_policy_kl_temperature.py": {
+      "type": "file",
+      "bytes": 3087,
+      "sha256": "a2c5b96d611ac6d53512e2dcf4950098d560aecfd91595ff00fe64b034c61392"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_stochastic_slumbot_evidence.py": {
+      "type": "file",
+      "bytes": 10831,
+      "sha256": "c23c312da94450fddd34095b941b156a1e359c92a4d1e9d9f87f7b3262c77368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_teacher_live_coverage_audit.py": {
+      "type": "file",
+      "bytes": 2483,
+      "sha256": "f0af152b048bcc3aa80af12b6f925a789a866cdb07742ba038a9ddf629bc5df1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_allin_ev.py": {
+      "type": "file",
+      "bytes": 2768,
+      "sha256": "aca40d49f7a3634bd77f18ef3c50d6f432e18b0abc6aee9b1d6c8b2df09510b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_dynamic_pool.py": {
+      "type": "file",
+      "bytes": 5927,
+      "sha256": "42e5f51eb7b72d0dc79c3fcf8e07f88ce214030f3e09f70aecbf395b81989e06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_elo_pool.py": {
+      "type": "file",
+      "bytes": 4988,
+      "sha256": "7ee054d1d4ce328b6e4ebc61e59b15b5f1a5a96ae718a3f962a7a73326fd2650"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_mirror_deals.py": {
+      "type": "file",
+      "bytes": 2171,
+      "sha256": "463b25964d4aebf9ecab78a8beab8bd6b920151e1cfd24f1956f1fcc0f2c5d43"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_procedural_opponent.py": {
+      "type": "file",
+      "bytes": 8323,
+      "sha256": "add8e8a608e2505a0e17eb3c47764a12e9d46fbb56d393d4a7a0970d15ac72b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\test_train_v5_replay.py": {
+      "type": "file",
+      "bytes": 6055,
+      "sha256": "104ba5dec35cfcc8be87f826ee6b8dc84034a492823af67f822aff7fadac26e4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 129845,
+      "sha256": "5e377dd820a21f2458002fbf4b605f5b2d4b9974db89a26bb9961195f9dcd7d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\train_v5.py": {
+      "type": "file",
+      "bytes": 453439,
+      "sha256": "6860cf5175ed98418e2f393ed1a7aad06cb5a00400e61ae7bd8430c4858a8321"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_exp_w1_value_warmup.py": {
+      "type": "file",
+      "bytes": 12578,
+      "sha256": "247c5348047e571cf7b9bf46bf1ca07040017a6fb6129959d4be55d40d3c3f36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h1_critic.py": {
+      "type": "file",
+      "bytes": 5141,
+      "sha256": "9e48442314f1c218bf2e3f1f224ace5936266e3e1a62d2a81f02048e9205705a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_hybrid_h2_targets.py": {
+      "type": "file",
+      "bytes": 15264,
+      "sha256": "2a99fc3ebc90afcdcb4501d7c6c067c2c112a34c0e023204bd75274a88b70d50"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_mirror_eval.py": {
+      "type": "file",
+      "bytes": 40120,
+      "sha256": "adc5c9665194f58a8180cb6c5750ce5dfb0e997c29fd2ee5b05335906d794ed2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_loss_report.py": {
+      "type": "file",
+      "bytes": 17129,
+      "sha256": "bf8100469a55f7273b61501d4f05e44e5f59103112be1dc833632eeb8bc0cfdb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_slumbot_promotion_gate.py": {
+      "type": "file",
+      "bytes": 27123,
+      "sha256": "9b29c8335956c40be37bed4e6f20d66b295804175300764b9bfad23b287ef325"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v5_training_curve_eval.py": {
+      "type": "file",
+      "bytes": 21202,
+      "sha256": "347030530a9df098e4ab4ee522a0773f7e28018e18ff603371ebb40612a8a897"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\v6_mirror_eval.py": {
+      "type": "file",
+      "bytes": 4034,
+      "sha256": "09c00c4718d6d1c67affd8a23d79fe2258db00c2816a41642150c124817154c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_compact_v55_bridge.py": {
+      "type": "file",
+      "bytes": 11130,
+      "sha256": "a0d3032cdb9fdd7992916ff0139f9e9615ac7a8979fa1be963d93c0c1e57c24d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\validate_train_v5_replay_resume.py": {
+      "type": "file",
+      "bytes": 7298,
+      "sha256": "772d51bf617e7322d388ced3fe1fbe6c6990cc0f403ae3ede6935fecc415397d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__init__.py": {
+      "type": "file",
+      "bytes": 65,
+      "sha256": "af49b349165d50fb0d550e72061231455cb4919abd08aaa17bc94aeb103cf6e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\auto_converge.py": {
+      "type": "file",
+      "bytes": 14971,
+      "sha256": "8b954943283bbf4347fbc2c8efcdb8709a36aaf2b11b162264aa779d28f72359"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\batched_traversal.py": {
+      "type": "file",
+      "bytes": 15915,
+      "sha256": "677acaad866c8f73f8bb4ae65ed9961b23e25ce9038ff8ef4ed5d7822d71ff5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\check_encoding_collisions.py": {
+      "type": "file",
+      "bytes": 2389,
+      "sha256": "a308a3b89979440db75992dbb5821217745aabae2c13ef65f581cc93eb0b346f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\compare_strategies.py": {
+      "type": "file",
+      "bytes": 7737,
+      "sha256": "32b3ffebd08807afeb3e59ec10b92b9c6c693122aa9c3773b31e0dc0a8bff363"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\distill.py": {
+      "type": "file",
+      "bytes": 17108,
+      "sha256": "1bf30bfb8906a08ddd02774e53ba3ea9bce92a2fb04091b0dd4db81a139c6e06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\encoding.py": {
+      "type": "file",
+      "bytes": 9229,
+      "sha256": "d2cc67bd922903e655bf4b10dbd1bd388b2f65e628caf7bfe1c21c6a6a2ff49f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\eval_agent.py": {
+      "type": "file",
+      "bytes": 34328,
+      "sha256": "1265bc69dfa7dd50482d93c1ea0f83958b6b4dc125549df804b7b55deaac88d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_fresh_buffer.py": {
+      "type": "file",
+      "bytes": 2110,
+      "sha256": "c6bfc5984a6e038cb8329dbb845c9c76d7dbd0f3d58caa4689118e956e206898"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_fast.py": {
+      "type": "file",
+      "bytes": 5380,
+      "sha256": "c6d3757f2c6471789b2ba969dd4e92ce3e44f320d541d4b0716a0775e60180d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_neural_improved.py": {
+      "type": "file",
+      "bytes": 7506,
+      "sha256": "e72c559b67b072171b2fa1ee27fd584b0bf513d10e90e426a8fcef912f723eb5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_policy_net.py": {
+      "type": "file",
+      "bytes": 14719,
+      "sha256": "6b35d85a5ffc26f28d98d3d1c944c992c4a5b06d6158ffde7fd879b19225c25f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\experiment_tabular_sdcfr.py": {
+      "type": "file",
+      "bytes": 7601,
+      "sha256": "894ca78c3a626c4fa10967b098c197c5e219e397fb460e4c6db7293a0f08c5fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\export.py": {
+      "type": "file",
+      "bytes": 7245,
+      "sha256": "a27f528f88290b030deae533d0d081ca058e5cb0e09e0e5a4192817c51aa81c4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\game_state.py": {
+      "type": "file",
+      "bytes": 27001,
+      "sha256": "1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\hand_eval.py": {
+      "type": "file",
+      "bytes": 2187,
+      "sha256": "fc30df48b0ae0091311f2ff40f8e320278bc47abba606c0c1f71fcce498f490d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\networks.py": {
+      "type": "file",
+      "bytes": 10211,
+      "sha256": "3a5b715e0d615e2f45e90943e34bacdea1f86e2bbcf180fac6197738c65bbc45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\reservoir.py": {
+      "type": "file",
+      "bytes": 5447,
+      "sha256": "59f6214b6bec1f53cc68dfe107d30eb426265a86980e53465bf15247982ab241"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\run_hunl.py": {
+      "type": "file",
+      "bytes": 2903,
+      "sha256": "7573f2e646ee6b183299dd418dd1fceac0892ac891608286f4e909d7ad941318"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr.py": {
+      "type": "file",
+      "bytes": 17460,
+      "sha256": "e4913390456fff39a67bc5b44b814a86881ae775f669e8eaee020d1ace2da8b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\tabular_cfr_leduc.py": {
+      "type": "file",
+      "bytes": 10639,
+      "sha256": "9019c0e6a99d6fb479e3818e53ac9ebc9bd777483f64c2c59d69f12fe215846b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\train.py": {
+      "type": "file",
+      "bytes": 48472,
+      "sha256": "dde4ac6ebe758f55e1fafa0f375b6ab7bb73eba66f9e798f155f8973cdecd6b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\validate_fixes.py": {
+      "type": "file",
+      "bytes": 3705,
+      "sha256": "6e8bb3a8610150de380e2ec40094c0460a9424ef813489ccbffd851044a69882"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__init__.py": {
+      "type": "file",
+      "bytes": 78,
+      "sha256": "ec74f39495a984d95143410b9278467ffac668e497af0b8c115b2be1fd4d5fca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 16057,
+      "sha256": "1950885fbbabb56cc60fb06d821a14d5ec34f0dcd70d06ce57b33e5258fdbf66"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\environment_v55.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 21035,
+      "sha256": "1494bd29c202bb4a8e9cb0db1db1534cd46e704334cafebd3798eaa9f3faad61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\execution_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 6141,
+      "sha256": "03e69be9aa7bbbf6df9cfa522a442db8fb2119e053ba2da944c88885cf7c4258"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\network.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 28321,
+      "sha256": "6d9ea02ad5507b6d00147cb359fed40a047893d3d93c8c106b7c1c83d7137998"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 105122,
+      "sha256": "a4becd43e699f4a0c7d203bdd51e51361305637d0d16d5973e48b9c2f0b9734b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\play_slumbot_v6_journaled.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 16982,
+      "sha256": "972f32a5ad5f021b802628e94ade22e8a49c3067d96f4cd9c718a5c0d419749f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\policy_contract_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 12018,
+      "sha256": "89759bf65001a0d04b78de7f37c8782871f9a6a0e517c0c66c7f97e578535996"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\rules_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 13097,
+      "sha256": "728686aceeb1d095630398048b1c88ee73bd82d1042064701f6308e1a95bd1aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_journal_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 5665,
+      "sha256": "747afa2960e33b5629702f075b9c4f06bef35ee6855fb9ab1918433c96dbf4ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_terminal_v6.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 9505,
+      "sha256": "bcfcc43359948745eaa5a18fc31f839215cca951b2ef9481edcf401e94d1f4ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\slumbot_transport.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 3597,
+      "sha256": "2b9dfe8b087dc796df2f95108972985db8ee53f27a9ffa3bf96f07b646c4920c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\v5_mirror_eval.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 47795,
+      "sha256": "499b171d857920ce19c6d05580b87719dc1a0cf78f450a6f84585468aea8d148"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\__pycache__\\__init__.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 253,
+      "sha256": "b9e51fc9f57984743b03e129c7830e13d86dc3958d831e1b0a7679e5031587e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\game_state.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 33424,
+      "sha256": "9de88fabc9f2c43baab08ba23476cb060a485d062e0555fdd86b49e66aaf5619"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\hand_eval.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 3154,
+      "sha256": "764387d75ff36c088faa5278d8af4d3a52594e661691f95c64867cdcb367dcd4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\deep_cfr\\__pycache__\\__init__.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 249,
+      "sha256": "9fded4d7b8dcf652cd3e207f9a7898b60c95d220de4f3aa35167d0f0ca5e693a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2302680,
+      "sha256": "9fbead3bab5b1a8893e48c5554d2bfd213f71247f4f62699bd53f6c1978c2b65"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4512314,
+      "sha256": "fe08d3a0967b3539e8c1d5c329b9a385baa6f88b3a79f20265b92d82f107384a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s01\\summary.json": {
+      "type": "file",
+      "bytes": 5815,
+      "sha256": "104832aebab7a5ab73a4be2604c0578362d9e092424df1cca7b6ba4e0e831b9c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2315418,
+      "sha256": "26542d199d273435bdbd79bd368467550bda863075f5aef7bcf6f4f18ccd99b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4544674,
+      "sha256": "1e59bc1b3f1685d47578e470991bd6a28de5e84a2f4d5814c6bb1cce195a113f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s02\\summary.json": {
+      "type": "file",
+      "bytes": 5816,
+      "sha256": "eb683ce756f3775274af9a8e19250614bafa094a142301856bc96f4f31a63cbd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2356765,
+      "sha256": "d3c03946be13679529c9539b4924ee11bd6f238f4e6567a618ebe5d1a046b388"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4645248,
+      "sha256": "d58a4bd0ed6ebe8f12edb4220277234341b7d61750d0e99d92d27d60738ba313"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s03\\summary.json": {
+      "type": "file",
+      "bytes": 5818,
+      "sha256": "688aa6c4ca5e52abb39969de17ee9dfffb686885799b87b5686b9c4f84117fa5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2378381,
+      "sha256": "cc9bcc0579101a8582d3cb1b96c7621d596a9f107c65579f45cdc3e475d7fdb5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4699926,
+      "sha256": "eded8293edbe41fc45c0f917755d027b5d5d71af00f082d05afac082c4e1a597"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s04\\summary.json": {
+      "type": "file",
+      "bytes": 5818,
+      "sha256": "3aebd20c23d58b40f0d8072808f4ca2392e561cd710942f194b09d8f5968bcd0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2317526,
+      "sha256": "c8e8bc1447bfb941c662a301c6a1beee5c43f84171805c9ae0fc44cfcdd1db3a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4545465,
+      "sha256": "9ec25f1e04b6f247b37992b46294e35274f1f00cf8f074d52abad0ba3b81e0b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s05\\summary.json": {
+      "type": "file",
+      "bytes": 5817,
+      "sha256": "0ccc4170433a82fbd3a9762dbb9e50431c08853e09d6099884588fc3e689fa82"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2368710,
+      "sha256": "312b5f2bedbc22d5186d6a14ee499a1a63fff91612f890ef50c75384967cc10e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4680940,
+      "sha256": "401338eb36d8d4f3c1246a675221e2b9b01e176ded4ed86a3bad0c46aaf71cd9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s06\\summary.json": {
+      "type": "file",
+      "bytes": 5816,
+      "sha256": "2902d74b379b7076cc9e3a4ac7e1b3e5f90c9459358f31607235bd7b78812646"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2278191,
+      "sha256": "f799babf0d27c8c6f57235064bb8c062a687d7e841e8ed31c6e4797826aa390c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4454817,
+      "sha256": "c5a01122e42451873ee20e716d16905fbfe0676e3f808b038830d96195d70298"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s07\\summary.json": {
+      "type": "file",
+      "bytes": 5816,
+      "sha256": "90e625a96e21aa0a4392e9ea797d19b2d83529a0f1814efb678ddefff1b95834"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2295730,
+      "sha256": "e889dc8731259310e99e426fad8bd4dd60a64020bac97a10f1215588fa11c36d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4495133,
+      "sha256": "4efbb83e225d88b1d7afa058ca91a45d42040df1db6ab5ec1e082476bef188c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901\\sessions\\s08\\summary.json": {
+      "type": "file",
+      "bytes": 5816,
+      "sha256": "a5f4138ce076743632438c7a7b7030dffd4b22c9ca29dc59bc43b4901dba76e9"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1027,
+      "sha256": "8de04eca23d118c2b06365e76dd36fd969d7831c47232b2ff79807e3fed39341"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 407,
+      "sha256": "6766a59fc88fce8d1a543d5b216e25cf28705ed40aad2a84a4c7f443f21c0d37"
+    }
+  }
+}

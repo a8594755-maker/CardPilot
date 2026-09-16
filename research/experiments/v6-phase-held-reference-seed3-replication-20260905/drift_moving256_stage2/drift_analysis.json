@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.024,
+      "greedy_disagreements": 120,
+      "max_tv": 0.6214102506637573,
+      "mean_tv": 0.02213369798831137,
+      "p95_tv": 0.052645576745271795,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.018,
+      "greedy_disagreements": 90,
+      "max_tv": 0.5340762138366699,
+      "mean_tv": 0.020284275343258922,
+      "p95_tv": 0.06184909548610449,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.0296,
+      "greedy_disagreements": 148,
+      "max_tv": 0.5355963706970215,
+      "mean_tv": 0.029919838521991367,
+      "p95_tv": 0.09966960959136487,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.048,
+      "greedy_disagreements": 240,
+      "max_tv": 0.5949223041534424,
+      "mean_tv": 0.047479158951518545,
+      "p95_tv": 0.19715001434087776,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "--parent-sha256",
+    "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "--treatment",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt",
+    "--out-dir",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage2",
+    "--states",
+    "20000",
+    "--seed",
+    "20263522",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "1",
+    "--greedy-disagreement-max",
+    "1"
+  ],
+  "created_at": "2026-09-05T13:34:25.727057+00:00",
+  "design": {
+    "greedy_disagreement_max": 1.0,
+    "outcome_blind": true,
+    "seed": 20263522,
+    "source_tv_max": 1.0,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 8390981,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.0299,
+    "greedy_disagreements": 598,
+    "max_tv": 0.6214102506637573,
+    "mean_tv": 0.02995424270127005,
+    "p95_tv": 0.1004091992974281,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage2\\drift_raw.jsonl.gz",
+  "raw_sha256": "2b8b5163e3fcc8f66ce6c845b7490dda98f999858c90926d0cbce1648dd37453",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 7294330,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt",
+    "sha256": "da6d49c60eb73ceddb6a27ff8ff10de06b3306360f61dd49e49b82cd857f4b8c"
+  },
+  "wall_time_seconds": 3.3575096130371094
+}

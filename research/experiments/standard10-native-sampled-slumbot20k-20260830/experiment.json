@@ -1,0 +1,476 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "standard10-native-sampled-slumbot20k-20260830",
+  "title": "Frozen native-sampled Standard10 Slumbot baseline",
+  "status": "FAILED",
+  "created_at": "2026-08-30T23:16:25+00:00",
+  "updated_at": "2026-08-30T23:42:11+00:00",
+  "started_at": "2026-08-30T23:16:25+00:00",
+  "ended_at": "2026-08-30T23:42:11+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The unchanged learned Standard10 native categorical policy has an unknown absolute external Slumbot value because the active historical baseline deployed greedy actions; a fixed fresh sampled baseline resolves this measurement gap.",
+  "material_change": "Freeze original Standard10 weights and native sample/temp1,then evaluate exactly8 fresh sessions of2500hands with distinct explicit policy seeds2026090501..2026090508. No new training,action rules,temperature search or optional sample-size extension.",
+  "baseline": "models/baseline/standard10/latest.pt",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "stochastic-slumbot-evidence-readiness-20260830",
+  "command": "python -m pytest research/experiments/standard10-native-sampled-slumbot20k-20260830/test_external_runner.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/standard10-native-sampled-slumbot20k-20260830/test_external_runner.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:16:25+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/standard10-native-sampled-slumbot20k-20260830/run_external.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:20:54+00:00"
+    },
+    {
+      "command": "python research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\run_external.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:21:34+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 0 --policy-mode sample --temperature 1 --policy-seed 2026090501 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\snapshot_loader_dry_run.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:21:35+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090501 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:21:37+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090502 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:21:43+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090503 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:21:50+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090504 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:21:56+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090505 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:22:02+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090506 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:22:07+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090507 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:22:14+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt --strategy model --device cpu --hands 2500 --policy-mode sample --temperature 1 --policy-seed 2026090508 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:22:22+00:00"
+    },
+    {
+      "command": "python research/experiments/standard10-native-sampled-slumbot20k-20260830/close_integrity_abort.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:42:11+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/standard10-native-sampled-slumbot20k-20260830/test_completed_baseline_review.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:42:11+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/standard10-native-sampled-slumbot20k-20260830/review_completed_baseline.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:42:11+00:00"
+    },
+    {
+      "command": "python research/experiments/standard10-native-sampled-slumbot20k-20260830/check_initial_prefixes.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T23:42:11+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1dad496de043e62686ccfa512491d8be59c4b33610cb8f10421614978b05c8e9",
+    "code_paths": [
+      "scripts/alpha_holdem/play_slumbot.py",
+      "scripts/alpha_holdem/audit_slumbot_hand_evidence.py",
+      "scripts/alpha_holdem/audit_slumbot_session_independence.py",
+      "scripts/alpha_holdem/slumbot_ci_from_hands.py",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-30T23:16:25+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/standard10-native-sampled-slumbot20k-20260830/code.patch",
+    "patch_sha256": "87f50490140e3781e356149fc58f1bc7b7555b6931142e017f179f39f8df9daf",
+    "source_manifest": "research/experiments/standard10-native-sampled-slumbot20k-20260830/source_manifest.json",
+    "source_manifest_sha256": "dc944178aaf1d48ccf31a1e35362c136f91033ea7cebdaff2dd165bd0ba61086",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 4168,
+    "wall_time_seconds": 1546.0
+  },
+  "metrics": {
+    "planned_external_hands": 20000,
+    "sessions": 8,
+    "requested_hands_per_session": 2500,
+    "temperature": 1,
+    "preflight_tests_passed": 8,
+    "snapshot_loader_pass": 1,
+    "part01_pid": 38584,
+    "active_sessions": 0,
+    "part01_first_hand_ready": 1,
+    "part02_pid": 3872,
+    "part02_first_hand_ready": 1,
+    "part03_pid": 23268,
+    "part03_first_hand_ready": 1,
+    "part04_pid": 3456,
+    "part04_first_hand_ready": 1,
+    "part05_pid": 43132,
+    "part05_first_hand_ready": 1,
+    "part06_pid": 45256,
+    "part06_first_hand_ready": 1,
+    "part07_pid": 7292,
+    "part07_first_hand_ready": 1,
+    "part08_pid": 40584,
+    "part08_first_hand_ready": 1,
+    "terminal_problem": 1,
+    "supplemental_review_updates_merged": 1,
+    "agent_requested_integrity_abort": 1,
+    "supplemental_independent_review_tests_passed": 8
+  },
+  "artifacts": [
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/code.patch",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/source_manifest.json",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/run_external.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/test_external_runner.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/preregistration.md",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/execution_code/code.patch",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/execution_code/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\evidence_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\snapshot_loader_dry_run.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_stdout.log",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/review_completed_baseline.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/test_completed_baseline_review.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/check_initial_prefixes.py",
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/initial100_deal_prefix_check.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\deferred_review_updates.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\integrity_stop_reason.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\integrity_abort_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\close_integrity_abort.py"
+  ],
+  "notes": [
+    "Preregister before first external hand. Native sampled policy is not the historical greedy baseline; report absolute raw bb/100 and95percent CI,never a matched treatment claim against the old20k. Clean complete evidence and positive raw point estimate may admit a separately preregistered independent100k test; a nonpositive point does not permit optional extension. Zero pilot hands may be pooled into that later formal test.",
+    "8 runner preflight tests passed; counter buffers partial rows and detects truncation, exact fixed policy/seed arguments verified, invalid counts/audits rejected, separate100k admission never implies goal completion. Ready to launch one original immutable wrapper; no live external hands yet.",
+    "Final prelaunch review added an explicit pooled-mean versus equal-size session-mean agreement check; all8 tests passed again before any production start.",
+    "Complete execution source and policy frozen. Exactly8x2500 planned; no automatic restart,supplement,reseed or score-based stop. All client/audit commands use this snapshot.",
+    "Operational/terminal/evidence failure. Only owned live clients were stopped; all files retained. No automatic retry,supplement,reseed,or overwrite. Inspect preserved evidence and diagnose before any recovery.",
+    "Added a post-completion-only independent chip-unit CI/hand-count/hash review and tests while the original8external sessions continued unchanged. It refuses live writers, incomplete20k evidence, repeated/missing attempts, extra raw files and disagreement with saved raw/cluster statistics. It never mutates hand evidence or selects outcomes.",
+    "After original wrapper exits successfully, run review_completed_baseline.py once, merge this supplemental provenance and test result through experiment_log.py, then finish the same record with the actual outcome. If the wrapper terminates invalid/incomplete, preserve evidence and diagnose instead of running this completion-only report or automatically restarting.",
+    "An outcome-blind first100-completed-hand prefix check across8sessions found no aligned3-hand or arbitrary-offset5-hand initial-card/seat replay. This is provisional evidence over800 existing hands,adds zero hands,and does not replace the final full strict audit. Prefix observations and hashes are retained in initial100_deal_prefix_check.json.",
+    "Read-only inspection of the frozen checkpoint confirmed200bb,v4,preflop_pot_fraction_v2,GroupNorm,separate preflop head and no policy_logit_bias/range/context/preflop-profile overrides. The post-completion report repeats these semantic metadata checks without altering the policy.",
+    "Merged all deferred review/tests/prefix provenance after original writer EXIT1. Completion-only review was intentionally NOT run. The agent triggered outcome-blind integrity shutdown after a verified skipped attempt; this was not a score-based stop or mysterious model crash."
+  ],
+  "result": {
+    "summary": "Outcome-blind infrastructure abort preserved4168complete raw hands. A local new_hand connection setup error10048 caused a skipped attempt, making the exact fixed20k design unattainable without forbidden supplementation.",
+    "conclusion": "Original8clients were stopped through owned-process verification and wrapper cleanup; all evidence and immutable policy/source hashes retained. Partial results are exploratory only. No valid completed sampled baseline,policy rejection,formal100k admission or goal success is claimed.",
+    "decision": "ABORTED_INFRASTRUCTURE_NONQUALIFYING_NO_RESTART_NO_SUPPLEMENT",
+    "next_step": "Preregister offline HTTP-session pooling/no-POST-retry and strict fail-fast transport repair. Validate with local keep-alive server and mocked failures,then choose a fresh separately logged external experiment; never resume or pool interrupted evidence."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 16,
+    "command_count": 16
+  },
+  "artifact_integrity": {
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/code.patch": {
+      "type": "file",
+      "bytes": 31757,
+      "sha256": "87f50490140e3781e356149fc58f1bc7b7555b6931142e017f179f39f8df9daf"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 1005,
+      "sha256": "dc944178aaf1d48ccf31a1e35362c136f91033ea7cebdaff2dd165bd0ba61086"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/run_external.py": {
+      "type": "file",
+      "bytes": 14555,
+      "sha256": "cf76dbe9c02a5b0bdd82d6ab342f29dd97007303c55f3f19e8181ee0b0e3e881"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/test_external_runner.py": {
+      "type": "file",
+      "bytes": 3037,
+      "sha256": "f5ac05a7a7256fe874b583666919815cbda81f0fd8a21ee04c53413afd942c9b"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 3712,
+      "sha256": "f1ba9bf492ed3ceb0d314f845548ebe7385b47f8724948f6f29b65b310f80c5f"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/execution_code/code.patch": {
+      "type": "file",
+      "bytes": 361768,
+      "sha256": "43d3fa7f24ff0085d1665e0deda74bcfe38d11b5d891cd702afe749eeb8ccde0"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 11306,
+      "sha256": "4dae0416bd06320a59224ac713ba0995026957520d377e1f0462d72c383edd60"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 19663,
+      "sha256": "e3eb6fc794331c36cdb416843a7ffb7c259123b7956f6e3f1fc781e6c51546a9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\frozen\\standard10.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\evidence_manifest.json": {
+      "type": "file",
+      "bytes": 4849,
+      "sha256": "50207dd20cb0f5908f7a2383bbcbf8642b02870447e522e82fcbc4ce55677d08"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\snapshot_loader_dry_run.json": {
+      "type": "file",
+      "bytes": 1017,
+      "sha256": "e2b9112aee24b31e17298076778ee744b62a52c300193d9e9706b8422f6730d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\run_manifest.json": {
+      "type": "file",
+      "bytes": 1700,
+      "sha256": "b9a74c3ae5531e0772a457c2dce8f8c4773c3ddf9d73252e71ec596920a109e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_dump.jsonl": {
+      "type": "file",
+      "bytes": 2360941,
+      "sha256": "2e053ee1c8dfc3a1dd405b4386d0cd6c7342fefd69f7810de061dd4c05000381"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_hands.jsonl": {
+      "type": "file",
+      "bytes": 168019,
+      "sha256": "baf2b346557535c3e8a7a91fa30b0065de6d4d1e748899c1ee32d19b1046cf5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part01_stdout.log": {
+      "type": "file",
+      "bytes": 1084,
+      "sha256": "6679ad6e91ca9502a7dcbf4d643507dcbb9f212dc5ccc49ef7f02ad1cb0a2759"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_dump.jsonl": {
+      "type": "file",
+      "bytes": 2352045,
+      "sha256": "894454b7fbde4086cebcfc5e105506e45550aec9464b8ab3ba96aa101cd7c94f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_hands.jsonl": {
+      "type": "file",
+      "bytes": 163907,
+      "sha256": "b551062c20b5100a602847f2187c414816a59cef738888947808682aac85e759"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part02_stdout.log": {
+      "type": "file",
+      "bytes": 1085,
+      "sha256": "1933bca03fa33cbfe7d626a8f5b88a25b3316d430196d274412f537f5e7052f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_dump.jsonl": {
+      "type": "file",
+      "bytes": 2321646,
+      "sha256": "bbb1cfedd5e68ad6ad46517fd10c2ef4ed2383002055048d307d9cdb1eee0177"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_hands.jsonl": {
+      "type": "file",
+      "bytes": 166385,
+      "sha256": "ae92852a0a91d5d23c8500894171c50fa0bdb9c6b74e175a715afe4cbd7a90b1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part03_stdout.log": {
+      "type": "file",
+      "bytes": 1087,
+      "sha256": "2f1116ce32d5a852e6f996816cc536d51697749574e9aa62452375b97fef6238"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_dump.jsonl": {
+      "type": "file",
+      "bytes": 2304764,
+      "sha256": "99d23767bb1f4ba23159845ef36acf655e27ec612c9f535f0cdfaee31531767a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_hands.jsonl": {
+      "type": "file",
+      "bytes": 159212,
+      "sha256": "6afb6b05fce867aec90d707c35c954899f2ced1b553aed2182a72f691abe5e8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part04_stdout.log": {
+      "type": "file",
+      "bytes": 1448,
+      "sha256": "8b855cc4672918f289fe6947c1159dfb86105f5fb42304e02c8fe07e42120ccf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_dump.jsonl": {
+      "type": "file",
+      "bytes": 2274103,
+      "sha256": "dc3b412664a4ccd22ad5e142b725a66792de8c53c07a489c16dd12c06ecd22a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_hands.jsonl": {
+      "type": "file",
+      "bytes": 157478,
+      "sha256": "c3884950012b6ff4e81ff5b38b2b3476602aaaac51198147c952cee5f15ee1e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part05_stdout.log": {
+      "type": "file",
+      "bytes": 1081,
+      "sha256": "2ab9972975a4d591b76aec7fc3b624b4d0a31c15f12d9279788eefd85bb9ca82"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_dump.jsonl": {
+      "type": "file",
+      "bytes": 2255865,
+      "sha256": "c4593de898a47835b9436c8dc74754fdabb456b248f2fef0f9aa64b2662aae71"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_hands.jsonl": {
+      "type": "file",
+      "bytes": 162730,
+      "sha256": "6027108f4944633a28330730046fdf9f437a2465ed34fc94685ff3f42f0904f9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part06_stdout.log": {
+      "type": "file",
+      "bytes": 1075,
+      "sha256": "52803e7c9f257b4fe323a7d45e3bea8ada9e0f0067a02b1c295f2e565ee7ba45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_dump.jsonl": {
+      "type": "file",
+      "bytes": 2259022,
+      "sha256": "8f52ae60b8d8bf2371832ea0d0e40c5ec44da35d05e723f4f3522670c29e17bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_hands.jsonl": {
+      "type": "file",
+      "bytes": 153689,
+      "sha256": "b933b72e8c43caa2b17fef7266772139ae1558dafb788595e3c55b27913b2779"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part07_stdout.log": {
+      "type": "file",
+      "bytes": 997,
+      "sha256": "75ec3b301be2adea31006e862609d0b95d5ddf91cb236d2b15a9f039dd28b915"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_dump.jsonl": {
+      "type": "file",
+      "bytes": 2232013,
+      "sha256": "ca8897802feae3b3b9199b023886ce958f5b5aa3a607193e0f6bceb0cc9aff8f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_hands.jsonl": {
+      "type": "file",
+      "bytes": 151413,
+      "sha256": "c5802a0577616400150cfe27b57312e178fbabdffc743f8ab9bc040371a01897"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\sessions\\part08_stdout.log": {
+      "type": "file",
+      "bytes": 996,
+      "sha256": "3400aae792f701531fd7c0b2fdfd871229ae155a054be67c90cd0947178432e5"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/review_completed_baseline.py": {
+      "type": "file",
+      "bytes": 8263,
+      "sha256": "4fe0b187505b2790add7630e8d08a4e885e6ec182837196e06843deb198a44ce"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/test_completed_baseline_review.py": {
+      "type": "file",
+      "bytes": 1805,
+      "sha256": "ebc7f046dbd8b244f6f119f8ca5e4627d254702a6f80dfa70c193eeed449458a"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/check_initial_prefixes.py": {
+      "type": "file",
+      "bytes": 3537,
+      "sha256": "cd88a9283e425dbd6c2abe26fcc043611804aa0572ba529383263aa36cb41700"
+    },
+    "research/experiments/standard10-native-sampled-slumbot20k-20260830/initial100_deal_prefix_check.json": {
+      "type": "file",
+      "bytes": 133034,
+      "sha256": "0ff0a02b2355256485c1a0cd216ef74cbab7fab787e11ccc21a54131c195a87d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\deferred_review_updates.json": {
+      "type": "file",
+      "bytes": 2517,
+      "sha256": "3ea41bc91ed9b1fd23e0a60f41cdc56bc10ad469b1bc72b6d75cc2a3aa6b0ba5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\integrity_stop_reason.json": {
+      "type": "file",
+      "bytes": 1447,
+      "sha256": "4715559d0ff5ac3199c840f1f1a7f240611d94bd535355f1537b3d953dee70b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\integrity_abort_analysis.json": {
+      "type": "file",
+      "bytes": 4528,
+      "sha256": "b8bd69065a2f070b75decb535b762b96aa633614855f2cf4946a50fb32a3d3d2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 1982,
+      "sha256": "5768141adee61fddc65685f47839b0239fb83adfe11d45b381561f55eb776496"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\standard10-native-sampled-slumbot20k-20260830\\close_integrity_abort.py": {
+      "type": "file",
+      "bytes": 7979,
+      "sha256": "0d2de752a9ae50227dbfd0d69ed9ebff105815ef815e602638a75248f17d12d3"
+    }
+  }
+}

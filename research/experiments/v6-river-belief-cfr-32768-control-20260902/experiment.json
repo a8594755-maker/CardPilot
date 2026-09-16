@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-river-belief-cfr-32768-control-20260902",
+  "title": "River belief-CFR 32k convergence boundary control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T14:10:12+00:00",
+  "updated_at": "2026-09-02T15:51:21+00:00",
+  "started_at": "2026-09-02T14:10:12+00:00",
+  "ended_at": "2026-09-02T15:51:21+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A final fourfold extension from8,192 to32,768 iterations on the identical six states and three seeds will continue reducing every-state cross-seed TV and increasing pooled greedy agreement enough to determine whether stable solver targets are computationally reachable on current hardware.",
+  "material_change": "Generalize the durable scale runner to accept the SHA-bound8,192 cell cohort as its exact replay parent, then rerun each seed trajectory to32,768 in atomic per-cell outputs. No new states, ranges, environment hands, or learned weights.",
+  "baseline": "At8,192 iterations mean regret=9.353, pooled TV=0.3276, greedy agreement=0.4630; all six state TVs improved but state2/4 remained above0.52.",
+  "source": "research/experiments/v6-river-belief-cfr-8192-control-20260902/run",
+  "parent_id": "v6-river-belief-cfr-8192-control-20260902",
+  "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_scale_control.py --parent-run research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run --replication-control research/experiments/v6-river-belief-cfr-8192-control-20260902/run --iterations 8192,32768 --output-dir research/experiments/v6-river-belief-cfr-32768-control-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_scale_control.py --parent-run research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run --replication-control research/experiments/v6-river-belief-cfr-8192-control-20260902/run --iterations 8192,32768 --output-dir research/experiments/v6-river-belief-cfr-32768-control-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T14:10:12+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7c945996aeabad170688b48e90639095445d1ab5aaa9cd9a0c6b346a12f678a5",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T14:10:12+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-river-belief-cfr-32768-control-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-river-belief-cfr-32768-control-20260902/source_manifest.json",
+    "source_manifest_sha256": "5f0c5fbfa7ad8ea2a2b034f7ef1f1d73f3641e328803478bd5708385fc25b9e1",
+    "source_files": 215
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 1179648,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 6069.0,
+    "planned_solver_traversals": 1179648,
+    "planned_cells": 18,
+    "planned_max_iterations": 32768,
+    "completed_cells": 18,
+    "solver_terminal_nodes": 30457495,
+    "solver_final_infosets": 3446716
+  },
+  "metrics": {
+    "mean_final_root_regret_proxy_bb": 2.838657442309157,
+    "parent_pooled_tv": 0.3275545716166004,
+    "final_pooled_tv": 0.2334547198435073,
+    "parent_pooled_greedy_agreement": 0.46296296296296297,
+    "final_pooled_greedy_agreement": 0.5798611111111112,
+    "pooled_tv_log_log_slope": -0.244296263894705,
+    "projected_pooled_iterations_for_tv0p1": 1053530.68954333
+  },
+  "artifacts": [
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/run",
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/code.patch",
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/source_manifest.json",
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/run/summary.json",
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/run/cells",
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/pre_finish_audit.json",
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/pre_finish_audit_retry.json"
+  ],
+  "notes": [
+    "This is a convergence boundary, not an automatic distillation admission. Exact8k replay is mandatory. Original absolute target gates remain TV<=0.10 and agreement>=0.80; if convergence remains too slow or heterogeneous at32k, close this solver configuration without policy training."
+  ],
+  "result": {
+    "summary": "All18 cells exactly replayed SHA-bound8,192 parent strategies, regrets and node counts, then completed1,179,648 solver traversals to32,768. Mean regret fell9.353 to2.839, pooled TV0.3276 to0.2335, agreement0.4630 to0.5799, and every state TV improved. Absolute target gates still failed: state0/2/4 TV were0.352/0.359/0.409 and agreement0.438/0.222/0.243. Current-slope projections require about1.05M iterations for pooled TV0.10 and about3.5M/21M/56M for state2/4/0 respectively.",
+    "conclusion": "The belief-CFR concept has strong, reproducible convergence, but the current single-sampled opponent-action external-sampling estimator is too sample-inefficient and heterogeneous to yield trustworthy distillation targets on current hardware. No learned policy may use these targets. This is a configuration-level variance failure, not evidence against belief-based river solving.",
+    "decision": "CLOSE_SINGLE_PATH_RIVER_CFR_SAMPLER_NO_DISTILLATION",
+    "next_step": "Before any more solver scale, implement a matched variance-reduction control on the unstable state0/2/4 cohort: increase opponent-action samples or use chance-sampled/full-action expectation while matching terminal-rollout compute and preserving exact physical rules. Compare regret and cross-seed TV per terminal node; continue river solver research only if variance efficiency improves materially. Otherwise return to learned-weight objectives."
+  },
+  "tags": [
+    "convergence-boundary",
+    "restartable",
+    "solver",
+    "zero-environment-hands"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 40787,
+      "sha256": "5f0c5fbfa7ad8ea2a2b034f7ef1f1d73f3641e328803478bd5708385fc25b9e1"
+    },
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 14895,
+      "sha256": "910a572f654e58805452e86b11938c6980e22dc24afeda4a29bb1551e772c10a"
+    },
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/run/cells": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/pre_finish_audit.json": {
+      "type": "file",
+      "bytes": 3749,
+      "sha256": "cf165da3cf6afa5761fb57d731bba1db5456476b21790a990d2d1d082433aa68"
+    },
+    "research/experiments/v6-river-belief-cfr-32768-control-20260902/pre_finish_audit_retry.json": {
+      "type": "file",
+      "bytes": 3749,
+      "sha256": "005908d931f75154c92052e7336a9d010217db8913a6aa4e5224a2a02e0edd43"
+    }
+  }
+}

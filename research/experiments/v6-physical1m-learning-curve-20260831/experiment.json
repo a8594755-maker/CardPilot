@@ -1,0 +1,859 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-physical1m-learning-curve-20260831",
+  "title": "Corrected-v6 physical one-million-hand learning curve",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T12:32:19+00:00",
+  "updated_at": "2026-08-31T13:28:54+00:00",
+  "started_at": "2026-08-31T12:32:19+00:00",
+  "ended_at": "2026-08-31T13:28:54+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A fourfold physical horizon improves held-out strength beyond the same-run262k midpoint while retaining breadth over the original source.",
+  "material_change": "Fresh original source/new seeds; qualified multi8 control3 learning settings;1048576physical target;counter-selected262k/524k/final;fixed327680hand untouched matrix and six-contrast growth/breadth gate.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-diverse-learned-league-pilot-20260831",
+  "command": "python research/experiments/v6-physical1m-learning-curve-20260831/run_curve.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-physical1m-learning-curve-20260831/run_curve.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:32:19+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\test_curve.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:32:52+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1048576 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026093000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_physical1m_curve_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\latest.pt --seed 20260930 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:32:54+00:00"
+    },
+    {
+      "command": "python -c \"import json\nfrom pathlib import Path\nimport sys\nimport torch\ntorch.set_num_threads(1)\nbase=Path('research/experiments/v6-physical1m-learning-curve-20260831').resolve()\nsys.path.insert(0,str(base))\nimport run_curve as run\nfrom alpha_holdem.policy_contract_v6 import validate_metadata\npath=base/'production/checkpoints/checkpoint_iter000004_hands000000016582.pt'\nbefore=run.sha(path)\npayload=torch.load(path,map_location='cpu',weights_only=False)\nsource=torch.load(run.SOURCE,map_location='cpu',weights_only=False)\nvalidate_metadata(payload)\naccount=payload['environment_hand_accounting']\nassert payload['iteration']==4 and payload['run_id']==run.RUN_ID\nassert account['prefix_complete'] and account['unknown_prefix_training_marker_hands']==0\nassert account['origin_run_id']==run.RUN_ID\nassert account['completed_hands']==sum(w['completed_hands'] for w in account['session_worker_counts'])\nassert len(payload['model'])==86 and all(torch.isfinite(v).all() for v in payload['model'].values())\nassert sum(not torch.equal(v,source['model'][k]) for k,v in payload['model'].items())==86\nassert len(payload['optimizer']['state'])==86\nsteps=[]\nfor state in payload['optimizer']['state'].values():\n    assert float(state['step'])>0 and all(torch.isfinite(v).all() for v in state.values() if isinstance(v,torch.Tensor))\n    steps.append(float(state['step']))\ncopies=run.read(base/'execution_code/copy_manifest.json')\nanchors=run.read(base/'anchor_manifest.json')\nrun.verify(copies,anchors)\nassert before==run.sha(path)\nprint(json.dumps(dict(status='PASS',iteration=4,physical_hands=account['completed_hands'],legacy_markers=payload['total_hands'],finite_changed_tensors=86,adam_step_range=[min(steps),max(steps)],sha256=before,source_pairs_verified=len(copies),new_validation_hands=0)))\"",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:34:28+00:00"
+    },
+    {
+      "command": "python -c \"import json\nfrom pathlib import Path\nimport sys\nimport torch\ntorch.set_num_threads(1)\nbase=Path('research/experiments/v6-physical1m-learning-curve-20260831').resolve()\nsys.path.insert(0,str(base))\nimport run_curve as run\nfrom alpha_holdem.policy_contract_v6 import validate_metadata\npath=base/'production/checkpoints/checkpoint_iter000056_hands000000230766.pt'\nbefore=run.sha(path)\npayload=torch.load(path,map_location='cpu',weights_only=False)\nsource=torch.load(run.SOURCE,map_location='cpu',weights_only=False)\nvalidate_metadata(payload)\naccount=payload['environment_hand_accounting']\nassert payload['iteration']==56 and payload['run_id']==run.RUN_ID\nassert account['prefix_complete'] and account['unknown_prefix_training_marker_hands']==0\nassert account['origin_run_id']==run.RUN_ID\nassert account['completed_hands']==sum(w['completed_hands'] for w in account['session_worker_counts'])\nassert len(payload['model'])==86 and all(torch.isfinite(v).all() for v in payload['model'].values())\nassert sum(not torch.equal(v,source['model'][k]) for k,v in payload['model'].items())==86\nassert len(payload['optimizer']['state'])==86\nsteps=[]\nfor state in payload['optimizer']['state'].values():\n    assert float(state['step'])>0 and all(torch.isfinite(v).all() for v in state.values() if isinstance(v,torch.Tensor))\n    steps.append(float(state['step']))\nfirst=torch.load(base/'production/checkpoints/checkpoint_iter000004_hands000000016582.pt',map_location='cpu',weights_only=False)\nassert first['environment_hand_accounting']['completed_hands']<account['completed_hands']\nassert min(steps)>max(float(s['step']) for s in first['optimizer']['state'].values())\ncopies=run.read(base/'execution_code/copy_manifest.json')\nanchors=run.read(base/'anchor_manifest.json')\nrun.verify(copies,anchors)\nassert before==run.sha(path)\nprint(json.dumps(dict(status='PASS',iteration=56,physical_hands=account['completed_hands'],legacy_markers=payload['total_hands'],finite_changed_tensors=86,adam_step_range=[min(steps),max(steps)],sha256=before,source_pairs_verified=len(copies),new_validation_hands=0)))\"",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-31T12:42:07+00:00"
+    },
+    {
+      "command": "python -c \"import json\nfrom pathlib import Path\nimport sys\nimport torch\ntorch.set_num_threads(1)\nbase=Path('research/experiments/v6-physical1m-learning-curve-20260831').resolve()\nsys.path.insert(0,str(base))\nimport run_curve as run\nfrom alpha_holdem.policy_contract_v6 import validate_metadata\npath=base/'production/checkpoints/checkpoint_iter000112_hands000000462315.pt'\nbefore=run.sha(path)\npayload=torch.load(path,map_location='cpu',weights_only=False)\nsource=torch.load(run.SOURCE,map_location='cpu',weights_only=False)\nvalidate_metadata(payload)\naccount=payload['environment_hand_accounting']\nassert payload['iteration']==112 and payload['run_id']==run.RUN_ID\nassert account['prefix_complete'] and account['unknown_prefix_training_marker_hands']==0\nassert account['origin_run_id']==run.RUN_ID\nassert account['completed_hands']==sum(w['completed_hands'] for w in account['session_worker_counts'])\nassert len(payload['model'])==86 and all(torch.isfinite(v).all() for v in payload['model'].values())\nassert sum(not torch.equal(v,source['model'][k]) for k,v in payload['model'].items())==86\nassert len(payload['optimizer']['state'])==86\nsteps=[]\nfor state in payload['optimizer']['state'].values():\n    assert float(state['step'])>0 and all(torch.isfinite(v).all() for v in state.values() if isinstance(v,torch.Tensor))\n    steps.append(float(state['step']))\nfirst=torch.load(base/'production/checkpoints/checkpoint_iter000056_hands000000230766.pt',map_location='cpu',weights_only=False)\nassert first['environment_hand_accounting']['completed_hands']<account['completed_hands']\nassert min(steps)>max(float(s['step']) for s in first['optimizer']['state'].values())\ncopies=run.read(base/'execution_code/copy_manifest.json')\nanchors=run.read(base/'anchor_manifest.json')\nrun.verify(copies,anchors)\nassert before==run.sha(path)\nprint(json.dumps(dict(status='PASS',iteration=112,physical_hands=account['completed_hands'],legacy_markers=payload['total_hands'],finite_changed_tensors=86,adam_step_range=[min(steps),max(steps)],sha256=before,source_pairs_verified=len(copies),new_validation_hands=0)))\"",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-31T12:43:47+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production --expected-target-hands 99999999 --expected-target-environment-hands 1048576 --expected-final-iteration 216 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:52:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:13+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:14+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:18+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid262.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid262.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:21+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid262.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:22+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid262.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:23+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid262.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:24+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid524.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:26+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid524.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid524.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid524.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:30+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid524.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:31+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:32+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:33+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:36+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20261001 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:53:37+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-physical1m-learning-curve-20260831/inspect_completed_prefix.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:05:51+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-physical1m-learning-curve-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:28:53+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-physical1m-learning-curve-20260831",
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-08-31T12:32:19+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-physical1m-learning-curve-20260831/code.patch",
+    "patch_sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4",
+    "source_manifest": "research/experiments/v6-physical1m-learning-curve-20260831/source_manifest.json",
+    "source_manifest_sha256": "a40a225613ae5693c03eca06cbea6f1b4ac71a7e9008f6dd51494c70ed90d8c7",
+    "source_files": 73
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 1051652,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 327680,
+    "wall_time_seconds": 3395.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_iteration": 216,
+    "wrapper_start_to_final_manifest_seconds": 1203.292945,
+    "inclusive_physical_hands_per_second": 873.978364428955
+  },
+  "artifacts": [
+    "research/experiments/v6-physical1m-learning-curve-20260831/preregistration.md",
+    "research/experiments/v6-physical1m-learning-curve-20260831/code.patch",
+    "research/experiments/v6-physical1m-learning-curve-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\anchor_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor4.pt",
+    "research/experiments/v6-physical1m-learning-curve-20260831/production/checkpoints/checkpoint_iter000004_hands000000016582.pt",
+    "research/experiments/v6-physical1m-learning-curve-20260831/production/checkpoints/checkpoint_iter000056_hands000000230766.pt",
+    "research/experiments/v6-physical1m-learning-curve-20260831/production/checkpoints/checkpoint_iter000112_hands000000462315.pt",
+    "research/experiments/v6-physical1m-learning-curve-20260831/audit_checkpoint112.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\trainer_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\checkpoint_selection.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid262.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid524.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\training_health.json",
+    "research/experiments/v6-physical1m-learning-curve-20260831/literature_note.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\completed_prefix_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prefix_review_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prefix_review_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prefix_review_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Prior parent gate failed; no old control/treatment promotion. New fresh training only, not interrupted-run resume. External source20k finished negative and is excluded from training/evaluation accounting.",
+    "Outcome-blind first scheduled archive iteration4 passed explicit v6 metadata, complete physical worker counters,86 finite changed tensors,86 finite nonzero Adam states and immutable pre/post SHA; all current and protected-parent source pairs unchanged. Zero extra training/evaluation hands in this read-only check.",
+    "Outcome-blind first scheduled262k crossing archive iteration56 passed explicit v6 metadata, complete physical worker counters,86 finite changed tensors,86 finite nonzero Adam states strictly advanced from the preserved iteration4 archive and immutable pre/post SHA; all current and protected-parent source pairs unchanged. Zero extra training/evaluation hands in this read-only check.",
+    "Outcome-blind first scheduled524k crossing archive iteration112 passed explicit v6 metadata, complete physical worker counters,86 finite changed tensors,86 finite nonzero Adam states strictly advanced from the preserved iteration56 archive and immutable pre/post SHA; all current and protected-parent source pairs unchanged. Zero extra training/evaluation hands in this read-only check.",
+    "One audit-record warning investigated: COMMAND_PLACEHOLDER_RE greedily matches from Python less-than to greater-than comparisons in two successfully executed multiline python -c immutable-archive checks. These are literal executable comparisons, not missing parameters. Preserve the exact original commands and hashes; do not edit active or protected logger/runtime. No training or evaluation evidence failure. Resolve classifier false-positive in a separately versioned infrastructure change after active sources are safely frozen.",
+    "All curve weights frozen using only physical counters; no performance selection. Training/session health passed.",
+    "All training has ended; starting the one fixed327680hand matrix. No outcome peeking, selection or extensions.",
+    "Independent read-only training handoff: trainer33208 dead with exit0; manifest/health/session audit agree1051652physical hands/216updates,overshoot3076,tail0. Five final training artifacts match session-audit SHA256;four frozen curve checkpoint hashes match originals;76runtime source/copy pairs unchanged. No new hands or policy queries; fixed matrix unchanged.",
+    "Observed physical throughput is computed from wrapper.started_at through the final finished training manifest timestamp, including setup and excluding subsequent audit/evaluation. A constant-rate2.7B extrapolation is not a commitment or proof of long-scale stability/learning; any expansion still depends on the fixed held-out growth evidence.",
+    "Read-only primary-paper review recorded: evaluation argmax versus sampling was not explicitly established in inspected text; current sampled policy and preregistered gates remain unchanged. Dynamic value clipping already exists locally; representation differences require future measured experiments, not ad-hoc runtime changes.",
+    "Outcome-blind first7closed-cell prefix audit PASS:114688existing internal hands have exact regenerated decks/indices and immutable checkpoint/raw hashes;76source pairs unchanged. No extra hands/model queries or score calculation. Full final review remains required.",
+    "Fixed training/matrix completed; independent review required before finish.",
+    "Independent counter-only selection, optimizer continuation, raw regenerated deals, six-contrast gate and all session/source identities verified."
+  ],
+  "result": {
+    "summary": "Fresh physical1m curve completed1051652training and327680internal hands;ADMIT_INDEPENDENT_CONFIRMATION.",
+    "conclusion": "Fixed within-run held-out growth and source breadth gate; all evidence valid, no external claim.",
+    "decision": "ADMIT_INDEPENDENT_CONFIRMATION",
+    "next_step": "Preregister independent confirmation of this exact new final."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 27,
+    "command_count": 29
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-physical1m-learning-curve-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4678,
+      "sha256": "30429ce3b3677982bdd225a08c53012d8aaef478ea92e94e664e4f79656dd2f0"
+    },
+    "research/experiments/v6-physical1m-learning-curve-20260831/code.patch": {
+      "type": "file",
+      "bytes": 12702916,
+      "sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4"
+    },
+    "research/experiments/v6-physical1m-learning-curve-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 13550,
+      "sha256": "a40a225613ae5693c03eca06cbea6f1b4ac71a7e9008f6dd51494c70ed90d8c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14028,
+      "sha256": "7f102972f7582d13863f5cbb54fe7ac320f2e8350ba0ee168691f4e816ed4d40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23831,
+      "sha256": "eec7b2e22eb45db9d1fde68f80b46f1e91b58c1908625d0a9aaeb0ee482388cc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2506,
+      "sha256": "8efb839311754ad8b599c08c52459030e9c3c078daf8b90b1f6e942e4cfc0394"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\anchor_manifest.json": {
+      "type": "file",
+      "bytes": 1840,
+      "sha256": "b8cee3d3404e20d2524ef9c0f02dd9498c4236f3c87d015862dbaaeb1413a941"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "research/experiments/v6-physical1m-learning-curve-20260831/production/checkpoints/checkpoint_iter000004_hands000000016582.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "e589d149c6b10341a027fb39fb0b0dcff4bfc4896b8138c1daaf67a9d78aa721"
+    },
+    "research/experiments/v6-physical1m-learning-curve-20260831/production/checkpoints/checkpoint_iter000056_hands000000230766.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "7d7eeb0d648f2d1a51ff79b600e59e0fdc4afcca73541e90bd5dda304348a0c3"
+    },
+    "research/experiments/v6-physical1m-learning-curve-20260831/production/checkpoints/checkpoint_iter000112_hands000000462315.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "6e95973cd6a671806f0f6e6fd85930cc3039ee0a2daf37edd24c0085f6144581"
+    },
+    "research/experiments/v6-physical1m-learning-curve-20260831/audit_checkpoint112.json": {
+      "type": "file",
+      "bytes": 1479,
+      "sha256": "d8f3290bfe892d68b510b64cceb0ac8282493f3ce645c2f588b411cd15f721ca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\trainer_stdout.log": {
+      "type": "file",
+      "bytes": 134787,
+      "sha256": "c07461abfbe573560eec82d4a2f05d820f65dd0ef1b2ad2022689607c07e2b14"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\checkpoint_selection.json": {
+      "type": "file",
+      "bytes": 1589,
+      "sha256": "3675a555ebbe96ae520062fe0c8370bb6a9dac1ba08eb1c4c6be072c520112f7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid262.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "7d7eeb0d648f2d1a51ff79b600e59e0fdc4afcca73541e90bd5dda304348a0c3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\mid524.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "6e95973cd6a671806f0f6e6fd85930cc3039ee0a2daf37edd24c0085f6144581"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "bc4f62257a474ad438cd574d4c59b28ea009060749f0fb86e3e97c46120d0172"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\latest.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "bc4f62257a474ad438cd574d4c59b28ea009060749f0fb86e3e97c46120d0172"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57943,
+      "sha256": "98c61caa1cc03dd2d9b6197831c49598dd5e9f3701f05955630db8bef6c8e99f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 5774050,
+      "sha256": "9a02ba02fbdcbc7252459f7bce38857859414b90eda738fd46c5d74aa997f53e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 540065,
+      "sha256": "8fd24e49618b22601345b3469c3e289a10c71cbc564c7f20720f8acfd0b6b8e8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\latest_train.log": {
+      "type": "file",
+      "bytes": 95510,
+      "sha256": "98932db5ffdcf80bae783411a6a72c1af93a1357f8074820323d45e06827103d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\session_audit.json": {
+      "type": "file",
+      "bytes": 23675,
+      "sha256": "096495bc1604e668274ae1d4b715bfd919b4802576e32d977582535b5c682520"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 23675,
+      "sha256": "096495bc1604e668274ae1d4b715bfd919b4802576e32d977582535b5c682520"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\production\\training_health.json": {
+      "type": "file",
+      "bytes": 196,
+      "sha256": "73d049a8b67e225ea90e3116c475b9ddddba1dd4dae9f5ef8515c83148f47f2f"
+    },
+    "research/experiments/v6-physical1m-learning-curve-20260831/literature_note.md": {
+      "type": "file",
+      "bytes": 1125,
+      "sha256": "091f8633638209710aa1aeb5921c70df31f3e4e7122b6376c97c5e4f9f61fb48"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\completed_prefix_review.json": {
+      "type": "file",
+      "bytes": 2281,
+      "sha256": "28dd3d33814f5e156b6b4967edd800a62bff9cf4f25f74ab17141b3eee844791"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prefix_review_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 331,
+      "sha256": "6722af7bf7b8caa2d8bc47574f138dc3527162859b141b3e6b93bf15c607329d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prefix_review_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\prefix_review_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 399,
+      "sha256": "ebcf666c35db7ffd8b1bf6e8e4ca232d9b63d55675890c118568bb4eb2e8f0d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1489,
+      "sha256": "bdcd02b707f94d11b8115f5497a97122e8b956acec01075e86cc9fa3ebd71344"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2298037,
+      "sha256": "815a02ec232f44207c5fab71283e6deb6d7a9564462cf56df236a70e331abefd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1728,
+      "sha256": "9bf7f5be036cf4f81a68a131028663adc1de96d45195c0ca0937d459bae556d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1532,
+      "sha256": "3e95a42b53f210f9c69758d97244d4ab863b1357ffc2c34200047153826b12ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2279910,
+      "sha256": "e14800d124473b339c2324705a7991180bfa431c9d6a3db024a0cfdc3c6f7217"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1771,
+      "sha256": "bf63fc336956d5d2b830104e3bb127935580a5a10cf4bd4fe9f354095dbe1720"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1530,
+      "sha256": "f13337141e338636dc3db04852b0fc03f3458fa2d115dc6ada49a0901dcf147e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2294490,
+      "sha256": "986e2a3c9f6240953f6dce6f7934317a8722f40fa6a3738fff383edc79bede97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1769,
+      "sha256": "5835696838e532f44487c5ef6d3c2f47521861f4e8bdd64fabd48f8d64740675"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1531,
+      "sha256": "56028b7c3a5ea520bde6e61407253e0a92988b900d077f3b8c19be13f1d3fb35"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2301299,
+      "sha256": "6d9595218730f44d66157365805e39f6da7f90bb7150950555087faaefbbd6b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1770,
+      "sha256": "22ca9eb75f3cc05d99e94f7d2bc14d49289bf857869704a91ed1d55428bddf80"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1531,
+      "sha256": "2e6ecff1cd8d745eadfc2519c86c39f9c3e731df4ab24a1298a1600df0f5bb60"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2302683,
+      "sha256": "7fcc169d586254dd5e2d97307e70f2df75d34a92b7038688a5eeade507fc3c57"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1770,
+      "sha256": "44d623c2f8a28e8f24e869565008fe8658b4c556a358c9e8c2fd55f1b1c2594e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "e1de762475bee46c0c5d6cd3b7a88734263b8e7f95a882e7dac2a9d2e3a559bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2294898,
+      "sha256": "4d5afaad5ab259654fb781828a2b74e938bcf1859cb52e4cd94eb925f230606c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1772,
+      "sha256": "ab6b003d8a47930b7b67c9850088faf72927d5d0ff1acd15e9f8f6d2c2eaa8bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1532,
+      "sha256": "e6a66c7d77696166eefec3c91c4a6eb38974b28715dae3f96567a32c654713ac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2279687,
+      "sha256": "437995c3a8102447936b6e25dda3f11e0e2b79a7a2a46de19a5d1db78cf42259"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1771,
+      "sha256": "35d74c4a27410b38679ebeb80c2e1aae9ace03f1240a2e0e4b13b8a17459b155"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1529,
+      "sha256": "db913acd91b81f2891f33423418b9d38ab691116ad55ddad91e9902e94665d5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2292312,
+      "sha256": "b09f0bcf2ea228a593c1f897af945fe0a44d0e5dadaeee9afb64bb4100d39cc5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1768,
+      "sha256": "6f01172cc621f841c4188b5887b321f24136297fecc96330b046c32a54309f13"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1531,
+      "sha256": "15cfd3d29d217db51e857a9dbaf547dcacce72892091c596a4bdacf841d5db22"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2298684,
+      "sha256": "90a53e213b5ecd908e3a5c40b32d519a4c6dc232090886b74080e31b584bb1f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1770,
+      "sha256": "ac409ef75ccf4ec3f448ced48b3d7a035d0e0677cfa83583b58dc94bac57d957"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1529,
+      "sha256": "faab5c69940799f5f3067bbc870592d67a60a272ed2b619a0325b5315ce6ad7f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid262_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2296801,
+      "sha256": "644480d8c5adce604f333283b96a993f1d4c5a69ceaf164edf8ca69f3f7a22d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid262_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1768,
+      "sha256": "6908f6c330b63139e99fe886e6580317a9b02cb6248b0f271f5969f9721d6ba6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "b079520414cf0316b763e5efdc0b2d458d9cf05dc7e6758f6dc386d55fa95a97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2292192,
+      "sha256": "87031c0dd985936c46de72ea36f665184f5c59f9724f1d4dc134d6dc8b14417f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1772,
+      "sha256": "f4998dc91692b9abdaf91c5eb77d12db61f51c31a8c5fad267d45f74b72bf657"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1530,
+      "sha256": "8b4099d015df3dee343d36263678fbc0620046909e26095489de6ac8d89f5289"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2279394,
+      "sha256": "14bc7df0d1305627641f3ca79f62f9f78aea5006e196a5aa742b8c31645a9181"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1769,
+      "sha256": "f481db0f8ecad50b0c4638cefb1208601610c2a375d00a74b4daf2e8119a1709"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1528,
+      "sha256": "8248d736829e7c1cb13aa71a3534b1fb83fb0ffd9345488962be2521dcde78d4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2291778,
+      "sha256": "d2d5aa9eb8021628b618c8544f8549185780843a94c477078b6a6805731a38f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1767,
+      "sha256": "307d329e676fe0141f526579af183e77da2c8c6c0f8464ee3e105ef6c295e405"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1529,
+      "sha256": "73329d2bd4b773e56f8958610fc9d2b1caf8a8d422e26ac3ca76c8d26f5cf7e9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2296354,
+      "sha256": "49ac9e9548549ca7bc80e946bbd175b0c6e80bd5c1fe5cd46d764a107bd218b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1768,
+      "sha256": "67530d45ad9d913ad5421cdec332fa99c671c0a8555f142c29a5c55a35e49a21"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1531,
+      "sha256": "4bef2bcf376f56224dc38833e1380141235fa32c919571391a69d1253ba58729"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\mid524_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2295118,
+      "sha256": "b9734b57602ac810d80f61f2d573e6d87e8a301e41b9678fd00f2f8b555eb7fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\mid524_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1770,
+      "sha256": "e9338224f86c2312f7d70012a0ffe5d544ff4e3b6ba48fc403434aad91858e26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1527,
+      "sha256": "b02a2cd71a490ff256ecfd0557ea3cb4d2eeff2e09d2dedddc2797f9c4738ef3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2291696,
+      "sha256": "91514e39e879d1c67e0c8cfb8d3077cd32312a3ba5d265ac256b85583f162c45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1766,
+      "sha256": "122fa0f1013e06dbbdfa49c1b75c1cb83b520e80418c5427aa11a3c7ae6ba1de"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1530,
+      "sha256": "becc3e2ec9a4b332a2809370abcc347f1e1186cea51db844d019bd6d00bb9b9d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2280217,
+      "sha256": "e8eacdf34272be8800032fa793690d388cb41a3d5b4bbd0ec9fd29386b3d7b61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1769,
+      "sha256": "ae2887d6089365e3fe0c8989e85a18c76a489467baf58292eafcf0fd90557da8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1529,
+      "sha256": "f31ec14b67c06eea512fe802270877b4c2c01f07b129e3698294f47f9aa18a2c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2291275,
+      "sha256": "76a4032deed1850ec6392a1708b1773e40ebf9bfcbb87d52e2146c7f0c3ababb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1768,
+      "sha256": "2d9db7cce828f6725cef2b83b3bbb614e5390598bc0dfe01146480a486c1e22c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1529,
+      "sha256": "10e6428bcdc100f718d712cfdb8868af8aa6f297dc8328301711b6f77e34aacd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2295368,
+      "sha256": "fc23eaf28a37ed64244e0aea2ec89949f97fbf3a5c668a342994c5d7bf7da5d4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1768,
+      "sha256": "74e15bf4616df5a178e26e6cc590a6361bc3e7ad762c2df4de9a71e628184916"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1529,
+      "sha256": "0eb8baf5b6f7c8803813e7ec6ac2469af437ee42235c36182279ff4f128b2918"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\matrix\\final_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2295210,
+      "sha256": "18dc3ad515e5080b84476997c0d5e85f5d764c4b69e60b00c856e85b1d70c22a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\final_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1768,
+      "sha256": "a2e9bd3b2f8351cedf7975b1a93ea0f96f724bbd7c0565e931451ab2e0f481a1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 3625,
+      "sha256": "e8577a02c54c2ca736c12ee309d2471306c246a141b9eef065304f323b610d19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 19938,
+      "sha256": "076e30fd46017800d344abe691c5b1d1380cb001484bb4fc21de5ffa870b211c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 13130,
+      "sha256": "68e6214a068f727f7abae83c0070bc5f1d765371b6bcd9fc733985dd3f8373aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-learning-curve-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1163,
+      "sha256": "e16d5ffdb3821dadca5e5b5e26e5b5e252350c113cb524180afd18986a2d8ffb"
+    }
+  }
+}

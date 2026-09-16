@@ -1,0 +1,254 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-flat-sequence-smoke-terminal-recovery-20260831",
+  "title": "Flat-sequence smoke terminal-evidence recovery",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T22:46:04+00:00",
+  "updated_at": "2026-08-31T22:51:03+00:00",
+  "started_at": "2026-08-31T22:47:53+00:00",
+  "ended_at": "2026-08-31T22:51:03+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact preserved35546-hand flat-sequence endpoint can pass schema-aware health/session audit and its untouched fixed internal evaluation without any training replay.",
+  "material_change": "Read-only audit of endpoint E0DEA568..., then untouched4096-pair seed20261032 evaluation;0 new training hands.",
+  "baseline": "Parent smoke remains FAILED after post-training reviewer schema error; child trainer exit0 and endpoint preserved.",
+  "source": "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/preregistration.md",
+  "parent_id": "v6-flat-sequence-reward-smoke-20260831",
+  "command": "python research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/run_recovery.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/run_recovery.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:46:04+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-reward-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-reward-smoke-20260831\\production --expected-target-hands 99999999 --expected-target-environment-hands 32768 --expected-final-iteration 7 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:47:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-reward-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261032 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\evaluation",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:48:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:51:03+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831"
+    ],
+    "captured_at": "2026-08-31T22:46:04+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/source_manifest.json",
+    "source_manifest_sha256": "f6d95d1169b5961c6c093046007efcb2775e8395cead5b989a5e664928b48d98",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 8192,
+    "wall_time_seconds": 190.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 171.0,
+    "review_wall_time_seconds": 1.047000000020489
+  },
+  "artifacts": [
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/preregistration.md",
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/code.patch",
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/source_manifest.json",
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/run_recovery.py",
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/review_finish.py",
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/test_recovery.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\evaluation_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\run_recovery.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\test_recovery.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\evaluation\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\evaluation\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\frozen\\treatment.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\run_recovery.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\test_recovery.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\test_recovery.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "No training/resume authority. Parent endpoint, hand counter, metrics, inputs and FAILED status are immutable; evaluation seed/pairs were not previously consumed.",
+    "Admission tests3PASS; exact parent FAILED status, endpoint SHA,35546 physical hands and unused evaluation seed verified. No training/resume code path exists."
+  ],
+  "result": {
+    "summary": "Read-only flat-sequence terminal recovery completed: ADMIT_MATCHED_FLAT_SEQUENCE_REWARD_PILOT.",
+    "conclusion": "Read-only recovery validates the preserved smoke endpoint but does not retroactively complete the failed parent or establish external strength.",
+    "decision": "ADMIT_MATCHED_FLAT_SEQUENCE_REWARD_PILOT",
+    "next_step": "Preregister a matched262144-hand flat-sequence treatment versus architecture-free control with fixed multi-anchor evaluation."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 1614,
+      "sha256": "d2f0b46eadb54d30dfb1bf903f85f34b62580069fa65fbb6139dbb714f7879f4"
+    },
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 547,
+      "sha256": "f6d95d1169b5961c6c093046007efcb2775e8395cead5b989a5e664928b48d98"
+    },
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/run_recovery.py": {
+      "type": "file",
+      "bytes": 10145,
+      "sha256": "bb2a04e430a7f75ca1c3d8b7c7e4effda485b1914aad041a126ad857c20bc926"
+    },
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 4410,
+      "sha256": "8e7bb5e98ed3b4d8d159dbb8e56156718a19e04facd1f9eb7f8e34bd0d750791"
+    },
+    "research/experiments/v6-flat-sequence-smoke-terminal-recovery-20260831/test_recovery.py": {
+      "type": "file",
+      "bytes": 648,
+      "sha256": "9ee73659a14d6276300fbe0a696d91e082163660a66bfccadf0255bd09eed7d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 608,
+      "sha256": "875741db885791743737ecadc437fe93ae8f6e15c248583d2c653f556856f968"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 4990,
+      "sha256": "2639b10045c334442e1c4a82ba31e91dacf791386439b893ea2ca49fd6b17368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\evaluation_stdout.log": {
+      "type": "file",
+      "bytes": 1724,
+      "sha256": "c26054338875c6daa25b58a44b2c1cc447baa4ebc9296b15230cf68334aea053"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 1238,
+      "sha256": "4b06367258e4d1a68439416365e5c2e49245346c08d022c5a202e801d981a833"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 943,
+      "sha256": "a4d89a5068e8cadc9a37e546866bfa66e04b623f60d722f0d6fecfc84a1f13d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 1614,
+      "sha256": "d2f0b46eadb54d30dfb1bf903f85f34b62580069fa65fbb6139dbb714f7879f4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 4410,
+      "sha256": "8e7bb5e98ed3b4d8d159dbb8e56156718a19e04facd1f9eb7f8e34bd0d750791"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\run_recovery.py": {
+      "type": "file",
+      "bytes": 10145,
+      "sha256": "bb2a04e430a7f75ca1c3d8b7c7e4effda485b1914aad041a126ad857c20bc926"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\session_audit.json": {
+      "type": "file",
+      "bytes": 4990,
+      "sha256": "2639b10045c334442e1c4a82ba31e91dacf791386439b893ea2ca49fd6b17368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\test_recovery.py": {
+      "type": "file",
+      "bytes": 648,
+      "sha256": "9ee73659a14d6276300fbe0a696d91e082163660a66bfccadf0255bd09eed7d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\evaluation\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148429,
+      "sha256": "b344abae76a7efd8dfde2552a3e7cc4493617f0b7bb44f85c5d8aa9ae49ceefe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\evaluation\\summary.json": {
+      "type": "file",
+      "bytes": 1681,
+      "sha256": "daa1b60ef5d7f678cb70cb500b9774d91616f11daf603be38f508090bf142c68"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\frozen\\treatment.pt": {
+      "type": "file",
+      "bytes": 139552176,
+      "sha256": "e0dea568045508705ce24e4b54e0514eee14051225b5de031b3d1d13d0083a9e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 8181,
+      "sha256": "6a1becff0855916507a8904ffa32d8d6946820ec3b383105a31587cbc66e4670"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\run_recovery.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 19332,
+      "sha256": "67ccc87969140eabc28949d61516a50a74593c9343b650cd7d3a785e699b667f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\test_recovery.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 5069,
+      "sha256": "cdb5fa714bd1803fa34ac37e8ecc3bfda326ed326e3e52d7767939f3719fad06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\__pycache__\\test_recovery.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 1895,
+      "sha256": "24766df0f31c810fceaf21cfdf5ed44177ffbee7ab6eb94d44765916d2c38c87"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 834,
+      "sha256": "83386485de02d5dae2010f251ffa6e405111e4ed8aee78dc0464d4c82d0ae510"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-smoke-terminal-recovery-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 355,
+      "sha256": "798c4c7855c3567098bbbf925d66909d0ebace7f09470f64418dde7887792205"
+    }
+  }
+}

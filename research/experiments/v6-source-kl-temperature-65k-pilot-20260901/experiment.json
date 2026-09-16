@@ -1,0 +1,181 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-kl-temperature-65k-pilot-20260901",
+  "title": "Matched 65k top-action-weighted source-KL pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T07:08:49+00:00",
+  "updated_at": "2026-09-01T07:38:39+00:00",
+  "started_at": "2026-09-01T07:08:49+00:00",
+  "ended_at": "2026-09-01T07:38:39+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The positive source-KL-T0.5 smoke, including its positive Standard10 direction, will persist to a roughly 65k physical-hand horizon while hero rollout and PPO remain at T=1.",
+  "material_change": "Train one fresh Standard10-start source-KL-T0.5 treatment with the exact seed, fixed deal stream, adaptive three-policy league, and optimizer configuration of the existing audited T1 control from v6-low-temperature-65k-pilot. Stop at the first PPO boundary crossing 65,536 physical hands. Select the frozen T1 control at the same final iteration (iter14 or iter15) by preregistered rule, then evaluate both endpoints on seed 20261118 with 4,096 mirrored pairs per anchor. No Slumbot.",
+  "baseline": "Source-KL-temperature smoke pooled +12.492839 bb/100 CI[-3.865282,28.850959], 2/3 positive, Standard10 +19.907227. Prior hero-T0.5 65k pilot failed pooled point (-0.422648) and harmed Standard10 (-27.073975).",
+  "source": "Untouched Standard10 SHA91b0...; audited T1 control iter14 SHA15d9... and iter15 SHA0bcd... from v6-low-temperature-65k-pilot-20260901.",
+  "parent_id": "v6-source-kl-temperature-smoke-20260901",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-source-kl-temperature-65k-pilot-20260901/prerun_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-source-kl-temperature-65k-pilot-20260901/prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:08:49+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --hero-policy-temperature 1 --source-policy-kl-coef .1 --source-policy-kl-temperature .5 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_source_kl_temperature_65k_treatment_20260901 --run-dir research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment --out research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/latest.pt --seed 20261116 --max-runtime-seconds 1800 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:09:18+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment --expected-target-hands 99999999 --expected-target-environment-hands 65536 --expected-final-iteration 15 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:21:32+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-65k-pilot-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:21:32+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-65k-pilot-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:38:13+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/test_source_policy_kl_temperature.py"
+    ],
+    "captured_at": "2026-09-01T07:08:49+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/code.patch",
+    "patch_sha256": "0dfa1c7d22f208160d8f21f5f571e8064dcd44805447155076113b18ef3e267c",
+    "source_manifest": "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "564c3213447eeb4ca584f77e64bfdea8ce653cac07c55eae9b02b90a0eefb68d",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 49152,
+    "wall_time_seconds": 1790.0,
+    "environment_training_hands": 70457,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "pooled_delta_bb100": 1.3411865234375,
+    "pooled_ci95_lower": -10.068668347071798,
+    "pooled_ci95_upper": 12.751041393946798,
+    "positive_anchors": 2
+  },
+  "artifacts": [
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/code.patch",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/prerun_tests.xml",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/session_audit.json",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/frozen/control_iter15.pt",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/frozen/treatment_iter15.pt",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/eval",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/analysis.json",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/reviewed_analysis.json",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/result_summary.md",
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/execution_code"
+  ],
+  "notes": [
+    "Endpoint gate: pooled treatment-control point >0, at least2/3 positive anchors, no KL/optimizer/session instability. CI positivity is desirable but not required for an internal pilot; Slumbot remains prohibited until this gate passes.",
+    "20 pre-run tests passed; starting the sole fresh treatment arm.",
+    "Treatment session audit PASS at iter15/70,457 physical/61,810 transition hands; matched frozen control iter15 is 71,353 physical/61,850 transition hands. Frozen SHAs control 0bcd7053..., treatment 9e156681....",
+    "Internal effect CI crosses zero; fresh5k is an information-gathering pilot, not qualification and not evidence of goal completion."
+  ],
+  "result": {
+    "summary": "Fresh source-KL-T0.5 treatment reached iter15/70,457 physical hands and was compared with matched frozen T1 control over 49,152 untouched internal hands.",
+    "conclusion": "The intervention barely retained a positive point: pooled +1.341187 bb/100, CI [-10.068668,12.751041], with Standard10 +2.014038, Slumbot-free +4.080200, CFR96 -2.070679. Raw pair recomputation, same-deck identity, checkpoint/session/optimizer evidence, and 20 tests passed. The effect is inconclusive but meets the preregistered internal point/2-of-3 gate.",
+    "decision": "ADMIT_FRESH5K_SOURCE_KL_TEMPERATURE",
+    "next_step": "Run one separately logged frozen-policy generic-greedy fresh5k Slumbot pilot using eight independent 625-hand sessions. Require a positive point estimate to consider fresh20k; otherwise stop this direction."
+  },
+  "tags": [
+    "deployment-alignment",
+    "learning-curve",
+    "source-kl",
+    "temperature",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 330988,
+      "sha256": "0dfa1c7d22f208160d8f21f5f571e8064dcd44805447155076113b18ef3e267c"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 651,
+      "sha256": "564c3213447eeb4ca584f77e64bfdea8ce653cac07c55eae9b02b90a0eefb68d"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/prerun_tests.xml": {
+      "type": "file",
+      "bytes": 3369,
+      "sha256": "987adcc528932d62b1419668b5c53a1e01822341edefbde720f3dae6918b8157"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 5686,
+      "sha256": "f276127c6b696f39e532af359497e72357ab707ddba5addfbe70d6fb0cc9ba98"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/frozen/control_iter15.pt": {
+      "type": "file",
+      "bytes": 133307252,
+      "sha256": "0bcd70539d6117425ea88b6c1aeb22ee177d945cb17042ae97707e8c1ca7d9e7"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/frozen/treatment_iter15.pt": {
+      "type": "file",
+      "bytes": 133307060,
+      "sha256": "9e1566812f6550415be4d7d90b21180080a8c3f6f9b0096457a04a98a54b0847"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/eval": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1490,
+      "sha256": "d8f7159c980d7de058e09809701966257ba389269c4474da41b7672e17e93dc3"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1485,
+      "sha256": "198c0ef0bfb212a81a50b5c341f971c392ddd8b543e78a3228e21e0b6652cb4b"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 319,
+      "sha256": "29bd4a146e04ef38a47b6c156f95de9fb6f64c7afbd5c48e04c258e24a24fa3d"
+    },
+    "research/experiments/v6-source-kl-temperature-65k-pilot-20260901/execution_code": {
+      "type": "directory",
+      "sha256": null
+    }
+  }
+}

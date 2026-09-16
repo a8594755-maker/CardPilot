@@ -577,9 +577,10 @@ async function pickBoards(configName: TreeConfigName): Promise<void> {
 // ---------- Analytical checks ----------
 
 async function runAnalytical(configName: TreeConfigName): Promise<AnalyticalResult> {
-  const { getTreeConfig, getConfigOutputDir, getConfigLabel } =
+  const { getTreeConfig, getConfigOutputDir, getConfigLabel, getSolveDefaults } =
     await import('../tree/tree-config.js');
   const config = getTreeConfig(configName);
+  const { buckets } = getSolveDefaults(configName);
   const outputDir = resolve(PROJECT_ROOT, 'data/cfr', getConfigOutputDir(configName));
 
   console.log('');
@@ -601,12 +602,7 @@ async function runAnalytical(configName: TreeConfigName): Promise<AnalyticalResu
   console.log(`Scanning ${jsonlFiles.length} solved boards...`);
   console.log('');
 
-  const result = await runAnalyticalChecks(
-    outputDir,
-    jsonlFiles,
-    config.betSizes,
-    config.numBuckets ?? 100,
-  );
+  const result = await runAnalyticalChecks(outputDir, jsonlFiles, config.betSizes, buckets);
 
   console.log(formatAnalyticalReport(result));
   return result;

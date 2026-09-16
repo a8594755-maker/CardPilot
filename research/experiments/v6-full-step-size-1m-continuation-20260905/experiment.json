@@ -1,0 +1,1005 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-full-step-size-1m-continuation-20260905",
+  "title": "Two-seed full-network learning-rate matched one-million-hand continuation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-05T22:08:24+00:00",
+  "updated_at": "2026-09-06T04:06:36+00:00",
+  "started_at": "2026-09-05T22:08:24+00:00",
+  "ended_at": "2026-09-06T04:06:30+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Continuing full-representation learning may recover broad strength with dose; half the actual Adam LR may improve update stability relative to the unchanged full-rate main learner. Neither mechanism nor superiority is assumed.",
+  "material_change": "Two current full endpoints continue at original LR versus qualified half-rate copies;all other training settings identical,matched262k then cumulative1M additional physical hands per arm/seed,fresh paired anchor and both-seat evaluations.",
+  "baseline": "Current Seed1/Seed3 full endpoints9445556/9441064 physical hands;approximately1.05M representation hands each",
+  "source": "v6-full-half-rate-qualification-20260905",
+  "parent_id": "v6-current-kl-representation-pilot-20260905",
+  "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-full-step-size-1m-continuation-20260905/test_continuation.py --junitxml=research/experiments/v6-full-step-size-1m-continuation-20260905/controller_tests.xml",
+  "commands": [
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-full-step-size-1m-continuation-20260905/test_continuation.py --junitxml=research/experiments/v6-full-step-size-1m-continuation-20260905/controller_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:08:24+00:00"
+    },
+    {
+      "command": "python -u research/experiments/v6-full-step-size-1m-continuation-20260905/run_continuation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:08:53+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\run_continuation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:09:03+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 9707700 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_full_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:09:07+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 9707700 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\derived\\seed1_half.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:27:26+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 9703208 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-half-rate-qualification-20260905\\derived\\seed3_half.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:44:21+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 9703208 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_full_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T22:59:15+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263911 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T23:14:15+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263911 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T23:35:05+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263931 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T23:56:00+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263931 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T00:19:43+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 10489640 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T00:42:15+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 10489640 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T01:24:58+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 10494132 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T02:10:10+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 10494132 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T02:45:24+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263912 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T03:10:45+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263912 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T03:20:49+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263932 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T03:30:06+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263932 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T03:39:39+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/closed_seed_dose.py --seed 1 --stage 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/closed_seed_dose.py --seed 1 --stage 2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/closed_seed_dose.py --seed 3 --stage 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/closed_seed_dose.py --seed 3 --stage 2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/curve_comparison.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/finish_record.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/gradient_routes.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/stage1_milestone.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/test_review.py --junitxml=research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/review_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/test_review.py research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/test_curve_comparison.py --junitxml=research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/curve_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/test_review.py research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/test_curve_comparison.py research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/test_finish_record.py --junitxml=research/experiments/v6-full-step-size-1m-continuation-20260905/post_analysis/finish_preparation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:23+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Users\\a8594\\CardPilot\\research\\experiment_log.py audit --since 2026-09-05T22:08:24+00:00 --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_finish_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T04:06:36+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-full-step-size-1m-continuation-20260905"
+    ],
+    "captured_at": "2026-09-05T22:08:24+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-full-step-size-1m-continuation-20260905/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-full-step-size-1m-continuation-20260905/source_manifest.json",
+    "source_manifest_sha256": "bae152373c87dd38e84f8aa55baf9e6dca4d2221ce53d7952d15246f7f47087e",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4207129,
+    "lineage_training_hands": 10498234,
+    "offline_samples": 0,
+    "evaluation_hands": 262144,
+    "wall_time_seconds": 21486.0,
+    "slumbot_hands": 0,
+    "final_qualification_hands": 0,
+    "planned_stage1_training_hands": 1048576,
+    "planned_maximum_new_training_hands": 4194304,
+    "new_transition_hands": 3713245,
+    "new_replay_rows": 6408656,
+    "new_no_decision_hands": 491903,
+    "residual_worker_tail_hands": 1981
+  },
+  "metrics": {
+    "controller_tests_passed": 21,
+    "controller_phase": "FIXED_DOSE_COMPLETE_NEEDS_RESEARCH_REVIEW",
+    "training_started": true,
+    "training_subprocess_wall_seconds": 12379.551678199903,
+    "all_job_wall_seconds": 20044.24699089979,
+    "actual_new_physical_hands_per_training_wall_second": 339.8450209960878,
+    "controller_wall_seconds": 20823.197729900014,
+    "independent_terminal_review_passed": true,
+    "goal_achieved": false,
+    "automatic_next_scale": false
+  },
+  "artifacts": [
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/protocol.md",
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/run_continuation.py",
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/test_continuation.py",
+    "research/experiments/v6-full-half-rate-qualification-20260905/qualification.json",
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/code.patch",
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/source_manifest.json",
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/controller_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_full_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_half_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_full_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_half_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage1\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\stage1_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_full_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_half_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_full_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_half_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage2\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\stage2_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\controller_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_terminal_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\closed_seed_dose.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\curve_comparison.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\curve_comparison.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\curve_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\finish_preparation_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\finish_record.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\gradient_route_observation.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\gradient_route_scope.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\gradient_routes.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\README.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\research_decision.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\review.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\review_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed1_stage1_realized_dose.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed1_stage2_realized_dose.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed3_stage1_realized_dose.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed3_stage2_realized_dose.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\stage1_independent_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\stage1_milestone.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\stage1_result_note.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\test_curve_comparison.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\test_finish_record.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\test_review.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\throughput_observation.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_finish_audit.json"
+  ],
+  "notes": [
+    "Reuse completed full-regimen CUDA memory and production training evidence;no repeat probe. Single primary family and one LR control. Statistical managed worker continuation,not bitwise worker resume. No automatic finalSlumbot or larger scale.",
+    "21 controller tests passed: matched commands,fresh evaluation seeds,current-parent lineage,both-arm full scope,per-parameter Adam clocks,corruption rejection and safety gate. Launch one hidden persistent controller;it owns subsequent logger updates.",
+    "seed1_full_stage1: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "seed1_half_stage1: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=4.999999999999998e-05.",
+    "seed3_half_stage1: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=4.999999999999998e-05.",
+    "seed3_full_stage1: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "seed3_full_stage2: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "seed3_half_stage2: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=4.999999999999998e-05.",
+    "seed1_half_stage2: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=4.999999999999998e-05.",
+    "seed1_full_stage2: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "Closed after exact owner/children terminal, complete raw paired evaluation, initial optimizer/replay state, counters, source and weight hashes were independently reviewed. Deferred post-analysis commands are recovered from actual invocation evidence. Earlier heads-only hands are not full-representation training; trainable scope is not proof that preflop or critic objectives update the shared body. Managed worker restarts are statistical continuation, not bitwise rollout RNG replay. No external qualification claim.",
+    "Post-finish scoped logger audit passed without warnings."
+  ],
+  "result": {
+    "summary": "Completed 4,207,129 new physical training hands across four two-seed LR branches and 262,144 internal evaluation executions on 32,768 unique paired decks. Independent terminal review passed. Final half-minus-full was +8.6078 bb/100 in Seed1 and -10.9086 in Seed3, both nominal intervals crossing zero. Seed3 half-rate early improvement reversed: its parent-relative stage2-minus-stage1 change was -43.6969 [-67.0911,-20.3027]. No Slumbot or final-qualification hands were generated.",
+    "conclusion": "Reducing the actual Adam LR halved mean PPO update KL and reduced early stops, but did not establish reproducible poker improvement or preservation. Original-rate endpoints were -2.3225 and -9.5087 bb/100 versus their fixed parents; half-rate endpoints were +6.2853 and -20.4172. The severe preregistered broad-collapse gate was false in both seeds, yet the curve does not support automatic larger allocation under the unchanged recipe. This is adverse/inconclusive internal scaling evidence, not proof that all full-representation learning fails at paper scale. Full-trainable scope still excludes direct preflop-actor and critic-v2 gradients to the shared representation. That contract observation is not a causal explanation of the losses.",
+    "decision": "Do not select a learning-rate winner or automatically launch 4M/16M/paper-scale training. Retain both frozen final LR arms and both seeds. Before changing another training mechanism, calibrate these previously externally untested full-representation endpoints against Slumbot using a prospectively fixed 80k development allocation: all four policies receive 20k new hands each, regardless of interim scores. Existing internal/external ranking disagreement makes direct external calibration more decision-relevant than another proxy-only diagnostic or blindly extending this LR comparison.",
+    "next_step": "Register and qualify a four-policy frozen external development calibration in a new experiment, reusing the established journaled CPU-greedy physical-v6/legacy-v4 bridge and audit/statistics machinery. Freeze all four current stage2 checkpoint hashes, runtime, distinct session IDs/policy seeds, balanced scheduling, 8x2500 hands per policy, no score-based stopping/extension/retry, raw/session uncertainty and multiplicity handling before any network request. Verify no live poker-owner overlap. After all 80k hands and evidence checks, assess external direction, severity and internal/external agreement before choosing further scale or a single-change general training control. A preflop actor-to-representation gradient-route control remains a hypothesis, not an adopted fix. No Slumbot labels/action rules, no final qualification credit, and no new training in that calibration."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 32,
+    "command_count": 32
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/protocol.md": {
+      "type": "file",
+      "bytes": 6388,
+      "sha256": "d4f553fcefb458864a24b5be6e9cfeefc10f250cf8e42aff70cb13939ce630ec"
+    },
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/run_continuation.py": {
+      "type": "file",
+      "bytes": 19999,
+      "sha256": "fa430a9c0ab8b3ab4300a1e4dd9b5ca5da7876d50c4372c5efdf614d38e65591"
+    },
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/test_continuation.py": {
+      "type": "file",
+      "bytes": 4199,
+      "sha256": "45ae36738aaa186906c3dece9ce2edff078981523373236037f72647fd54e23f"
+    },
+    "research/experiments/v6-full-half-rate-qualification-20260905/qualification.json": {
+      "type": "file",
+      "bytes": 46177,
+      "sha256": "afe2955b7a5fd1d257cf0dbd66a86d703f9023315034855e7449515f33fa028b"
+    },
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/source_manifest.json": {
+      "type": "file",
+      "bytes": 964,
+      "sha256": "bae152373c87dd38e84f8aa55baf9e6dca4d2221ce53d7952d15246f7f47087e"
+    },
+    "research/experiments/v6-full-step-size-1m-continuation-20260905/controller_tests.xml": {
+      "type": "file",
+      "bytes": 3698,
+      "sha256": "d4a5120ac25e565d8907d7fbf5bfd8aba93c29b4f6b3440f3260810156c50fbc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\input_contract.json": {
+      "type": "file",
+      "bytes": 70187,
+      "sha256": "f6228e806abe89fa2663f49fe9844a9048a254983fa855753b40d726ceaa2d26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\ownership.json": {
+      "type": "file",
+      "bytes": 113,
+      "sha256": "b1d2dd06339469764bbb80db053d57b34a1cf85dfbcb98de409241ac4b078ffa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3513,
+      "sha256": "936ec1193131b7d7b02fab6de05cb1e22bf8d9729a5789ad84843a6b319e2da1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 369062738,
+      "sha256": "0ee5d8fe2787a7af19395ef39c5a56ecd30819ac326ae3887eb369dffa20689f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\latest.pt": {
+      "type": "file",
+      "bytes": 379651602,
+      "sha256": "dd594114975c7a38ec34acea9caef9b77ead54afe13ccdde0acf9d98a82822e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 16296,
+      "sha256": "7d2ac476c9b39dd733fd8033dbbffaac908b590d656fd36ad6ebf5ba00d54e71"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 646,
+      "sha256": "4253f628700dd51d45f175dd0322f4895c9c92a8321b8bc79c7588c6c263aa13"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 61904142,
+      "sha256": "a19bdbd9d181cccc88388bd67ab9ac099c39aee4c34cddab187bb55df76e7191"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5766117,
+      "sha256": "50af632b94f5f5450abed217c9e1e31686c0fc17fb1f02c24f39dbd999e191eb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3504,
+      "sha256": "d3ae99a0928ecd12c6e303aebfc0589ba92b8eb54d4ac41e19002e44f3ffab72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 369062738,
+      "sha256": "8065b78e26b102f03a1beb69324f90230be46fa9c175de7cc85e117c3ab9ca00"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\latest.pt": {
+      "type": "file",
+      "bytes": 388404562,
+      "sha256": "b84ffd45df0c2d47be36aca9ee38925fa3c0b1477213901dd2afedfc7d363629"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 16297,
+      "sha256": "d257086d549a93bc7bd14fff111eadff5fc2f07f8fbb88e01d76b091b3c15afb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 643,
+      "sha256": "8c05d489bcdc9f70c1cc1f74b0904b14a47cf844ee1c78a5424f6365742f0462"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 61878691,
+      "sha256": "ec64a91cbfb9b439ab5b582e365315371056d2d09b83301be8502cd99f921bad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5763251,
+      "sha256": "2dfe8139eeb640851993328b8d63920b74934924b20418590abeaff6b9ff73b1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3504,
+      "sha256": "31e1c2602171630e4101dcde78f2e5424803f4a4921d90c38c52631574e49abf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 375864914,
+      "sha256": "4c3c68cafd9aef376577f755f3f2bba34668c537e47529eef32ff26ba51af158"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\latest.pt": {
+      "type": "file",
+      "bytes": 364643090,
+      "sha256": "2d9777ca72e08d829223b7baec38f71eede32d1eef6e2a6537587f5bef76bd33"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 16297,
+      "sha256": "c2b5e84fa7f68fd2bb6ce5ebdb9b71bf691b300a446cae4087637473d0b06e5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 649,
+      "sha256": "0d928ad3daa792c24a311b2157220d46fc8afb64856a273dc65ca4c07fcc5f7f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 61898550,
+      "sha256": "e38edd9e6f11eaee624f60583d098c053d54ce2f5a6152bad8dfc51d1d975f23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5772646,
+      "sha256": "0480a63e56a09c9744679d2d9591fdf5fdf92647a72f9d150d968d4f2245d265"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3513,
+      "sha256": "81bdf7705aa917d0c8850ae73784267099dec920e449f592a686c796d91a3ab8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 375864914,
+      "sha256": "30ff1c28e6f1981f07b7a464eab3f468bc80b6b33c0675a0e529e26869b82ad7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\latest.pt": {
+      "type": "file",
+      "bytes": 376211090,
+      "sha256": "bb7841a2ea4be1cc6aa1c9d1fefa8c3f3dda960400d1b37e0d63e4f4681e1688"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 16221,
+      "sha256": "cf5a375521373d16b1c89f6a3fa22e5dcd6ac741420ad2efb7f911d2542ba41e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\termination.json": {
+      "type": "file",
+      "bytes": 647,
+      "sha256": "b0ff217d29ace43c5fd4fe890adff2c67a1437070da855e6874a18d339c94a54"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 61869620,
+      "sha256": "70423332d4ec661cff8affefc84861f5637bb7f8af4f8e4a03d31da20c36dfe3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5769914,
+      "sha256": "e260d3d4539b2c70a3ba75bf9cd490b16ccc7500ed31b4e360a041a157f623a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_full_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "f740dde48f02702510aa642940cfc07fbfba13e8a2eba41866044bd35443cab9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11607,
+      "sha256": "1496403dc950b10c3a975d6e9a4907917d18a08b4bb11de90b2659eddbcb7d77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 559431,
+      "sha256": "b57e66072da09dd2c19e84439ba001760f29e8dccd10cc285e38a437cdaf5788"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_half_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "40eba70e0dd121672226534308634d2eb7783c3f2e90e76c9d2b09b0d55c0e11"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11618,
+      "sha256": "0c4fff42107806fa1e131711b622ae780abaaec0938d07b641e3f1b31de127ac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 557659,
+      "sha256": "b7dde4091149d46fbccd8d7ae085301db776eb4b81c8894770e2a100f52677a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_full_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "5934992143027611e0bf77ab5dbae192ef59626ea496ae23da14c86d91de152f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11636,
+      "sha256": "d78ee4a88759eb5a85b76a97a36946eafc7b6cc9f4ff8bfa2cdcc4af85715f1a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 555111,
+      "sha256": "9e93a7ba954301e54bea3d26180f5a403783362d474f1f11de9aa949cb49aeea"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_half_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "1d0867cb85be39f208b217ad97c68c8e843819ca7b067e632f3557f0b1d7e14e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 11615,
+      "sha256": "8eb0222e72c37e47b10d603878102ca2756a658983de449c557281563a06cee0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage1\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 553194,
+      "sha256": "5ad353a3e9fa758f6a1bcc0e03f4f509de4071214bc4cc47e7071a690a5f80d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\stage1_analysis.json": {
+      "type": "file",
+      "bytes": 22250,
+      "sha256": "d2e0a13b6adff0bd23af38abf3b57e0399434505f8b95dab565e4fd3b51aff3b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3513,
+      "sha256": "f2e2c2a92c57c2b97a6ff80d140d1b8028a5e8e6952677acd6a6596b38357de0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 376186898,
+      "sha256": "51298f0045048585ab4bdd29f8b0e8de09647db0883b62aebc725447cd6a0663"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\latest.pt": {
+      "type": "file",
+      "bytes": 376628242,
+      "sha256": "f2249b0d19937ddadfc29fe5ba10cd7f07909d638dc0edeca89fae05b6f498e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 16551,
+      "sha256": "35762db80d332832315b98c820ebbf9f749686a7be339adc6d010fd2089cb761"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 644,
+      "sha256": "725de6cf70cf76ee0303ee49909faa97f395363bf2e194e83fa3a0d3b92c983e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 66977433,
+      "sha256": "3500ddf4036929d855ad3fb45e138ab880c321d8b60a1711830de017a1013173"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 6248090,
+      "sha256": "7725a0255dd4c5d03c82428f6d777e75b079165670591d5016d3089712aa3039"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3513,
+      "sha256": "f29ae01c98be320f7946d853dd60e66969d22e4c6c3eb7154bb994852e839d40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 364618002,
+      "sha256": "32348075f946c79331e80d1d3c51c65107672f17636548edf359835de67eeb94"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt": {
+      "type": "file",
+      "bytes": 361738386,
+      "sha256": "f64928d15ecc8620046615774ac9c74fc76d0b8a447f441bd07409d3c41c755a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 16625,
+      "sha256": "d6081d57f0826af8f948f66fb6bab3b7e879eec042c18a8b3df1efdb3982dabb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 651,
+      "sha256": "acfb9633f3130640ff8b8aac4f842a730651fe06a89ceca96e45894cefbb232c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 66970727,
+      "sha256": "c76198b48d25dac863a7cef9bc5526c2fbf8d2eaa6fe771233facd25c1241dc0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 6247430,
+      "sha256": "736e5f639033c0995ee94d8dd1e34a2853130dbbe275ca3baa8e622baeb4c6a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3513,
+      "sha256": "18a8ca354b2a9e77919093b3dc4b86437b8663607987c00a3c1727161c9df466"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 388380370,
+      "sha256": "02521958be820bb287a0c9d2af53ae8ffef44d1c921b703788f75e1efa17882d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt": {
+      "type": "file",
+      "bytes": 368714450,
+      "sha256": "669b331d23264136dd75bd923ed3e2fa0e2dd73e4e20485400cd795e59f7653f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 16625,
+      "sha256": "615d3dbf7ea52f7daa8dfd5824b827881868940d066daec501fa85701136d4da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 649,
+      "sha256": "f80b807bb7e038bd5e218e37f9558741f8e3c44bb3f2c73cfcff1b1af6f23ca1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 67029158,
+      "sha256": "c3b7188b1b152939d317c9badc92cd7fa60be6b14a5adc53257401953ef49b85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 6243227,
+      "sha256": "67220fb064ebb80a55a2db6994dbf0e7c151944e19156138da1296d9ea276da3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3513,
+      "sha256": "d5f5ddd85a770714734921d79f89ebe5b77912179e367536c820c894a01b4a86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 379626514,
+      "sha256": "1d2a0ea5286b14450dac809f49ade2a0ff7c1a193afe97767392d1a5afbc14b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\latest.pt": {
+      "type": "file",
+      "bytes": 385112722,
+      "sha256": "8904f3b2e25baec5bc0bcb6556502c19b3fb213efdc9a32b16d55eee1284a3ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 16626,
+      "sha256": "2ffdb66af4d73d96f777a9636cb54e7a9b81ad808884eb4500ef8aff568cdcaa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 647,
+      "sha256": "e5aca5189cc075513450b000e82ba263eb90760ed8a1729a384b273087e4b48b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 66893243,
+      "sha256": "1612147b1b99ba7b5a79467fab20e627a2b7b011783baeeb95587c98b5189b34"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 6232323,
+      "sha256": "c204506a85d201badeec8cc0a5b201964fa81c82f2167181ee0067bdc3e1c8cb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_full_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "03f0998fb1c6a7979621fba7ad8ff26b1883e57a4147431516f9346e123c7412"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11606,
+      "sha256": "bfea2c1cce080c4f16a06ae326a12eaddeb1c157ab7bdb2b959c714a453f17c4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_full_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 558694,
+      "sha256": "a99a9ca2e1de6039b4b3a9395672eb18cac2b77aae89f2a733bb3a9229813277"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed1_half_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "d358045895fe3800cdfd9a456422b69e393efda4e69b8b334ebd43f5d02f17b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11608,
+      "sha256": "6a28390beb489455db3cb131c1191160f903ef87aeab22a50cc7d021a61f77cb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed1_half_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 556869,
+      "sha256": "f3cd904670f67e0f43a4ff7d1d0395fac5268d5371998393aa0c2e5a740a4cd6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_full_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "03216c6867334c8a6dceb8558769e3765c4647100402083242243aab2407e607"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11624,
+      "sha256": "fa530171cc89c61151dad796122653523726bba80a9f3a01a9a357bc551f977b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_full_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 558321,
+      "sha256": "7251f60f13f34800120e99737a4cf5e152c90a6ece49c5285af01923107e4df1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\job_eval_seed3_half_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1274,
+      "sha256": "bc225c68e72cdca68fbd89d859fc49d7b418198fe487ae5a746048ee0cc41886"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 11643,
+      "sha256": "3474035b9af4c19992c5594228cdcc9cbd84115dc19446c244a311f1be9bfd23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\eval_seed3_half_stage2\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 558642,
+      "sha256": "2f0e6812e62f0e519eca3736a6095dac880bb74c243f9fdba2ec6ba97ebdc1b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\stage2_analysis.json": {
+      "type": "file",
+      "bytes": 22257,
+      "sha256": "c606551b044ff66b69ac32c66c49d4f690e50e8dab55d1dadad9e1197ad249cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\controller_result.json": {
+      "type": "file",
+      "bytes": 152960,
+      "sha256": "d01c344f19be2fa1f80f3abd2d65a9fb57c47b420a6fd735f182bd93d0358afe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_terminal_review.json": {
+      "type": "file",
+      "bytes": 169697,
+      "sha256": "70c40a9cdc68b1c1052e8b1d938c9ee41103b57450c313e289f6a5014a69eeab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\result_summary.md": {
+      "type": "file",
+      "bytes": 8441,
+      "sha256": "9896941aab42fbfe9d53f7786ea0051f80d61795a37a293b392f4673532c5dd0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\closed_seed_dose.py": {
+      "type": "file",
+      "bytes": 4505,
+      "sha256": "de5b8b43e7dbacc120ab7d1341f7b1cf6d8a00ff420d32f946faab64c5f72d1e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\curve_comparison.json": {
+      "type": "file",
+      "bytes": 48931,
+      "sha256": "08d29fe83213ec0518b748e84d8af1e13598ec5a59370e69dead4ec6a32d0ade"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\curve_comparison.py": {
+      "type": "file",
+      "bytes": 4791,
+      "sha256": "839773fc95c483cedb602935ae361acfcc4586b4901966aafe1fc7f010539a06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\curve_tests.xml": {
+      "type": "file",
+      "bytes": 5914,
+      "sha256": "e35765b00ea00e0137250880c490d94aecc34f7d04eefa2c86915a95a79403eb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\finish_preparation_tests.xml": {
+      "type": "file",
+      "bytes": 7919,
+      "sha256": "29ae5bf77ee6286ee3f0646fa414018f4c856ca0444e6bf157a4ab43366883a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\finish_record.py": {
+      "type": "file",
+      "bytes": 8572,
+      "sha256": "cc372ac54451d6f9f149bc2e64b197a2e1cfbcc6a8c171ac2b9586360b390b7e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\gradient_route_observation.json": {
+      "type": "file",
+      "bytes": 8098,
+      "sha256": "931addfde74e663108718c4ddfb1ba7efce0045a9bb65407a826b56c410191f7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\gradient_route_scope.md": {
+      "type": "file",
+      "bytes": 3165,
+      "sha256": "d8d6ccae14ed99ef0178de3035dac6fd7a982c2f49a67e1362d62e3e0d8bbfed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\gradient_routes.py": {
+      "type": "file",
+      "bytes": 6442,
+      "sha256": "9f3f4dcaa3318aa2e47c974e2c4b83fbb0788c6a9fe4b669a6ff20de00eb0143"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\README.md": {
+      "type": "file",
+      "bytes": 5776,
+      "sha256": "e9efcd832d367d38d7a07d91f0e58f087d5a245ec37cb80faf6d84b5130619d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\research_decision.json": {
+      "type": "file",
+      "bytes": 2996,
+      "sha256": "fb8cb6365ad651f2f2a9c2cc75ba2bcaa1471a99736d05c24eb00bc41937ed89"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\review.py": {
+      "type": "file",
+      "bytes": 17332,
+      "sha256": "c860c0aca04fa52c7a5f24ee3fa224e673d2584a6746ea57402b2420f7838efa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\review_tests.xml": {
+      "type": "file",
+      "bytes": 3453,
+      "sha256": "9d408c7c1fa43fa815d05b6b08eff9c803543ed1351b94c4a190dd19d040acf9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed1_stage1_realized_dose.json": {
+      "type": "file",
+      "bytes": 7585,
+      "sha256": "cace476f6d37dffe049c79d4d07c8d61b0aa3498ae02b63d0d8c3dfb2d60872b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed1_stage2_realized_dose.json": {
+      "type": "file",
+      "bytes": 7592,
+      "sha256": "88fb74ef22ebbd9b59e7a4cb12953dc58e86aaefe83cea3a5f27fc15c27f09b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed3_stage1_realized_dose.json": {
+      "type": "file",
+      "bytes": 7576,
+      "sha256": "16b77c8039f04acedba5209577bf035fb40207e406cf5ac42542292ca3d4b4d2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\seed3_stage2_realized_dose.json": {
+      "type": "file",
+      "bytes": 7590,
+      "sha256": "ca7b2e3aea17568e5635fc637ebb5283800cac1bc894cdce8e12f73cc4c4b7ee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\stage1_independent_review.json": {
+      "type": "file",
+      "bytes": 100816,
+      "sha256": "eec8ade92d66e0f31113e32ab3fad2a0962d672e02a6d1ec610003479e1e90e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\stage1_milestone.py": {
+      "type": "file",
+      "bytes": 6271,
+      "sha256": "435dd001775ad4c9bf585eadd3c2e532eba0130ee7324bbf2aff2dd60fb8e395"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\stage1_result_note.md": {
+      "type": "file",
+      "bytes": 4628,
+      "sha256": "5d3f677d6efc75c488695449f23b7bc364829a1cb93d8a572070912432716348"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\test_curve_comparison.py": {
+      "type": "file",
+      "bytes": 5004,
+      "sha256": "5bc3b8b9aa51bae8c9510121a73be490066cfe7e257034a1f186ad224b81775b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\test_finish_record.py": {
+      "type": "file",
+      "bytes": 2196,
+      "sha256": "19e37f7dcd8dc904cef7b2289f06f1a91c0f659a6665c3c8eb943ae9593a359f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\test_review.py": {
+      "type": "file",
+      "bytes": 4993,
+      "sha256": "2cc055a8da2a38d711fc51bc7ad05d29bc217a7d57235df966027424dc357476"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_analysis\\throughput_observation.md": {
+      "type": "file",
+      "bytes": 7898,
+      "sha256": "97f39de329cd68bb3cdc55a5fed82ca5641b48e79a8ac489d92b32693643afcc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\post_finish_audit.json": {
+      "type": "file",
+      "bytes": 226,
+      "sha256": "d0daa739f099a649ab17f5391716f331dd5f101b4d1367d2f0983592a08e4b6f"
+    }
+  }
+}

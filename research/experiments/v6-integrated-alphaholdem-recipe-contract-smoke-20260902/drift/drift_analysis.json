@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.0122,
+      "greedy_disagreements": 61,
+      "max_tv": 0.09681759029626846,
+      "mean_tv": 0.0076544518773752615,
+      "p95_tv": 0.028726414870470778,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.0144,
+      "greedy_disagreements": 72,
+      "max_tv": 0.06375332176685333,
+      "mean_tv": 0.01241061270465907,
+      "p95_tv": 0.0312068653292954,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.0166,
+      "greedy_disagreements": 83,
+      "max_tv": 0.05632050335407257,
+      "mean_tv": 0.014661000387987951,
+      "p95_tv": 0.03270231001079083,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.0224,
+      "greedy_disagreements": 112,
+      "max_tv": 0.058623671531677246,
+      "mean_tv": 0.01663805846281757,
+      "p95_tv": 0.03803985137492418,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "models/baseline/standard10/latest.pt",
+    "--parent-sha256",
+    "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "--treatment",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest.pt",
+    "--out-dir",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/drift",
+    "--states",
+    "20000",
+    "--seed",
+    "20261703",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "0.03",
+    "--greedy-disagreement-max",
+    "0.05"
+  ],
+  "created_at": "2026-09-02T17:03:01.424106+00:00",
+  "design": {
+    "greedy_disagreement_max": 0.05,
+    "outcome_blind": true,
+    "seed": 20261703,
+    "source_tv_max": 0.03,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 18809,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.0164,
+    "greedy_disagreements": 328,
+    "max_tv": 0.09681759029626846,
+    "mean_tv": 0.012841030858209965,
+    "p95_tv": 0.033888875693082805,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-recipe-contract-smoke-20260902\\drift\\drift_raw.jsonl.gz",
+  "raw_sha256": "7319f08b97e5c5d45050642fbba007e8192d41ab6df983ad7305396ce13b56b8",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 16499,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-recipe-contract-smoke-20260902\\run\\latest.pt",
+    "sha256": "031c98799c02b6794f2e2c1e8e0397c1f8f2b9508e5fcb7b2c9df593d836dc50"
+  },
+  "wall_time_seconds": 4.675013303756714
+}

@@ -1,0 +1,807 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-diverse-learned-league-pilot-20260831",
+  "title": "Matched corrected-v6 learned-opponent diversity pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T11:15:01+00:00",
+  "updated_at": "2026-08-31T12:24:13+00:00",
+  "started_at": "2026-08-31T11:15:01+00:00",
+  "ended_at": "2026-08-31T12:24:13+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Adding two frozen corrected-v6 learned opponents reduces three-anchor specialization and improves held-out strength versus a fresh matched control.",
+  "material_change": "Matched fresh control3/diverse5 with qualified multi8; each262144actual hands; one fixed245760hand matrix; only new diverse5 final eligible for separate confirmation.",
+  "baseline": "v6-full-network-learning-curve-20260831",
+  "source": "baseline-standard10-20260829",
+  "parent_id": "v6-source-kl-retention-pilot-20260831",
+  "command": "python research/experiments/v6-diverse-learned-league-pilot-20260831/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-diverse-learned-league-pilot-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:15:01+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-diverse-learned-league-pilot-20260831/run_pilot.py research/experiments/v6-diverse-learned-league-pilot-20260831/review_finish.py research/experiments/v6-diverse-learned-league-pilot-20260831/test_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:16:56+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:16:58+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026092600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_diverse_control3_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\latest.pt --seed 20260926 --max-runtime-seconds 3600 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:17:02+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-diverse-learned-league-pilot-20260831/inspect_archive.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:20:56+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-diverse-learned-league-pilot-20260831/inspect_archive.py --arm control3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:21:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3 --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 49 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:25:45+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\league_kl001.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\league_kl010.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026092600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_diverse_diverse5_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\latest.pt --seed 20260926 --max-runtime-seconds 3600 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:25:56+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-diverse-learned-league-pilot-20260831/inspect_archive.py --arm diverse5",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:30:50+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5 --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 57 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:36+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:53+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\control3.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:57+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\control3.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:58+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\control3.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:38:59+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\control3.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:39:01+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\control3.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:39:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\diverse5.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:39:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\diverse5.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor1.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:39:04+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\diverse5.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor2.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:39:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\diverse5.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor3.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:39:07+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\diverse5.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor4.pt --pairs 8192 --seed 20260927 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:39:08+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-diverse-learned-league-pilot-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:24:11+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-diverse-learned-league-pilot-20260831/run_pilot.py",
+      "research/experiments/v6-diverse-learned-league-pilot-20260831/preregistration.md",
+      "research/experiments/v6-diverse-learned-league-pilot-20260831/test_pilot.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/v6_mirror_eval.py"
+    ],
+    "captured_at": "2026-08-31T11:15:01+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-diverse-learned-league-pilot-20260831/code.patch",
+    "patch_sha256": "aaac4e98a8ff0757f4d7aaac2640303fcdca2813d1afb2c163c238707daa26ff",
+    "source_manifest": "research/experiments/v6-diverse-learned-league-pilot-20260831/source_manifest.json",
+    "source_manifest_sha256": "4834f82623d9eaff6e847a0c991ef5d43e4385892cc90e75df74f7e21f432d84",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 527130,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 245760,
+    "wall_time_seconds": 4152.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_arm": "diverse5",
+    "active_iteration": 57
+  },
+  "artifacts": [
+    "research/experiments/v6-diverse-learned-league-pilot-20260831/code.patch",
+    "research/experiments/v6-diverse-learned-league-pilot-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\anchor_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen_inputs.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\league_kl001.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\league_kl010.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_control3_iter16_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_control3_iter16_h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_control3_iter16_opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_review_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_review_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_review_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\training_health.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\control3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_diverse5_iter16_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_diverse5_iter16_h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_diverse5_iter16_opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\training_health.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\diverse5.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Independent terminal reviewer added before launch and included in full execution snapshot. All arms freshly initialized from original Standard10; no prior candidate promotion.",
+    "Preselected outcome-blind health review of immutable iteration16 archives for both arms, comparing optimizer/counters to iteration4. Added separate helper; no captured training runtime or preregistration changed.",
+    "control3 fixed iteration16 archive health PASS; iteration4->16 optimizer/counters advance;16assignment records replayed. No strength selection or resume qualification.",
+    "control3 training completed with passing health/session audit; final frozen.",
+    "diverse5 fixed iteration16 archive health PASS; iteration4->16 optimizer/counters advance;16assignment records replayed. No strength selection or resume qualification.",
+    "Research context: read all ten v6-prefixed experiment records; each currently has slumbot_hands=0. Prior external results used the old execution contract and do not calibrate corrected-v6 source strength. After the current unchanged fixed gate, prioritize considering an explicitly preregistered corrected-v6 external baseline/live-compatibility run before another internal-only tuning cycle. No external call, active gate amendment, or current checkpoint selection was made.",
+    "diverse5 training completed with passing health/session audit; final frozen.",
+    "Both new finals frozen before all15fixed fresh cells; only diverse5 is eligible for separate confirmation.",
+    "Independent outcome-blind training handoff check: both trainer PIDs absent/exits0; terminal manifest,audit,health and frozen hashes agree for control3=264651 and diverse5=262479 actual hands. All five audited training artifacts per arm and all77source/copy pairs verified unchanged. Both finals immutable; fixed245760hand matrix running; no performance peek/admission.",
+    "Fixed two-arm training/matrix complete; independent review required before finish or confirmation.",
+    "Independent raw arithmetic, regenerated deal sequence, fixed joint gate and full source/session review passed."
+  ],
+  "result": {
+    "summary": "Matched learned-opponent diversity completed527130physical training and245760internal hands;LEAGUE_DIVERSITY_GATE_NOT_PASSED.",
+    "conclusion": "Fixed held-out/source joint gate completed; no external or Nash-strength conclusion.",
+    "decision": "LEAGUE_DIVERSITY_GATE_NOT_PASSED",
+    "next_step": "Choose the next mechanism from complete training/held-out evidence; no control or earlier checkpoint rescue."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 26,
+    "command_count": 26
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-diverse-learned-league-pilot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 198736,
+      "sha256": "aaac4e98a8ff0757f4d7aaac2640303fcdca2813d1afb2c163c238707daa26ff"
+    },
+    "research/experiments/v6-diverse-learned-league-pilot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1087,
+      "sha256": "4834f82623d9eaff6e847a0c991ef5d43e4385892cc90e75df74f7e21f432d84"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14247,
+      "sha256": "a95e9a292a864d6bab788131525e5f49c426c4eeca62dafb16d85541f42c3f8a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 24444,
+      "sha256": "d07be5a38ee1c2a93bc32f6aa2076dfe850ffcecefafbde4e5692942be40c04e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 1578,
+      "sha256": "0deef50ab0b81c05ac2b95e0b3af1ae2a209c919a4f2f8c75c5929be8a44d293"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\anchor_manifest.json": {
+      "type": "file",
+      "bytes": 1850,
+      "sha256": "9497d666ebdfab7dbafa903cc989ca164920cc7a3d84c8d89b77d88309ecfb2b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen_inputs.json": {
+      "type": "file",
+      "bytes": 2620,
+      "sha256": "96bce13e2dd18a4349c608bf6764280215cc1f7d31a01daee451692ce607153a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\league_kl001.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "0d2f660b3225664c5ed2bc85467649d3f3d17930cba8ab86c70b3d2082ee8606"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\league_kl010.pt": {
+      "type": "file",
+      "bytes": 198567240,
+      "sha256": "9b7b0e3a0c2be3bdfbbab4167e1eb4a5e7f284d619a8afa13d608c9943b46efb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_control3_iter16_review.json": {
+      "type": "file",
+      "bytes": 2062,
+      "sha256": "72da7c43b225fcb9b6937d39d32e2f91041d948f72b90c844231f0e27a9d17ae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_control3_iter16_h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 414362,
+      "sha256": "44f17634fb21956d03cc687f4b5e2a4f0c20484d7350ae34e67cbad6d46800ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_control3_iter16_opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 39774,
+      "sha256": "55a032dd1ede9593b4698f37f819ad4a82c9ea582f5b2a2672ca2ca655db7ebf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_review_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 325,
+      "sha256": "4cc4e263aa6d4f00b26510eca2920b264a11337b69dfec442ccbdd29d90c3d4f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_review_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_review_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 391,
+      "sha256": "af2febc0ae5886bc21855f180c843911a5dde9525a0a138fad3af7e9a62a0ce4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_stdout.log": {
+      "type": "file",
+      "bytes": 32931,
+      "sha256": "347904e54625c72ba6957fa65495ee0abb57bb12b67366c600304b52249f1533"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\latest.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "2ca444b8ee338d4293a106c74c8df19dd7f81795044d983823a4f60570437eb0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\run_manifest.json": {
+      "type": "file",
+      "bytes": 58331,
+      "sha256": "e0c70a15b57c57d6bea77a42cb488162c5405001e98f6358909eafa4c1958e49"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1279101,
+      "sha256": "b63a752b47c158f3ffb86637a1aff606a0c4caecb09da6fae951906c6efd9bb0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 122296,
+      "sha256": "f6393ba19f876f9ab0cecaae23c3426dd0163deb7b6274c1492f976f5784d406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\latest_train.log": {
+      "type": "file",
+      "bytes": 21599,
+      "sha256": "80fced6c5cfc627f80137e501801716f4d28cd559daba019e2aeba970efef38b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\session_audit.json": {
+      "type": "file",
+      "bytes": 9043,
+      "sha256": "46c7eb1767e0fdaf5b3eb65257853e6cea8eb04c27f2c0ba5c044ebd9f7799b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\training_health.json": {
+      "type": "file",
+      "bytes": 322,
+      "sha256": "1ad72f6ce565414ed8a471bc009dfa4071ff25d7bfc12fa0c4f0b717ba483194"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\control3\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 9043,
+      "sha256": "46c7eb1767e0fdaf5b3eb65257853e6cea8eb04c27f2c0ba5c044ebd9f7799b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\control3.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "2ca444b8ee338d4293a106c74c8df19dd7f81795044d983823a4f60570437eb0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_diverse5_iter16_review.json": {
+      "type": "file",
+      "bytes": 2063,
+      "sha256": "32847f10adeaf6ccdb08dbd22e76dcf934b9c365be1a1f09d51852539d6a52e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_diverse5_iter16_h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 417171,
+      "sha256": "502622d36215b9c799787781f5e9d2a8143c97e891c5fa14f763aee8b92506a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\archive_diverse5_iter16_opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 43544,
+      "sha256": "5834b54083cfe49f19b0b0f109232b567b254acad8da7b3c6d0ca91ffcd7b7ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_stdout.log": {
+      "type": "file",
+      "bytes": 38265,
+      "sha256": "cfed22615cca06770595b533030416848edd1222980cb70afb81a5c210141af4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\latest.pt": {
+      "type": "file",
+      "bytes": 264646276,
+      "sha256": "52ddabe9c2f75f1242e5603778595f7e68674d8d8f5e2185170fb9515660f25a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59617,
+      "sha256": "cec88a93bd2aace8f7c88f34a374dbb097101576e01177d00b8f8fcec28f6517"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1505844,
+      "sha256": "0dd33c500d9389ca646cd054b47c8233950719a51ecbe1763fa140cca0d0de93"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 155472,
+      "sha256": "4310e38c6d92673a73ffe483eca3ef6b4eb92ad32e708242aa1d481a16cb4f0b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\latest_train.log": {
+      "type": "file",
+      "bytes": 25151,
+      "sha256": "69c1a34b0913667446807bea757d74deebd11652913eb8946c6d6df31fd2eb00"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\session_audit.json": {
+      "type": "file",
+      "bytes": 10361,
+      "sha256": "29206a415420d450f1396b39594d081dabde6028640aa867856d97721398825a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\training_health.json": {
+      "type": "file",
+      "bytes": 321,
+      "sha256": "b250dcb866cda1d806d6711aae431715249473beaf320051e29d823da134d4c1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\production\\diverse5\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 10361,
+      "sha256": "29206a415420d450f1396b39594d081dabde6028640aa867856d97721398825a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\frozen\\diverse5.pt": {
+      "type": "file",
+      "bytes": 264646276,
+      "sha256": "52ddabe9c2f75f1242e5603778595f7e68674d8d8f5e2185170fb9515660f25a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 707,
+      "sha256": "49c365ed70652294d7ac6cdcb34adec7f79ff293b6b527eaf4b8a1a379277755"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1499,
+      "sha256": "7b641c2c2679da1845f8e5dbb7292a56d054e71b676a5e492eaf54e5556c7b19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2297885,
+      "sha256": "c7cfa0231e7c1a312b5bdb2f309cf2aa5dc0db2b26604d5894982502233825ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1738,
+      "sha256": "622d5eb4af2c1660deb28a4c5a95595b09599031c04f81be495ce02df8560af3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1541,
+      "sha256": "ec1098297e410d8bd70acfd2f115ab180336e8dc79812b79104562aaf47093b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2279830,
+      "sha256": "ccbf159de59166cf94b877a084d5d74eaabcc7b331a442a01580540489d82e3d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1780,
+      "sha256": "5f142a32a044bd0a7e1db8f5d8751f5a72a56546f9228ef2ae88c4a2d6867216"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1542,
+      "sha256": "0da2bfdd3573d0e4d273d58a9523ff8b1826953a04c4fba497beed79150aceb4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2294195,
+      "sha256": "88c7b97cf60f4f006a7800b900f80bd1f7daa6ef769fc9c46eb0e3b9d9130fa5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1781,
+      "sha256": "6013059414404ba6e8f478eea8807141b0e762bd455ed25deff28aefafe4b6a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1540,
+      "sha256": "f6e1faa2bbc4194d36cb927221b0f87fb35e51742466d50b0d4490ecc5355b72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2301157,
+      "sha256": "20a440ee378e7fc25606d47a53b0bbb7ce24c6d86dadf4e357f683cad6472003"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1779,
+      "sha256": "b53393f219af551a92ced80c0d319f82eddf1fc9b65bb6b6368227c4dd914523"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1541,
+      "sha256": "3927be45c073dd22cfb6c6abc5ba685fd8204a2b1d386021599cee9b430a5ea8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2302678,
+      "sha256": "bac01563f97672ed2df37c5a43ab84b41d668e0472e8ef4ac2fbf45f8286fc23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1780,
+      "sha256": "f9c6a55a24977ccab920c891ce49f48d8c055233bd82617c16ddb7385a3e8f7e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1544,
+      "sha256": "e5808789202049d73657911b54704d9b04afa5c6fe2b7233058bbdb1e1733731"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2294635,
+      "sha256": "3328c211bb9e7b1c3230795dc404368521cc73a02bbb5fad4fbc7edb7e53c907"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1783,
+      "sha256": "20e8b027c4c2ec5961f107c7db0485552956baf7f21673b529636682dc693ab4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1542,
+      "sha256": "15ecfa421e340dcb4919dcb57c204ffd5d8b38bb8ebc7a1154b797106272ccb7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2278793,
+      "sha256": "af2a29db245875b8a19f6e0b4b097f18395463e575b570d2e4f01855374a995a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1781,
+      "sha256": "f79a303b6481471a24198dc3f13ce8c7e84d9cb18514470825af6bc0c7e44580"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1543,
+      "sha256": "25658d8c77a878ad743a221869ce24fbd8136aa61c88b9fb30156fee7285fa38"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2290480,
+      "sha256": "24f031ecbf4b50b1e451ac30f004f5fca3ddd14fb2ce7f466bb33e80c880c5a2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1782,
+      "sha256": "8727ca988245ffe5330043a17cdb73033f74fadd3c5e32750216d8622912a51b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1546,
+      "sha256": "5b8029806ebbb916660f58428e517695cf699969ee75d6c6d42041cf4ea9741f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2298186,
+      "sha256": "7d500d655d366a728dcbb1cfdf5da21133fc31460db704618806169f0f09b3df"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1785,
+      "sha256": "7385bb638c7262d031c71a082765482098fe91313d7e1a263be04b67034c54bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1544,
+      "sha256": "cdc00235fd6787196b4a5a206752e3022da83b648716c81d9ea0884e15f80101"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\control3_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2297778,
+      "sha256": "2a5685ca8651ac09b2ec2a37a969ecc65e97b2ae6cef80a9b4ab227c39b92844"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\control3_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1783,
+      "sha256": "b8c64c783acba4371a91690b7f85d1da71d515f49c834866ebdba589eef62e88"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1546,
+      "sha256": "0f9c4312b8f03f1576048b089a63f78212f2e6775b8e08f19b0deff285b75079"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2292190,
+      "sha256": "fc7c164c9cc08135e77a73884c736127cb4d3f83f5a191100a822dd560a8b68e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1785,
+      "sha256": "b6e0ed2acffa96136cefdc43bfeee593947efcd4992f61f56b1c10e1c6735515"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1538,
+      "sha256": "75a12976aa0ebe662246e9d0fc12c183056a5fef3875c4755f27fd00d503e327"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2277879,
+      "sha256": "863f986ef86ef771831a236cfd0ed7384ae0cfe5719868a8313f3e661681fde5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1777,
+      "sha256": "536a9dafd4afbf7ecbc1e47c39a3b12f8e91d8b302eab493c3df2b490a8dbeac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1543,
+      "sha256": "cf6c9f22922682ea21ae73889f9257d37aa78a61b801868ae768ed9d9d22a096"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2290022,
+      "sha256": "7e888554e69076da3c6b9f09f2f18089257d4fe702cc6dddf7c6b70aceb17ece"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1782,
+      "sha256": "93abe2695f49040fe51c8e54166efb06bd7c2057ae41c3273a2f5aa1435405e9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1544,
+      "sha256": "ce6d049439543f8984ec3b2438b8b908f36b103a298d495c0ab8d122d44ee40b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2295496,
+      "sha256": "a41c093985ecd0fe1009f1069c4c3ba537d4226800389e03a3bb0f220f8d583e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1783,
+      "sha256": "f11dbbe6088d1bece14850a0e239bfaebba5fa23de03aef15edb743abef5067c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1543,
+      "sha256": "c73afc6f8bdf615083694cf4c21f2c3c3b5582e9d8e32eeab274cee43049d1c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\matrix\\diverse5_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 2296440,
+      "sha256": "0240c6b58415d9c14f3117c531c26845b3f134b636e5000d519a91ee402a4aa6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\diverse5_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1782,
+      "sha256": "17e0200070cc9bee11c8ad38db8e45ca8d52df9ab3a6fe09972659b979100d52"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 2062,
+      "sha256": "7284441e92c51ce60c9cbc413dc14b372b8bf790fb20887ba19912b76b9c4f7a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 20102,
+      "sha256": "572aa0ef9662eb0d22b8623b5b4acb687f309efe2775bc79a8d289fd88b5f959"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 7455,
+      "sha256": "03e6f1c8a2613876a124cd9a1a3f6d7c86d3f360fd0843b53d1ac420fd29434f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-diverse-learned-league-pilot-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1254,
+      "sha256": "d212f978ad85fbba901bb0ebaa354d355ac7f1df97956a75f64cc01b75a6937a"
+    }
+  }
+}

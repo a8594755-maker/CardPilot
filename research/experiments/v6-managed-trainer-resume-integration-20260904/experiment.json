@@ -1,0 +1,799 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-managed-trainer-resume-integration-20260904",
+  "title": "Managed-attempt trainer integration and real resume cycle",
+  "status": "COMPLETED",
+  "created_at": "2026-09-04T20:12:23+00:00",
+  "updated_at": "2026-09-05T00:45:57+00:00",
+  "started_at": "2026-09-04T20:12:23+00:00",
+  "ended_at": "2026-09-05T00:45:27+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A precommitted fresh deal namespace, preserved main-process RNG and atomic checkpoint writes can resume optimizer/replay state without repeated rollout identities or partial-checkpoint replacement.",
+  "material_change": "Stage an isolated trainer candidate and test actual CPU start/save/exit/resume and reuse rejection before production cutover after the active4M sequential launcher exits.",
+  "baseline": "Unchanged production trainer SHA594f1de70f9a6abdf8076fe129a18056b5a3bd84087ad4f6cc2f1498850a6956",
+  "source": "",
+  "parent_id": "v6-durable-deal-attempt-contract-20260904",
+  "command": "python scripts/alpha_holdem/train_v5_managed_candidate.py --help",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/train_v5_managed_candidate.py --help",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:12:23+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-managed-trainer-resume-integration-20260904/run_cpu_resume_probe.py --output-name cpu_probe_r3 --continue-existing --retry-attempt2-directory attempt2_origin_retry",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:26:12+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-managed-trainer-resume-integration-20260904/run_rejection_interrupt_probe.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:29:17+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-managed-trainer-resume-integration-20260904/run_cpu_resume_probe.py --output-name cpu_probe_r3 --continue-existing --retry-attempt2-directory attempt2_origin_retry --verify-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:33:13+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_managed_assignment_origin.py scripts/alpha_holdem/test_managed_checkpoint_io.py scripts/alpha_holdem/test_fixed_deal_attempt.py scripts/alpha_holdem/test_fixed_deal_resume_integrity.py scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T20:33:13+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-managed-trainer-resume-integration-20260904/run_gpu_resume_qualification.py --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T21:58:20+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-managed-trainer-resume-integration-20260904/test_gpu_resume_qualification.py --junitxml research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_tests_final.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T21:58:20+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-managed-trainer-resume-integration-20260904/run_gpu_resume_qualification.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T21:58:20+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-04T18:00:00+00:00 --out-json research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_logger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T22:00:23+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-managed-trainer-resume-integration-20260904/test_gpu_v2_handoff.py research/experiments/v6-managed-trainer-resume-integration-20260904/test_gpu_resume_qualification.py --junitxml research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_staging_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:00:22+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_v2_handoff.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:00:22+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_v2_handoff.py --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:00:22+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-04T23:30:00+00:00 --out-json research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_logger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:00:58+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-04T11:00:00+00:00 --out-json research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_logger_creation_window_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:01:34+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_v5.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:32:42+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem research/test_experiment_log.py --junitxml=research/experiments/v6-managed-trainer-resume-integration-20260904/production_regression_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:33:23+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_v2_handoff.py --preflight-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:33:23+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_v2_handoff.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:33:37+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 4206168 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\latest.pt --seed 20263001 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:44:48+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 4215924 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\latest.pt --seed 20263001 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:44:50+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 4206168 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\latest.pt --seed 20263001 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:44:52+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 4216048 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\latest.pt --seed 20263001 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:44:55+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-04T11:00:00+00:00 --out-json research/experiments/v6-managed-trainer-resume-integration-20260904/completed_logger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T00:45:57+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8a1169b2ff3cd9da80d344ad296bbc3d7fb27ae42af632dcf39b249de891c2a9",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/fixed_deal_attempt.py",
+      "scripts/alpha_holdem/source_policy_reference.py"
+    ],
+    "captured_at": "2026-09-04T20:12:23+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-managed-trainer-resume-integration-20260904/code.patch",
+    "patch_sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252",
+    "source_manifest": "research/experiments/v6-managed-trainer-resume-integration-20260904/source_manifest.json",
+    "source_manifest_sha256": "33b595c683dda9d5a90703db000d4d498ff9be2f563ce64272f74103ec0d44ca",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 40432,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 16384.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 40432,
+    "diagnostic_environment_training_hands": 40432,
+    "diagnostic_training_hands": 40432,
+    "retained_complete_update_hands": 33547,
+    "interrupted_discarded_update_exposures": 100,
+    "gpu_observed_physical_hands": 39732,
+    "gpu_transition_bearing_hands": 32947,
+    "gpu_no_trainable_decision_hands": 5815,
+    "gpu_residual_completed_gap": 970,
+    "retained_checkpoint_physical_counter_increments": 40332
+  },
+  "metrics": {
+    "targeted_tests_passed": 54,
+    "real_resume_cycles_passed": 3,
+    "staged_validation_passed": true,
+    "production_integrated": true,
+    "gpu_qualification_staging_tests_passed": 16,
+    "gpu_qualification_executed": true,
+    "gpu_v2_handoff_staging_tests_passed": 37,
+    "gpu_v2_live_preflight_correctly_ineligible": true,
+    "production_regression_tests_passed": 379,
+    "gpu_preflight_eligible": true,
+    "gpu_preflight_input_hash_count": 352,
+    "gpu_all_mechanics_passed": true,
+    "gpu_diagnostic_iterations": 8,
+    "gpu_single1_physical_hands_per_wall_second": 86.68137972275775,
+    "gpu_multi8_physical_hands_per_wall_second": 162.61539875054635,
+    "gpu_speed_ratio": 1.8760130407551936,
+    "gpu_runner_wall_seconds": 438.5581138000125,
+    "provisional_throughput_choice": "multi8"
+  },
+  "artifacts": [
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/code.patch",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/source_manifest.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe/attempt1/stdout.log",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r2/attempt1/stdout.log",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/summary.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/staging_validation.md",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/staged_candidate.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/production_before_integration.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/candidate_before_assignment_origin.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/negative_probe/summary.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/negative_probe/optimizer_interrupt/run_manifest.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/commands.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/attempt2_origin_retry/command.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/attempt3/command.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_protocol.md",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/run_gpu_resume_qualification.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/test_gpu_resume_qualification.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_tests.xml",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_tests_final.xml",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_logger_audit.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_v2_handoff.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_protocol.md",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/test_gpu_v2_handoff.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_staging_tests.xml",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_logger_audit.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_logger_creation_window_audit.json",
+    "scripts/alpha_holdem/train_v5.py",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/production_regression_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-5b83c4c31ad14b428e10de74e1954d36.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-678dc75389bc4f699dfc0010b61a82d1.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-7bbc5e9424d4435b9d6195b8fc67a7c1.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-9333de2a89e34f22b938ed288811c113.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\prefixes.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\trainer_source.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\prefixes.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\trainer_source.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\prefixes.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\trainer_source.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\prefixes.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\process.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\trainer_source.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\verification.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/result_summary.md",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/qualified_4m_experiment.json",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/qualified_4m_result_summary.md",
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/completed_logger_audit.json"
+  ],
+  "notes": [
+    "Staged candidate is a separate entrypoint; active Seed3 must remain untouched. Diagnostic optimizer updates will be counted as diagnostic environment training, not evidence of poker strength.",
+    "First CPU probe attempt rejected at argument validation: adaptive league requires a fixed/initial opponent. Zero hands and no workers/checkpoint were created. Preserved cpu_probe/attempt1 stdout; added the existing immutable Standard10 initial opponent and retry in a distinct output directory, without modifying production training.",
+    "Second zero-hand CPU preflight rejected missing critic-v2 value_coef1. Reviewed the complete critic-v2 entry contract instead of relaxing it. The corrected probe now starts from terminal Seed1 4M critic-v2 checkpoint, preserves optimizer/replay/counters even during diagnostics, uses value_coef1, and labels the first legacy RNG bootstrap explicitly. Subsequent same-diagnostic-run continuations exercise assignment and main RNG restoration. Prior failed logs remain preserved.",
+    "CPU r3 attempt1 completed200 new physical hands with preserved source model, optimizer, counters and replay RNG. Post-run replay comparator falsely rejected the intentional NaN sentinel in transition slot12 (NaN != NaN), while first-row arrays matched byte-for-byte and replay metadata matched. Corrected the test comparator to bitwise array/scalar-NaN comparison, not training logic; added finished-attempt verification so the200hands are not rerun. Continue only later diagnostic attempts.",
+    "Attempt2 failed pre-worker at assignment provenance origin (expected1, got883); initial checkpoint and consumed namespace preserved. An explicit SHA-bound initial RNG origin migration passed the same full hash/assignment chain, and retry completed200 new hands in a fresh directory/namespace without redoing attempt1. Attempt3 multi-env resume running.",
+    "Three actual CPU start/save/resume cycles passed all model, optimizer, replay, main RNG and counter checks;600 total new diagnostic hands, including multi-env2.51 targeted tests pass. Add bounded no-hand namespace/legacy-mode rejection and a real isolated post-optimizer-step interrupt to validate complete-checkpoint preservation. Live production source unchanged.",
+    "Staging validation complete:600 retained-update diagnostic hands plus100 physical executions from a deliberately interrupted optimizer step. Complete checkpoint preserved byte-for-byte.54 targeted tests pass. Final candidate also rejects unmanaged fixed-deal resume and optimizer/counter reset. Source snapshots and all failures preserved. Integration remains pending the natural terminal boundary of active production Seed3; no interruption, replacement or strength claim.",
+    "Safe-boundary scheduling refined: a guarded one-shot runner will own4M evaluation with unchanged production Python after all targets finish. Defer production cutover until that owner and any child evaluation are terminal. If the current trainer naturally stops below target, the owner exits without evaluation; then integrate/qualify managed resume before continuing only remaining hands. No integration or existing experiment work is being reset.",
+    "While the existing4M guarded owner and trainer remained live, staged only an outcome-blind bounded current-recipe GPU qualification: fixed incident-unaffected Seed1 4M parent; single1/multi8 ABBA; two fresh-namespace attempts per arm, each8192 additional physical hands at PPO boundaries. The read-only preflight correctly rejected live trainer57140, launcher29580, owner41468 and unintegrated production SHA.16 isolated non-GPU safety/command/evidence tests pass. No new GPU work, training hands, evaluation hands or production/frozen-dependency edits. Existing diagnostic accounting remains700 physical executions,600 retained-update hands,100 discarded partial-update exposures. This is a preregistered remaining qualification, not an executed GPU result or automatic8M authorization. Production integration and all GPU tests wait until the authoritative guarded pipeline handoff. Only this integration record is updated; the live4M record remains owned by41468.",
+    "GPU qualification staging audit checked3 relevant records with0 warnings. The4M owner remains live and its separate record was not mutated by this integration update; all GPU qualification commands remain unexecuted except read-only preflight.",
+    "Staged a scheduling-only v2 handoff adapter outside the live evaluation owner's frozen dependencies. The original GPU runner SHA c9430179f702d3871c4297ad837decf9d1b4327fc12cf537a8ec4ad9ff2a262a and protocol SHA17fa287eca8ae8e67a760671d7667e171341616c0b79b782100da863741c0d1b remain unchanged.37 tests passed. Actual read-only preflight correctly refused live v2 owner10052/evaluator52064 and unintegrated production;0 workers/new hands. The adapter can clear only the obsolete v1 phase objection after OS-confirmed successor termination, completed original98,304-hand/60,000-state evidence, same-record finish and verified hashes. All original other blockers remain. Future execution delegates unchanged fixed Seed1/ABBA/budgets/seeds/verification/cost decision to the original runner. No actual GPU qualification or production cutover has occurred.",
+    "The first logger audit used a23:30UTC cutoff and covered0 records because --since filters creation time, not update time. Its empty result is preserved and is not claimed as validation. A second audit using the11:00UTC creation window includes the current4M/integration research records; see the separate creation-window artifact for actual coverage and findings.",
+    "4M record completed and all AlphaHoldem owners/workers terminal before production cutover. Applied only reviewed staged diff using apply_patch; retained old production SHA594f1de7 and existing checkpoints/evaluation evidence unchanged. Expected integrated SHA1b4d23ab. GPU qualification remains unexecuted pending full regression and successor handoff preflight.",
+    "Integrated production SHA verified exact1b4d23ab; full AlphaHoldem plus logger regression completed379/379 in19.72s, includes Slumbot CI tests. Existing CPU diagnostic hands not rerun.",
+    "Production full regression passed and successor handoff preflight eligible with352 frozen inputs. Launching preregistered Seed1-parent single1/multi8 ABBA GPU diagnostic,8192 additional physical hands per attempt at complete-update boundaries. No diagnostic checkpoint promotion; preserve outputs on any failure and do not automatically retry.",
+    "Running GPU physical accounting derives each manifest completed count minus that attempt command target minus8192; copied source prefixes are not counted again. Final qualification pending.",
+    "retained_complete_update_hands now reports600 retained CPU plus32947 GPU transition-bearing hands; retained_checkpoint_physical_counter_increments separately40332 includes no-decision hands and completed tails. GPU physical-minus-transition gap decomposes5815 no-decision and970 residual terminal gap. Original4M handoff record and summary snapshots preserved before explicit drift-comparator prose correction.",
+    "Post-completion creation-window audit covered5 records with0 warnings. No AlphaHoldem GPU trainer or qualification process remains."
+  ],
+  "result": {
+    "summary": "Production managed resume integrated with exact staged SHA1b4d23ab;379 regressions passed. Actual GPU ABBA diagnostic added39732 physical executions/32947 transition-bearing hands with all four namespace, optimizer, replay, pool and main-RNG checks passing. Pooled multi8 throughput162.615 versus single1 86.681 physical hands/s including subprocess startup/save/shutdown:1.876x.",
+    "conclusion": "Managed statistical continuation is now production/GPU qualified; earlier CPU700 diagnostic exposures retained without rerun. Total diagnostic executions40432, including100 injected/discarded CPU exposures; no diagnostic weights promoted and no research-lineage/strength-evaluation/Slumbot hands claimed. Full worker RNG/in-flight bitwise equivalence is not established.",
+    "decision": "QUALIFY_MANAGED_PRODUCTION_RESUME_AND_PROVISIONAL_MULTI8_THROUGHPUT; NO_STRENGTH_PROMOTION",
+    "next_step": "Execute separately preregistered original Seed1 4M fresh20k external development calibration before further scientific training allocation; use multi8 with durable fresh namespaces for subsequent authorized training, confirming realized long-run wall cost."
+  },
+  "tags": [
+    "infrastructure",
+    "managed-resume"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 23,
+    "command_count": 23
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/code.patch": {
+      "type": "file",
+      "bytes": 292740,
+      "sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 638,
+      "sha256": "33b595c683dda9d5a90703db000d4d498ff9be2f563ce64272f74103ec0d44ca"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe/attempt1/stdout.log": {
+      "type": "file",
+      "bytes": 23541,
+      "sha256": "55c040360705256559721c06db7b72e1954725748fed75b5aa86f425e53d45c2"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r2/attempt1/stdout.log": {
+      "type": "file",
+      "bytes": 23523,
+      "sha256": "8e93efbcdef4145e617675934b64b82db83cb0b901e6f51f43aff9ee97024175"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/summary.json": {
+      "type": "file",
+      "bytes": 3755,
+      "sha256": "aa9faf43734d3a6070404c6d04e9c176a3f565050859cae89adb75a583c84bd3"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/staging_validation.md": {
+      "type": "file",
+      "bytes": 4817,
+      "sha256": "7c1a6a04379ef097953378e6feb1dec46e3bf0d8a1ae5b1fb7c77a457c2b5c9e"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/staged_candidate.py": {
+      "type": "file",
+      "bytes": 498304,
+      "sha256": "1b4d23abfa3e0a9c675126fd7183d37b134a2a13253563e990e144cc01a90f8b"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/production_before_integration.py": {
+      "type": "file",
+      "bytes": 489427,
+      "sha256": "594f1de70f9a6abdf8076fe129a18056b5a3bd84087ad4f6cc2f1498850a6956"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/candidate_before_assignment_origin.py": {
+      "type": "file",
+      "bytes": 493826,
+      "sha256": "19ff88095877374ef92144aa2167b282ae65059578de97859417b70240da1282"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/negative_probe/summary.json": {
+      "type": "file",
+      "bytes": 775,
+      "sha256": "5029775bb020f8a38b682883872805c08382ddf21a8b8240ab09fcb243a35399"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/negative_probe/optimizer_interrupt/run_manifest.json": {
+      "type": "file",
+      "bytes": 26322,
+      "sha256": "ca9eb1f396d622904b1f7925e17838d68d5530e4bfa22d08a9f260dd81f5db8a"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/commands.json": {
+      "type": "file",
+      "bytes": 5528,
+      "sha256": "986d883ac93f93a97beec1adf71440002d4ab97dacc5778b193de7e386f53b42"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/attempt2_origin_retry/command.json": {
+      "type": "file",
+      "bytes": 2852,
+      "sha256": "33c133aea038b30b0a2f11b0e7f960d6f5971528e7bb3e3581693ec06d2b43da"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/cpu_probe_r3/attempt3/command.json": {
+      "type": "file",
+      "bytes": 2626,
+      "sha256": "3cef38ea39d0223963bc78bbd402a50a146d4b73fbeae2f3e3713445ebffe03e"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_protocol.md": {
+      "type": "file",
+      "bytes": 4849,
+      "sha256": "17fa287eca8ae8e67a760671d7667e171341616c0b79b782100da863741c0d1b"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/run_gpu_resume_qualification.py": {
+      "type": "file",
+      "bytes": 20979,
+      "sha256": "c9430179f702d3871c4297ad837decf9d1b4327fc12cf537a8ec4ad9ff2a262a"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/test_gpu_resume_qualification.py": {
+      "type": "file",
+      "bytes": 5555,
+      "sha256": "61bc6aed7d8e40896772f9744c48c97854d542fdbc9012fb151eae0d847606f2"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_tests.xml": {
+      "type": "file",
+      "bytes": 2804,
+      "sha256": "8ce782b852f6f9ecf9f452d651320305412739599f431c16a3a19d703b4fcef4"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_tests_final.xml": {
+      "type": "file",
+      "bytes": 3179,
+      "sha256": "855c704f7eece530f0de507df2cd6545de0e70584ae1dc9ddc6f9cde9ed10320"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_staging_logger_audit.json": {
+      "type": "file",
+      "bytes": 411,
+      "sha256": "0dbc2374e7c19f201c46d83cf52fd8018b094689097202d14ad17ad85a52981d"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_qualification_v2_handoff.py": {
+      "type": "file",
+      "bytes": 8102,
+      "sha256": "89d1c0ef04b07747a6ff4fcd590f2cab5a4bfc5db678526dee219c31ce7f5e82"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_protocol.md": {
+      "type": "file",
+      "bytes": 2578,
+      "sha256": "104c39b5c4f92356babee13c2d53a495dab73eb08f97eca165001ae1fc69611d"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/test_gpu_v2_handoff.py": {
+      "type": "file",
+      "bytes": 4889,
+      "sha256": "5c463a05c73eacfb25e1ff7276637cfdbcab0e3e71daf9415295f85b3df4c1f8"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_staging_tests.xml": {
+      "type": "file",
+      "bytes": 7162,
+      "sha256": "ea44f1298c7e17dd266914aa36bbba80b1b60be2e4e11225744bd8c7143bd48b"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_logger_audit.json": {
+      "type": "file",
+      "bytes": 132,
+      "sha256": "67c343fb47f729844fe5098a8391dd1128a9d5fa0d54615576be8a3534cc0513"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/gpu_v2_handoff_logger_creation_window_audit.json": {
+      "type": "file",
+      "bytes": 499,
+      "sha256": "cd382503473086186c22f95ed2883e5fa172da8b3a6e36e26d8f89af42f3f3a9"
+    },
+    "scripts/alpha_holdem/train_v5.py": {
+      "type": "file",
+      "bytes": 498304,
+      "sha256": "1b4d23abfa3e0a9c675126fd7183d37b134a2a13253563e990e144cc01a90f8b"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/production_regression_tests.xml": {
+      "type": "file",
+      "bytes": 57734,
+      "sha256": "217b8a1dd0ed6d93be4c8807096964ab95bb95c1352cc0127024cad39e7026b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\input_contract.json": {
+      "type": "file",
+      "bytes": 123331,
+      "sha256": "800ac7b1156d43495fb1a8805ed21d3e8bf60845f89d44331d001f03db7b9bd5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\summary.json": {
+      "type": "file",
+      "bytes": 9960,
+      "sha256": "f0895add9dd32cb4e39b928fd4f1bff97686aa50671cd87a9b3bf2b243d98729"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-5b83c4c31ad14b428e10de74e1954d36.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "10e58d0b4bea3b2052943e4272799a9de3cbda03eeb1a063d878202a1f109f6b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-678dc75389bc4f699dfc0010b61a82d1.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "c9a7335b5c75a5b1ef57bfe65e4daa60755b215dd7c391c8c14b070f653dfb1a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-7bbc5e9424d4435b9d6195b8fc67a7c1.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "04f985332a49e1705723c9e58c1711b29bd2952e2e532034b16708a69ac7d7be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\attempt_registry\\attempt-9333de2a89e34f22b938ed288811c113.json": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "e6e486d6e34ab2dbaa3594cfc320b798ad0bfc1b79ea912a0d763c9af53df6dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\command.json": {
+      "type": "file",
+      "bytes": 3488,
+      "sha256": "9594963890619bd1ff5bd1309de67d5a119addeffa3d29f465e5d8f4e36c9d09"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 26607817,
+      "sha256": "42b1eb297926ab4c1f9d60c2c3161f1e5bff260e5fa2779c9e9680bbace33164"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 309170650,
+      "sha256": "a7f15863c8b7d7262b4811ccf93491c221b0a32dbc92c3f40b279040bb0a180d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\latest_train.log": {
+      "type": "file",
+      "bytes": 940,
+      "sha256": "ba7e2342fdb6c2832287a2d366e056f2bf044060ca0f7a4b026e1dfa7b2e2438"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\latest.pt": {
+      "type": "file",
+      "bytes": 312217242,
+      "sha256": "479b720c247b7f8ed69317de78be08d0592a8ef0099ad89fa9e6232e6808b4a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2481102,
+      "sha256": "2f55a4ef1d2d040d2ab74041fd4237ede74767a7d6dda2fece1dac9c0039b9a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\prefixes.json": {
+      "type": "file",
+      "bytes": 580,
+      "sha256": "ee7c594c0eaa92d1279ab11912545010bb029545355886748a52607246a007df"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\process.json": {
+      "type": "file",
+      "bytes": 112,
+      "sha256": "a17700ff2ac7a91fdfa00a379f12c19a7cc35fe24776ef1b35d9f45ce4f25d8d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\run_manifest.json": {
+      "type": "file",
+      "bytes": 149933,
+      "sha256": "5c5361544db6739468843448b51b3d134dfe42be289eef5b1133ca57e5cc8d3d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\stdout.log": {
+      "type": "file",
+      "bytes": 4107,
+      "sha256": "6b4c89ffa7f41d7ff29e424cba9584cda308922ccd9fb42afaddc19a65fcb2f1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\termination.json": {
+      "type": "file",
+      "bytes": 701,
+      "sha256": "21bdb865033118bbf3e60027b8dfbedcae6f30dffef848faec854e1c3062b937"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\trainer_source.py": {
+      "type": "file",
+      "bytes": 498304,
+      "sha256": "1b4d23abfa3e0a9c675126fd7183d37b134a2a13253563e990e144cc01a90f8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt1\\verification.json": {
+      "type": "file",
+      "bytes": 2108,
+      "sha256": "73d3647d3efbfd90a0c6bb1c824b1f117a1e3bb2cd9182f628d6b169cc7a2f3a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\command.json": {
+      "type": "file",
+      "bytes": 3529,
+      "sha256": "5a5468d5e332a240ad3332f6e6c05bd4f5e7f64dcdec41ae286cd9c842e79e92"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 26668400,
+      "sha256": "be23dc53464539c51a55e4faa7dc3b3a6f219fab276f18465e1f9f4134a83acc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 312216410,
+      "sha256": "1c09d9a81d8f80ee7b3e0285b6cf9c81846001e85fe18673acc3ee50a0a98dfb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\latest_train.log": {
+      "type": "file",
+      "bytes": 941,
+      "sha256": "ba4e26e4ae06d7cc03e7f4a24847ddb6ca217e67b6c602fc10e7e7d546654d11"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\latest.pt": {
+      "type": "file",
+      "bytes": 306564122,
+      "sha256": "1c5168dd30518f0222953dc559f2dc0566d34a558cb5c7b4960e2d0cc1f8499a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2486714,
+      "sha256": "238b72ad602850f635bedc8c5ebe0007151d676069aae11f27e1d260330bbd26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\prefixes.json": {
+      "type": "file",
+      "bytes": 662,
+      "sha256": "d16ea231f2076ab5394d8f3275f23ca080ae4314ab756197bf55f583944b38f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\process.json": {
+      "type": "file",
+      "bytes": 111,
+      "sha256": "06a287d0bbfe17fe01c40562e1fa187291d4d9467a0cefe79861ea5f7d6c3fc6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\run_manifest.json": {
+      "type": "file",
+      "bytes": 150030,
+      "sha256": "6a19563be9110e56b042843e74707581a143c58be6ea18c95018d1e6e68191b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\stdout.log": {
+      "type": "file",
+      "bytes": 4149,
+      "sha256": "6a8f6853df0e667f4120a13f8e7907c418df5943ae027f981f3be8550f8bc0f5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\termination.json": {
+      "type": "file",
+      "bytes": 701,
+      "sha256": "a656318ef22f7f603aa19e20a34a12904c2159c9849f94b678838f1559b2af75"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\trainer_source.py": {
+      "type": "file",
+      "bytes": 498304,
+      "sha256": "1b4d23abfa3e0a9c675126fd7183d37b134a2a13253563e990e144cc01a90f8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\multi8_attempt2\\verification.json": {
+      "type": "file",
+      "bytes": 2131,
+      "sha256": "520440df652d98d10b83e9d3aded8fe15b94a6007d31aeb9d7863e593eb14e42"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\command.json": {
+      "type": "file",
+      "bytes": 3492,
+      "sha256": "0f976f29eb98c0246f323b3810f5c7f1ccbad90fb2b23154bad78a8102bad024"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 26607505,
+      "sha256": "fb19ac9e1e058d258c7836e84014d3ad4daede6e4b141fd34ef9240553ec5897"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 309170650,
+      "sha256": "58d0a1a8af2cd523946900bec73585eb635fc00e4fdf6f052a5723a98b763335"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\latest_train.log": {
+      "type": "file",
+      "bytes": 937,
+      "sha256": "106e3114b1a6969ac7b7c43f1dd558703daa0428cedc527e5ce2000e65516ed3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\latest.pt": {
+      "type": "file",
+      "bytes": 314638874,
+      "sha256": "90245078b2703faf65459286c93c70e26beb39d2eebeff22c60e9b41f7e3f949"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2481101,
+      "sha256": "a64e5bb5d6f9dd91f9190eb07a60f8065c74a27f69ee0c657053a4448b654b44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\prefixes.json": {
+      "type": "file",
+      "bytes": 580,
+      "sha256": "ee7c594c0eaa92d1279ab11912545010bb029545355886748a52607246a007df"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\process.json": {
+      "type": "file",
+      "bytes": 113,
+      "sha256": "ad71c05f240c6cd4dce286fb996675371bf89188bcf09c51adc2e4b98575df72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\run_manifest.json": {
+      "type": "file",
+      "bytes": 149724,
+      "sha256": "778c98255f5afd3c6a198549332825326981b11dd6423177493a9f1754a16be1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\stdout.log": {
+      "type": "file",
+      "bytes": 4110,
+      "sha256": "a94f137b2fb9c2a359f40cd56005433cba3a140e5e62562aede0b9ed27fb88e4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\termination.json": {
+      "type": "file",
+      "bytes": 703,
+      "sha256": "afc7e994e086e47325ccbcc233366d68c82416cb39dd6f83fb0b1211efc73583"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\trainer_source.py": {
+      "type": "file",
+      "bytes": 498304,
+      "sha256": "1b4d23abfa3e0a9c675126fd7183d37b134a2a13253563e990e144cc01a90f8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt1\\verification.json": {
+      "type": "file",
+      "bytes": 2109,
+      "sha256": "4f6471b34a337877361df6d468ecf77fd4ee881d0e04f9eb49669d13d2c0433b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\command.json": {
+      "type": "file",
+      "bytes": 3534,
+      "sha256": "fed8e3544c6f7b70b7a257d273c3aa3be7d929af33d67b8cdb697359cdb2713d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 26667735,
+      "sha256": "cf8a25ca5341216b453917385f49f221d17552a72a14b8afd76205945a780c58"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 314638042,
+      "sha256": "c00b0b5df4dfc938bbc3b4915eb409391789217e94d877839ec561a24894baca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\latest_train.log": {
+      "type": "file",
+      "bytes": 937,
+      "sha256": "79e153507eee09eff012f0b0e5e011825d2ee4f945783e0498ccea0ee4fd6c84"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\latest.pt": {
+      "type": "file",
+      "bytes": 307852058,
+      "sha256": "b0485d4b5b470cf6a31a3952aca95616a8a97de7d2e5f173ccc5321a81768e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2486722,
+      "sha256": "91d94de78ed94ea481abadbabcce290822a6e9a39675fb005b0f05909d28b337"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\prefixes.json": {
+      "type": "file",
+      "bytes": 664,
+      "sha256": "6435a86118aa6acd7b6c971c1d58758081ddb15de2abc03ec046edfccbbf7ef0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\process.json": {
+      "type": "file",
+      "bytes": 112,
+      "sha256": "29faaff753a38baa4f55a94111864ef7f0fef87c767d230fd55f0dff95584ebb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\run_manifest.json": {
+      "type": "file",
+      "bytes": 149737,
+      "sha256": "09dc36a4830738e1dd09b93523dfe5fc485f14f206060bc8d8967aaf778bc946"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\stdout.log": {
+      "type": "file",
+      "bytes": 4151,
+      "sha256": "f963f0e4c69b4c4623e219521e9e421192e7bb00c5c2e1da1931a5c87f0a59c2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\termination.json": {
+      "type": "file",
+      "bytes": 697,
+      "sha256": "32072545df14c47854cc5f289e8e2f1a662616ab34913753d7ddda3d227fae39"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\trainer_source.py": {
+      "type": "file",
+      "bytes": 498304,
+      "sha256": "1b4d23abfa3e0a9c675126fd7183d37b134a2a13253563e990e144cc01a90f8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-managed-trainer-resume-integration-20260904\\gpu_current_recipe_v1\\single1_attempt2\\verification.json": {
+      "type": "file",
+      "bytes": 2132,
+      "sha256": "bde05db9a0e74d15de14f528438956ea60b632c9c8b32641a95a3c45b4298075"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/result_summary.md": {
+      "type": "file",
+      "bytes": 4569,
+      "sha256": "695c2c6b9951b96163d799c3b4cbe175a0510d983aeb77a05d15ac37851d0cf9"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/qualified_4m_experiment.json": {
+      "type": "file",
+      "bytes": 77212,
+      "sha256": "a19a998cfaf0c285e846e6df971bb2daaa1a2a48f14793282ffcd2c8ced8feac"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/qualified_4m_result_summary.md": {
+      "type": "file",
+      "bytes": 5947,
+      "sha256": "689c921068f2e40072e95bbd6c5887f61a55351980bdba46fd9b8b3b49eb9ebb"
+    },
+    "research/experiments/v6-managed-trainer-resume-integration-20260904/completed_logger_audit.json": {
+      "type": "file",
+      "bytes": 600,
+      "sha256": "c5e1f64d3abf3d694115644b3040b7bcac4c11931c4da2ee94d7583a316ab546"
+    }
+  }
+}

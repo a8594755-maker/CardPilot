@@ -1,0 +1,379 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "action-rms-advantage-pilot-20260830",
+  "title": "Per-action RMS advantage credit pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T14:26:14+00:00",
+  "updated_at": "2026-08-30T14:58:26+00:00",
+  "started_at": "2026-08-30T14:26:14+00:00",
+  "ended_at": "2026-08-30T14:58:26+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Per-action RMS normalization will prevent high-variance rare action slots from dominating PPO gradients while preserving between-action advantage means, improving robust multi-anchor performance over the untouched global-normalization all-policy-heads control.",
+  "material_change": "Change only policy advantage normalization from global whitening to action-wise RMS scaling with a 32-row fallback threshold. Keep Standard10 initialization, frozen shared representation, both policy heads, optimizer, three fixed anchors, adaptive sampling, seeds/deals, actual-hand budget, and frozen evaluation schedule matched to adaptive-league-all-heads-pilot-20260830.",
+  "baseline": "adaptive-league-all-heads-pilot-20260830 untouched global-advantage-normalization control",
+  "source": "Existing train_v5 action_rms mode; recent production diagnostics show action-slot advantage RMS differs by more than an order of magnitude, while selector/replay/teacher changes failed robust matched gates.",
+  "parent_id": "elo-kbest-league-pilot-20260830",
+  "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 256 --total-hands 256 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization action_rms --action-normalization-min-rows 32 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/action-rms-advantage-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id action_rms_all_heads_smoke_20260830 --run-dir research/experiments/action-rms-advantage-pilot-20260830/smoke --out research/experiments/action-rms-advantage-pilot-20260830/smoke/latest.pt --seed 20260851 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 256 --total-hands 256 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization action_rms --action-normalization-min-rows 32 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/action-rms-advantage-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id action_rms_all_heads_smoke_20260830 --run-dir research/experiments/action-rms-advantage-pilot-20260830/smoke --out research/experiments/action-rms-advantage-pilot-20260830/smoke/latest.pt --seed 20260851 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:26:14+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization action_rms --action-normalization-min-rows 32 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/action-rms-advantage-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id action_rms_all_heads_262k_20260830 --run-dir research/experiments/action-rms-advantage-pilot-20260830/production --out research/experiments/action-rms-advantage-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:27:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/action-rms-advantage-pilot-20260830/smoke --expected-target-hands 256 --expected-final-iteration 1 --expected-pool-size 3 --expected-archive-every 999999 --expected-normalization action_rms --workspace . --out research/experiments/action-rms-advantage-pilot-20260830/smoke/smoke_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:36:55+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/action-rms-advantage-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-pool-size 3 --expected-archive-every 16 --expected-normalization action_rms --workspace . --out research/experiments/action-rms-advantage-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:50:49+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065910.pt --candidate-label action_rms_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter16.json --out-md research/experiments/action-rms-advantage-pilot-20260830/curve/iter16.md --execution-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131674.pt --candidate-label action_rms_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter32.json --out-md research/experiments/action-rms-advantage-pilot-20260830/curve/iter32.md --execution-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197541.pt --candidate-label action_rms_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter48.json --out-md research/experiments/action-rms-advantage-pilot-20260830/curve/iter48.md --execution-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263467.pt --candidate-label action_rms_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter64.json --out-md research/experiments/action-rms-advantage-pilot-20260830/curve/iter64.md --execution-json research/experiments/action-rms-advantage-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/action-rms-advantage-pilot-20260830/curve/iter16.json --out research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/action-rms-advantage-pilot-20260830/curve/iter32.json --out research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter32.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/action-rms-advantage-pilot-20260830/curve/iter48.json --out research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter48.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/action-rms-advantage-pilot-20260830/curve/iter64.json --out research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter64.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:57:51+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "d5ed3f0b7654494f4c2245a7ed18bdf0029476cd0f5b6cfe3dfe6eb4a4a687ad",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py"
+    ],
+    "captured_at": "2026-08-30T14:26:15+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/action-rms-advantage-pilot-20260830/code.patch",
+    "patch_sha256": "3eb0433ec20d15d46369145cda022bbb0a7239f77e65f02548fb667b16d01143",
+    "source_manifest": "research/experiments/action-rms-advantage-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "2312c99130ddd214ea6f328071bf193b629223fce83df50d64fbcc91923a2b1d",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 263759,
+    "lineage_training_hands": 10283876,
+    "offline_samples": 0,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 1932.0,
+    "training_environment_hands": 263759
+  },
+  "metrics": {
+    "smoke_gate": "PASS",
+    "smoke_actual_hands": 292,
+    "smoke_reference_kl": 2.09499485208653e-05,
+    "smoke_approx_kl": 0.000509179662913084,
+    "smoke_supported_action_rms_equalized": 4,
+    "smoke_clip_fraction": 0,
+    "production_actual_hands": 263467,
+    "production_iterations": 64,
+    "production_kl_early_stops": 0,
+    "production_max_reference_policy_kl": 0.002070958726108074,
+    "production_max_clip_fraction": 0.019542288035154343,
+    "paired_positive_rows": 5,
+    "paired_zero_rows": 1,
+    "paired_negative_rows": 6,
+    "paired_mean_delta_bb100": -1.987060546875,
+    "paired_median_delta_bb100": -0.2314453125,
+    "paired_all_ci_cross_zero": true
+  },
+  "artifacts": [
+    "research/experiments/action-rms-advantage-pilot-20260830/code.patch",
+    "research/experiments/action-rms-advantage-pilot-20260830/source_manifest.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/latest.pt",
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/smoke_session_audit.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/production_session_audit.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/latest.pt",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/run_manifest.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/latest_train.log",
+    "scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py",
+    "research/experiments/action-rms-advantage-pilot-20260830/result_summary.md",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065910.pt",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131674.pt",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197541.pt",
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263467.pt",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter16.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter16.md",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter32.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter32.md",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter48.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter48.md",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter64.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter64.md",
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter16.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter32.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter48.json",
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter64.json"
+  ],
+  "notes": [
+    "Preregistered smoke gate: exact hand/assignment accounting, finite losses, source KL below 0.001, no KL stop, and observed action-wise RMS equalization without erasing all between-action mean signal. Production only after gate; production uses seed 20260852/worker seed 2026085200 and 262,144 actual hands. Frozen curve uses the untouched control seed 20260853 and pair outcomes.",
+    "Smoke gate PASS: supported action slots 0/1/3/6 had pre-winsorization normalized RMS 1.0 with nonzero between-action means; trust-region and finite-value checks passed.",
+    "Added a fail-closed fixed-pool session auditor and verified it end-to-end on the completed smoke: PASS, all three anchor hashes/membership, assignment RNG/hash chain, optimizer, metrics, and terminal manifest agree.",
+    "Production completed normally at 263,467 actual environment hands across 64 updates. Fail-closed terminal audit PASS: 64 contiguous metric/assignment rows, terminal hash chain and assignment RNG agree, optimizer step 1832 is nonempty, all three fixed anchor hashes are unchanged, four archives align exactly with metric boundaries, and there were zero KL early stops.",
+    "Fresh matched frozen curve used 1024 mirrored pairs per checkpoint-anchor, seed 20260853, pair outcomes, and zero OOD. Across 12 paired treatment-control rows: 5 positive, 6 negative, 1 zero; mean -1.9871 and median -0.2314 bb/100; every 95% CI crossed zero. The preregistered robust gate failed, so no Slumbot evaluation was authorized."
+  ],
+  "result": {
+    "summary": "Action-RMS PPO remained stable and correctly changed action-slot credit scaling, but its 263,759-hand pilot failed the untouched matched generalization gate.",
+    "conclusion": "Across four frozen checkpoints and three fixed anchors, paired treatment-control deltas had 5 positive, 6 negative, and 1 zero point estimates; mean -1.9871 and median -0.2314 bb/100, with every 95% CI crossing zero. Terminal iter64 was mixed (+1.025 slumbot_free, +3.125 CFR96, -0.659 Standard10), so there is no robust evidence of general improvement.",
+    "decision": "REJECT_ACTION_RMS_NO_ROBUST_GENERAL_GAIN",
+    "next_step": "Do not spend more hands on per-action RMS normalization and do not run Slumbot. Choose a higher-information intervention that changes the learned signal or representation rather than another opponent selector or optimizer-normalization variant on the same 262k all-heads recipe."
+  },
+  "tags": [
+    "credit-assignment",
+    "learned-policy",
+    "ppo"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/action-rms-advantage-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 200947,
+      "sha256": "3eb0433ec20d15d46369145cda022bbb0a7239f77e65f02548fb667b16d01143"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "2312c99130ddd214ea6f328071bf193b629223fce83df50d64fbcc91923a2b1d"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 133303604,
+      "sha256": "91e9eeac68cd6f1d90ad7cd33b5999a2140941456e73e885b6370e91c1f8a2e4"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 51434,
+      "sha256": "ff207d7dfc6675f33d6e93f80d52a52d42010f5892fde041acab94bc3a8566f3"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 21322,
+      "sha256": "20a1b1009dd692e73cec5319731a5a772952ef8f3b4aa03aa75eb0076a359253"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2521,
+      "sha256": "6d38f42c5397a5706546c8f1a6032f91415f5dc1f8a8fd11d0d2c9dba8c0eecd"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/smoke/smoke_session_audit.json": {
+      "type": "file",
+      "bytes": 2453,
+      "sha256": "3acb53b5927771143257ea81275e539d6d6a38d02054221fbb26cc5ffc492539"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 3889,
+      "sha256": "f9a4ef52574f7b714a5e5c5c569694a26f48f7ded022509d50df53aa04cc143e"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 133303604,
+      "sha256": "1e395ed4be05ec704e2c1767b16cf55f4279592a6485484277f32beed4c056d2"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 53568,
+      "sha256": "879a75bd346073400cec0664a9b9b8514fe40fe15334f3b98977f4d52b0dd135"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1517386,
+      "sha256": "28b1ca74def44d1a8e7c9b58d520fd3a5117caaaa20315048cd439c17c8fe052"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 166180,
+      "sha256": "6238a9abfbade114359e2d51a3504b75295ef12750d43b6d03cb38f25db31aa9"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/latest_train.log": {
+      "type": "file",
+      "bytes": 27039,
+      "sha256": "18fb5fd90bf3d90f55bdd1aab84679898ab523243ea560d408e77835143b6d40"
+    },
+    "scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py": {
+      "type": "file",
+      "bytes": 12476,
+      "sha256": "a90c43bc7ef625d70b60e1c192dd9f2cbd11f0f0aba691062c97614de85406a1"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 3034,
+      "sha256": "3d54d34268dd57eb644f03dd47dc5e2d63020005722a77ad77ddbbad2a7b415c"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065910.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "84cb4d2f8dc1e146b013772cb8910b2b112d9c4c701947a2613fd08b3b0eee8f"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131674.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "22ae5d65c03c4735f4c30e907f634b09ff442446d4dece2da559d2a273fad0d2"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197541.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "c7d89389c1d63193c0e8ffce3967600560cdbff79d9a8b1d484775e5f5c1818c"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263467.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "7a1a89d066f86c0a84f03b5a3ff20134e75209332689a4d4b380ff10a757eabb"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 172917,
+      "sha256": "4b27ae2e19cb16bcc6e1e46a3bd75f852d35ac0fc910f489c5018969c654d73a"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter16.md": {
+      "type": "file",
+      "bytes": 1569,
+      "sha256": "853258d7231ccd0c1bec6a8b849654c9415898a7553e1d249d72b7327d27b17e"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1829,
+      "sha256": "ccb5da201e9dee5d18f5c27a4f084ccf95f3bf2b0536123b435ef6429fa58dc5"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 173097,
+      "sha256": "596632fb976f3624b08bce055a3d58ef6aeb37a56d6b3f8ec64e24fb52a71092"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter32.md": {
+      "type": "file",
+      "bytes": 1570,
+      "sha256": "dd7140f2122b2e25a4b855e5756655e6074fc48a2916d447acfd7add7cd57c91"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1829,
+      "sha256": "5664f653219b476797ae1db72881c2f98c561459e0285f6653f51bf4d2b23111"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 173105,
+      "sha256": "6172e77b61d8d58e0cd857c514bb9a33df9c2daffbbb987a918858eb4a9b6875"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter48.md": {
+      "type": "file",
+      "bytes": 1570,
+      "sha256": "cf88610545bbbc5c15d4ea19a98f0a09c5919a6a0cda5fa87fcb059b5fdd4513"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1829,
+      "sha256": "8a3a27aa4dd05d8969925e2cbef71fd2a5869f0e4fb19c756f69ef94876bc2a1"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 173274,
+      "sha256": "0af600b9d8610b29adf424dce6cd134d4354f0ac2b9c2b7cac20fd980b3303a1"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter64.md": {
+      "type": "file",
+      "bytes": 1570,
+      "sha256": "02c6cec3fe92eddd2751d40e1db031cdb71cfb085d063a99c1baf4b01d0a4555"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1828,
+      "sha256": "06eb275bead9e55f911e9fbc5f50e89c17ca421b19c3a7280d6d60ba9715ccc3"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter16.json": {
+      "type": "file",
+      "bytes": 4926,
+      "sha256": "3379c2a3c3a88d3e90707520baeccd2335c50e98c3412ce2cc52b231153cd3ea"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter32.json": {
+      "type": "file",
+      "bytes": 4931,
+      "sha256": "a3d9bef351ed9b741d03dd931f7ce183618e41d9e5a2d0fe6d16e0fd7e9072a0"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter48.json": {
+      "type": "file",
+      "bytes": 4942,
+      "sha256": "3152f3f450fb7eaec8826ec33bc62fd82e8085198557495945285d3167a7cadc"
+    },
+    "research/experiments/action-rms-advantage-pilot-20260830/paired_delta/iter64.json": {
+      "type": "file",
+      "bytes": 4940,
+      "sha256": "b16b4dfeb904bba961911f79169151f4925ce52d381a72633eb2a8f3dc79bffc"
+    }
+  }
+}

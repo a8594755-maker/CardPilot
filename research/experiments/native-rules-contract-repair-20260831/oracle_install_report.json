@@ -1,0 +1,107 @@
+{
+  "version": "1",
+  "pip_version": "25.0.1",
+  "install": [
+    {
+      "download_info": {
+        "url": "file:///C:/Users/a8594/CardPilot/research/experiments/native-rules-contract-repair-20260831/oracle_wheels/pokerkit-0.7.5-py3-none-any.whl",
+        "archive_info": {
+          "hash": "sha256=3e1a0b2a8a9785369c86e2c1392dd2204ee536fbcbe77a779c875bd545eb63e8",
+          "hashes": {
+            "sha256": "3e1a0b2a8a9785369c86e2c1392dd2204ee536fbcbe77a779c875bd545eb63e8"
+          }
+        }
+      },
+      "is_direct": true,
+      "is_yanked": false,
+      "requested": true,
+      "metadata": {
+        "metadata_version": "2.4",
+        "name": "pokerkit",
+        "version": "0.7.5",
+        "dynamic": [
+          "author",
+          "author-email",
+          "classifier",
+          "description",
+          "description-content-type",
+          "home-page",
+          "keywords",
+          "license",
+          "license-file",
+          "project-url",
+          "requires-python",
+          "summary"
+        ],
+        "summary": "An open-source Python library for poker game simulations, hand evaluations, and statistical analysis",
+        "description": "========\nPokerKit\n========\n\nPokerKit is an open-source software library, written in pure Python, for simulating games, evaluating hands, and facilitating statistical analysis, developed by the Universal, Open, Free, and Transparent Computer Poker Research Group. PokerKit supports an extensive array of poker variants and it provides a flexible architecture for users to define their custom games. These facilities are exposed via an intuitive unified high-level programmatic API. The library can be used in a variety of use cases, from poker AI development, and tool creation, to online poker casino implementation. PokerKit's reliability has been established through static type checking, extensive doctests, and unit tests, achieving 99% code coverage.\n\nFeatures\n--------\n\n* Extensive poker game logic for major and minor poker variants.\n* High-speed hand evaluations.\n* Customizable game states and parameters.\n* Robust implementation with static type checking and extensive unit tests and doctests.\n\nInstallation\n------------\n\nThe PokerKit library requires Python Version 3.11 or above and can be installed using pip:\n\n.. code-block:: bash\n\n   pip install pokerkit\n\nUsages\n------\n\nExample usages of PokerKit is shown below.\n\nMulti-Runout in an All-In Situation\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nBelow shows the 4-runout hand between Phil Hellmuth and the Loose Cannon Ernest Wiggins.\n\nLink: https://youtu.be/cnjJv7x0HMY?si=4l05Ez7lQVczt8DI&t=638\n\nNote that the starting stacks for some players are set to be ``math.inf`` as they are not mentioned.\n\n.. code-block:: python\n\n   from math import inf\n\n   from pokerkit import Automation, Mode, NoLimitTexasHoldem\n\n   state = NoLimitTexasHoldem.create_state(\n       # Automations\n       (\n           Automation.ANTE_POSTING,\n           Automation.BET_COLLECTION,\n           Automation.BLIND_OR_STRADDLE_POSTING,\n           Automation.HOLE_CARDS_SHOWING_OR_MUCKING,\n           Automation.HAND_KILLING,\n           Automation.CHIPS_PUSHING,\n           Automation.CHIPS_PULLING,\n       ),\n       False,  # Uniform antes?\n       {-1: 600},  # Antes\n       (200, 400, 800),  # Blinds or straddles\n       400,  # Min-bet\n       (inf, 116400, 86900, inf, 50000, inf),  # Starting stacks\n       6,  # Number of players\n       mode=Mode.CASH_GAME,\n   )\n\n   # Below are the pre-flop dealings and actions.\n\n   state.deal_hole('JsTh')  # Tony G\n   state.deal_hole('Ah9d')  # Hellmuth\n   state.deal_hole('KsKc')  # Wiggins\n   state.deal_hole('5c2h')  # Negreanu\n   state.deal_hole('6h5h')  # Brunson\n   state.deal_hole('6s3s')  # Laak\n\n   state.fold()  # Negreanu\n   state.complete_bet_or_raise_to(2800)  # Brunson\n   state.fold()  # Laak\n   state.check_or_call()  # Tony G\n   state.complete_bet_or_raise_to(12600)  # Hellmuth\n   state.check_or_call()  # Wiggins\n   state.check_or_call()  # Brunson\n   state.check_or_call()  # Tony G\n\n   # Below are the flop dealing and actions.\n\n   state.burn_card('??')\n   state.deal_board('9hTs9s')\n\n   state.check_or_call()  # Tony G\n   state.complete_bet_or_raise_to(17000)  # Hellmuth\n   state.complete_bet_or_raise_to(36000)  # Wiggins\n   state.fold()  # Brunson\n   state.fold()  # Tony G\n   state.complete_bet_or_raise_to(103800)  # Hellmuth\n   state.check_or_call()  # Wiggins\n\n   # Below is selecting the number of runouts.\n\n   state.select_runout_count(4)  # Hellmuth\n   state.select_runout_count(None)  # Wiggins\n\n   # Below is the first runout.\n\n   state.burn_card('??')\n   state.deal_board('Jh')  # Turn\n   state.burn_card('??')\n   state.deal_board('Ad')  # River\n\n   # Below is the second runout.\n\n   state.burn_card('??')\n   state.deal_board('Kh')  # Turn\n   state.burn_card('??')\n   state.deal_board('3c')  # River\n\n   # Below is the third runout.\n\n   state.burn_card('??')\n   state.deal_board('7s')  # Turn\n   state.burn_card('??')\n   state.deal_board('8s')  # River\n\n   # Below is the fourth runout.\n\n   state.burn_card('??')\n   state.deal_board('Qc')  # Turn\n   state.burn_card('??')\n   state.deal_board('Kd')  # River\n\n   # Below are the final stacks.\n\n   print(state.stacks)  # [inf, 79400, 149700, inf, 37400, inf]\n\nA Sample No-Limit Texas Hold'em Hand\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nBelow shows the first televised million-dollar pot between Tom Dwan and Phil Ivey.\n\nLink: https://youtu.be/GnxFohpljqM\n\nNote that the starting stack of Patrik Antonius is set to be ``math.inf`` as it is not mentioned.\n\n.. code-block:: python\n\n   from math import inf\n\n   from pokerkit import Automation, NoLimitTexasHoldem\n\n   state = NoLimitTexasHoldem.create_state(\n       # Automations\n       (\n           Automation.ANTE_POSTING,\n           Automation.BET_COLLECTION,\n           Automation.BLIND_OR_STRADDLE_POSTING,\n           Automation.HOLE_CARDS_SHOWING_OR_MUCKING,\n           Automation.HAND_KILLING,\n           Automation.CHIPS_PUSHING,\n           Automation.CHIPS_PULLING,\n       ),\n       True,  # Uniform antes?\n       500,  # Antes\n       (1000, 2000),  # Blinds or straddles\n       2000,  # Min-bet\n       (1125600, inf, 553500),  # Starting stacks\n       3,  # Number of players\n   )\n\n   # Below are the pre-flop dealings and actions.\n\n   state.deal_hole('Ac2d')  # Ivey\n   state.deal_hole('????')  # Antonius\n   state.deal_hole('7h6h')  # Dwan\n\n   state.complete_bet_or_raise_to(7000)  # Dwan\n   state.complete_bet_or_raise_to(23000)  # Ivey\n   state.fold()  # Antonius\n   state.check_or_call()  # Dwan\n\n   # Below are the flop dealing and actions.\n\n   state.burn_card('??')\n   state.deal_board('Jc3d5c')\n\n   state.complete_bet_or_raise_to(35000)  # Ivey\n   state.check_or_call()  # Dwan\n\n   # Below are the turn dealing and actions.\n\n   state.burn_card('??')\n   state.deal_board('4h')\n\n   state.complete_bet_or_raise_to(90000)  # Ivey\n   state.complete_bet_or_raise_to(232600)  # Dwan\n   state.complete_bet_or_raise_to(1067100)  # Ivey\n   state.check_or_call()  # Dwan\n\n   # Below is the river dealing.\n\n   state.burn_card('??')\n   state.deal_board('Jh')\n\n   # Below are the final stacks.\n\n   print(state.stacks)  # [572100, inf, 1109500]\n\nA Sample Short-Deck Hold'em Hand\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nBelow shows an all-in hand between Xuan and Phua.\n\nLink: https://youtu.be/QlgCcphLjaQ\n\n.. code-block:: python\n\n   from pokerkit import Automation, NoLimitShortDeckHoldem\n\n   state = NoLimitShortDeckHoldem.create_state(\n       # Automations\n       (\n           Automation.ANTE_POSTING,\n           Automation.BET_COLLECTION,\n           Automation.BLIND_OR_STRADDLE_POSTING,\n           Automation.HOLE_CARDS_SHOWING_OR_MUCKING,\n           Automation.HAND_KILLING,\n           Automation.CHIPS_PUSHING,\n           Automation.CHIPS_PULLING,\n       ),\n       True,  # Uniform antes?\n       3000,  # Antes\n       {-1: 3000},  # Blinds or straddles\n       3000,  # Min-bet\n       (495000, 232000, 362000, 403000, 301000, 204000),  # Starting stacks\n       6,  # Number of players\n   )\n\n   # Below are the pre-flop dealings and actions.\n\n   state.deal_hole('Th8h')  # Badziakouski\n   state.deal_hole('QsJd')  # Zhong\n   state.deal_hole('QhQd')  # Xuan\n   state.deal_hole('8d7c')  # Jun\n   state.deal_hole('KhKs')  # Phua\n   state.deal_hole('8c7h')  # Koon\n\n   state.check_or_call()  # Badziakouski\n   state.check_or_call()  # Zhong\n   state.complete_bet_or_raise_to(35000)  # Xuan\n   state.fold()  # Jun\n   state.complete_bet_or_raise_to(298000)  # Phua\n   state.fold()  # Koon\n   state.fold()  # Badziakouski\n   state.fold()  # Zhong\n   state.check_or_call()  # Xuan\n\n   # Below is the flop dealing.\n\n   state.burn_card('??')\n   state.deal_board('9h6cKc')\n\n   # Below is the turn dealing.\n\n   state.burn_card('??')\n   state.deal_board('Jh')\n\n   # Below is the river dealing.\n\n   state.burn_card('??')\n   state.deal_board('Ts')\n\n   # Below are the final stacks.\n\n   print(state.stacks)  # [489000, 226000, 684000, 400000, 0, 198000]\n\nA Sample Pot-Limit Omaha Hold'em Hand\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nBelow shows the largest online poker pot ever played between Patrik Antonius and Viktor Blom.\n\nLink: https://youtu.be/UMBm66Id2AA\n\n.. code-block:: python\n\n   from pokerkit import Automation, PotLimitOmahaHoldem\n\n   state = PotLimitOmahaHoldem.create_state(\n       # Automations\n       (\n           Automation.ANTE_POSTING,\n           Automation.BET_COLLECTION,\n           Automation.BLIND_OR_STRADDLE_POSTING,\n           Automation.HOLE_CARDS_SHOWING_OR_MUCKING,\n           Automation.HAND_KILLING,\n           Automation.CHIPS_PUSHING,\n           Automation.CHIPS_PULLING,\n       ),\n       True,  # Uniform antes?\n       0,  # Antes\n       (500, 1000),  # Blinds or straddles\n       1000,  # Min-bet\n       (1259450.25, 678473.5),  # Starting stacks\n       2,  # Number of players\n   )\n\n   # Below are the pre-flop dealings and actions.\n\n   state.deal_hole('Ah3sKsKh')  # Antonius\n   state.deal_hole('6d9s7d8h')  # Blom\n\n   state.complete_bet_or_raise_to(3000)  # Blom\n   state.complete_bet_or_raise_to(9000)  # Antonius\n   state.complete_bet_or_raise_to(27000)  # Blom\n   state.complete_bet_or_raise_to(81000)  # Antonius\n   state.check_or_call()  # Blom\n\n   # Below are the flop dealing and actions.\n\n   state.burn_card('??')\n   state.deal_board('4s5c2h')\n\n   state.complete_bet_or_raise_to(91000)  # Antonius\n   state.complete_bet_or_raise_to(435000)  # Blom\n   state.complete_bet_or_raise_to(779000)  # Antonius\n   state.check_or_call()  # Blom\n\n   # Below is the turn dealing.\n\n   state.burn_card('??')\n   state.deal_board('5h')\n\n   # Below is the river dealing.\n\n   state.burn_card('??')\n   state.deal_board('9c')\n\n   # Below are the final stacks.\n\n   print(state.stacks)  # [1937923.75, 0.0]\n\nA Sample Fixed-Limit Deuce-To-Seven Lowball Triple Draw Hand\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nBelow shows a bad beat between Yockey and Arieh.\n\nLink: https://youtu.be/pChCqb2FNxY\n\n.. code-block:: python\n\n   from pokerkit import Automation, FixedLimitDeuceToSevenLowballTripleDraw\n\n   state = FixedLimitDeuceToSevenLowballTripleDraw.create_state(\n       # Automations\n       (\n           Automation.ANTE_POSTING,\n           Automation.BET_COLLECTION,\n           Automation.BLIND_OR_STRADDLE_POSTING,\n           Automation.HOLE_CARDS_SHOWING_OR_MUCKING,\n           Automation.HAND_KILLING,\n           Automation.CHIPS_PUSHING,\n           Automation.CHIPS_PULLING,\n       ),\n       True,  # Uniform antes?\n       0,  # Antes\n       (75000, 150000),  # Blinds or straddles\n       150000,  # Small-bet\n       300000,  # Big-bet\n       (1180000, 4340000, 5910000, 10765000),  # Starting stacks\n       4,  # Number of players\n   )\n\n   # Below are the pre-flop dealings and actions.\n\n   state.deal_hole('7h6c4c3d2c')  # Yockey\n   state.deal_hole('??????????')  # Hui\n   state.deal_hole('??????????')  # Esposito\n   state.deal_hole('AsQs6s5c3c')  # Arieh\n\n   state.fold()  # Esposito\n   state.complete_bet_or_raise_to()  # Arieh\n   state.complete_bet_or_raise_to()  # Yockey\n   state.fold()  # Hui\n   state.check_or_call()  # Arieh\n\n   # Below are the first draw and actions.\n\n   state.stand_pat_or_discard()  # Yockey\n   state.stand_pat_or_discard('AsQs')  # Arieh\n   state.burn_card('??')\n   state.deal_hole('2hQh')  # Arieh\n\n   state.complete_bet_or_raise_to()  # Yockey\n   state.check_or_call()  # Arieh\n\n   # Below are the second draw and actions.\n\n   state.stand_pat_or_discard()  # Yockey\n   state.stand_pat_or_discard('Qh')  # Arieh\n   state.burn_card('??')\n   state.deal_hole('4d')  # Arieh\n\n   state.complete_bet_or_raise_to()  # Yockey\n   state.check_or_call()  # Arieh\n\n   # Below are the third draw and actions.\n\n   state.stand_pat_or_discard()  # Yockey\n   state.stand_pat_or_discard('6s')  # Arieh\n   state.burn_card('??')\n   state.deal_hole('7c')  # Arieh\n\n   state.complete_bet_or_raise_to()  # Yockey\n   state.check_or_call()  # Arieh\n\n   # Below are the final stacks.\n\n   print(state.stacks)  # [0, 4190000, 5910000, 12095000]\n\nA Sample Badugi Hand\n^^^^^^^^^^^^^^^^^^^^\n\nBelow shows an example badugi hand from Wikipedia.\n\nLink: https://en.wikipedia.org/wiki/Badugi\n\nNote that the starting stacks are set to be ``math.inf`` as they are not mentioned.\n\n.. code-block:: python\n\n   from math import inf\n\n   from pokerkit import Automation, FixedLimitBadugi\n\n   state = FixedLimitBadugi.create_state(\n       # Automations\n       (\n           Automation.ANTE_POSTING,\n           Automation.BET_COLLECTION,\n           Automation.BLIND_OR_STRADDLE_POSTING,\n           Automation.HAND_KILLING,\n           Automation.CHIPS_PUSHING,\n           Automation.CHIPS_PULLING,\n       ),\n       True,  # Uniform antes?\n       0,  # Antes\n       (1, 2),  # Blinds or straddles\n       2,  # Small-bet\n       4,  # Big-bet\n       inf,  # Starting stacks\n       4,  # Number of players\n   )\n\n   # Below are the pre-flop dealings and actions.\n\n   state.deal_hole('????????')  # Bob\n   state.deal_hole('????????')  # Carol\n   state.deal_hole('????????')  # Ted\n   state.deal_hole('????????')  # Alice\n\n   state.fold()  # Ted\n   state.check_or_call()  # Alice\n   state.check_or_call()  # Bob\n   state.check_or_call()  # Carol\n\n   # Below are the first draw and actions.\n\n   state.stand_pat_or_discard('????')  # Bob\n   state.stand_pat_or_discard('????')  # Carol\n   state.stand_pat_or_discard('??')  # Alice\n   state.burn_card('??')\n   state.deal_hole('????')  # Bob\n   state.deal_hole('????')  # Carol\n   state.deal_hole('??')  # Alice\n\n   state.check_or_call()  # Bob\n   state.complete_bet_or_raise_to()  # Carol\n   state.check_or_call()  # Alice\n   state.check_or_call()  # Bob\n\n   # Below are the second draw and actions.\n\n   state.stand_pat_or_discard('??')  # Bob\n   state.stand_pat_or_discard()  # Carol\n   state.stand_pat_or_discard('??')  # Alice\n   state.burn_card('??')\n   state.deal_hole('??')  # Bob\n   state.deal_hole('??')  # Alice\n\n   state.check_or_call()  # Bob\n   state.complete_bet_or_raise_to()  # Carol\n   state.complete_bet_or_raise_to()  # Alice\n   state.fold()  # Bob\n   state.check_or_call()  # Carol\n\n   # Below are the third draw and actions.\n\n   state.stand_pat_or_discard('??')  # Carol\n   state.stand_pat_or_discard()  # Alice\n   state.burn_card('??')\n   state.deal_hole('??')  # Carol\n\n   state.check_or_call()  # Carol\n   state.complete_bet_or_raise_to()  # Alice\n   state.check_or_call()  # Carol\n\n   # Below is the showdown.\n\n   state.show_or_muck_hole_cards('2s4c6d9h')  # Alice\n   state.show_or_muck_hole_cards('3s5d7c8h')  # Carol\n\n   # Below are the final stacks.\n\n   print(state.stacks)  # [inf, inf, inf, inf]\n   print(state.payoffs)  # [-4, 20, 0, -16]\n\nTesting and Validation\n----------------------\n\nPokerKit has extensive test coverage, passes mypy static type checking with strict mode, and has been validated through extensive use in real-life scenarios.\n\nContributing\n------------\n\nContributions are welcome! Please read our Contributing Guide for more information.\n\nLicense\n-------\n\nPokerKit is distributed under the MIT license.\n\nCiting\n------\n\nIf you use PokerKit in your research, please cite our library:\n\n.. code-block:: bibtex\n\n   @ARTICLE{10287546,\n     author={Kim, Juho},\n     journal={IEEE Transactions on Games}, \n     title={PokerKit: A Comprehensive Python Library for Fine-Grained Multivariant Poker Game Simulations}, \n     year={2025},\n     volume={17},\n     number={1},\n     pages={32-39},\n     keywords={Games;Libraries;Automation;Artificial intelligence;Python;Computational modeling;Engines;Board games;card games;game design;games of chance;multiagent systems;Poker;rule-based systems;scripting;strategy games},\n     doi={10.1109/TG.2023.3325637}}\n",
+        "description_content_type": "text/x-rst",
+        "keywords": [
+          "artificial-intelligence",
+          "deep-learning",
+          "game",
+          "game-development",
+          "game-theory",
+          "holdem-poker",
+          "imperfect-information-game",
+          "libratus",
+          "pluribus",
+          "poker",
+          "poker-engine",
+          "poker-evaluator",
+          "poker-game",
+          "poker-hands",
+          "poker-library",
+          "poker-strategies",
+          "python",
+          "reinforcement-learning",
+          "texas-holdem"
+        ],
+        "home_page": "https://github.com/uoftcprg/pokerkit",
+        "author": "Universal, Open, Free, and Transparent Computer Poker Research Group",
+        "author_email": "juhok@cs.cmu.edu",
+        "license": "MIT",
+        "license_file": [
+          "LICENSE"
+        ],
+        "classifier": [
+          "Development Status :: 5 - Production/Stable",
+          "Intended Audience :: Developers",
+          "Intended Audience :: Education",
+          "Topic :: Education",
+          "Topic :: Games/Entertainment",
+          "Topic :: Games/Entertainment :: Board Games",
+          "Topic :: Scientific/Engineering",
+          "Topic :: Scientific/Engineering :: Artificial Intelligence",
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3 :: Only",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13"
+        ],
+        "requires_python": ">=3.11",
+        "project_url": [
+          "Documentation, https://pokerkit.readthedocs.io/en/latest/",
+          "Source, https://github.com/uoftcprg/pokerkit",
+          "Tracker, https://github.com/uoftcprg/pokerkit/issues"
+        ]
+      }
+    }
+  ],
+  "environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.12.10",
+    "os_name": "nt",
+    "platform_machine": "AMD64",
+    "platform_release": "11",
+    "platform_system": "Windows",
+    "platform_version": "10.0.26200",
+    "python_full_version": "3.12.10",
+    "platform_python_implementation": "CPython",
+    "python_version": "3.12",
+    "sys_platform": "win32"
+  }
+}

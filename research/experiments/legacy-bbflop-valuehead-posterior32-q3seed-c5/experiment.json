@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-bbflop-valuehead-posterior32-q3seed-c5",
+  "title": "bbflop_valuehead_posterior32_q3seed_c5",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "models/diagnostic_standard10_bbflop_counterfactual_valuehead_posterior32_q3seed_c5_20260829/experiment_record.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "models/diagnostic_standard10_bbflop_counterfactual_valuehead_posterior32_q3seed_c5_20260829/experiment_record.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "The replicate gate retained 30/32 rows and all 11 retained changes had positive paired LCBs plus six nonnegative continuation deltas, minimum +1.21875 bb. Nevertheless three global replacement heads changed 268-342 transfer actions, achieved only 0.281-0.301 pairwise transfer agreement, failed validation/transfer gates and produced 8-9 unsupported transfer all-ins each.",
+    "conclusion": "Do not tune augmentation weight, seed, hidden width or epoch count on the unconstrained direct replacement head, and do not externally evaluate it.",
+    "decision": "REJECT_DIRECT_GLOBAL_REPLACEMENT_NO_POLICY_NO_EXTERNAL",
+    "next_step": "Use the completed 128x2 posterior data with an optimizer-trained source-preserving mixture-of-experts/gate and repeat independent-transfer, cross-seed and tail gates."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

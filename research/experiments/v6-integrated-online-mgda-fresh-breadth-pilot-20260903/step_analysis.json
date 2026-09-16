@@ -1,0 +1,75 @@
+{
+  "actor_parameter_step": {
+    "control_l2": 0.012423655949532986,
+    "treatment_control_cosine": 0.5439185709630953,
+    "treatment_l2": 0.015560352243483067,
+    "treatment_minus_control_l2": 0.013644593767821789,
+    "treatment_to_control_norm_ratio": 1.252477717242966
+  },
+  "breadth": {
+    "pooled_ci95_upper_bb100": -1.1454304308322074,
+    "pooled_delta_bb100": -5.8441162109375
+  },
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/analyze_v6_online_mgda_step.py",
+    "--parent",
+    "research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1/latest.pt",
+    "--control",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt",
+    "--treatment",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt",
+    "--control-drift",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_control/drift_analysis.json",
+    "--treatment-drift",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift/drift_analysis.json",
+    "--direct-drift",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control/drift_analysis.json",
+    "--breadth-audit",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/audit.json",
+    "--out",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/step_analysis.json"
+  ],
+  "gates": {
+    "all_drift_audits_pass": true,
+    "breadth_raw_audit_pass": true,
+    "direct_drift_hash_chain": true,
+    "nonzero_actor_steps": true,
+    "same_parent_resume": true
+  },
+  "hashes": {
+    "breadth_audit": "e41b56a38b399be16a447dfd1316a5d1435c7fdf1783e1601bba8b928009d68d",
+    "control": "43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251",
+    "parent": "5f6fdd6f7a51b741eb4a9597e30d18f9b2792259eaf15c4e36445720f380f227",
+    "treatment": "2dc0e9e84d2a0e7ab91bc6a8ca7170caa4403d9b9f1d73e8784fa6d6d97744a2"
+  },
+  "inference": "gradient_norm_matching_did_not_match_realized_adam_parameter_step",
+  "output_step": {
+    "control_vs_standard10": {
+      "greedy_disagreement_rate": 0.01345,
+      "greedy_disagreements": 269,
+      "max_tv": 0.2547382116317749,
+      "mean_tv": 0.011645655257686825,
+      "p95_tv": 0.03957541361451149,
+      "states": 20000
+    },
+    "treatment_vs_control": {
+      "greedy_disagreement_rate": 0.00725,
+      "greedy_disagreements": 145,
+      "max_tv": 0.031645581126213074,
+      "mean_tv": 0.006963552390961917,
+      "p95_tv": 0.016518976911902426,
+      "states": 20000
+    },
+    "treatment_vs_standard10": {
+      "greedy_disagreement_rate": 0.0121,
+      "greedy_disagreements": 242,
+      "max_tv": 0.24573355913162231,
+      "mean_tv": 0.011559990955871121,
+      "p95_tv": 0.034518660791218264,
+      "states": 20000
+    }
+  },
+  "passed": true,
+  "schema": "cardpilot.online_mgda_realized_step.v1"
+}

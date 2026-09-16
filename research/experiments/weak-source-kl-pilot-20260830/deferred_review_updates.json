@@ -1,0 +1,33 @@
+{
+  "status": "PENDING_MERGE_AFTER_ORIGINAL_WRAPPER_EXIT",
+  "commands_executed": [
+    "python -m pytest research/experiments/weak-source-kl-pilot-20260830/test_completed_report.py -q --tb=short --junitxml=research/experiments/weak-source-kl-pilot-20260830/report_tests.xml",
+    "python -m py_compile research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py research/experiments/weak-source-kl-pilot-20260830/finish_review.py",
+    "python -m pytest research/experiments/weak-source-kl-pilot-20260830/test_completed_report.py -q --tb=short --junitxml=research/experiments/weak-source-kl-pilot-20260830/report_tests_v2.xml",
+    "python -m py_compile research/experiments/weak-source-kl-pilot-20260830/raw_cell_review.py research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py research/experiments/weak-source-kl-pilot-20260830/finish_review.py",
+    "python -c \"import sys,json; from pathlib import Path; sys.path.insert(0,'research/experiments/weak-source-kl-pilot-20260830'); from raw_cell_review import review_cell; base=Path('research/experiments/large-batch-optimizer-regimen-pilot-20260830/matrix'); results={name:review_cell(json.loads((base/(name+'.json')).read_text())) for name in ['source','control','large']}; print(json.dumps({'cells_checked':sum(map(len,results.values())),'new_poker_hands':0,'status':'PASS'}))\""
+  ],
+  "metrics": {
+    "independent_report_tests_passed": 27,
+    "historical_cell_statistics_reviewed": 9,
+    "additional_poker_hands_from_report_tests": 0
+  },
+  "artifacts": [
+    "research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py",
+    "research/experiments/weak-source-kl-pilot-20260830/test_completed_report.py",
+    "research/experiments/weak-source-kl-pilot-20260830/report_tests.xml",
+    "research/experiments/weak-source-kl-pilot-20260830/report_tests_v2.xml",
+    "research/experiments/weak-source-kl-pilot-20260830/raw_cell_review.py",
+    "research/experiments/weak-source-kl-pilot-20260830/nashpg_source_contract_notes.md",
+    "research/experiments/weak-source-kl-pilot-20260830/conditional_next_direction.md"
+  ],
+  "notes": [
+    "Prepared independently computed two-pass raw paired statistics and strict Bonferroni gate review while the unchanged original control trainer was live. Existing training/evaluation scripts and frozen source snapshots were not edited.",
+    "Fourteen synthetic report tests passed,including full report generation with actual torch checkpoint deserialization, script hashing, exact Adam partial-step accounting, scalar coefficient enforcement and refusal to overwrite. These fixtures are not poker evidence; zero actual training/evaluation hands.",
+    "Defer experiment_log writes until the original wrapper exits,so only that wrapper updates the shared RUNNING record during production. The original evaluator still controls the fixed untouched matrix and registered admission rule.",
+    "Before any matrix outcome,read primary AlphaHoldem and NashPG papers; verified the latest NashPG v3 dated2026-08-03 and its current official repository. Saved a conditional next-direction memo distinguishing fixed KL(reference||current) here from refreshed KL(current||reference),with no claim that practical NashPG has exact convergence or200bb Slumbot success. No upstream code was installed or executed.",
+    "Extended only uncaptured postprocessing with raw_cell_review.py before the weak arm or matrix outcomes. Independently recomputes pair/seat means, sample variances, CI widths, totals, outcome counts and aggregate OOD validity from decision/node counts at frozen default threshold0.15. No admission-rule change. Current revision passes27synthetic tests; prior14-test XML retained. Synthetic tests add zero poker hands. OOD aggregate consistency is not a new per-action trace audit.",
+    "Read-only integration check of the new raw-cell postprocessor passed all9existing cells from the completed large-batch pilot. No historical evidence was edited, no games rerun, and none of those prior hands are added to this experiment accounting.",
+    "During the weak arm and before any matrix outcome,read current official NashPG source pinned to GitHub main SHA dda50fe112f2d5bbbc46af33c8f1550e0177cc29. Saved conditional source-contract notes: direct KL(current||reference), both-seat current-policy training, post-inner-round reference refresh, and upstream agent-only checkpoint API are not a lossless learner resume. Repository defaults differ from some paper settings; do not silently mix them. No upstream code installed/executed and no current training source modified. These are prospective mechanics, not a new experiment, statistical result, or override of the registered branch."
+  ]
+}

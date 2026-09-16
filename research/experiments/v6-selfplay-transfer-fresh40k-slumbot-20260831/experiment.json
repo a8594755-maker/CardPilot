@@ -1,0 +1,714 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-selfplay-transfer-fresh40k-slumbot-20260831",
+  "title": "Fixed balanced self-play endpoints fresh20k per arm",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T15:04:33+00:00",
+  "updated_at": "2026-08-31T15:57:18+00:00",
+  "started_at": "2026-08-31T15:32:45+00:00",
+  "ended_at": "2026-08-31T15:57:18+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Direct external transfer of two prespecified self-play-mixture learned endpoints must be tested without internal-score selection; neither internal improvement nor pilot allocation establishes100k success.",
+  "material_change": "Fixed40k total live cohort,20k per frozen arm, two balanced interleaved waves8clients each; strict journaled client, per-model full replay plus cross-arm token audit, independent unpaired raw/session CIs. No live requests until both final training review and candidate-specific parity complete.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-selfplay75-transfer-pilot-r4-20260831",
+  "command": "python research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/run_transfer.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/run_transfer.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:04:33+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/test_transfer.py -q --junitxml=research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/offline_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:04:33+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\test_transfer.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:48+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100701 --session-id v6_selfplay_transfer_20260831_control25_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100801 --session-id v6_selfplay_transfer_20260831_selfplay75_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100702 --session-id v6_selfplay_transfer_20260831_control25_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100802 --session-id v6_selfplay_transfer_20260831_selfplay75_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100703 --session-id v6_selfplay_transfer_20260831_control25_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100803 --session-id v6_selfplay_transfer_20260831_selfplay75_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100704 --session-id v6_selfplay_transfer_20260831_control25_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100804 --session-id v6_selfplay_transfer_20260831_selfplay75_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100805 --session-id v6_selfplay_transfer_20260831_selfplay75_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100705 --session-id v6_selfplay_transfer_20260831_control25_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100806 --session-id v6_selfplay_transfer_20260831_selfplay75_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100706 --session-id v6_selfplay_transfer_20260831_control25_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100807 --session-id v6_selfplay_transfer_20260831_selfplay75_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100707 --session-id v6_selfplay_transfer_20260831_control25_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --hands 2500 --seed 2026100808 --session-id v6_selfplay_transfer_20260831_selfplay75_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --hands 2500 --seed 2026100708 --session-id v6_selfplay_transfer_20260831_control25_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:32:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:51:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:54:19+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:57:17+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T15:04:33+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/source_manifest.json",
+    "source_manifest_sha256": "82e4e221b771fea3f02e642cd6ca8c765102c7f354a9ebc6e1f079997db094d4",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 40000,
+    "wall_time_seconds": 1473.0,
+    "slumbot_hands": 40000
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/preregistration.md",
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/code.patch",
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/source_manifest.json",
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/offline_tests.xml",
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/preparation_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\session_commands.json",
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/startup_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s08_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s08_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "PLANNED only; compiled, no live sessions. Candidate hashes are not yet available and may resolve only from the two final endpoints after full training review and parity. Reserved fresh seeds/IDs fixed before outcomes. Pilot point selection allocates separate100k only; never sample pooling or optional replacement.",
+    "Six prepared-launcher tests pass before any real sessions or final-hash resolution: exact16commands, no unregistered seeds, partial/ambiguous evidence accounting, independent raw/session Welch arithmetic, no100k on negative points and captured protocol identity. Still PLANNED; pending both endpoints and parity.",
+    "Preparation audit7recent records0warnings. This live cohort and candidate-specific parity remain PLANNED; no Slumbot requests or unfinished-weight queries. Current control25 finished1051006physical hands with session/healthPASS and final hash a3f4f21eb7a0eb0e6bcaeb4929f06951ed1ac0bd74c0afd1920f5320e386d553; selfplay75 still training. No source modification to active run.",
+    "Training record independently COMPLETED:2102762actual new hands,122880internal hands,17normal child exits,76source/copy pairs verified. Both exact endpoints passed4202-state deployment parity each with16808calls and no network. Internal heldout selfplay75-control25 delta -84.0479736328125bb/100 CI95[-226.74128746435898,58.645340198733976] is diagnostic only; BOTH arms proceed exactly as preregistered. No model/seed/checkpoint changes. Known parity-log PowerShell-brace false-positive warning is preserved, with successful exact-command execution evidence; no data integrity failure.",
+    "Wave0 startup read-only check: all8client PIDs alive, balanced4control25/4selfplay75 in reserved alternating order, uniqueIDs/seeds, CPU strict-sampled temp1, exact frozen model hashes, target2500each. All8journals begin at new hand1 with null prior token and null previous response. Partial returns were not analyzed; full token-chain/raw/CI audit awaits complete fixed40k cohort.",
+    "Current live-cohort record startup audit1record0warnings; separate completed parity record retains the documented PowerShell-brace classifier false positive. No blanket historical all-green claim.",
+    "Observed fixed wave transition: wave0 all8clients exited0 with2500hands each before wave1 started. Wave1 all8clients alive, reverse alternating order selfplay75/control25. All16IDs/seeds unique and first requests have null incoming token/prior response. Only progress/identity checks performed; no partial-return analysis or sample changes.",
+    "Both fixed20k cohorts and frozen-model/journal audits complete; independent final review required. No automatic100k launch."
+  ],
+  "result": {
+    "summary": "Fixed40k transfer completed: control25 -107.2536, selfplay75 -141.0145bb/100; evidence PASS;NEITHER_PILOT_POINT_POSITIVE.",
+    "conclusion": "Both preregistered frozen endpoints tested regardless of internal score; independent raw/session CI and full terminal/model evidence reviewed. Not100k qualification.",
+    "decision": "NEITHER_PILOT_POINT_POSITIVE",
+    "next_step": "Analyze complete nonpositive transfer evidence and select next learned-weight experiment without extending or rescuing either endpoint."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 22,
+    "command_count": 22
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4060,
+      "sha256": "86c6766c5af694a7c275f237d5d9213389d2045e6412594121a997eccd4f4b1c"
+    },
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1361,
+      "sha256": "82e4e221b771fea3f02e642cd6ca8c765102c7f354a9ebc6e1f079997db094d4"
+    },
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/offline_tests.xml": {
+      "type": "file",
+      "bytes": 1244,
+      "sha256": "dc6eba13276123867f8d23f68e7966bec5b062a67ed4ae5cdf489436037c1c98"
+    },
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/preparation_audit.json": {
+      "type": "file",
+      "bytes": 780,
+      "sha256": "d6902a74edef2425daabde407084f5a3729391493d6095c584b36fd23f95a217"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 6814,
+      "sha256": "fa4974e676871c1a711310f0938438462b14b03c5d90f13a9b9580d4ee29527c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1151,
+      "sha256": "a16dba1ae75dcd5b411e5bfcaf045b681437b2580fe4f2f14d0dbdd019dc015c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1839,
+      "sha256": "7dd801eca8254d93baf09700cb32aa15829b06eb05683f05514aef9c7bd32ed3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\control25.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "a3f4f21eb7a0eb0e6bcaeb4929f06951ed1ac0bd74c0afd1920f5320e386d553"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\frozen\\selfplay75.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "c3b6aaa07b5af62478c7bad651cec917ffaaf9dc3c9f7b4f0902f6cac31994be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 1244,
+      "sha256": "9a6563fea5e8d0df0f26028e75512092d2e45f6db6a7ca911a2d1d8668386828"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\session_commands.json": {
+      "type": "file",
+      "bytes": 15377,
+      "sha256": "98fd9ae1a656372938b6b65274c54f29553cb76daea83015855cb1b1e5727a34"
+    },
+    "research/experiments/v6-selfplay-transfer-fresh40k-slumbot-20260831/startup_audit.json": {
+      "type": "file",
+      "bytes": 230,
+      "sha256": "d5195701f764e303a41ca23671f89fbccccd626f1692847bca567870961dfcd5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_combined_audit.json": {
+      "type": "file",
+      "bytes": 8420,
+      "sha256": "2b13df48c5e0932aaa64cdf6003ad751b55d9094fce754360abf791fd6cefb69"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_combined_audit.json": {
+      "type": "file",
+      "bytes": 8430,
+      "sha256": "3723ec8840bf29360c80dd9ab8b64ad1ba20634633ac525a28ce397115e749bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 4563,
+      "sha256": "9b87c482087b681ff4180d598e027fde5e5986552926ad116af2a3860670bb49"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 20082,
+      "sha256": "e181c2ec58ca7870d2475dff45d374a6034aa55db04d8542813e49791f84011b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s01_stdout.log": {
+      "type": "file",
+      "bytes": 5617,
+      "sha256": "a07d124d723003a17268984d4807f3c9caa0e22e8f4bf8971d96eee51a999458"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18850211,
+      "sha256": "fec0ce0106b04b55b7cdb2a6129003f69a119232d185ee5d0448e9cbf3dd5caa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9303829,
+      "sha256": "f552f765f1b23a202b0d8eaca081883e2ecd2622a9391908084e125d4abe889f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s01\\summary.json": {
+      "type": "file",
+      "bytes": 5503,
+      "sha256": "3a040c1ca6f1de20beebd6802ac050f6e42913b617c99d6a77a7939887c3a47e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s01_stdout.log": {
+      "type": "file",
+      "bytes": 5619,
+      "sha256": "1d1380b2b47c679af028d2011742eb9e58f43fb1debbc9b708bb23a500f1f1a5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17570603,
+      "sha256": "868ff90619bf219efc9b4de5612ae2491815a00c9a86433d76847aaf2ea1deb2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8816353,
+      "sha256": "8ebfb2dd813c7355fd6caaa9e278bc3af85acac993aef042a603c7b82bb4ee3f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s01\\summary.json": {
+      "type": "file",
+      "bytes": 5505,
+      "sha256": "7a8bb374adc740599cb658adcff1d49f103229845268e4e7826e15fb277aee7c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s02_stdout.log": {
+      "type": "file",
+      "bytes": 5613,
+      "sha256": "7e7079afb943a50b8d46676dbc4a5f778cd297ae64d81235c59a0e74e99021f4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02\\journal.jsonl": {
+      "type": "file",
+      "bytes": 19084373,
+      "sha256": "9f6d5c3bba9e19563083c78f6466f7ffb70e91dfa2171ea770bd257c79db6940"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9385733,
+      "sha256": "d0bd8f4f5d2d2ace4593e0e9bad7943e62920b48f58fa78725b5495deaba9271"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s02\\summary.json": {
+      "type": "file",
+      "bytes": 5499,
+      "sha256": "53b0a60a1e3df4a6a514edcc6a3933fbf1d7fc85356d07750853b2a8714ef6b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s02_stdout.log": {
+      "type": "file",
+      "bytes": 5620,
+      "sha256": "81a65e00e636e6ec87e0c9ae8a1c5be54ba3096265699e69dfa64a3b6c90a27d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17446796,
+      "sha256": "d5e7f5c4dad54de5cdb3e3d05e39a30e7c97398d2be6deaeae1acac0af2c6866"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8769027,
+      "sha256": "c18c358de24308e75fe589737960ce5b2e515ff5dab36146653ae3c28c54705d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s02\\summary.json": {
+      "type": "file",
+      "bytes": 5506,
+      "sha256": "1c9b9a711b551eb8447f8501a1113efa91f8e0db6e0a0408c533d0786c228ca2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s03_stdout.log": {
+      "type": "file",
+      "bytes": 5615,
+      "sha256": "e3e5daae365a49664499c6329e894b6197cea8fa2937f2abdca020f06a94d7d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18813235,
+      "sha256": "b606d6297f3fa3b8a5c2d43c71aa210afb991e7e12065b2b793db78cdfb61a6b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9291860,
+      "sha256": "523ca9c0ba96149503167137ff53510ba67a2d9f9ddd3df7cca1c7c99ca0d2ae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s03\\summary.json": {
+      "type": "file",
+      "bytes": 5501,
+      "sha256": "f93457d2e28b06d8cc5bd2d9dfb947b84a4afcd52da79dfdf1273bad19458b45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s03_stdout.log": {
+      "type": "file",
+      "bytes": 5621,
+      "sha256": "c93e7f15513921ead84531a8b0f378119b3ed7dd5193f98b6dddd5a4cbd9e361"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17250153,
+      "sha256": "1faa341da91f228036125088d12399048711b6e7cf5bd705b28a4cc85b4f78d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8694721,
+      "sha256": "e696ad231fc8a6ad9377995b5f2a16a989d1391388cdaf0045608bbb0d662d2d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s03\\summary.json": {
+      "type": "file",
+      "bytes": 5507,
+      "sha256": "bfc894d7df5913e8c8fa16ae22e7d5437fe3ef6ba458521b0ebe1524a4ed6cd8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s04_stdout.log": {
+      "type": "file",
+      "bytes": 5615,
+      "sha256": "e23d7b959ed308ffb608b0b4513589c90bba393ece380572209ee9e7076c5540"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18642937,
+      "sha256": "e56b136a7ed88d553aa4d83ce177bcd2adbd66f554299a5e1357362eaa72b5f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9213904,
+      "sha256": "5dc86f3a2b274358106dfe30ef593d90c1ce1dd8f1cd419296f5db1393704f16"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s04\\summary.json": {
+      "type": "file",
+      "bytes": 5501,
+      "sha256": "db1bafb962cf11d5b39c54ee893e4e5f59c3f9496349bd8db422152b4bd91190"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s04_stdout.log": {
+      "type": "file",
+      "bytes": 5620,
+      "sha256": "2d0712b4056c75d198cab24481b8d0464dda3b26fbd134403d02b3c808d83347"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17534612,
+      "sha256": "4b103f15907744cf738c9e6041d18ca1a56a9233be2d94396ff46911c284f327"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8803824,
+      "sha256": "1927a6af00143a732cfca608e30541c050850e3c8e72338f6deb6a03e30f10da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s04\\summary.json": {
+      "type": "file",
+      "bytes": 5506,
+      "sha256": "939aee963f2c17d5312b0374b435d2b6eeb000a7f06c35b9f065ba0a5f552912"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s05_stdout.log": {
+      "type": "file",
+      "bytes": 5618,
+      "sha256": "4517c3c9c86d2a9dfc97cd91d454c6b565ca13e1f5f11ccd458f3fc4cfbdbcc6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17409805,
+      "sha256": "2b83e8964ce13e23a4a4f3e27a17313d90029361568ce08000cddb431aff2f80"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8748479,
+      "sha256": "4ef161be9f030dce95616c546b58a8bd033acfbc4233124c48ed9c48d254888f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s05\\summary.json": {
+      "type": "file",
+      "bytes": 5504,
+      "sha256": "108712c971a2463b8ee10b54f4031d1f813d7fd6d941b0d252f9dd8b553c6e8d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s05_stdout.log": {
+      "type": "file",
+      "bytes": 5616,
+      "sha256": "4d2852d672b9fcf569db0eaac986e38541b70663adf4decc779b29a6bba78e88"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18802599,
+      "sha256": "4d5cc9e5ace7e9832b99fe7e696960d6806bd60bf675e9cd767c61146438fdaa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9280749,
+      "sha256": "c8500bcd0fa1ada18b32aef3ddadddf9b67e0b95a5be32e37578b30dde27365d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s05\\summary.json": {
+      "type": "file",
+      "bytes": 5502,
+      "sha256": "575e74ad08958e7f2ef45d2ce2d1c9b20f242e580ad72fb8625d6cd5c60f490f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s06_stdout.log": {
+      "type": "file",
+      "bytes": 5619,
+      "sha256": "a22c0e130c674dd0b768a7b227dfe4ebf51bb1eb4d6d6b285012370876d11966"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17164557,
+      "sha256": "464da956d0111a36a9f74e1a5e1ab81336bf560f46237578bdf3af5a103722d0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8658882,
+      "sha256": "1c1e1855a505976820f4949f943f40f9611a8e2d25c141e6d5ce13478e12f206"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s06\\summary.json": {
+      "type": "file",
+      "bytes": 5505,
+      "sha256": "ab9c508b511992cc571a0310bf168f50edea5ab89ad7fd58797d1324c383c1a5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s06_stdout.log": {
+      "type": "file",
+      "bytes": 5617,
+      "sha256": "63511f6e656d41252db7756ef666a7f099fc723d306379b02bddd395abd7b81c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18625668,
+      "sha256": "dbc7c611a1c3c5ff7e8d88beb21c35abdb37ee1202fb70cabc6f46317fe81b40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9217670,
+      "sha256": "8c680a85ce40106837e9a1428d2281579ef18328fd9e2c8197c16e29284bdcac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s06\\summary.json": {
+      "type": "file",
+      "bytes": 5503,
+      "sha256": "0d76116f833ae2196cccaeb7796307849c4e747feac405eee2df69e3e705da92"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s07_stdout.log": {
+      "type": "file",
+      "bytes": 5621,
+      "sha256": "11e32a98b69abc8ba3474d3648d70c9c2e40fc97f1cf8c6b8a169092828521e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17331957,
+      "sha256": "fb98519330c624dd7fdfda6d741cc4dddd81bdbd990095af646e219d98ab5def"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8718336,
+      "sha256": "40039ed0ee056ac893e97af15ed2d067b86b06e79805bd7e2355bd8e52425c7c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s07\\summary.json": {
+      "type": "file",
+      "bytes": 5507,
+      "sha256": "1b9ffe97c81bceffb29b13dfedc611c6495c36124dbafa8cbe412f4d8c803dd2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s07_stdout.log": {
+      "type": "file",
+      "bytes": 5616,
+      "sha256": "5041aae4a8aad2d3cdf54e0e491738920b1314b606025c169b18c455b5b326ab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18929112,
+      "sha256": "5396f07a7dd1f3e26cf53b51a10a5a4939bd7b1567df23cc7965b5be822b6f07"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9335690,
+      "sha256": "c515543591d1f31370c3a7f0e3e1684f6147c94389a2799ef6014c62456971f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s07\\summary.json": {
+      "type": "file",
+      "bytes": 5502,
+      "sha256": "cb413b1253fb04cedcdceb5492c3096f962c29349d658405489dce82582dd891"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\selfplay75_s08_stdout.log": {
+      "type": "file",
+      "bytes": 5620,
+      "sha256": "7827616fd258164106aed03702e176c269b50bca51e2bff4f12820e4d6faedb2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17449404,
+      "sha256": "3fff6da3492ba822f79dc4e5034c973c08fe50fe22a7235056c362db3d3c0426"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8770381,
+      "sha256": "dcd2cb7250d301c01d2b18b558191bb81adb306981b8a7d1095fc22db1c77813"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\selfplay75\\s08\\summary.json": {
+      "type": "file",
+      "bytes": 5506,
+      "sha256": "1ff0473f8df53fb83ea21428103dab5538987774602073de10f694e4844ecdba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\control25_s08_stdout.log": {
+      "type": "file",
+      "bytes": 5616,
+      "sha256": "2c74ec23b3197935975aa554202cf1c150757cbe375593aba9cd12b026ca472c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18670558,
+      "sha256": "2317df9b59948fb69a31ec2f278e35ff927ab900fa07064b4f0b3192f5a95fd9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9232987,
+      "sha256": "0f295cc9b1e31d27204d3f23acdc4d0cb422ef24c6dfaacbee7cdb1c1bcc31ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\sessions\\control25\\s08\\summary.json": {
+      "type": "file",
+      "bytes": 5502,
+      "sha256": "ac22d842f30e6845981a568cb85740e7f5de4878d4b0386310aa129262dfd674"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 9421,
+      "sha256": "57d90c3d8e71d18ad6e130417fdcd30da7fd9be76fc33ad3e9657ae918b7d62f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-transfer-fresh40k-slumbot-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1137,
+      "sha256": "40fec32039f726331e019916a1f116135aac77cd2725bccbf6bc6d3bf4f98ace"
+    }
+  }
+}

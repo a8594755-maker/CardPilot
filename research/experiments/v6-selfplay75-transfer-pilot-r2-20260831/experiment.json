@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-selfplay75-transfer-pilot-r2-20260831",
+  "title": "Matched v6 self-play share transfer pilot corrected harness",
+  "status": "FAILED",
+  "created_at": "2026-08-31T14:40:09+00:00",
+  "updated_at": "2026-08-31T14:40:55+00:00",
+  "started_at": "2026-08-31T14:40:09+00:00",
+  "ended_at": "2026-08-31T14:40:55+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Increasing current-policy self-play from25 to75 percent assignment groups may improve external transfer; narrow fixed-pool exploitation remains a hypothesis.",
+  "material_change": "Only failed pretraining test import-path corrected and new r2 run IDs; same unconsumed seeds and matched1048576 physical hands per arm, fixed3 pool and122880 diagnostic internal hands. Both healthy endpoints preselected for later external testing regardless of internal rank.",
+  "baseline": "v6-physical1m-fresh20k-slumbot-20260831",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-selfplay75-transfer-pilot-20260831",
+  "command": "python research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:40:09+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:40:12+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831",
+      "scripts/alpha_holdem",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T14:40:09+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/code.patch",
+    "patch_sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4",
+    "source_manifest": "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/source_manifest.json",
+    "source_manifest_sha256": "ee9af38c9858037cadd75ddca0bf66220397b0fd0d75f995151969757721345d",
+    "source_files": 75
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 46.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/preregistration.md",
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/code.patch",
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution.json",
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/prerun_tests.xml"
+  ],
+  "notes": [
+    "Failed parent had no children and generated zero hands. Its originals/copies/execution/test failure remain untouched. This is a separately logged corrected pretraining harness, not a resume, reset or replay of any prior environment stream.",
+    "Execution error/interruption preserved; no automatic retries, counter resets, or cell replays.",
+    "Prerun13tests:10pass3fail. New test fixtures mistakenly treated allocator metadata wrapper as group list; actual persisted assignment evidence already uses metadata.groups. No trainer children or hands. Preserve r2 unchanged; correct fixture extraction in separately logged r3."
+  ],
+  "result": {
+    "summary": "Pretraining tests10pass3fail from metadata fixture shape; no trainer children and zero new hands.",
+    "conclusion": "Allocator returns assignments plus metadata wrapper, while evidence contains its groups list. Test harness error, not training result.",
+    "decision": "PRETRAIN_TEST_FIXTURE_FAILURE",
+    "next_step": "Correct test fixture group-list extraction in separate r3; retain all r2 evidence and unconsumed settings."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 6376,
+      "sha256": "23ede19a1975a55fdaf3e1f95659d176e8799c5f00aab2c159c26691a0eaccb4"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/code.patch": {
+      "type": "file",
+      "bytes": 12702916,
+      "sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 13941,
+      "sha256": "ee9af38c9858037cadd75ddca0bf66220397b0fd0d75f995151969757721345d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14043,
+      "sha256": "93328ca0af5fe68a79858eeb7508f6c5fa77b11605dff059c79eb1454c80136b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23707,
+      "sha256": "5d3cf14b9c6e21d5b78cb3b813b7a82da40150b8b657bee5c8d6009a207aa36b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-r2-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 1081,
+      "sha256": "7af75850d1db1e79a784cddd09d9a1697f82d401383a618e3ace4690a46beae6"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-r2-20260831/prerun_tests.xml": {
+      "type": "file",
+      "bytes": 6658,
+      "sha256": "a22900bf9358b4c6ce16cb439d7688e3dd00cbd708afe2e2487908beaaf3af8f"
+    }
+  }
+}

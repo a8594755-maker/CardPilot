@@ -1,0 +1,208 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-soup-uniform-pool-diversity-65k-pilot-20260901",
+  "title": "Matched current-v6 soup uniform-pool diversity 65k pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T08:11:23+00:00",
+  "updated_at": "2026-09-01T08:47:11+00:00",
+  "started_at": "2026-09-01T08:11:23+00:00",
+  "ended_at": "2026-09-01T08:47:11+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "From the strongest current-v6 external-tested soup, replacing four identical learned-opponent slots with four diverse current-v6 frozen policies while retaining a matched 50% procedural curriculum will produce a more general learned update than the duplicate-soup control without materially worsening source-contract drift.",
+  "material_change": "Train two fresh 65,536-physical-hand all-policy-head continuations from the exact soup. Both use four pool slots, identical seed/deals/group assignments/procedural share/KL/optimizer reset; control repeats the soup in all four slots, treatment substitutes soup, raw actor, parent-KL tail, and source-KL-temperature endpoint.",
+  "baseline": "Frozen source soup current-v6 greedy fresh20k: -41.8162 bb/100, CI entirely negative. Old Standard10-initialized learned leagues and all-procedural training failed; neither isolated learned diversity from this stronger current-v6 start under a mixed curriculum.",
+  "source": "Source/reference SHA256 66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c. Treatment learned SHAs 66c225...,9fd38a...,1c050e...,9e1566....",
+  "parent_id": "v6-soup-uniform-mixed-league-smoke-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112200 --fixed-training-deal-stream --fixed-training-deal-start-index 5000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_soup_uniform_pool_diversity_control_20260901 --run-dir research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control --out research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control/latest.pt --seed 20261122 --max-runtime-seconds 1800 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112200 --fixed-training-deal-stream --fixed-training-deal-start-index 5000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_soup_uniform_pool_diversity_control_20260901 --run-dir research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control --out research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control/latest.pt --seed 20261122 --max-runtime-seconds 1800 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:11:23+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/production/train/latest.pt research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/latest.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112200 --fixed-training-deal-stream --fixed-training-deal-start-index 5000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_soup_uniform_pool_diversity_treatment_20260901 --run-dir research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/treatment --out research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/treatment/latest.pt --seed 20261122 --max-runtime-seconds 1800 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:23:47+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:36:10+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/run_source_state_drift.py --parent research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --control research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control/latest.pt --treatment research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/treatment/latest.pt --out-dir research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_state_drift --device cuda",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:44:45+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_procedural_opponent.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_source_policy_kl_temperature.py --junitxml=research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:47:11+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:47:11+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T08:11:24+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/code.patch",
+    "patch_sha256": "98c241a1281df56738fa8425a26bcdcbbfe0118d81fe7217641ecc3590299f98",
+    "source_manifest": "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "c1b681996faa92c1fd095f608b182a7a19133a960e935fc52e5496ac535942db",
+    "source_files": 73
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 136005,
+    "lineage_training_hands": 0,
+    "offline_samples": 60671,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 2148.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 136005
+  },
+  "metrics": {
+    "control_physical_hands": 68029,
+    "control_transition_hands": 66033,
+    "control_final_iteration": 16,
+    "control_max_reference_kl": 0.004724015614816121,
+    "control_kl_stops": 0,
+    "treatment_physical_hands": 67976,
+    "treatment_transition_hands": 65923,
+    "treatment_final_iteration": 16,
+    "treatment_max_reference_kl": 0.003514153758684794,
+    "treatment_kl_stops": 0,
+    "learned_panel_pooled_delta_bb100": -0.059407552083333336,
+    "learned_panel_ci95_lower": -22.037560237624533,
+    "learned_panel_ci95_upper": 21.91874513345787,
+    "learned_panel_positive_anchors": 1,
+    "control_source_state_tv": 0.01951137600562514,
+    "control_source_state_greedy_disagreement": 0.019976595078373523,
+    "treatment_source_state_tv": 0.02208246876639506,
+    "treatment_source_state_greedy_disagreement": 0.02421255624598243
+  },
+  "artifacts": [
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/code.patch",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control/session_audit.json",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/treatment/session_audit.json",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/run_eval.py",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/eval/paired_delta.json",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/run_source_state_drift.py",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/tests.xml",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_state_drift/summary.json",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_state_drift/state_metrics.jsonl",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/audit_review.py",
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/terminal_review.json"
+  ],
+  "notes": [
+    "Preregistered endpoint: if both arms terminate at the same iteration, use each final raw actor; otherwise use the highest common archived iteration at which both have crossed no more than the lower arm's final physical count. No endpoint selection by reward. Required health: exact source/pool hashes, identical normalized assignment schedule, physical target, fresh optimizer/counters, allowed tensor scope, finite metrics, zero KL stops, session audit PASS.",
+    "After health, run untouched common-randomness learned/procedural diagnostics and outcome-blind source-state drift. Internal anchors are diagnostic only because prior proxy rankings failed externally. A separately logged direct fresh Slumbot cohort is allowed only for the frozen matched endpoints and must compare both arms; no 100k qualification from this pilot.",
+    "Control frozen at the preregistered physical threshold endpoint iter16: 68,029 physical/66,033 transition hands, optimizer step464, max source KL0.004724, zero stops; session audit PASS with16 archives and16 exact assignment records.",
+    "Treatment frozen at iter16: 67,976 physical/65,923 transition hands, optimizer step480, max source KL0.003514, zero stops; session audit PASS. Both arms changed only the same ten allowed tensors and their 16 local-index assignment schedules are exactly equal.",
+    "Untouched 6,144-pair learned panel: pooled treatment-control -0.0594 bb/100 CI[-22.0376,21.9187],1/3 positive. Per-anchor deltas Standard10 -14.4275, slumbot_free -3.8694, CFR96 +18.1187; all paired CIs cross zero.",
+    "Independent terminal review PASS: both session audits, 16-row matched local assignments, checkpoint hashes, all6,144 raw learned-panel pairs/decks/CIs, and all60,671 source-state rows/hashes/means recomputed exactly. 29 tests PASS."
+  ],
+  "result": {
+    "summary": "Matched soup-initialized 65k arms completed 136,005 physical training hands with exact assignment control. Diverse learned opponents gave pooled -0.0594 bb/100 CI[-22.0376,21.9187], only1/3 positive anchors, and worsened source-state drift to TV0.02208/disagreement0.02421 versus control0.01951/0.01998.",
+    "conclusion": "Replacing duplicate-soup opponent slots with the selected diverse current-v6 pool produced no detectable generalization gain and crossed the source-state preservation boundary. Learned-opponent diversity at this scale/distribution is rejected; no Slumbot hands are allocated to the treatment.",
+    "decision": "REJECT_DIVERSE_POOL_NO_GAIN_MORE_DRIFT",
+    "next_step": "Do not scale or externally test the diversity treatment. The duplicate-soup mixed-curriculum control independently passed the outcome-blind <=0.02 source-state preservation thresholds and was not selected by internal performance; log one exploratory fresh5k current-v6 greedy transfer cohort for that frozen control. Only a credible direct improvement over the soup's -41.8162 fresh20k reference may justify confirmation."
+  },
+  "tags": [
+    "learned-diversity",
+    "matched-pilot",
+    "mixed-opponents",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12791441,
+      "sha256": "98c241a1281df56738fa8425a26bcdcbbfe0118d81fe7217641ecc3590299f98"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13460,
+      "sha256": "c1b681996faa92c1fd095f608b182a7a19133a960e935fc52e5496ac535942db"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/control/session_audit.json": {
+      "type": "file",
+      "bytes": 10750,
+      "sha256": "c00d8e9f7db719f20b8e146362224f57a88a79147bc4e42e3460168a8e03f15a"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 10775,
+      "sha256": "e1c747db44fa3466725e323ec7379bb16aeee45d031985ce0074ff993efad3b3"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/run_eval.py": {
+      "type": "file",
+      "bytes": 705,
+      "sha256": "013f5095380258c6ae0887afaf5acef340b2813cf2385cf8e3fd8e776d13893d"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/eval/paired_delta.json": {
+      "type": "file",
+      "bytes": 13834,
+      "sha256": "5b2a5a2295f5342e01ed8f62172ebad28a37315b0d5fe962e9bdac59cec6302c"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/run_source_state_drift.py": {
+      "type": "file",
+      "bytes": 999,
+      "sha256": "0ab63b1d28fafa66bbc8a2cc8b8d5c2754d5995698e4a4780c961e737d5220b1"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 4753,
+      "sha256": "34543c0324f251f20981370340b193fb0ec3ba558346d279822a446747f0a8ba"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_state_drift/summary.json": {
+      "type": "file",
+      "bytes": 3513,
+      "sha256": "eff0086c196091750626cd279c9322bc4200193374dfbe1a9c18b44e5715e2cb"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/source_state_drift/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 13370459,
+      "sha256": "db077bbf2f1f1b377de2046413c64953c3c20f5bcaf70c1f0a2549e4cfcc3429"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/audit_review.py": {
+      "type": "file",
+      "bytes": 7026,
+      "sha256": "f6069687c745ab2b8b42926e8ab3de18bd9ca5cd720adc7705a8db45602264a3"
+    },
+    "research/experiments/v6-soup-uniform-pool-diversity-65k-pilot-20260901/terminal_review.json": {
+      "type": "file",
+      "bytes": 2028,
+      "sha256": "56bde68958b9161b17d0ecc7c618828e6397cb959b3abc9e19bf86cff3415853"
+    }
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-cross-experiment-proxy-alignment-meta-audit-20260901",
+  "title": "Cross-experiment internal/external proxy alignment meta-audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T19:32:41+00:00",
+  "updated_at": "2026-09-01T19:39:10+00:00",
+  "started_at": "2026-09-01T19:32:41+00:00",
+  "ended_at": "2026-09-01T19:39:10+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Across completed learned-policy routes, small fresh5k gates and narrow internal anchor improvements are systematically over-optimistic relative to independent fresh20k confirmation, while multi-seed breadth and Standard10 preservation are necessary but not sufficient filters.",
+  "material_change": "Read completed experiment records only; verify same-policy 5k-to-20k confirmation pairs, summarize internal-pass/external-fail route pairs, quantify optimism/sign consistency, and emit a preregistered protocol recommendation for the next geometric multi-seed training curve. No policy queries or new hands.",
+  "baseline": "Four known same-policy chains already show 5k-to-20k degradation: legacy iter16 +19.46 to -37.1617, procedural soup +9.0452 to -41.8162, actor raw -9.4188 to -46.5992, and MGDA seed1 -11.11 to -47.525. Standard10 is -11.4275 historical and -24.5683 current bridge at 20k.",
+  "source": "research/experiments",
+  "parent_id": "v6-mgda-seed1-12k-dual-greedy-fresh20k-confirmation-20260901",
+  "command": "python scripts/alpha_holdem/v6_proxy_alignment_meta_audit.py --experiments research/experiments --out-dir research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_proxy_alignment_meta_audit.py --experiments research/experiments --out-dir research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:32:41+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:39:10+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7446780c54d4dfb2403c932edd34926b366352c40201f13c67079f55a2549368",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T19:32:41+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/source_manifest.json",
+    "source_manifest_sha256": "91c3d48efc4d96807f66c70e292e8caa52eee6191c1ee05d954a00f27e43ff3a",
+    "source_files": 146
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 253,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 389.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "records_scanned": 253,
+    "same_policy_pairs": 5,
+    "all_same_policy_confirmations_negative": 1,
+    "positive_5k_pilots": 2,
+    "positive_5k_false_confirmations": 2,
+    "mean_selected_pilot_optimism_bb100": 37.97136,
+    "median_selected_pilot_optimism_bb100": 37.1804,
+    "pilot_confirmation_pearson": -0.09848563452137353,
+    "internal_admission_routes": 6,
+    "internal_admission_routes_with_negative_external_point": 6,
+    "full_suite_tests_passed": 244
+  },
+  "artifacts": [
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/code.patch",
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/source_manifest.json",
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/run/summary.json",
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/run/analysis.md",
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/attempt01/summary.json",
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/attempt02/summary.json",
+    "scripts/alpha_holdem/v6_proxy_alignment_meta_audit.py",
+    "scripts/alpha_holdem/test_v6_proxy_alignment_meta_audit.py"
+  ],
+  "notes": [
+    "This audit will not treat historical summary-only results as weight-level reproducible, will keep execution contracts explicit, and will distinguish undertraining from mechanism or proxy rejection. Recommendations may change experiment scale/gates but cannot claim poker-strength improvement.",
+    "attempt01 preserved the initial output before CI-field and training-record lineage repair; attempt02 preserved the output before records_scanned was added. The final run uses the original preregistered exact command and contains the corrected audit.",
+    "Promoted 5k pilots are selection-biased; optimism and Pearson statistics diagnose this research process, not an unbiased 5k estimator. Negative <=1M external results are not alone treated as mechanism rejection."
+  ],
+  "result": {
+    "summary": "Read-only audit scanned 253 experiment records. Five exact same-policy fresh5k-to-fresh20k pairs all ended negative at 20k; both positive 5k pilots failed confirmation. Six internally admitted learned-policy routes, trained across 32,768 to 1,054,555 total route hands, also had negative external 20k point estimates. Corrected CI extraction and training-record lineage accounting are preserved in the final artifacts; 244 tests passed.",
+    "conclusion": "Small selected fresh5k gates and narrow internal-anchor admission were not reliable external-strength proxies in this research history. Multi-seed breadth and source preservation remain useful necessary filters but are insufficient. This rejects the prior admission protocol, not conflict-aware learning itself nor longer training solely because budgets were <=1M.",
+    "decision": "REQUIRE_MULTI_SEED_BROAD_HOLDOUT_CURVES_AND_20K_FIRST_EXTERNAL_GATE",
+    "next_step": "Inventory and freeze a genuinely heterogeneous six-plus-opponent training league and at least three gradient-untouched holdouts, then preregister a three-seed 65,536-to-262,144-to-1,048,576 geometric learned-weight curve with robust median checkpoint selection and no fresh5k selection."
+  },
+  "tags": [
+    "meta-audit",
+    "proxy",
+    "research-protocol"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 27399,
+      "sha256": "91c3d48efc4d96807f66c70e292e8caa52eee6191c1ee05d954a00f27e43ff3a"
+    },
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 10324,
+      "sha256": "71abaa270a3ad7e1eb35e21b5822047d089cc529acf5939923220549ab34fbad"
+    },
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/run/analysis.md": {
+      "type": "file",
+      "bytes": 1143,
+      "sha256": "5ee4f65018dfe141a7192c9b3384de53147e1ed95242f60db3146383ca2499a9"
+    },
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/attempt01/summary.json": {
+      "type": "file",
+      "bytes": 9466,
+      "sha256": "387354fb4cd6529fb2caf10645987e0bacc84c8b438834b774971464b6592583"
+    },
+    "research/experiments/v6-cross-experiment-proxy-alignment-meta-audit-20260901/attempt02/summary.json": {
+      "type": "file",
+      "bytes": 10295,
+      "sha256": "5d4aff81c95815bed32e0a2c91480bf3271a74d0082b98c213ab065c8f065449"
+    },
+    "scripts/alpha_holdem/v6_proxy_alignment_meta_audit.py": {
+      "type": "file",
+      "bytes": 11597,
+      "sha256": "d9b14e98d526cb49d38e0d22b17c52fcf6007954c18a44492f6bc452fbf86bc8"
+    },
+    "scripts/alpha_holdem/test_v6_proxy_alignment_meta_audit.py": {
+      "type": "file",
+      "bytes": 907,
+      "sha256": "ac0a55f253b6a1fe76acd2c8bcf5d74a9eb54275d0a61e21289db5b353f68bdf"
+    }
+  }
+}

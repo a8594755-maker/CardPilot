@@ -1,0 +1,171 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-slumbot-state-distribution-diagnostic-20260901",
+  "title": "Preserved Slumbot-state policy-distribution diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T01:06:59+00:00",
+  "updated_at": "2026-09-01T01:09:41+00:00",
+  "started_at": "2026-09-01T01:06:59+00:00",
+  "ended_at": "2026-09-01T01:09:41+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The raw actor's external failure is associated with a concentrated, reproducible policy-distribution drift from the near-zero Standard10 reference on particular street/seat partitions.",
+  "material_change": "Offline replay of all audited fresh5k decision states through frozen raw and rebound-Standard10 policies; compute partitioned action-distribution drift without outcomes as labels.",
+  "baseline": "Rebound Standard10 anchor0 SHA 944f5f66; historical original greedy fresh20k -11.4275 bb/100, strict sampled -48.9778.",
+  "source": "v6-actor-raw-fresh5k-slumbot-20260901 complete audited raw hands; raw SHA 9fd38ad3; source SHA 944f5f66",
+  "parent_id": "v6-actor-raw-fresh5k-slumbot-20260901",
+  "command": "python research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/run_diagnostic.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/run_diagnostic.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:06:59+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:09:26+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901"
+    ],
+    "captured_at": "2026-09-01T01:06:59+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/source_manifest.json",
+    "source_manifest_sha256": "80dc8b7404c26247d5d149b49e295b0e809f7da6a7c1294990bf823389fd103c",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 30112,
+    "wall_time_seconds": 162.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 13.0,
+    "states": 15056,
+    "overall_total_variation": 0.057294604141383196,
+    "overall_greedy_disagreement": 0.06615302869287991,
+    "overall_kl_raw_source": 0.01902310105518626,
+    "largest_partition_total_variation": 0.0777517872260159
+  },
+  "artifacts": [
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/preregistration.md",
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/code.patch",
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\state_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\analysis.json",
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/analysis.json",
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/reviewed_analysis.json",
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/result_summary.md",
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/state_metrics.jsonl"
+  ],
+  "notes": [
+    "Preregistered before implementation. No outcome labels, network calls, or weight changes."
+  ],
+  "result": {
+    "summary": "Offline batched replay compared raw and rebound-Standard10 distributions on all 15056 audited fresh5k decision states; independent aggregation and input hashes passed with zero network calls.",
+    "conclusion": "No supported street-seat partition crossed the preregistered 0.10 TV or 25% greedy-disagreement threshold. Overall drift was modest (TV 0.0573, disagreement 6.62%); the largest preflop seat0 shift reduced slot2 probability by 0.066 and increased slot1 by 0.039. A single localized actor-head drift does not explain the external failure, and the raw-policy on-policy corpus cannot estimate counterfactual source value.",
+    "decision": "NO_CONCENTRATED_POLICY_DRIFT",
+    "next_step": "Do not add a local action correction or imitation loss. The highest-information next control is a small same-checkpoint greedy-versus-sampled execution comparison under a newly audited generic greedy journal contract, because historical Standard10 evidence shows a large contract gap and the current state-distribution drift is diffuse."
+  },
+  "tags": [
+    "diagnostic",
+    "offline",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 1571,
+      "sha256": "cfd51d9f5a02e3d3ce99d3505467f6f3355d55feb718fab525987b9725acc70b"
+    },
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 547,
+      "sha256": "80dc8b7404c26247d5d149b49e295b0e809f7da6a7c1294990bf823389fd103c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13159,
+      "sha256": "3c0987f4f2bec45021c2d3e64c0ada48c50aaf612030392776b81828be586716"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22848,
+      "sha256": "1ee7b3bab8f1d7677bba681cd1c65f650df35e608def8e3e8fd9e69522e8605e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 2431,
+      "sha256": "9ae1bfc4a8b0072a385bd869a1d6bcca56a78d0d312b2a7bcb8e7f27685bc489"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12106661,
+      "sha256": "cd2e758c7e6f8b841d841a44e36601dfc210a37749108698ee0e83d811b55000"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-slumbot-state-distribution-diagnostic-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 18758,
+      "sha256": "f27012eaee552e4e219b3615d1ea903440199da01482f84e13163bf485dfa786"
+    },
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 18758,
+      "sha256": "f27012eaee552e4e219b3615d1ea903440199da01482f84e13163bf485dfa786"
+    },
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 795,
+      "sha256": "b8688e99b5f7a161a7b86aab21fcf8fa0911b0cc89a0b3ae2ec71eadab6836a5"
+    },
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 558,
+      "sha256": "0e90937a17e74f8a547c3f91f7d5a1c6e2e28e46aea1a82605f027c48b0364c0"
+    },
+    "research/experiments/v6-slumbot-state-distribution-diagnostic-20260901/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12106661,
+      "sha256": "cd2e758c7e6f8b841d841a44e36601dfc210a37749108698ee0e83d811b55000"
+    }
+  }
+}

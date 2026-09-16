@@ -1,0 +1,483 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "counterfactual-soft-policy-pilot-20260830",
+  "title": "Conservative all-legal counterfactual soft-policy pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T17:15:05+00:00",
+  "updated_at": "2026-08-30T18:16:02+00:00",
+  "started_at": "2026-08-30T17:15:05+00:00",
+  "ended_at": "2026-08-30T18:16:02+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A bounded non-one-hot policy target built from paired common-random-number all-legal action advantages, with uncertainty-conservative LCB targets and row-only reliability weighting, will provide lower-variance alternative-action supervision and improve robust policy strength without the chosen-action Q bias that failed historically.",
+  "material_change": "First decouple policy-only counterfactual distillation from the Action-Q head so no Q values enter rollout action selection. Build one immutable balanced BB/SB x flop/turn dataset by strictly merging the existing 10,240-row paired-CRN partial dataset with its 512-row SB-turn shard. Relative to the untouched all-heads control, enable only bounded soft-policy replay at coefficient 0.01, advantage_lcb z=1.96, row_only reliability, one 512-row replay batch per update, and linear decay to zero over 262,144 hands. Keep lambda 0.95 and all other control seeds, deals, league, architecture, and PPO settings.",
+  "baseline": "adaptive-league-all-heads-pilot-20260830 untouched on-policy all-policy-heads control",
+  "source": "Legacy exact Action-Q and one-step hard/capped selectors failed, but the current paired-uncertainty loader and bounded soft-policy objective provide a distinct conservative all-legal target; the available partial data plus SB-turn shard cover all four seat/street cells and five trajectory styles.",
+  "parent_id": "monte-carlo-gae-pilot-20260830",
+  "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/counterfactual_q_replay.py",
+  "commands": [
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/counterfactual_q_replay.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:15:05+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_counterfactual_policy_only.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:17:19+00:00"
+    },
+    {
+      "command": "python C:/Users/a8594/CardPilot_legacy_20260829/scripts/alpha_holdem/merge_counterfactual_datasets.py --input C:/Users/a8594/CardPilot_legacy_20260829/reports/cfmirror_partial10240_20260826.npz --input C:/Users/a8594/CardPilot_legacy_20260829/reports/partial_standard10_sbturn512x160_20260826.npz --out-npz research/experiments/counterfactual-soft-policy-pilot-20260830/data/balanced_paired_crn10752.npz --out-json research/experiments/counterfactual-soft-policy-pilot-20260830/data/merge_report.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:17:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_counterfactual_replay_dataset.py --dataset research/experiments/counterfactual-soft-policy-pilot-20260830/data/balanced_paired_crn10752.npz --sha256 605a7ab8cb1c8cb044ac56d48a3e3cde05b769e61281efac9ee27d9d736efb8e --expected-rows 10752 --out research/experiments/counterfactual-soft-policy-pilot-20260830/data/dataset_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:18:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 4096 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --action-q-counterfactual-dataset research/experiments/counterfactual-soft-policy-pilot-20260830/data/balanced_paired_crn10752.npz --action-q-counterfactual-dataset-sha256 605a7ab8cb1c8cb044ac56d48a3e3cde05b769e61281efac9ee27d9d736efb8e --action-q-counterfactual-policy-loss-coef 0.01 --action-q-counterfactual-policy-target-clip 1.5 --action-q-counterfactual-policy-temperature 1 --action-q-counterfactual-policy-reliability-mode row_only --action-q-counterfactual-target-mode advantage_lcb --action-q-counterfactual-lcb-z 1.96 --action-q-counterfactual-loss-decay-hands 262144 --action-q-counterfactual-batch-size 512 --action-q-counterfactual-max-batches-per-update 1 --action-q-counterfactual-stratify-trajectory-opponent --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id counterfactual_soft_policy_smoke_20260830 --run-dir research/experiments/counterfactual-soft-policy-pilot-20260830/smoke --out research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/latest.pt --seed 20260851 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:18:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/counterfactual-soft-policy-pilot-20260830/smoke --expected-target-hands 4096 --expected-final-iteration 1 --expected-pool-size 3 --expected-archive-every 999999 --expected-normalization global --workspace . --out research/experiments/counterfactual-soft-policy-pilot-20260830/smoke_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:20:33+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --action-q-counterfactual-dataset research/experiments/counterfactual-soft-policy-pilot-20260830/data/balanced_paired_crn10752.npz --action-q-counterfactual-dataset-sha256 605a7ab8cb1c8cb044ac56d48a3e3cde05b769e61281efac9ee27d9d736efb8e --action-q-counterfactual-policy-loss-coef 0.01 --action-q-counterfactual-policy-target-clip 1.5 --action-q-counterfactual-policy-temperature 1 --action-q-counterfactual-policy-reliability-mode row_only --action-q-counterfactual-target-mode advantage_lcb --action-q-counterfactual-lcb-z 1.96 --action-q-counterfactual-loss-decay-hands 262144 --action-q-counterfactual-batch-size 512 --action-q-counterfactual-max-batches-per-update 1 --action-q-counterfactual-stratify-trajectory-opponent --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/counterfactual-soft-policy-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id counterfactual_soft_policy_all_heads_262k_20260830 --run-dir research/experiments/counterfactual-soft-policy-pilot-20260830/production --out research/experiments/counterfactual-soft-policy-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:20:33+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_counterfactual_policy_replay_session.py --run-dir research/experiments/counterfactual-soft-policy-pilot-20260830/smoke --expected-final-iteration 1 --expected-dataset-sha256 605a7ab8cb1c8cb044ac56d48a3e3cde05b769e61281efac9ee27d9d736efb8e --expected-training-rows 6454 --expected-batch-size 512 --expected-policy-loss-coef 0.01 --expected-decay-hands 262144 --out research/experiments/counterfactual-soft-policy-pilot-20260830/smoke_replay_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T17:46:25+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/counterfactual-soft-policy-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-pool-size 3 --expected-archive-every 16 --expected-normalization global --workspace . --out research/experiments/counterfactual-soft-policy-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:05:10+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_counterfactual_policy_replay_session.py --run-dir research/experiments/counterfactual-soft-policy-pilot-20260830/production --expected-final-iteration 64 --expected-dataset-sha256 605a7ab8cb1c8cb044ac56d48a3e3cde05b769e61281efac9ee27d9d736efb8e --expected-training-rows 6454 --expected-batch-size 512 --expected-policy-loss-coef 0.01 --expected-decay-hands 262144 --out research/experiments/counterfactual-soft-policy-pilot-20260830/production_replay_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:05:10+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065873.pt --candidate-label counterfactual_soft_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16.json --out-md research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16.md --execution-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131656.pt --candidate-label counterfactual_soft_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32.json --out-md research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32.md --execution-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197580.pt --candidate-label counterfactual_soft_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48.json --out-md research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48.md --execution-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263417.pt --candidate-label counterfactual_soft_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64.json --out-md research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64.md --execution-json research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16.json --out research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32.json --out research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter32.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48.json --out research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter48.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64.json --out research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter64.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:16:02+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "140ca3b4b125822857452b59283216279e644c665520d64161c2d3ef724ac4b3",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/counterfactual_q_replay.py"
+    ],
+    "captured_at": "2026-08-30T17:15:05+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/counterfactual-soft-policy-pilot-20260830/code.patch",
+    "patch_sha256": "3eb0433ec20d15d46369145cda022bbb0a7239f77e65f02548fb667b16d01143",
+    "source_manifest": "research/experiments/counterfactual-soft-policy-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "3b110559fa77dd02266b100e0600d0b38b2e6ea3dae82d7e627c3ca7dab2d2b1",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 267520,
+    "lineage_training_hands": 0,
+    "offline_samples": 10752,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 3657.0
+  },
+  "metrics": {
+    "dataset_gate": "PASS",
+    "dataset_total_rows": 10752,
+    "dataset_training_rows": 6454,
+    "dataset_validation_rows": 2149,
+    "dataset_test_rows": 2149,
+    "dataset_trajectory_strata": 20,
+    "smoke_gate": "PASS",
+    "smoke_actual_hands": 4103,
+    "smoke_policy_only": true,
+    "smoke_action_q_advantage": false,
+    "smoke_counterfactual_policy_loss": 0.257326654025487,
+    "smoke_counterfactual_q_loss": 0,
+    "smoke_replay_batches": 1,
+    "smoke_replay_draws": 512,
+    "smoke_reference_policy_kl": 8.36686314349728e-05,
+    "smoke_clip_fraction": 0,
+    "smoke_kl_early_stops": 0,
+    "smoke_replay_audit": "PASS",
+    "production_gate": "PASS",
+    "production_actual_hands": 263417,
+    "production_fixed_pool_audit": "PASS",
+    "production_replay_audit": "PASS",
+    "production_final_iteration": 64,
+    "production_total_replay_draws": 32768,
+    "production_replay_dataset_epochs": 5.077161450263403,
+    "production_max_reference_policy_kl": 0.0015174259564706256,
+    "production_max_clip_fraction": 0,
+    "production_kl_early_stops": 0,
+    "frozen_curve_gate": "FAIL",
+    "positive_paired_deltas": 5,
+    "negative_paired_deltas": 7,
+    "mean_paired_delta_bb100": -0.41357421875,
+    "median_paired_delta_bb100": -0.2294921875,
+    "paired_ci95_lower_positive": 0,
+    "slumbot_hands": 0
+  },
+  "artifacts": [
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/code.patch",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/source_manifest.json",
+    "scripts/alpha_holdem/test_counterfactual_policy_only.py",
+    "scripts/alpha_holdem/audit_counterfactual_replay_dataset.py",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/data/balanced_paired_crn10752.npz",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/data/merge_report.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/data/dataset_audit.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/latest.pt",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/latest_train.log",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke_session_audit.json",
+    "scripts/alpha_holdem/audit_counterfactual_policy_replay_session.py",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke_replay_audit.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/latest.pt",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/run_manifest.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/latest_train.log",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production_session_audit.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production_replay_audit.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065873.pt",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131656.pt",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197580.pt",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263417.pt",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/result_summary.md",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16.md",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32.md",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48.md",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64.md",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter16.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter32.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter48.json",
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter64.json"
+  ],
+  "notes": [
+    "Preregistered implementation gate: tests must prove policy-only replay is accepted without Action-Q architecture, Q replay loss is not evaluated at coefficient zero, soft-policy loss changes policy logits, and Q-enabled legacy behavior remains valid. Strict dataset merge and loader audit must show 10,752 rows, all BB/SB x flop/turn x five trajectory strata, paired anchor-action uncertainty, held-out train/validation/test split, and immutable SHA256. A 4,096-hand smoke must show positive finite soft-policy loss, exactly one replay batch, finite PPO metrics, no KL stop, and terminal audit PASS. Production only on PASS; four-checkpoint seed20260853 paired curve versus untouched control; no Slumbot without robust direction-consistent evidence.",
+    "Policy-only decoupling tests PASS 2/2: soft replay backpropagates into policy logits without any Action-Q interface/head and advances the deterministic replay cursor exactly once per batch.",
+    "Dataset gate PASS: strict full-schema merge produced immutable SHA256 605a7ab8...efb8e with 10,752 rows. Live loader produced 6,454 train / 2,149 validation / 2,149 test rows; all 20 seat-street-trajectory strata were nonempty in every split; paired-CRN advantage LCB z=1.96 and conservative five-continuation uncertainty were active.",
+    "Smoke gate PASS at 4,103 actual hands: policy-only soft loss was finite and positive (0.2573), counterfactual Q loss exactly zero, Action-Q architecture disabled, exactly one 512-row replay batch applied, source KL 0.00008367, zero clip/stop, and fixed-pool terminal audit PASS.",
+    "Policy-only replay auditor validated on the completed one-update smoke evidence while the untouched production session continued; no training source, checkpoint, optimizer, or cursor was modified.",
+    "Production completed without interruption at 263,417 actual hands. Fixed-pool assignment/session audit and policy-only replay cursor/decay audit both passed before any frozen evaluation."
+  ],
+  "result": {
+    "summary": "Policy-only uncertainty-conservative counterfactual replay completed valid smoke and 263,417-hand production, but its frozen matched curve had only 5/12 positive deltas, mean -0.414 and median -0.229 bb/100, with every paired interval crossing zero.",
+    "conclusion": "The treatment is mechanically valid and stable but did not robustly improve general strength over the untouched adaptive-league all-heads control at this dataset size and coefficient.",
+    "decision": "REJECT_COUNTERFACTUAL_SOFT_POLICY_NO_ROBUST_GENERAL_GAIN",
+    "next_step": "Select a materially broader learned-policy data or optimization intervention; do not scale this small offline counterfactual treatment unchanged and do not spend Slumbot hands on it."
+  },
+  "tags": [
+    "counterfactual",
+    "learned-policy",
+    "policy-distillation",
+    "ppo"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 18,
+    "command_count": 18
+  },
+  "artifact_integrity": {
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 200947,
+      "sha256": "3eb0433ec20d15d46369145cda022bbb0a7239f77e65f02548fb667b16d01143"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 642,
+      "sha256": "3b110559fa77dd02266b100e0600d0b38b2e6ea3dae82d7e627c3ca7dab2d2b1"
+    },
+    "scripts/alpha_holdem/test_counterfactual_policy_only.py": {
+      "type": "file",
+      "bytes": 2372,
+      "sha256": "5f6880542a4f95e8764742cca5398b57afd8d319cab0bc9181d9251926a5aaa2"
+    },
+    "scripts/alpha_holdem/audit_counterfactual_replay_dataset.py": {
+      "type": "file",
+      "bytes": 3043,
+      "sha256": "f7c00dc8f595b9c622faaba88258a24e93f6de13c606ecd28cd430c34c637105"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/data/balanced_paired_crn10752.npz": {
+      "type": "file",
+      "bytes": 5914411,
+      "sha256": "605a7ab8cb1c8cb044ac56d48a3e3cde05b769e61281efac9ee27d9d736efb8e"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/data/merge_report.json": {
+      "type": "file",
+      "bytes": 4574,
+      "sha256": "43b3e3eefeee15e483447ef6bcf39234c71774fcbf1ff516fe3d37854cece639"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/data/dataset_audit.json": {
+      "type": "file",
+      "bytes": 5436,
+      "sha256": "0fe555d5913f1f5801fefb43cbccbc02530b42e3164a1a048b27fa592fddde8c"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 133307252,
+      "sha256": "1782512ea770c040fc134ce8d1183e390908fccddb29a1d1c84993fd99f26420"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 53610,
+      "sha256": "e97782115e563f71c460e421469a10330812316acc27da23d39db85f16edb39d"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 23536,
+      "sha256": "74e528129875cb40a20dfbd15c367fc750d8a498b2adda87c9cfe63d011d5c5d"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2527,
+      "sha256": "8d4cf32fdf88ad100b9a08a3ecd23112e661c408c8b51697b4836fd43ab523a6"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke/latest_train.log": {
+      "type": "file",
+      "bytes": 421,
+      "sha256": "49416a6565cb2b6188e2e1c4fe7b557bdf749aace74b87ea712a4687136e992b"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke_session_audit.json": {
+      "type": "file",
+      "bytes": 2459,
+      "sha256": "55d5f2daa2b6c7fdb8a76a16ad4aa3764b768b1c42de50bd658f31b9bf4f8593"
+    },
+    "scripts/alpha_holdem/audit_counterfactual_policy_replay_session.py": {
+      "type": "file",
+      "bytes": 8492,
+      "sha256": "8c8c3445387ec1931f56628a876fd4e7ec5ac7a26762148b9fdf77288c53a7d8"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/smoke_replay_audit.json": {
+      "type": "file",
+      "bytes": 1615,
+      "sha256": "c3a43e0724503db2126c891b569ee4120388e4a508955cb169aca4bb284aa57b"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 133307252,
+      "sha256": "94099cde7c434772d539f0ee7bcdf4a2f027f32c55c0d7743439932d96cbff48"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 53908,
+      "sha256": "ec10879a3b07f7ec927da85d82597536bd11baf2c430f40e5035858d5190243d"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1527053,
+      "sha256": "659ea8f3955157b9446356e8bbf7183936207b0d9ccbb5b24ac28f7e89934ef3"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 167249,
+      "sha256": "754a4fd3eac547f979656318ab21351bce7eab599e03b8b7262b782baeff25fd"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/latest_train.log": {
+      "type": "file",
+      "bytes": 27011,
+      "sha256": "b649bcfc69f74f61d3ed8ea932ccf67a8c4f23b9fc467f7f63fcd0ca5602e7eb"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 3909,
+      "sha256": "2f323bc59e426afaee4726560150d68ca0ce52d51d640d298433f3fb13991073"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production_replay_audit.json": {
+      "type": "file",
+      "bytes": 1663,
+      "sha256": "1ffe9f4c3938644d2029293884b8ff83f020e401d8e13c09c8e2fc34d36b5f53"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065873.pt": {
+      "type": "file",
+      "bytes": 133326390,
+      "sha256": "8b45521c1fccbaa1b87a5847f30970177fd65d662e8dd33f5212ae4faf9a083d"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131656.pt": {
+      "type": "file",
+      "bytes": 133326390,
+      "sha256": "5fe1eaa86a6b594ca668eb2ff35f0551694ea4e96746782cc71538dc1cd77690"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197580.pt": {
+      "type": "file",
+      "bytes": 133326390,
+      "sha256": "3083c278bf52bbe702339de7aa1fe0231da71431d06594253dac2d390fd213f1"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263417.pt": {
+      "type": "file",
+      "bytes": 133326390,
+      "sha256": "96b079a2db0e523f54f038881d4156c9931c69d6825196c3c003aaa41497e625"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 3697,
+      "sha256": "1fe17e01fd07b510f4f477e2b3090a87629720eb8120f3bc6fa187075958a4ca"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 172929,
+      "sha256": "d4a916c6921021f67712a1f60d0d5b86b2acb0398fe9cdbf2a2449d9fee241cc"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16.md": {
+      "type": "file",
+      "bytes": 1581,
+      "sha256": "045d37d1d50fbcaeeedb8f20b2128c85fe2eac012e7c4d226fda88c63d9133f1"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1863,
+      "sha256": "c2e64f988b5f49ad36bbed59739881c8d3901f4ca1abe0a0f4c8abea8ce1d738"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 173034,
+      "sha256": "883833f5181e5457275abc59f2f0f5dfe06fec2fd388a7499e88481df73fe91d"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32.md": {
+      "type": "file",
+      "bytes": 1583,
+      "sha256": "632baa8270033988abdfdebd9bcc994ee593d4dd679ee27d8cfd910f94e6bc4b"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1863,
+      "sha256": "f67ee771ad7c5eb122f75f2d37cd3948c3a35fc8c48da58cd07ede4dc6ab6bb5"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 172953,
+      "sha256": "3e9f96924a9fc0418014402bc175378079d684f9b8062ae2a477b6de1b4116d2"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48.md": {
+      "type": "file",
+      "bytes": 1583,
+      "sha256": "b794587237f3476d26013fa8a66c8adfb8c3fbbf8b6641ef34d524c97d5d208a"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1863,
+      "sha256": "a67df296edd90ba58605af53321ce13699780ad334e6d961b9063f8b1f8e8bc5"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 173009,
+      "sha256": "1aa834a4a07ac3f5df1759b21a277bfc1cd0031cdd102ec613160c364c967998"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64.md": {
+      "type": "file",
+      "bytes": 1583,
+      "sha256": "4839dab2374d632bbd8763105a454fd269a199592e47eb18a4017cb313aa7423"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1863,
+      "sha256": "c07fd95f931158e0e84945e3737f042f9fa692f7cb7ca1deaa2e0809661332a8"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter16.json": {
+      "type": "file",
+      "bytes": 4975,
+      "sha256": "4de47d047bae54a6d236e1aeacb14e5ece4ef966ed5e1c740cc630e4aaef1e7c"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter32.json": {
+      "type": "file",
+      "bytes": 4968,
+      "sha256": "87f9c99b6c1f9621ec78335e2ad5921c9e2cafd72496a396251d19ca418c0d73"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter48.json": {
+      "type": "file",
+      "bytes": 4976,
+      "sha256": "f41d334e182e3afd9284dc579361a4f8af93fbfcaf8c56c510d2927e7aa84e51"
+    },
+    "research/experiments/counterfactual-soft-policy-pilot-20260830/paired_delta/iter64.json": {
+      "type": "file",
+      "bytes": 4955,
+      "sha256": "48c99fd4e5766a33a69f0527e98bedd36a38466b4903ca9fa67629e9eabe5b09"
+    }
+  }
+}

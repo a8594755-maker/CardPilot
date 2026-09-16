@@ -1,0 +1,174 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-parent-soup-preservation-20260901",
+  "title": "Conservative Standard10-parent actor model soup",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T03:36:09+00:00",
+  "updated_at": "2026-09-01T03:38:09+00:00",
+  "started_at": "2026-09-01T03:37:45+00:00",
+  "ended_at": "2026-09-01T03:38:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A fixed 75% raw-parent plus 25% Standard10 interpolation of exactly the four actor-head tensors can recover some mature-reference generalization while preserving the externally strongest parent's greedy decisions.",
+  "material_change": "Materialize one and only one frozen checkpoint by linearly interpolating policy_head and preflop_policy_head weights/biases at parent weight 0.75 and exact Standard10 weight 0.25; keep every non-actor tensor and all v6 metadata from the parent bitwise unchanged; replay candidate and parent on all existing audited parent generic-greedy fresh5k decision states.",
+  "baseline": "Raw parent SHA256=9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4 scored -9.4188 bb/100 on fresh generic-greedy 5k. Standard10 historical greedy fresh20k was -11.4275 CI[-28.7124,5.8574], strict sampled -48.9778. EMA and single imitation teacher were negative and are not reused.",
+  "source": "models/baseline/standard10/latest.pt sha256=91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 and raw parent 9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4",
+  "parent_id": "v6-standard10-weight-population-smoke-20260901",
+  "command": "python research/experiments/v6-standard10-parent-soup-preservation-20260901/run_gate.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-standard10-parent-soup-preservation-20260901/run_gate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:36:09+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\test_gate.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:37:47+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:38:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem/execution_v6.py"
+    ],
+    "captured_at": "2026-09-01T03:36:09+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-parent-soup-preservation-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-standard10-parent-soup-preservation-20260901/source_manifest.json",
+    "source_manifest_sha256": "ddf7100ac0e45d7484101f0b0550f3b1aa8286d7bff69ea4ee2ac3407e650985",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 29926,
+    "wall_time_seconds": 24.0,
+    "training_hands": 0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "parent_weight": 0.75,
+    "standard10_weight": 0.25,
+    "wall_time_seconds": 22.54700000002049,
+    "parent_state_tv": 0.014927047320303767,
+    "parent_state_greedy_disagreement": 0.01697520550691706
+  },
+  "artifacts": [
+    "models/baseline/standard10/latest.pt",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt",
+    "research/experiments/v6-standard10-parent-soup-preservation-20260901/code.patch",
+    "research/experiments/v6-standard10-parent-soup-preservation-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\frozen\\candidate.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\state_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\reviewed_analysis.json"
+  ],
+  "notes": [
+    "Preregistered before materialization. There is no alpha search, internal-return selection, training, imitation, teacher, action rule, or network call. Exact interpolation and non-actor equality are audited.",
+    "Admission to a separately logged fresh5k generic-greedy Slumbot gate requires mean TV <=0.02 and greedy disagreement <=0.02 over every actual decision in the already audited parent fresh5k corpus. Passing preservation is not strength evidence; failure stops this fixed soup.",
+    "Independent reviewer recomputed both preservation metrics from all raw state rows and verified candidate SHA256; no outcomes, network calls, training, or new Slumbot hands."
+  ],
+  "result": {
+    "summary": "Fixed 75/25 parent-Standard10 actor soup replayed 14963 audited parent states: TV=0.014927, greedy disagreement=1.698%; independent review PASS.",
+    "conclusion": "The single preregistered conservative actor soup passed the outcome-free parent-preservation gate.",
+    "decision": "ADMIT_SEPARATE_GREEDY_FRESH5K",
+    "next_step": "Run one separately logged exact-checkpoint generic-greedy fresh5k Slumbot gate; do not claim strength from preservation."
+  },
+  "tags": [
+    "learned-weight",
+    "model-soup",
+    "preservation",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "models/baseline/standard10/latest.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "research/experiments/v6-standard10-parent-soup-preservation-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-standard10-parent-soup-preservation-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 281,
+      "sha256": "ddf7100ac0e45d7484101f0b0550f3b1aa8286d7bff69ea4ee2ac3407e650985"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13361,
+      "sha256": "965b54d36a62125fd93422755a1780b639f080f04e15e546ff2defca5527dd17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 534,
+      "sha256": "3cb54b6d4d0c12461ac68d36fdc9068e5ca14dd5362c17757c933ef62542be21"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\frozen\\candidate.pt": {
+      "type": "file",
+      "bytes": 199405754,
+      "sha256": "914c8d186d4cdb4f2139ff64d2b32b7558eb1c5761b553c09457bd756aaec8e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1808129,
+      "sha256": "512fee5519bc4c9f2766561ffe6fb25012b870779475b2a7856687ad815d9097"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 2548,
+      "sha256": "4b21482d29409e7229e2f9382f5c391a23d1c04ad83f0e7a23e302283b6ef7ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 290,
+      "sha256": "5cfda8c3d3f06e01b773fe24a02bad0fcdb22ef24dbd9108e2c2e27fa31fd811"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-standard10-parent-soup-preservation-20260901\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 372,
+      "sha256": "e5e5b4a3f9c96685cafaa3b2a3389f313ccc31997611e65f93af4139ae11e85c"
+    }
+  }
+}

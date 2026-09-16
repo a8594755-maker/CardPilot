@@ -1,0 +1,469 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "paired-seat-average-actor-pilot-20260830",
+  "title": "Paired seat-average actor-return pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T18:20:33+00:00",
+  "updated_at": "2026-08-30T19:38:13+00:00",
+  "started_at": "2026-08-30T18:20:33+00:00",
+  "ended_at": "2026-08-30T19:04:02+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "For the same fixed deal and opponent, averaging the raw hero payoff across a source hand and its hole-card-swapped opposite-seat mirror will cancel seat/card variance and provide a lower-variance actor advantage, while retaining raw realized rewards for critic learning and league accounting.",
+  "material_change": "Add an opt-in paired-seat actor reward contract to the single-rollout AlphaHoldem trainer. Mirror every fixed-stream deal against the same opponent, match source player p to mirror player 1-p, keep transition reward t[6] raw for critic/value targets, append only a terminal actor reward override equal to the two-seat mean, and train the same frozen-trunk all-policy-head configuration as adaptive-league-all-heads-pilot-20260830.",
+  "baseline": "adaptive-league-all-heads-pilot-20260830 untouched fresh-only control; mirrored-selfplay-deals-pilot-20260830 mirrored only self-play deals but did not pair-center actor advantages.",
+  "source": "models/baseline/standard10/latest.pt SHA256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "parent_id": "mirrored-selfplay-deals-pilot-20260830",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_paired_seat_actor_returns.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_paired_seat_actor_returns.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:20:33+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:30:34+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_paired_seat_actor_returns.py scripts/alpha_holdem/test_train_v5_mirror_deals.py scripts/alpha_holdem/test_train_v5_allin_ev.py scripts/alpha_holdem/test_train_v5_replay.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:30:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 512 --total-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 512 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/paired-seat-average-actor-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026087100 --fixed-training-deal-stream --mirror-self-play-deals --paired-seat-average-returns --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id paired_seat_average_actor_smoke_20260830 --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/smoke --out research/experiments/paired-seat-average-actor-pilot-20260830/smoke/latest.pt --seed 20260871 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:30:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 512 --total-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 512 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026087100 --fixed-training-deal-stream --mirror-self-play-deals --paired-seat-average-returns --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id paired_seat_average_actor_smoke2_20260830 --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/smoke2 --out research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/latest.pt --seed 20260871 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:30:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 512 --total-hands 512 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 512 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/paired-seat-average-actor-pilot-20260830/smoke3/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026087100 --fixed-training-deal-stream --mirror-self-play-deals --paired-seat-average-returns --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id paired_seat_average_actor_smoke3_20260830 --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/smoke3 --out research/experiments/paired-seat-average-actor-pilot-20260830/smoke3/latest.pt --seed 20260871 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:30:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/paired-seat-average-actor-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026087200 --fixed-training-deal-stream --mirror-self-play-deals --paired-seat-average-returns --validate-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id paired_seat_average_actor_262k_20260830 --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/production --out research/experiments/paired-seat-average-actor-pilot-20260830/production/latest.pt --seed 20260872 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:30:49+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/audit_paired_seat_average_session.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:55:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_paired_seat_average_session.py --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/production --expected-iterations 64 --out research/experiments/paired-seat-average-actor-pilot-20260830/paired_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:55:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/paired-seat-average-actor-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-pool-size 3 --expected-archive-every 16 --expected-normalization global --workspace . --out research/experiments/paired-seat-average-actor-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:55:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065912.pt --candidate-label paired_seat_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16.json --out-md research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16.md --execution-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:55:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131818.pt --candidate-label paired_seat_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32.json --out-md research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32.md --execution-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:57:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197655.pt --candidate-label paired_seat_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48.json --out-md research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48.md --execution-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:57:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263479.pt --candidate-label paired_seat_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64.json --out-md research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64.md --execution-json research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T18:57:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16.json --out research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16_paired_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:04:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32.json --out research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32_paired_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:04:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48.json --out research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48_paired_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:04:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64.json --out research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64_paired_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:04:02+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1dcf55e6c76cd8b1f5fb1f3072e7ae27f756840e5ccea3fe3fad2a77062c4a82",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py"
+    ],
+    "captured_at": "2026-08-30T18:20:33+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/paired-seat-average-actor-pilot-20260830/code.patch",
+    "patch_sha256": "71b3ab820d66ed5b5cd706a0504aeade976906f5c1c284ffceb4126672ef4328",
+    "source_manifest": "research/experiments/paired-seat-average-actor-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "1eb605647cd7ea5794b834758b67fbaf1eef760982364892fc9813ceffdfcdee",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 317800,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 2609.0
+  },
+  "metrics": {
+    "preregistered_target_hands": 262144,
+    "preregistered_archive_every": 16,
+    "preregistered_eval_pairs_per_anchor": 1024,
+    "smoke3_actual_hands": 550,
+    "smoke3_matched_pairs": 275,
+    "smoke3_actor_override_rows": 661,
+    "smoke3_raw_terminal_reward_variance": 0.0190604134880725,
+    "smoke3_actor_terminal_reward_variance": 0.0122926780236482,
+    "smoke3_actor_terminal_reward_variance_ratio": 0.644932389915916,
+    "smoke3_session_audit_pass": true,
+    "production_actual_hands": 316700,
+    "production_matched_pairs": 158350,
+    "production_actor_override_rows": 321784,
+    "production_variance_ratio_mean": 0.5579810150094076,
+    "production_variance_ratio_min": 0.4803539936248541,
+    "production_variance_ratio_max": 0.6397036915093225,
+    "production_session_audit_pass": true,
+    "paired_delta_mean_bb100": -1.03605143229167,
+    "paired_delta_median_bb100": -0.146484375,
+    "paired_positive_points": 3,
+    "paired_positive_ci_lower_points": 1,
+    "all_curve_ood_valid": true,
+    "new_training_hands_is_lower_bound": true,
+    "production_actual_hands_is_lower_bound": true,
+    "production_legacy_training_marker_hands": 263479,
+    "legacy_marker_total_including_smokes": 264545,
+    "smoke3_actual_hands_is_lower_bound": true,
+    "smoke3_legacy_training_marker_hands": 530,
+    "smoke2_emitted_physical_hands_lower_bound": 550
+  },
+  "artifacts": [
+    "research/experiments/paired-seat-average-actor-pilot-20260830/code.patch",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/source_manifest.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/run_manifest.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/h1_training_metrics.jsonl",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke3/run_manifest.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke3/h1_training_metrics.jsonl",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke3_session_audit.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/run_manifest.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/latest_train.log",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/latest.pt",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production_session_audit.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/paired_session_audit.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065912.pt",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131818.pt",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197655.pt",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263479.pt",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/result_summary.md",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production_code/code.patch",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production_code/source_manifest.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16.md",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16_paired_delta.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32.md",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32_paired_delta.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48.md",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48_paired_delta.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64.md",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64_paired_delta.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_production_lower_bound.json",
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_smoke3_lower_bound.json",
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/latest_train.log"
+  ],
+  "notes": [
+    "Smoke is fail-closed: source/replay counts and same-opponent identity must pair exactly; raw critic reward must remain unchanged; actor override must appear only on terminal rows; actor terminal variance must decline; fixed-pool/session audit, KL, ratios, and action mix must remain healthy. Production is forbidden until all gates pass.",
+    "First end-to-end smoke was safely interrupted at 0 accounted hands after worker failures exposed that a trainable seat may have no policy decision; its initialized manifest and errors are preserved under smoke/. Recovery changed pairing to use explicit full per-player terminal rewards while preserving raw transition rewards.",
+    "Smoke2 completed 536 hands and validated integration, but actor/raw variance statistics were not yet persisted. It is preserved unchanged; train_v5.py was then patched to persist the already-computed statistics in score, JSONL, and manifest evidence.",
+    "Smoke3 completed 530 hands: 275 matched source/mirror pairs, 661 terminal-only actor overrides, raw terminal variance 0.0190604134880725, actor terminal variance 0.0122926780236482, ratio 0.644932389915916. Fixed-pool/session audit PASS; production gate passed.",
+    "Production launched only after smoke3 variance and session gates passed. Configuration matches the untouched adaptive-league all-policy-head control except every fixed-stream deal is mirrored against the same opponent and only actor terminal rewards are pair-averaged.",
+    "Production completed without interruption: 64 iterations and 263,479 actual environment hands. Fixed-pool audit and paired-session audit both PASS; 158,350 balanced pairs, 321,784 terminal-only actor overrides, every batch variance ratio below one.",
+    "The initial code snapshot is retained unchanged. production_code/ captures the final trainer code actually used after the smoke fixes; the trainer code was unchanged between smoke3, production, and this capture. Its patch SHA256 is 40870a5a104651b94ab4cc13e726b53ef16f7b66e8c259219cfb863758ccdccd.",
+    "Corrected two manually transcribed smoke command run-dir fields to the actual smoke/ and smoke2/ paths; raw manifests and checkpoint evidence were not changed.",
+    "All four frozen curves completed with valid OOD/mirror signals. No control artifacts or training artifacts were modified during evaluation.",
+    "Accounting correction from physical-hand-accounting-repair-20260830: legacy total_hands counts only transition-bearing hands. Production marker count remains 263479 in immutable checkpoints, while 158350 balanced emitted pairs prove at least 316700 physical hands. Completed smokes each emitted 275 pairs, so new_training_hands is corrected to the physical lower bound 317800, not an exact total; missing historical worker tails and failed pre-update smoke work are not invented. Prior actual-hand labels in notes/audit v1 refer to the legacy marker counter and are superseded by the v2 lower-bound artifacts. Evaluation results and raw evidence are unchanged.",
+    "Removed mutable workspace source-file paths from the artifact list; the immutable production_code patch/source manifest remains the authoritative executed-trainer provenance."
+  ],
+  "result": {
+    "summary": "Paired actor rewards reduced terminal variance in every production batch (mean ratio 0.558). Production ended at 263,479 legacy transition-bearing markers with at least 316,700 physical emitted paired hands; the matched curve yielded only 3/12 positive deltas and no robust cross-anchor gain.",
+    "conclusion": "The estimator is mechanically valid and numerically stable but does not improve general learned-policy strength robustly at this scale. The isolated positive Standard10 interval at iter64 is not replicated across anchors or the learning curve.",
+    "decision": "REJECT_PAIRED_ACTOR_NO_ROBUST_GENERAL_GAIN",
+    "next_step": "Audit stochastic-training versus greedy-evaluation mode mismatch using frozen sampled-policy diagnostics before another training treatment; no Slumbot or unchanged scaling."
+  },
+  "tags": [
+    "actor-credit",
+    "all-policy-heads",
+    "paired-crn",
+    "variance-reduction"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 18,
+    "command_count": 18
+  },
+  "artifact_integrity": {
+    "research/experiments/paired-seat-average-actor-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 201910,
+      "sha256": "71b3ab820d66ed5b5cd706a0504aeade976906f5c1c284ffceb4126672ef4328"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "1eb605647cd7ea5794b834758b67fbaf1eef760982364892fc9813ceffdfcdee"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 20499,
+      "sha256": "7d66e429e934005d7c88221cc44fe6c5e88df3a57ed0be88bc9769c66ef679a5"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/run_manifest.json": {
+      "type": "file",
+      "bytes": 52323,
+      "sha256": "801591cf4bfa1c17d122a4e9d4abb0b43aa5390d6a56756e2cbca4171d866181"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 22119,
+      "sha256": "7dafecb25dc4e580ae24e7b2389c006a97ed4f9d2bf81623ef3127ffcb2766f3"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke3/run_manifest.json": {
+      "type": "file",
+      "bytes": 52053,
+      "sha256": "b3ce867eeaac5ce692ea18b6092dd61af913b994c1bdc348ebd525a8c6d80cad"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke3/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 21677,
+      "sha256": "48cf8a45e1d64d4db82c867125108a349e99300f3eac6206b05db9b82e542a2e"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke3_session_audit.json": {
+      "type": "file",
+      "bytes": 2456,
+      "sha256": "d7b826fc1c06448add2b9ef4a2566db5ace18db9cd770397888d839632d5c39d"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 53713,
+      "sha256": "8108b3d9e4befee21d4fc331ebeace81fb02b813ef12b384232c92c39047ee91"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1530842,
+      "sha256": "2f2c2541a9ecce62252f7816bdc2e22b6ab5ffe2ef2140e97e9aef24cfeaa639"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/latest_train.log": {
+      "type": "file",
+      "bytes": 29599,
+      "sha256": "3585f1c3d137a40980c5181065653e7c279493b9bb109be835eabf90e5ffaf3a"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 167204,
+      "sha256": "683fa030189f07d47623b41bc61869252146e5e523e7a6c7d870f965a8aefaa5"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 133303796,
+      "sha256": "0529d7dfb493405f55dbb0bdea5e0ce263772bf2b571d0b6b1e8910427ac7cb2"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 3903,
+      "sha256": "e501806921b155e1450c55ef5dd6cb88a5eac514e54fdb62f9e15cb450c66e8f"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/paired_session_audit.json": {
+      "type": "file",
+      "bytes": 1312,
+      "sha256": "25e9f71d5971f251dbdaa78133309bd4a94fc84016616703d7c9dc72ea43b2ad"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065912.pt": {
+      "type": "file",
+      "bytes": 133322998,
+      "sha256": "2079622b2b4bda6f370b290ce411254a6ff7a433e836da738be7679f079aee8c"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131818.pt": {
+      "type": "file",
+      "bytes": 133322998,
+      "sha256": "d23faba9f9cb8f8563370be7fcc651a4a535af78019858376bddd70116678841"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197655.pt": {
+      "type": "file",
+      "bytes": 133322998,
+      "sha256": "1d5d106507fef708ac3f0190fe136cec5a612f2feab865037e74a10f765cc216"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263479.pt": {
+      "type": "file",
+      "bytes": 133322998,
+      "sha256": "60fcfee9d66d40a42dc0ead4489314d307722761158aba1fe52fd58e5868e7b8"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 4384,
+      "sha256": "332d6c7be32965e9160cfbd52334f2071b07078edd6e979cceac438d796975f5"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production_code/code.patch": {
+      "type": "file",
+      "bytes": 231450,
+      "sha256": "40870a5a104651b94ab4cc13e726b53ef16f7b66e8c259219cfb863758ccdccd"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/production_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "758860caa245dbf991c1b6b90307ab24a066678c57c14225f61ebf68a6dc4e12"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 172824,
+      "sha256": "efd9225b593e79bdc8584cec50b39ddf73b5085e3a49aef7459290dd94ec429e"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16.md": {
+      "type": "file",
+      "bytes": 1575,
+      "sha256": "c1c371e8d9384259d72aa5ccfe1fbcbcde602fda87240d346015e64a77aaf8d5"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1850,
+      "sha256": "c81632c5d41a27e3955ada96f22e1927b655875c72e63eacca1bed76f229ad09"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter16_paired_delta.json": {
+      "type": "file",
+      "bytes": 4960,
+      "sha256": "504fb90d2637ef759bce8c8721fa76220801910ca6f054633981a376313cfb93"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 172983,
+      "sha256": "41ac19272baa503eeb126c407001dec1bdb52179dabea5dbc8d737a5843ffd37"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32.md": {
+      "type": "file",
+      "bytes": 1575,
+      "sha256": "dc2f042b3363b2a629decd89509f5e0004a85372b6529222c57135cd120aef6e"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1838,
+      "sha256": "fc9a074f8708eafdd3d59bc3861b5e681b75e7159465a06c39a67b652cb83db8"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter32_paired_delta.json": {
+      "type": "file",
+      "bytes": 4938,
+      "sha256": "0bdaff20543a7453aba408001897d4344713992a39db6da585015999cce95474"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 173093,
+      "sha256": "abfabee36a44c2294a58a54be58b55acb7bc248bc56dd44be824e96a17341730"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48.md": {
+      "type": "file",
+      "bytes": 1577,
+      "sha256": "42daaf82344626229245872e5f926a4987ce40041f57878b80db1352bf60ec37"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1850,
+      "sha256": "e9bde27ba4a4e4030711f434130ea07eb206aeb8ba58e56bf77f07e3901b91a1"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter48_paired_delta.json": {
+      "type": "file",
+      "bytes": 4966,
+      "sha256": "585b5bc1a7e975d8250db4fb558f2291f3921b4b5825c7c28b63279e0f798533"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 172985,
+      "sha256": "dd79820457951b347bee56e39e733037a4d0a4e936080ff4285dc5f0d4f3047c"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64.md": {
+      "type": "file",
+      "bytes": 1577,
+      "sha256": "2405dde54cfb6d862ac5db210e29484552d64c800ddbced924ea03c0ba6c393d"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1839,
+      "sha256": "6dc6b8ad2485f207ffe648665333b3014d9992547f211bc2464da5645dbe2666"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/curve/iter64_paired_delta.json": {
+      "type": "file",
+      "bytes": 4962,
+      "sha256": "e8e356f83150f58544e74c3fb7427f5fbb99c47a7ec38b2fa21640ff0490fe46"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_production_lower_bound.json": {
+      "type": "file",
+      "bytes": 1561,
+      "sha256": "198f52b4dd9a59386260d61700a9abab3af4e239ff5918911c6b94e369e509af"
+    },
+    "research/experiments/physical-hand-accounting-repair-20260830/legacy_paired_smoke3_lower_bound.json": {
+      "type": "file",
+      "bytes": 1537,
+      "sha256": "306dbc8400e6058728ea0502f834e92a22a74016fa190b2ee373ae105e1fd0e6"
+    },
+    "research/experiments/paired-seat-average-actor-pilot-20260830/smoke2/latest_train.log": {
+      "type": "file",
+      "bytes": 452,
+      "sha256": "514989b88dee74276bd7de4aa1c84a08a3814d2cf7371ed19c1f38b34fb3e5f1"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "cardpilot.broad_league_domain_spec.v1",
+  "seed": 20261601,
+  "reachable_states": 4096,
+  "training_policies": [
+    {
+      "label": "standard10",
+      "path": "models/baseline/standard10/latest.pt"
+    },
+    {
+      "label": "slumbot_free_anchor",
+      "path": "C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt"
+    },
+    {
+      "label": "corrected_cfr96",
+      "path": "C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt"
+    },
+    {
+      "label": "legacy_iter16",
+      "path": "research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt"
+    },
+    {
+      "label": "physical_1m",
+      "path": "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt"
+    },
+    {
+      "label": "procedural_soup_iter32",
+      "path": "research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt"
+    }
+  ],
+  "holdout_policies": [
+    {
+      "label": "weak_kl_full",
+      "path": "research/experiments/matched-weak-kl-representation-curve-20260830/full/latest.pt"
+    },
+    {
+      "label": "diverse_league5",
+      "path": "research/experiments/v6-diverse-learned-league-pilot-20260831/production/diverse5/latest.pt"
+    },
+    {
+      "label": "fictitious_average_phase2",
+      "path": "research/experiments/v6-fictitious-average-phase2-20260831/latest.pt"
+    }
+  ],
+  "admission": {
+    "minimum_training_policies": 6,
+    "minimum_holdout_policies": 3,
+    "minimum_reachable_states": 4096,
+    "minimum_train_pairwise_greedy_disagreement": 0.02,
+    "minimum_holdout_nearest_train_greedy_disagreement": 0.01,
+    "require_unique_sha256": true,
+    "require_train_holdout_disjoint": true,
+    "require_all_state_queries_valid": true
+  }
+}

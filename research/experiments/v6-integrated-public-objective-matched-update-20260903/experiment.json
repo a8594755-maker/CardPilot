@@ -1,0 +1,309 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-public-objective-matched-update-20260903",
+  "title": "Matched seven-versus-nine-objective update and untouched breadth translation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T14:05:43+00:00",
+  "updated_at": "2026-09-03T14:56:30+00:00",
+  "started_at": "2026-09-03T14:05:43+00:00",
+  "ended_at": "2026-09-03T14:56:30+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At the previously validated finite-update dose of 5e-5 parent KL, adding both public-opponent seat objectives through normalized MGDA will improve all nine frozen-cohort objectives in both independent 1M lineages, outperform the matched seven-objective control on both public seats, and preserve rather than trade away untouched learned-anchor breadth.",
+  "material_change": "From each retained 1M parent and the immutable public-objective audit cohort, create matched resume-ineligible seven-objective control and nine-objective treatment checkpoints calibrated to exactly 5e-5 parent KL. First require finite-step improvement of intended objectives in both lineages and a better public-seat loss change for treatment. Only on pass, run untouched common-deck greedy evaluation across Standard10, CFR4, legacy_iter16, and legacy_mixed65k for both lineages, plus a separate fresh public-opponent two-seat comparison. This is a bounded translation test, not environment training.",
+  "baseline": "Seven-objective 5e-5 update previously translated to +1.0361 +/-2.6417 bb/100 pooled but was negative on Standard10 and one lineage. Naive 25%-public PPO was significantly worse than control. The new frozen nine-objective geometry passed both lineages and all 8/8 folds.",
+  "source": "v6-integrated-public-objective-gradient-feasibility-20260903 immutable raw cohort and gradients; retained seed1/seed2 1M parents; Standard10 source.",
+  "parent_id": "v6-integrated-public-objective-gradient-feasibility-20260903",
+  "command": "python -u scripts/alpha_holdem/v6_integrated_public_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run --target-parent-kl 0.00005 --device cuda --out-dir research/experiments/v6-integrated-public-objective-matched-update-20260903/update",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/v6_integrated_public_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run --target-parent-kl 0.00005 --device cuda --out-dir research/experiments/v6-integrated-public-objective-matched-update-20260903/update",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:05:43+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/v6_integrated_public_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-public-objective-gradient-feasibility-20260903/run --target-parent-kl 0.0000125 --device cuda --out-dir research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:07:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/seven_control.pt --treatment research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/nine_treatment.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262240 --device cuda --out-dir research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:09:23+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/seven_control.pt --treatment research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/nine_treatment.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262250 --device cuda --out-dir research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:26:58+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_policy_eval.py --control research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/seven_control.pt --treatment research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/nine_treatment.pt --public-opponent research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --pairs 4096 --seed 20262260 --device cuda --out-dir research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:44:30+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_policy_eval.py --control research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/seven_control.pt --treatment research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/nine_treatment.pt --public-opponent research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --pairs 4096 --seed 20262270 --device cuda --out-dir research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:49:31+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_public_objective_matched_update.py --learned seed1=research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed1 --learned seed2=research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed2 --public seed1=research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed1 --public seed2=research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed2 --out research/experiments/v6-integrated-public-objective-matched-update-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:55:24+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T14:56:30+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "3c1528382d643f22e141d74b2f126139a484cef1ad2208a6f822378abbd3a26c",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_integrated_public_objective_update_smoke.py"
+    ],
+    "captured_at": "2026-09-03T14:05:43+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-public-objective-matched-update-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-public-objective-matched-update-20260903/source_manifest.json",
+    "source_manifest_sha256": "29e700c703752d3392423d3d2b3747ed2e126513ade7841064e3992277aac967",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 3047.0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "reused_frozen_internal_hands": 32768,
+    "reconstructed_training_decisions": 78810
+  },
+  "metrics": {
+    "dose_5e5_seed1_nine_source_kl_delta": 6.47443812340498e-06,
+    "dose_5e5_seed2_nine_source_kl_delta": -5.588051863014698e-06,
+    "selected_target_parent_kl": 1.25e-05,
+    "seed1_panel_delta_bb100": -0.15869140625,
+    "seed1_panel_ci95_half_bb100": 0.28810164688429096,
+    "seed2_panel_delta_bb100": -1.611328125,
+    "seed2_panel_ci95_half_bb100": 2.740256639771073,
+    "seed1_public_delta_bb100": 0.2685546875,
+    "seed1_public_ci95_low_bb100": -0.14025641636187247,
+    "seed1_public_ci95_high_bb100": 0.6773657913618725,
+    "seed2_public_delta_bb100": -0.439453125,
+    "seed2_public_ci95_low_bb100": -1.3191978468757,
+    "seed2_public_ci95_high_bb100": 0.4402915968757,
+    "combined_learned_panel_delta_bb100": -0.885009765625,
+    "combined_learned_panel_ci95_low_bb100": -2.262692639737209,
+    "combined_learned_panel_ci95_high_bb100": 0.49267310848720886,
+    "combined_public_delta_bb100": -0.08544921875,
+    "combined_public_ci95_low_bb100": -0.570525888456491,
+    "combined_public_ci95_high_bb100": 0.39962745095649094
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/code.patch",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/summary.json",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed1/seven_control.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed1/nine_treatment.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed2/seven_control.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed2/nine_treatment.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/summary.json",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/seven_control.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/nine_treatment.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/seven_control.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/nine_treatment.pt",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed1/summary.json",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed1/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed2/summary.json",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed2/common_deck_pairs.jsonl.gz",
+    "scripts/alpha_holdem/v6_public_opponent_matched_policy_eval.py",
+    "scripts/alpha_holdem/test_v6_public_opponent_matched_policy_eval.py",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed1/summary.json",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed1/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed2/summary.json",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed2/common_deck_pairs.jsonl.gz",
+    "scripts/alpha_holdem/aggregate_v6_public_objective_matched_update.py",
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/aggregate.json",
+    "scripts/alpha_holdem/v6_integrated_public_objective_update_smoke.py",
+    "scripts/alpha_holdem/test_v6_integrated_public_objective_update_smoke.py"
+  ],
+  "notes": [
+    "Preregistered interpretation: finite-step failure rejects only this dose and triggers a lower-dose boundary check. Offline success admits untouched evaluation; external failure rejects promotion but does not reject long-horizon conflict-aware learning unless the mechanism itself reverses.",
+    "At matched 5e-5 parent KL, both arms improved every reward group in Seed1 but crossed the nonlinear source-KL basin; nine-treatment source KL increased by 6.47e-6 and seven-control by 7.87e-6. Seed2 nine-treatment improved all nine. Per preregistration, no untouched evaluation was run; continue same frozen cohort at a fourfold lower dose.",
+    "At 1.25e-5 parent KL, both seven-control and nine-treatment improve their intended finite objectives in both lineages; nine-treatment improves all nine and beats control on both public-seat losses in each lineage. The preregistered untouched-evaluation gate passed.",
+    "Seed1 untouched learned-anchor panel is directionally negative but statistically inconclusive: -0.1587 +/-0.2881 bb/100; 1/4 anchors positive, seat0 +0.0977 and seat1 -0.4150. Run the preregistered independent Seed2 panel before interpretation.",
+    "Seed2 independently repeats the breadth sign pattern: nine-minus-seven negative pooled and on Standard10, legacy_iter16, and legacy_mixed65k; only CFR4 positive. Its pooled estimate -1.6113 +/-2.7403 crosses zero because rare greedy divergences against mixed65k are high variance. Run fresh public-opponent paired evaluation to distinguish target translation from broad tradeoff.",
+    "Seed1 nine-treatment translates directionally on fresh public-opponent deals: +0.2686 bb/100 versus seven-control, CI [-0.1403,+0.6774]. Seat0 is exactly unchanged and seat1 +0.5371. This is positive but inconclusive; replicate Seed2.",
+    "Seed2 public-opponent target translation is negative and inconclusive at -0.4395 bb/100, CI [-1.3192,+0.4403], so the positive Seed1 target result does not replicate. Aggregate all raw pair evidence and stop promotion.",
+    "Canonical alpha_holdem suite passed 329/329. The 5e-5 checkpoints are preserved as dose-boundary evidence and resume-ineligible; 1.25e-5 checkpoints are evaluation-only and not promoted. No environment training or Slumbot hands were generated."
+  ],
+  "result": {
+    "summary": "The nine-objective geometry was locally valid, but its 5e-5 finite step crossed the Seed1 Standard10-KL basin. A fourfold lower 1.25e-5 step improved all nine frozen objectives in both independent lineages and beat the seven-objective control on both frozen public seats. Untouched evaluation then covered 98,304 hands with complete raw-pair/hash integrity.",
+    "conclusion": "The public-opponent objective addition does not translate robustly beyond its frozen cohort. Against four learned anchors, nine-minus-seven was -0.8850 bb/100 with 95% CI [-2.2627,+0.4927], negative in both lineages, negative on Standard10/iter16/mixed65k, and positive only on CFR4. Against fresh public-model deals it was -0.0854, CI [-0.5705,+0.3996], with opposite lineage signs. Thus the local common-descent geometry is real but neither target reward nor general breadth replicates. This explicitly rejects promotion of this bounded public-objective intervention; it does not reject long-horizon self-play or league learning for insufficient scale.",
+    "decision": "REJECT_PUBLIC_OBJECTIVE_ADDITION_AND_RETAIN_1M_PARENT",
+    "next_step": "Do not scale the nine-objective checkpoint or revive naive public-opponent mixing. Reassess the research portfolio using geometric learning curves, multi-seed breadth, Standard10 preservation, and proxy-to-Slumbot alignment. Select a long-horizon learned-weight method only when its mechanism is not contradicted; prioritize objectives whose proxy direction has external support rather than adding another local teacher constraint."
+  },
+  "tags": [
+    "matched-update",
+    "multi-objective",
+    "public-opponent",
+    "scale-aware"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 8,
+    "command_count": 8
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 313,
+      "sha256": "29e700c703752d3392423d3d2b3747ed2e126513ade7841064e3992277aac967"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/summary.json": {
+      "type": "file",
+      "bytes": 16045,
+      "sha256": "27d31197e66d0c15618c66a19a0b1bbd879c892108bc8909aaee25ea869c8678"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed1/seven_control.pt": {
+      "type": "file",
+      "bytes": 304479546,
+      "sha256": "20edcf334e409ad7a4cae98a27a8649e978d1fa6f3b1c8bc714c0c2761d38b34"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed1/nine_treatment.pt": {
+      "type": "file",
+      "bytes": 304480138,
+      "sha256": "820dd9bbfb0ffa73798148dfe27093e10f1e375a0c27f66894f1d83c426f10da"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed2/seven_control.pt": {
+      "type": "file",
+      "bytes": 313776890,
+      "sha256": "a80f10e200563d97f84d0629cb33a12d36be8d8ea6b630a14197abe799b85c25"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update/seed2/nine_treatment.pt": {
+      "type": "file",
+      "bytes": 313777418,
+      "sha256": "a4d098b59e1c10d2df7afe9ad12cd4f6554c3dc23da2a02fe6ff6f04aafa7919"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/summary.json": {
+      "type": "file",
+      "bytes": 16073,
+      "sha256": "55eb0ded887b36b015a51bbf23d63ef0ed63d867e4808e79eb7f805b81fddc72"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/seven_control.pt": {
+      "type": "file",
+      "bytes": 304479546,
+      "sha256": "c1cdf9631d3fd1f0b6b75881c93fbc7754f7a34d01c74d61d26c8d8eabb4dac5"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed1/nine_treatment.pt": {
+      "type": "file",
+      "bytes": 304480138,
+      "sha256": "c6375b14bd32a8056ba0f7496256b77430d91c46a448ad4d87715e2ad90ec5f0"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/seven_control.pt": {
+      "type": "file",
+      "bytes": 313776890,
+      "sha256": "67925e316396b5b23519c548443e4e51319b76a711c4d23692073bbcc16d95e8"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/update_1p25e-5/seed2/nine_treatment.pt": {
+      "type": "file",
+      "bytes": 313777418,
+      "sha256": "0abd4fcfd26d285a450612c402da4d02ebd6758cb562b4d4dcf4fe8c66f155be"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed1/summary.json": {
+      "type": "file",
+      "bytes": 11334,
+      "sha256": "623217a3b9d2c22f48fef7eb755d266556004c79eda4de24f5dd2947aa366748"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed1/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 529288,
+      "sha256": "725f17efd68274b772d679a2afdd66ed53a47ca4c125cb5cecac09130f48ad32"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed2/summary.json": {
+      "type": "file",
+      "bytes": 11369,
+      "sha256": "819325ce5b211e322633f7aad0862fd841748c307ea9c4b8d522265b0fb4a351"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/eval_seed2/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 528381,
+      "sha256": "f4d9d46d3ed9ec2e48a644dc1ddf06d9ab04f77e6f9caee8018111d075560fbe"
+    },
+    "scripts/alpha_holdem/v6_public_opponent_matched_policy_eval.py": {
+      "type": "file",
+      "bytes": 6102,
+      "sha256": "ee3b2f85d4ce9e885d388c6a6d3e15f375abaf715b46f0183efce3d22664b79d"
+    },
+    "scripts/alpha_holdem/test_v6_public_opponent_matched_policy_eval.py": {
+      "type": "file",
+      "bytes": 342,
+      "sha256": "353bcd0bc5925294e0931789e470eeeaaaeee6448096491c2ff9c451df266eef"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed1/summary.json": {
+      "type": "file",
+      "bytes": 2934,
+      "sha256": "2bef2153a7690b4c3cdda48a74ac28fce101a9c50db245f42266893ff5b92f23"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed1/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 248947,
+      "sha256": "74730c9229d1315d2dd6c1e7c01a83d5f9a8c05a8b5c4d764ad291093776b630"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed2/summary.json": {
+      "type": "file",
+      "bytes": 2980,
+      "sha256": "c85a4a92b594ee935b8f03757b3b16b37aa4544caace03d9c322425133986fc1"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/public_eval_seed2/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 249243,
+      "sha256": "275393c0c8b2d3df7336433c45917ff7b6d6bb9fe088ae46a8ddea3553df5b46"
+    },
+    "scripts/alpha_holdem/aggregate_v6_public_objective_matched_update.py": {
+      "type": "file",
+      "bytes": 6860,
+      "sha256": "d46098953cccae04c19237699091ff318c8338802e02caca14e9bcbe37cef041"
+    },
+    "research/experiments/v6-integrated-public-objective-matched-update-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 6246,
+      "sha256": "2b34e7a8a0e4835122cc8d2a692c88f0f34a0e3433080aa378334928131e1fd8"
+    },
+    "scripts/alpha_holdem/v6_integrated_public_objective_update_smoke.py": {
+      "type": "file",
+      "bytes": 10413,
+      "sha256": "46e87d1401d0eaea3d75ed639831a20ebd9d623cac1453b042f972689483601d"
+    },
+    "scripts/alpha_holdem/test_v6_integrated_public_objective_update_smoke.py": {
+      "type": "file",
+      "bytes": 974,
+      "sha256": "f06d4b9b3c2f51895185756f554138c2f6027a0b60443b92aa4746a5b33b0100"
+    }
+  }
+}

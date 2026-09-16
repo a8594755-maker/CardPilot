@@ -1,0 +1,423 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "allin-runout-ev-pilot-20260830",
+  "title": "All-in runout EV variance-reduction pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T15:00:31+00:00",
+  "updated_at": "2026-08-30T15:33:35+00:00",
+  "started_at": "2026-08-30T15:00:31+00:00",
+  "ended_at": "2026-08-30T15:33:35+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Replacing sampled all-in-before-river terminal payoff with deterministic conditional showdown EV will reduce high-variance actor and critic targets without biasing poker utility, improving robust multi-anchor learning over the untouched global-normalization all-policy-heads control.",
+  "material_change": "Enable only --allin-runout-ev with the existing deterministic 200-runout cap. Keep Standard10 initialization, global advantage normalization, frozen representation, both policy heads, optimizer, fixed three-anchor adaptive league, seeds/deals, actual-hand budget, and frozen evaluation schedule identical to adaptive-league-all-heads-pilot-20260830.",
+  "baseline": "adaptive-league-all-heads-pilot-20260830 untouched sampled-runout all-policy-heads control",
+  "source": "Existing train_v5 EXP-003 all-in EV implementation; recent selector, replay, CFR depth, representation, and action-normalization pilots failed, while this intervention directly changes terminal credit variance and has not been exercised in the repaired experiment ledger.",
+  "parent_id": "action-rms-advantage-pilot-20260830",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_allin_ev.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_allin_ev.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:00:31+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 4096 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/allin-runout-ev-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085100 --fixed-training-deal-stream --allin-runout-ev --allin-runout-ev-max-runouts 200 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 999999 --run-id allin_runout_ev_smoke_20260830 --run-dir research/experiments/allin-runout-ev-pilot-20260830/smoke --out research/experiments/allin-runout-ev-pilot-20260830/smoke/latest.pt --seed 20260851 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:01:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/allin-runout-ev-pilot-20260830/smoke --expected-target-hands 4096 --expected-final-iteration 1 --expected-pool-size 3 --expected-archive-every 999999 --expected-normalization global --workspace . --out research/experiments/allin-runout-ev-pilot-20260830/smoke_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:03:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --policy-advantage-normalization global --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/allin-runout-ev-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --allin-runout-ev --allin-runout-ev-max-runouts 200 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id allin_runout_ev_all_heads_262k_20260830 --run-dir research/experiments/allin-runout-ev-pilot-20260830/production --out research/experiments/allin-runout-ev-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:03:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_allin_runout_ev_log.py --run-dir research/experiments/allin-runout-ev-pilot-20260830/smoke --expected-final-iteration 1 --expected-max-runouts 200 --out research/experiments/allin-runout-ev-pilot-20260830/smoke_ev_log_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:07:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/allin-runout-ev-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-pool-size 3 --expected-archive-every 16 --expected-normalization global --workspace . --out research/experiments/allin-runout-ev-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:26:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_allin_runout_ev_log.py --run-dir research/experiments/allin-runout-ev-pilot-20260830/production --expected-final-iteration 64 --expected-max-runouts 200 --out research/experiments/allin-runout-ev-pilot-20260830/production_ev_log_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:26:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065851.pt --candidate-label allin_ev_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter16.json --out-md research/experiments/allin-runout-ev-pilot-20260830/curve/iter16.md --execution-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:32:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131619.pt --candidate-label allin_ev_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter32.json --out-md research/experiments/allin-runout-ev-pilot-20260830/curve/iter32.md --execution-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:32:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197510.pt --candidate-label allin_ev_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter48.json --out-md research/experiments/allin-runout-ev-pilot-20260830/curve/iter48.md --execution-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:32:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263472.pt --candidate-label allin_ev_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter64.json --out-md research/experiments/allin-runout-ev-pilot-20260830/curve/iter64.md --execution-json research/experiments/allin-runout-ev-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:32:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/allin-runout-ev-pilot-20260830/curve/iter16.json --out research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:33:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/allin-runout-ev-pilot-20260830/curve/iter32.json --out research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter32.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:33:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/allin-runout-ev-pilot-20260830/curve/iter48.json --out research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter48.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:33:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/allin-runout-ev-pilot-20260830/curve/iter64.json --out research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter64.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T15:33:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "6029501fd77991a3e49b0478ef0ad96d8047e2001129c10d2ef9ed068eef1730",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-08-30T15:00:31+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/allin-runout-ev-pilot-20260830/code.patch",
+    "patch_sha256": "4f235ce7e95c4ce8f3671d99287ac3fab067b5f07e7c69d6edcf3105205f0b90",
+    "source_manifest": "research/experiments/allin-runout-ev-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "d13444d1469075f2ec0c7517a56d4bf0fd3f999d79aed48e7a62a55100553018",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 267583,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 1984.0
+  },
+  "metrics": {
+    "smoke_gate": "PASS",
+    "smoke_actual_hands": 4111,
+    "smoke_allin_ev_replacements": 16,
+    "smoke_allin_ev_runouts": 2108,
+    "smoke_allin_ev_skipped": 0,
+    "smoke_reference_kl": 0.00013039406621828675,
+    "smoke_approx_kl": 0.000480690621770918,
+    "production_actual_hands": 263472,
+    "production_iterations": 64,
+    "production_allin_ev_replacements": 1698,
+    "production_allin_ev_runouts": 212148,
+    "production_allin_ev_skipped": 0,
+    "production_kl_early_stops": 0,
+    "production_max_reference_policy_kl": 0.0017766723266014687,
+    "production_max_clip_fraction": 3.255208333333333e-05,
+    "paired_positive_rows": 5,
+    "paired_negative_rows": 7,
+    "paired_mean_delta_bb100": 0.576131184895833,
+    "paired_median_delta_bb100": -0.16748046875,
+    "paired_all_ci_cross_zero": true
+  },
+  "artifacts": [
+    "research/experiments/allin-runout-ev-pilot-20260830/code.patch",
+    "research/experiments/allin-runout-ev-pilot-20260830/source_manifest.json",
+    "scripts/alpha_holdem/test_train_v5_allin_ev.py",
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/latest.pt",
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/latest_train.log",
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke_session_audit.json",
+    "scripts/alpha_holdem/audit_allin_runout_ev_log.py",
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke_ev_log_audit.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/latest.pt",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/run_manifest.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/latest_train.log",
+    "research/experiments/allin-runout-ev-pilot-20260830/production_session_audit.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/production_ev_log_audit.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/result_summary.md",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065851.pt",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131619.pt",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197510.pt",
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263472.pt",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter16.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter16.md",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter32.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter32.md",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter48.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter48.md",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter64.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter64.md",
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter16.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter32.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter48.json",
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter64.json"
+  ],
+  "notes": [
+    "Preregistered validation: unit-test exact/bounded deterministic EV and skip conditions; smoke must have positive allin_ev_replacements, finite losses, exact hand/assignment accounting, no KL stop, and unchanged deployment architecture. Only then run a 262,144 actual-hand treatment with seed 20260852/worker seed 2026085200 and the untouched seed20260853 four-checkpoint matched curve. Promote to Slumbot only on consistent robust paired multi-anchor evidence.",
+    "Initial pytest collection exposed only a new-test import-path error before any EV logic ran; corrected the test import. The exact preregistered suite then passed 9/9, covering deterministic bounded sampling, exhaustive equity reward, zero-sum player perspectives, runout cap, and all skip conditions.",
+    "Smoke gate PASS at 4,111 actual hands: 16 qualifying all-ins were replaced using 2,108 deterministic runouts (131.75 mean), zero skipped, finite losses, reference KL 0.0001304, zero KL stops, and fail-closed fixed-pool session audit PASS.",
+    "Added a separate immutable-log audit rather than modifying the fixed-pool auditor already hash-locked by a completed experiment. Smoke EV log audit PASS and proves the registered EV intervention activated while mirror-deal variance reduction remained off.",
+    "Production completed normally at 263,472 actual hands. Both terminal audits PASS. EV activated in all 64 updates: 1,698 payoff replacements and 212,148 runouts (124.94 mean), zero skipped, mirror intervention remained off; session assignment/hash/optimizer/archive integrity is complete.",
+    "Fresh matched frozen curve had zero OOD and 5 positive versus 7 negative paired rows. Mean delta +0.5761 was driven by high-variance late CFR96 rows; median was -0.1675, slumbot_free was negative at all checkpoints, and every 95% CI crossed zero. Robust gate failed; no Slumbot evaluation."
+  ],
+  "result": {
+    "summary": "All-in runout EV was active, stable, and fully auditable across 267,583 new training hands, but it failed the untouched matched generalization gate.",
+    "conclusion": "Across four frozen checkpoints and three anchors, paired deltas had 5 positive and 7 negative estimates; mean +0.5761 but median -0.1675 bb/100, with every 95% CI crossing zero. Late CFR96 gains were too noisy, slumbot_free was negative throughout, and terminal Standard10 still had a negative lower bound.",
+    "decision": "REJECT_ALLIN_EV_SCALE_NO_ROBUST_GENERAL_GAIN",
+    "next_step": "Retain runout EV as a sound optional variance-reduction primitive, but do not deepen it alone or run Slumbot. Target a broader return-variance or counterfactual learning intervention with a distinct causal smoke/control."
+  },
+  "tags": [
+    "learned-policy",
+    "ppo",
+    "variance-reduction"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 15,
+    "command_count": 15
+  },
+  "artifact_integrity": {
+    "research/experiments/allin-runout-ev-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 155833,
+      "sha256": "4f235ce7e95c4ce8f3671d99287ac3fab067b5f07e7c69d6edcf3105205f0b90"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 279,
+      "sha256": "d13444d1469075f2ec0c7517a56d4bf0fd3f999d79aed48e7a62a55100553018"
+    },
+    "scripts/alpha_holdem/test_train_v5_allin_ev.py": {
+      "type": "file",
+      "bytes": 2768,
+      "sha256": "aca40d49f7a3634bd77f18ef3c50d6f432e18b0abc6aee9b1d6c8b2df09510b2"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 133303604,
+      "sha256": "374dd2873a4d9c400ee739958f4d407e66cb9a8eefd8446dbafd41c578273312"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 53720,
+      "sha256": "232b4c8f2deaea0bffc7bb6584fa37fed2541f5639673a9b58f3c4c11417b16a"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 23880,
+      "sha256": "fad77b424e68eaab95a1145fd583cdc32e78ddbd43508eb7d2b08bbb7ac3f2e0"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 2516,
+      "sha256": "86df26fae8b6d4f11f5ffc1bf9b8c3b17ca741190d0003d8baf780634f6633dd"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke/latest_train.log": {
+      "type": "file",
+      "bytes": 458,
+      "sha256": "dc16e9e1d4da4650ed19636c7b27996561c3394ac6e6725ec769287404a9090a"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke_session_audit.json": {
+      "type": "file",
+      "bytes": 2460,
+      "sha256": "e16e6d89e16b9911feca103e68ac0b59aa1478cbc5f8d89efa037590d1c76328"
+    },
+    "scripts/alpha_holdem/audit_allin_runout_ev_log.py": {
+      "type": "file",
+      "bytes": 5216,
+      "sha256": "ba53f33b4e68ac148609a160b7c3d0fc61fa81a698c11e036388aca86a83f592"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/smoke_ev_log_audit.json": {
+      "type": "file",
+      "bytes": 1312,
+      "sha256": "fde70f6f805344e652b3a3f06bcc212f44f14ee188852c9954c09239b375c365"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 133303604,
+      "sha256": "aa7856df5eea37369d43daf631e09cbc4a86f3ed6d128668cbcca0b6ab930b9e"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 53681,
+      "sha256": "253006ccaa840c573f9d066e07eadf8cb40cbcaf2f4f647fb05657aaeac173e8"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1516326,
+      "sha256": "82540923028d5be983fdb11be62803a16ca57c5d3148f0005140ecd628576a04"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 166545,
+      "sha256": "e8c96e208678035d0b656a1d720a6e20eebf6d312797e7c084a5ebd44608c99f"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/latest_train.log": {
+      "type": "file",
+      "bytes": 29460,
+      "sha256": "fea024908e379d6b2676adbc0913045e84d33f651f188460ea9be485f7044082"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 3872,
+      "sha256": "88f8c6269aeccefa7b8e81182ee059f1c76bd9f138084cf0a7f0d53083ceb391"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production_ev_log_audit.json": {
+      "type": "file",
+      "bytes": 15803,
+      "sha256": "7bef5b9d0fee2c4cd5d13d2ca2c89502ece0372180b802474f2041a1bfd0686b"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 3062,
+      "sha256": "5f6945026f5b220996db4f0b7935753c05582b98bfd28495f8574ccf42840a14"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065851.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "565705bab83b9672b1b479f3ae1030ee7561642bbc8ffed7a0f37b340a217b54"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131619.pt": {
+      "type": "file",
+      "bytes": 133322742,
+      "sha256": "42bd35a0d75e43c3a7133b5c49994285b36186c3301e09a319df6a32ae701f1a"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197510.pt": {
+      "type": "file",
+      "bytes": 133322806,
+      "sha256": "83f76d5a96ddc15debbd548712738e57fd233f9121d83a3a55e85b069439e802"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263472.pt": {
+      "type": "file",
+      "bytes": 133322806,
+      "sha256": "69577fae58fc103befa3958e6364b3e7e68ea13f619ae7d93a971dee947a2852"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 172785,
+      "sha256": "b535bce8cd8118b76184b0204cd8627ebd4620aeb6222413cbcbb9957847300d"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter16.md": {
+      "type": "file",
+      "bytes": 1561,
+      "sha256": "e7de755d6147f841302184d90cd385aff3a7c537db5d7328d21a883f51b90622"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1807,
+      "sha256": "59025f19b159c800bd6eddf0880cb7a8b6baa5220d499b6f5dc9448a3a93f33b"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 172941,
+      "sha256": "ee30c854d2514f03f10dadfb55e3d0ee5a9395f62b1da16764b8c6d3222f1b57"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter32.md": {
+      "type": "file",
+      "bytes": 1563,
+      "sha256": "b02e08cc3177ae505b31329cbd3ca0b055754dd7ee4e001d3188edb9fd787702"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1807,
+      "sha256": "ae2c647ac5cc312fc74c239a96956045de6cc91618ad943bb2d5f056a044bb4f"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 172991,
+      "sha256": "d7d9745d62cd8a52e2dbec275018f95cb1c13fac2b1114919b24713287c6ab38"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter48.md": {
+      "type": "file",
+      "bytes": 1563,
+      "sha256": "75ffdf1915a141c13d4909f9cc96fb62516f60df753dabc88924340411e131ce"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1807,
+      "sha256": "968f577f1571b9569293647eefd3bfe4de99062216b95e293b6fdcefd7c70afa"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 173037,
+      "sha256": "618c2a2863594206536957d217cf9f1d48d842dd8859f27f689e787977fb706b"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter64.md": {
+      "type": "file",
+      "bytes": 1562,
+      "sha256": "39c3e2abc5bf28396ed66711150135431296ac05201ce54bd87fb7abbbe5663b"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1807,
+      "sha256": "be0eeb6862989c00bea821cdd0f81174281a2e338c6eb0b5ec877bb48e8a5e1f"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter16.json": {
+      "type": "file",
+      "bytes": 4937,
+      "sha256": "2d1d56bb79bd88c136d76b789f5173e1b6240f1555fa52e13b94b911b33e6f0a"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter32.json": {
+      "type": "file",
+      "bytes": 4920,
+      "sha256": "634366dc7640c9fdddad699b0f72a69e975cac8524201b41e1f7727dabdead47"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter48.json": {
+      "type": "file",
+      "bytes": 4908,
+      "sha256": "b641071c2133448f683719beea2f6d5a2579fbfeb4502904374f101a380d5cbf"
+    },
+    "research/experiments/allin-runout-ev-pilot-20260830/paired_delta/iter64.json": {
+      "type": "file",
+      "bytes": 4932,
+      "sha256": "c14dfa4b5c66efcb3a88f934d2c3dd44889952138099224f15c70972b11bfc61"
+    }
+  }
+}

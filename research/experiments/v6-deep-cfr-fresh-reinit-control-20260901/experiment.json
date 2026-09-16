@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-fresh-reinit-control-20260901",
+  "title": "Exact-v6 Deep CFR fresh-reinit versus warm control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:11:17+00:00",
+  "updated_at": "2026-09-01T15:13:55+00:00",
+  "started_at": "2026-09-01T15:11:17+00:00",
+  "ended_at": "2026-09-01T15:13:55+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Under paper-faithful epsilon0 external sampling, sequential player updates, and weighted snapshot deployment, retraining each advantage network from a fresh random initialization every iteration will improve average-policy transfer and reduce pathological current-network carryover versus warm continuation.",
+  "material_change": "Run matched warm and fresh-reinit three-iteration arms with common decks/sampling/optimizer seeds, two roots per player, 512 steps per update for both arms, full regret reservoirs, and a common 256-pair three-anchor per-hand weighted-snapshot evaluation.",
+  "baseline": "Brown et al. 2019 Section5.2 reports better convergence from fresh initialization; all exact-v6 pilots so far used warm continuation and showed oscillation/collapse.",
+  "source": "v6-deep-cfr-exploration-average-strategy-control-20260901",
+  "parent_id": "v6-deep-cfr-exploration-average-strategy-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_fresh_reinit_control.py --iterations 3 --traversals-per-player 2 --train-steps 512 --batch-size 256 --eval-pairs 256 --seed 60907 --output-dir research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_fresh_reinit_control.py --iterations 3 --traversals-per-player 2 --train-steps 512 --batch-size 256 --eval-pairs 256 --seed 60907 --output-dir research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:11:17+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "beebc1141c024e67a3f7765aa12efa912c4d4d0177e23564c4e101057502c7c7",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T15:11:17+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "af38e8a7512659cce5cd514ed77eb4237dd187690da7d3d500ca4ea4bbc99aa7",
+    "source_files": 123
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 3072,
+    "wall_time_seconds": 158.0,
+    "planned_environment_training_hands": 24,
+    "planned_evaluation_hands": 3072,
+    "environment_training_hands": 24
+  },
+  "metrics": {
+    "warm_snapshot_anchor_mean_bb100": -111.26302083333333,
+    "fresh_snapshot_anchor_mean_bb100": 213.74218749999991,
+    "fresh_anchor_mean_delta_bb100": 325.00520833333326,
+    "fresh_anchors_better": 2,
+    "fresh_mean_log_imbalance": 4.03476185739437
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/common_decks.json",
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/warm/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/fresh/snapshot_policy.pt",
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "Both arms receive the same 512-step compute. Fresh reinit is the only training-regimen treatment; snapshot-and-action sampling is primary deployment.",
+    "summary sha256=2344bad59e4a9c5e29f2b95d2e9b386ed14016f51947e1200066767e343fe71f; decks sha256=b2990a6885a3678d08ebb697de703ddd044c7e9a555132cbca12cd717683424c; warm sha256=6dcff94717fde8ce272f7126a4b419375eed8cc287af81e0f59084571aa77232; fresh sha256=b6292bfa051c66c5b4ccc496a147c11fe3e6d66000c6dfeaed60386c2265e047; alpha_holdem suite 215 passed."
+  ],
+  "result": {
+    "summary": "At matched epsilon0 sequential Deep CFR and 512-step compute, fresh value-network reinitialization improved two of three weighted-snapshot anchor cells and the mean by +325.01 bb/100 versus warm, while preserving nonzero coverage in every seat-iteration cell.",
+    "conclusion": "Paper-faithful fresh-per-iteration advantage training is admitted as the active exact-v6 CFR regimen. Wide evaluation intervals and persistent imbalance mean this is algorithm selection, not strength evidence.",
+    "decision": "ADMIT_PAPER_FRESH_REINIT",
+    "next_step": "Increase traversals K at fixed three iterations, epsilon0, fresh reinit, 512 steps, and snapshot deployment; require improved coverage balance and a coherent fixed-panel curve before increasing iterations."
+  },
+  "tags": [
+    "deep-cfr",
+    "fresh-reinit",
+    "matched-control",
+    "paper-contract",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22437,
+      "sha256": "af38e8a7512659cce5cd514ed77eb4237dd187690da7d3d500ca4ea4bbc99aa7"
+    },
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 11204,
+      "sha256": "2344bad59e4a9c5e29f2b95d2e9b386ed14016f51947e1200066767e343fe71f"
+    },
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/common_decks.json": {
+      "type": "file",
+      "bytes": 52438,
+      "sha256": "b2990a6885a3678d08ebb697de703ddd044c7e9a555132cbca12cd717683424c"
+    },
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/warm/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 8401314,
+      "sha256": "6dcff94717fde8ce272f7126a4b419375eed8cc287af81e0f59084571aa77232"
+    },
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/run/fresh/snapshot_policy.pt": {
+      "type": "file",
+      "bytes": 6817826,
+      "sha256": "b6292bfa051c66c5b4ccc496a147c11fe3e6d66000c6dfeaed60386c2265e047"
+    },
+    "research/experiments/v6-deep-cfr-fresh-reinit-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1491,
+      "sha256": "233e18c0d1b9559adc883cbd52b28cdb333b2e92cebdc131320cc820ab3b2e54"
+    }
+  }
+}

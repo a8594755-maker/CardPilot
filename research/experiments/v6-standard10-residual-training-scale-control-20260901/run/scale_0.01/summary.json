@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "config": {
+    "standard10": "models\\baseline\\standard10\\latest.pt",
+    "iterations": 2,
+    "traversals_per_player": 2,
+    "train_steps": 512,
+    "batch_size": 256,
+    "lr": 0.001,
+    "residual_scale": 0.01,
+    "eval_pairs": 1024,
+    "node_limit": 250000,
+    "seed": 60913,
+    "output_dir": "research\\experiments\\v6-standard10-residual-training-scale-control-20260901\\run\\scale_0.01"
+  },
+  "contracts": {
+    "base": "physical_v6_legacy_v4_bridge_greedy_v1",
+    "candidate": "physical_v6_standard10_prior_lcfr_residual_ensemble_greedy_v1"
+  },
+  "source": {
+    "path": "models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "accounting": {
+    "environment_training_hands": 8,
+    "evaluation_hands": 16384,
+    "decision_nodes": 12158,
+    "terminal_rollouts": 9812
+  },
+  "zero_residual_parity": {
+    "states": 378,
+    "greedy_mismatches": 0,
+    "max_probability_abs_error": 2.9802322387695312e-08
+  },
+  "training": {
+    "iterations": [
+      {
+        "iteration": 1,
+        "players": [
+          {
+            "player": 0,
+            "loss": 70.67109759151936,
+            "mean_root_value_bb": -0.45797741413116455,
+            "new_traverser_nodes": 311,
+            "buffer_size": 311,
+            "stats": {
+              "decision_nodes": 1824,
+              "traverser_nodes": 311,
+              "sampled_opponent_nodes": 1513,
+              "terminal_rollouts": 1388,
+              "max_depth": 14
+            }
+          },
+          {
+            "player": 1,
+            "loss": 27.261575354263186,
+            "mean_root_value_bb": -1.0422192811965942,
+            "new_traverser_nodes": 2012,
+            "buffer_size": 2012,
+            "stats": {
+              "decision_nodes": 5269,
+              "traverser_nodes": 2012,
+              "sampled_opponent_nodes": 3257,
+              "terminal_rollouts": 4433,
+              "max_depth": 15
+            }
+          }
+        ]
+      },
+      {
+        "iteration": 2,
+        "players": [
+          {
+            "player": 0,
+            "loss": 63.56375954300165,
+            "mean_root_value_bb": 0.8051632642745972,
+            "new_traverser_nodes": 53,
+            "buffer_size": 364,
+            "stats": {
+              "decision_nodes": 468,
+              "traverser_nodes": 53,
+              "sampled_opponent_nodes": 415,
+              "terminal_rollouts": 384,
+              "max_depth": 11
+            }
+          },
+          {
+            "player": 1,
+            "loss": 52.16899215430021,
+            "mean_root_value_bb": -1.3651800155639648,
+            "new_traverser_nodes": 757,
+            "buffer_size": 2769,
+            "stats": {
+              "decision_nodes": 4597,
+              "traverser_nodes": 757,
+              "sampled_opponent_nodes": 3840,
+              "terminal_rollouts": 3607,
+              "max_depth": 15
+            }
+          }
+        ]
+      }
+    ],
+    "stats": {
+      "decision_nodes": 12158,
+      "traverser_nodes": 3133,
+      "sampled_opponent_nodes": 9025,
+      "terminal_rollouts": 9812,
+      "max_depth": 15
+    }
+  },
+  "checkpoint": {
+    "path": "research\\experiments\\v6-standard10-residual-training-scale-control-20260901\\run\\scale_0.01\\residual_policy.pt",
+    "sha256": "c1c471ba563cacff5fd0861c7a9810d17c1bc9e4824a0155cc6a40fc60afb266",
+    "reload_exact": true
+  },
+  "raw_evaluation": {
+    "path": "research\\experiments\\v6-standard10-residual-training-scale-control-20260901\\run\\scale_0.01\\paired_evaluation.jsonl.gz",
+    "sha256": "92170c913f303fdccc91ffadb4944b92a1650146acb7bd29c8a7ed949d907605"
+  },
+  "evaluations": [
+    {
+      "anchor": "standard10",
+      "pairs": 1024,
+      "hands_per_policy": 2048,
+      "candidate_bb100": 1.220703125,
+      "base_bb100": 0.0,
+      "paired_delta_bb100": 1.220703125,
+      "paired_ci95_bb100": [
+        -16.66272330857048,
+        19.10412955857048
+      ],
+      "candidate_decisions": 6143,
+      "greedy_disagreement_from_base": 0.007325411036952629
+    },
+    {
+      "anchor": "call_station",
+      "pairs": 1024,
+      "hands_per_policy": 2048,
+      "candidate_bb100": 179.931640625,
+      "base_bb100": 175.830078125,
+      "paired_delta_bb100": 4.1015625,
+      "paired_ci95_bb100": [
+        -7.35110468342787,
+        15.55422968342787
+      ],
+      "candidate_decisions": 7802,
+      "greedy_disagreement_from_base": 0.01845680594719303
+    },
+    {
+      "anchor": "uniform",
+      "pairs": 1024,
+      "hands_per_policy": 2048,
+      "candidate_bb100": 179.18994140624997,
+      "base_bb100": 285.6806640625,
+      "paired_delta_bb100": -106.49072265624999,
+      "paired_ci95_bb100": [
+        -221.73880110550098,
+        8.75735579300101
+      ],
+      "candidate_decisions": 5169,
+      "greedy_disagreement_from_base": 0.019539562778100213
+    },
+    {
+      "anchor": "min_bet",
+      "pairs": 1024,
+      "hands_per_policy": 2048,
+      "candidate_bb100": 86.58105468749997,
+      "base_bb100": 175.23876953124997,
+      "paired_delta_bb100": -88.65771484375,
+      "paired_ci95_bb100": [
+        -167.54835245012592,
+        -9.7670772373741
+      ],
+      "candidate_decisions": 7981,
+      "greedy_disagreement_from_base": 0.011527377521613832
+    }
+  ],
+  "positive_anchor_points": 2,
+  "gates": {
+    "zero_residual_probability_parity": true,
+    "zero_residual_greedy_parity": true,
+    "all_seat_iterations_covered": true,
+    "finite_positive_losses": true,
+    "learned_state_conditioned_movement": true,
+    "standard10_anchor_point_positive": true,
+    "at_least_three_anchor_points_positive": false
+  },
+  "elapsed_seconds": 265.66218757629395,
+  "admit_larger_control": false,
+  "decision": "REJECT_OR_REVISE_STANDARD10_RESIDUAL_REGRET_SMOKE"
+}

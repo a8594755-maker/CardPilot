@@ -1,0 +1,1224 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-fictitious-response-phase2-20260831",
+  "title": "Conditional phase2 two-million-hand response",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T18:23:05+00:00",
+  "updated_at": "2026-08-31T19:43:16+00:00",
+  "started_at": "2026-08-31T18:35:42+00:00",
+  "ended_at": "2026-08-31T19:42:58+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A separately validated learned average can support the next approximate-response phase; doubling the prior response budget to2M can expose further optimization gains.",
+  "material_change": "Conditional newPPO against fixed phase1 epoch04,2097152new actual hands and four frozen checkpoint/eight-opponent262144hand internal curve; no external allocation.",
+  "baseline": "Updated average a73dd; priorCD7 and response58ef are diagnostic opponents only.",
+  "source": "research/experiments/v6-fictitious-average-phase1-20260831",
+  "parent_id": "v6-fictitious-average-phase1-assessment-20260831",
+  "command": "python -m pytest research/experiments/v6-fictitious-response-phase2-20260831/test_pilot.py -q --junitxml=research/experiments/v6-fictitious-response-phase2-20260831/preparation_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/v6-fictitious-response-phase2-20260831/test_pilot.py -q --junitxml=research/experiments/v6-fictitious-response-phase2-20260831/preparation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:23:05+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-fictitious-response-phase2-20260831/run_pilot.py research/experiments/v6-fictitious-response-phase2-20260831/oracle_stats.py research/experiments/v6-fictitious-response-phase2-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:23:48+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-fictitious-response-phase2-20260831/test_pilot.py -q --junitxml=research/experiments/v6-fictitious-response-phase2-20260831/prelaunch_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:25:55+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-fictitious-response-phase2-20260831/test_pilot.py -q --junitxml=research/experiments/v6-fictitious-response-phase2-20260831/admission_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:35:11+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-fictitious-response-phase2-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:35:42+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:35:47+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 2097152 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef 0 --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --hero-policy-mode sample --self-play-fraction 0 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026101800 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_fictitious_response_phase2_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\latest.pt --seed 20261018 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:35:53+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-fictitious-response-phase2-20260831/check_startup.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:37:04+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-fictitious-response-phase2-20260831/check_midtraining.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:48:28+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production --expected-target-hands 99999999 --expected-target-environment-hands 2097152 --expected-final-iteration 505 --expected-pool-size 1 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:12:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\prior.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_prior",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\response1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_response1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:46+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:48+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:49+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\prior.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_prior",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\response1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_response1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:13:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:00+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:01+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:02+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\prior.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_prior",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:03+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\response1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_response1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:04+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:06+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:07+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:08+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:09+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\prior.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_prior",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:13+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\response1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_response1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:14+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:19+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261019 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:14:20+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-fictitious-response-phase2-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T19:42:57+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-fictitious-response-phase2-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T18:23:05+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-fictitious-response-phase2-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-fictitious-response-phase2-20260831/source_manifest.json",
+    "source_manifest_sha256": "12a2bf54ac3409895f9d53dceb9985fff9f21ba63a67d1c69bf09029ada38366",
+    "source_files": 7
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 2099237,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 262144,
+    "wall_time_seconds": 4036.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_iteration": 505
+  },
+  "artifacts": [
+    "research/experiments/v6-fictitious-response-phase2-20260831/preregistration.md",
+    "research/experiments/v6-fictitious-response-phase2-20260831/code.patch",
+    "research/experiments/v6-fictitious-response-phase2-20260831/source_manifest.json",
+    "research/experiments/v6-fictitious-response-phase2-20260831/preparation_tests.xml",
+    "research/experiments/v6-fictitious-response-phase2-20260831/preparation_record_audit.json",
+    "research/experiments/v6-fictitious-response-phase2-20260831/prelaunch_tests.xml",
+    "research/experiments/v6-fictitious-response-phase2-20260831/admission_tests.xml",
+    "research/experiments/v6-fictitious-response-phase2-20260831/admission_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initialization_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\prior.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\response1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\check_startup.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\startup_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\checkpoints\\checkpoint_iter000004_hands000000016502.pt",
+    "research/experiments/v6-fictitious-response-phase2-20260831/startup_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\check_midtraining.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\midtraining_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\checkpoints\\checkpoint_iter000128_hands000000528988.pt",
+    "research/experiments/v6-fictitious-response-phase2-20260831/midtraining_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\training_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\training_health.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\checkpoints\\checkpoint_iter000256_hands000001057954.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\archive_selection.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation_commands.json",
+    "research/experiments/v6-fictitious-response-phase2-20260831/posttraining_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_prior\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_prior\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_response1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_response1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_prior\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_prior\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_response1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_response1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_prior\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_prior\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_response1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_response1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_prior\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_prior\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_response1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_response1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_prior_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_response1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_prior_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_response1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_prior_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_response1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_prior_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_response1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Prepared before any parent172032cohort outcomes. Strict parent admission requires completed independent assessment and both adjusted strategic gates. No GPU training or new hands before admission; no active source files modified.",
+    "Preparation30tests PASS,1real-parent-admission intentionally skipped until the current fixed assessment completes. Weights-only CPU initialization diagnostic preserves source80state SLoptimizer and262144datahands; zero new hands/forward model queries or network.",
+    "30prelaunch tests PASS/1pending-parent skip; explicit sourceSL80Adamstates eachstep1024 preserved. Three recent records0warnings; newseeds20261018/20261019 only occur in this preregistration outside capturedcopies. No other training launched.",
+    "Parent172032assessment completed with all21normal exits and independent raw/deck/command/identity checks. ReviewSHA644231eb6cefb426ab7ed366dce92d743e4bb18ec9e2816f35ffd847d89930bd frozen after completion. Both family2 gates positive; student remains negative against response1, and family7 calibration inconclusive, not equivalence. Exact prepared2Mconfiguration unchanged.",
+    "31admission tests PASS including actual completed parent and preserved source optimizer/weights;3recent record audit0warnings. Launch one NEWPPO phase2 trial only. No old trial resumed, reset, overwritten, or recounted.",
+    "Read-only first-archive startup audit PASS: original PIDs, all86learner tensors changed, fresh86-state Adam distinct from preserved80-state SL optimizer, all86fixed-opponent tensors exactly unchanged, source/copy hashes intact. Diagnostic added after capture; no active captured source modified.",
+    "After31prerun tests and exact first-archive startup checks,3recent records audit0warnings. Original phase2 workload continues; frozen8inputs and76captured source/copy pairs unchanged.",
+    "Read-only immutable iteration128 and complete-prefix audit PASS; counters and fixed opponent preserved. No learning-curve return selection, model queries or new hands.",
+    "Midtraining prefix and immutable iteration128 audit PASS; four recent records0warnings. SourceSL80states/1024steps and fixedopponent86tensors preserved; active trainer/wrapper PIDs and76source/copy pairs intact. No extra hands or outcome selection.",
+    "Training/session audit complete. All4actual-counter-selected checkpoints frozen before32fixed internal cells. No external allocation.",
+    "Original trainer exited0 at2099237actualhands/505updates,2085overshoot,0shutdowncountertail; sessionaudit PASS and all86Adamstates step13277. Four counter-selected checkpoints frozen,32exact evaluationcommands registered. Record remainsRUNNING pending full262144internalhands and independent terminal review; phase2average remainsPLANNED with admission hashes unset. Fourrecentrecords0warnings.",
+    "Independent complete-cohort review: final vs average+2383.6816bb/100; final-minus-half+823.9949 family25CI[564.6358,1083.3540] supports the tested1M-to2M response budget increase. Final-minus-initial anchors0/2/3 family25upper<0; response specialization/regression, not generalization or Slumbot evidence. Proceed only with already-preregistered equal prior+response1+response2 average; no earlier checkpoint selection."
+  ],
+  "result": {
+    "summary": "Frozen-average response completed2099237actual PPO hands and262144internal hands;ADMIT_SEPARATE_AVERAGE_UPDATE.",
+    "conclusion": "One learned response oracle tested against an immutable average; no exact best-response, equilibrium, Slumbot transfer or100k claim.",
+    "decision": "ADMIT_SEPARATE_AVERAGE_UPDATE",
+    "next_step": "Preregister a separate reach-weighted average update / next response phase."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 43,
+    "command_count": 43
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-fictitious-response-phase2-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 6510,
+      "sha256": "67bc3a45d85347c70da3e1651718d3e68a115bcb034edf8861a273ae527ecd83"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1525,
+      "sha256": "12a2bf54ac3409895f9d53dceb9985fff9f21ba63a67d1c69bf09029ada38366"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/preparation_tests.xml": {
+      "type": "file",
+      "bytes": 5639,
+      "sha256": "46e365575094983be72149a4497790c44594b574a355bb7ca41bd1862d3c7e40"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/preparation_record_audit.json": {
+      "type": "file",
+      "bytes": 407,
+      "sha256": "11dafa65896ee9fdd6fae4b8c7598154ced7406ea0731b45719fec1b79f841f6"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/prelaunch_tests.xml": {
+      "type": "file",
+      "bytes": 5639,
+      "sha256": "b7c53f9329992b7e77ad3cea312fde76cdc6da973082daf4c60ab3194abe78f5"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/admission_tests.xml": {
+      "type": "file",
+      "bytes": 5355,
+      "sha256": "0c9c22f01ee98e650b4d9b15d3a2ac07a3e0fbca2a1552a5d1f97eabf5fb3076"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/admission_record_audit.json": {
+      "type": "file",
+      "bytes": 407,
+      "sha256": "9acc571c29578c1aa49a36a7e3d0c63ec876819f4ef5e193446d9807b387b4fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14031,
+      "sha256": "348f802432e4319a7ace60444643099955e71ddb612895ec156ebffe0c9912a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23531,
+      "sha256": "0adec0df89656bf84fe1697298bc2f0110b5252ffe11efbc1b6546d66591e629"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 3026,
+      "sha256": "d1cd3018985643e6beb3f66f6ff7c2148dd469a4e17106063ea4d4889adbdfd8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initialization_audit.json": {
+      "type": "file",
+      "bytes": 424,
+      "sha256": "b12aac78a49d539947097a3934638382180faabe1aafc6245fc47c302c43dce7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\average.pt": {
+      "type": "file",
+      "bytes": 98356678,
+      "sha256": "a73dd73af04e990bdff9892ba2b3eeebf96ded26ba6d4f099597feb262329d38"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\prior.pt": {
+      "type": "file",
+      "bytes": 98356678,
+      "sha256": "cd7ce2b27cf3a86e96141432c92c6f92a3eb923dce519d1f1128af5acbb2364b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\response1.pt": {
+      "type": "file",
+      "bytes": 132199012,
+      "sha256": "58ef62e875ce8ad1ecf518a1a65c8f54ba711b3bc1ea1a3ab3a00ed1e1a3540d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 5355,
+      "sha256": "65d944963b63c35e966a2bac870b290567c93dc2721f89aa3da3d3b9a04136bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\check_startup.py": {
+      "type": "file",
+      "bytes": 4811,
+      "sha256": "28338a0be59350b858cbc9e19bac2a12cef751896e77b1871deef792c87985e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\startup_analysis.json": {
+      "type": "file",
+      "bytes": 972,
+      "sha256": "0a210545b6c942a61f389d219732e9cdc5a0dee91e091e0a542504be1ed08377"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\checkpoints\\checkpoint_iter000004_hands000000016502.pt": {
+      "type": "file",
+      "bytes": 132219094,
+      "sha256": "76d82c90ebd6404f61a9213822c41fe0835be04556a92cd3c42573c1b7baf97f"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/startup_record_audit.json": {
+      "type": "file",
+      "bytes": 407,
+      "sha256": "21a15ed384261a8cf2d49506871f90f1315a1898fce3255c89eb620ff82dbf8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\check_midtraining.py": {
+      "type": "file",
+      "bytes": 5077,
+      "sha256": "4154f5be4a1ca34f39945ed145682b371f7c4d8c7202ad1a8be66a5cd5ed7d47"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\midtraining_analysis.json": {
+      "type": "file",
+      "bytes": 1336,
+      "sha256": "4dc448d5384568ceaa8feb72db33e5b1e945dea79d6f6cb79833c32545841dd4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\checkpoints\\checkpoint_iter000128_hands000000528988.pt": {
+      "type": "file",
+      "bytes": 132219094,
+      "sha256": "5e66e64d3a426c48e92f8559f7654a6d983ffe29268957f54f3e2f0ac25ef035"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/midtraining_record_audit.json": {
+      "type": "file",
+      "bytes": 494,
+      "sha256": "be0ac36cdd5bd74a4bfab0e046c2407e93e96b98c126517e61ab33da34e68f2e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\training_stdout.log": {
+      "type": "file",
+      "bytes": 314868,
+      "sha256": "1848d522d9abf497f4b72b63373c74ccd4dd863f99b0daca4ca88b4fcf938532"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\latest.pt": {
+      "type": "file",
+      "bytes": 132198948,
+      "sha256": "393fb9e119ba73864ee76f6732c468d3e09c1329da3625f167f53de8321eea17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\run_manifest.json": {
+      "type": "file",
+      "bytes": 55691,
+      "sha256": "92944ce0f64fc227b3e70f5881fe1739769070f7a180aaeac5b32be0d3a91fca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12899409,
+      "sha256": "bca6daa1ae45d4acf835f85704e95cc5250e2edb1fed318edc1f605e345dfe5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 1287812,
+      "sha256": "c4e478ce5943367a64d680d8e9ac1175881516e93d065b5b8042736274aaaa17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\latest_train.log": {
+      "type": "file",
+      "bytes": 225324,
+      "sha256": "f10149a468c2428c3c5e4852957e42546eff09a2df21ea72f5daaab4200f1997"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\session_audit.json": {
+      "type": "file",
+      "bytes": 48650,
+      "sha256": "df521273e9265050d9e7e40c5025b848d41ef543df1cda80ab21471b9b6a0016"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 48650,
+      "sha256": "df521273e9265050d9e7e40c5025b848d41ef543df1cda80ab21471b9b6a0016"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\training_health.json": {
+      "type": "file",
+      "bytes": 564,
+      "sha256": "100640a414514570d842e940c7f5bf7e1355c89d7daa390491bcc2c30d67ad82"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\quarter.pt": {
+      "type": "file",
+      "bytes": 132219094,
+      "sha256": "5e66e64d3a426c48e92f8559f7654a6d983ffe29268957f54f3e2f0ac25ef035"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\half.pt": {
+      "type": "file",
+      "bytes": 132219094,
+      "sha256": "89b8dc04ce23f4d8d8df45fd6db24ac6353725c7ff7596e6021273a774a2887c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\production\\checkpoints\\checkpoint_iter000256_hands000001057954.pt": {
+      "type": "file",
+      "bytes": 132219094,
+      "sha256": "89b8dc04ce23f4d8d8df45fd6db24ac6353725c7ff7596e6021273a774a2887c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 132198948,
+      "sha256": "393fb9e119ba73864ee76f6732c468d3e09c1329da3625f167f53de8321eea17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\archive_selection.json": {
+      "type": "file",
+      "bytes": 42245,
+      "sha256": "daa74749576435bb4c8daa99355170313a88f5e63ec3e7254f26c8bdf34865b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 1581,
+      "sha256": "ad1d7754740b9a6d8c09811acc5326fbb55a096ab3da9b4d7edb9cd383a3f594"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation_commands.json": {
+      "type": "file",
+      "bytes": 29091,
+      "sha256": "bb04a90ab4f3b5ba40f7ec9098532ba030aae3697a0fc8cacd14810fe6aa28ef"
+    },
+    "research/experiments/v6-fictitious-response-phase2-20260831/posttraining_record_audit.json": {
+      "type": "file",
+      "bytes": 494,
+      "sha256": "ba735bcc42d1d49c49851b13a06cd42bf5cb60679f506d47095c28bb885d058d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147423,
+      "sha256": "6c263dbad8f6dbc6f0dd2a652ff8b11f8a5be95761892521e1d016d1b8a8b9ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_average\\summary.json": {
+      "type": "file",
+      "bytes": 1621,
+      "sha256": "626a8d6b6d10ceee901ba0a602e97f4f4c0515b14c406ff329720d40210682cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_prior\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145753,
+      "sha256": "2d30a5e3d7bbbf4803d7ce0e96f83299997f6edca46fde5514ab07c6824ce188"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_prior\\summary.json": {
+      "type": "file",
+      "bytes": 1658,
+      "sha256": "d9a6cbd91295e184731c5a22070f543874815bfbf3f9c632b4e54851038842e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_response1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1151286,
+      "sha256": "be6e201d8b150ce279b92e1097cc7a8dc7d4ec8de11d7321a6d6a0cbfa82fd95"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_response1\\summary.json": {
+      "type": "file",
+      "bytes": 1668,
+      "sha256": "5a9350419355c5e9a3dd0eb447c7ad6134d79c6b816affea345609ebf32c3dcc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146399,
+      "sha256": "8878e9045f6f7be906dedc80fbd563cf8d89afd1b3cce746100b320b778c88c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1662,
+      "sha256": "31c086bcabeed66874f826f1bb9e88dad40632a96b4ff7f0054dd2612e02db30"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1138611,
+      "sha256": "e0e91aeead4b7d7f0a1564a473d8affd9ea1939979e7453dedc47f9a6f4e8790"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1663,
+      "sha256": "c88662810eb8cfc3d9ae86c07c11891cf05e16d705be527d2bb35c57072cc67f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145905,
+      "sha256": "f6931727bcce2b84ee0a69022fd83f46a26b60ea683eaceafc2d19b83aeb5c0a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1663,
+      "sha256": "f31c70780342e1ef9c1e6c2a8b7276c9380e1cfa14594dc95269bbf536f37f7b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148095,
+      "sha256": "560430c5fabfd7670c062f7de9886da984b3d04ee1e674da532428ddba5ecd29"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1660,
+      "sha256": "96fbce54fd396977d7d9ef814516b5517c12e7aef537ec0243c99ae110ea41e4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148355,
+      "sha256": "adf77281adf83152a42f262f28f59dc0fd8e1c7c4fb0935844c88933b1737de3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\initial_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1658,
+      "sha256": "67d1adcb553187f914031d45dfcf04813781a54d664c45140608ba116bc67349"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148573,
+      "sha256": "5959e6d130bb047651d5b36233c757fec52f4fab33b4b4c9efb3c9058df92c53"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_average\\summary.json": {
+      "type": "file",
+      "bytes": 1665,
+      "sha256": "5b90bfa063029ad3f8cb1446bcf9ffd8eed6629f5251f0e05744d3ccecefcdf6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_prior\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1144193,
+      "sha256": "9b45fd7fb8ef1b6e11ad46edbbc2e423d43fb7acccc48ff075e41808c02ed373"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_prior\\summary.json": {
+      "type": "file",
+      "bytes": 1652,
+      "sha256": "afafc9d6cc1173d3a64d5742b3553069ac486bb307f126475dcd04c051389f94"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_response1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1153870,
+      "sha256": "0ee57987a21708d575fe2eeec119df7f5a681f45448f738e19bd477d27278a95"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_response1\\summary.json": {
+      "type": "file",
+      "bytes": 1668,
+      "sha256": "f2336f67fe843999e0656562ae29a46fb4f85a7241aae417533b3af1e5f0e70a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145316,
+      "sha256": "fa4583f260d5dd6e4d45fd1c78d846d90ace4fbeaeaf6a45ac66bb85687ceb28"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1660,
+      "sha256": "688652a142c1d319133698f04226a24ecc84c892f76cf5225da4f1bf977fa948"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139244,
+      "sha256": "4c9c970a4d4bfa4baa9a34de27cb535f0822d694dfd42c182d73ffa4c958c1d2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1665,
+      "sha256": "2a62fa3e287a551bfa511a7a4fb6778bc45ee2bc5b50993e73c65c0d6959c4e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146996,
+      "sha256": "151360644ea5bebcfb5164bd5bf5e6a8baf0b3b4a6be7abd1ac2ea5259fd6e6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1666,
+      "sha256": "02d703fcf298905441e54a3a4a60dc05c103601b3ec73a9fb39d1b781e24bbbc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146533,
+      "sha256": "8d033215dcf1a0a36fb29c7fc6480b37d95b7dc9fbaeb5ebebe189cd53a21dd8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1662,
+      "sha256": "1c06301ce59854634b0ca266a1bd287ddd71b745b36902dd7a09e84eb1a3f58b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145232,
+      "sha256": "40107b13181333516e2f07a834e2aba06391041fd276de73df60e44452d2381d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\quarter_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1661,
+      "sha256": "bd0b65e83399f5a6a670b9c80f789175ec8d8b734afd3ff06a40410dc67896ad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149237,
+      "sha256": "74d650dd6e2cd0246b1575c3d73735b5681057c01d2e2e8ee1063f63dea6dde0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_average\\summary.json": {
+      "type": "file",
+      "bytes": 1658,
+      "sha256": "27581f42845e13164d10ec0597594a829df4eb5e2cd4e7302fc53759dafc3f49"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_prior\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146203,
+      "sha256": "b3f354ff2e287f729ad82f9f1ab4a7170299033ed509a2a422edca613cb6a723"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_prior\\summary.json": {
+      "type": "file",
+      "bytes": 1652,
+      "sha256": "b38798c9bf0eeaf62a161ef3dd368f12f33a65fbf6eaa2ddbfbd76787d8ccc4e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_response1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1154547,
+      "sha256": "ab325c4ad65c627236cade442b1cfde4caaad51086a6dd9f996b2d9abd769f45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_response1\\summary.json": {
+      "type": "file",
+      "bytes": 1660,
+      "sha256": "790bc750b7cf2630e91b317561fbf13f5b607e16a7f91032056a502a11999ed2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148010,
+      "sha256": "126787fab13cb3a3f903af1a25d5d490ce4199725530f102d6218ecd8cbf167a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1656,
+      "sha256": "242058043beeab8a58521e8374994e66cd6df585977b84536e4d2e92df7ffdc7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139685,
+      "sha256": "3df4575070620c35e72bb803d50fefbb31fccb1f4c736b2f49a574b3fddd2d01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1660,
+      "sha256": "af3d977fba9cd4807170909f689b0c73718d34e10f69d8abe549dfd40c88fd8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148099,
+      "sha256": "d11bf8f15f4e1d05775b4eb36260e4a1d0856ee2b8c5872fc5793fa4ddafefb2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1658,
+      "sha256": "619b4c8a2ab05dff49a3ee43c1d1b74387cf2ae24225fe76364b426cbb5b9b41"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149295,
+      "sha256": "11486edb0e7134036202b21526b632769c600a791ebe22ad9d72145d2906663d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1656,
+      "sha256": "86da145bb08ed5b3a92642c33205c102ec51cc22fbc0839cfd95bcc8d04356fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146550,
+      "sha256": "cb24d87e7495699678aaaa85fb423d646d5ba78c6ba83507a20cf9bd4795d140"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\half_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1657,
+      "sha256": "984ffbf639ddb80462afaf8d75f2778e762ea573f98be2c92ed58631ceccc9e8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148415,
+      "sha256": "b35531fda8508d332cc8925c3644d76982ef8c7d34ea09d0e5c2f871fd35b809"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_average\\summary.json": {
+      "type": "file",
+      "bytes": 1657,
+      "sha256": "288b62c7012ea8b3cb9534a6e9f85ccb4180941882fba4a62c46d1549e2cebac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_prior\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1143746,
+      "sha256": "f3a9674858c4025d0d5758517ddaf35c239769d04888540c464c70be40958fd5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_prior\\summary.json": {
+      "type": "file",
+      "bytes": 1654,
+      "sha256": "a05a5511d1215ad6cda79e70c899e337e3285bf68e4861abb446b180c159ca63"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_response1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1153815,
+      "sha256": "4cbe1f4c5bd3c84b9767448fb79660320a46cf6638c8a3192b6fa9de94f9c8b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_response1\\summary.json": {
+      "type": "file",
+      "bytes": 1664,
+      "sha256": "493b23bf277a1112ded7999ea6647911206669e119635575930645c21e475b32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1144621,
+      "sha256": "1886be76d004cd76fc17df4ac546f051a59dcdbd184a5e25e3a03853053117f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1662,
+      "sha256": "d59003ecb58c9f2a3ad69fcf0f816d14b46ac3575e5d1f65cc02e11403ed8527"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139032,
+      "sha256": "293026f3ec7be6d2dc7f8451c68168a6e01d49308c8f299b8bdae3288472fbf5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1660,
+      "sha256": "bc85471f75c542dce63878c0aa376d046ffc3192b3d1dd552d9d32ce7584f21b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147349,
+      "sha256": "5a68a14a992d08ee34b486ff53e2c56b4cf896494722eee2a3bb4ccda88f424b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1660,
+      "sha256": "ac51cc9a317eb04dd4be44ac3f80d5b51813317be8e93ff415bc47e197cf8e12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145994,
+      "sha256": "cfcaabca270bb763e348ede7a366af74bd2689be64d2a1ebdb0cf2eee4c4c7d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1662,
+      "sha256": "71d1d7dbf17c5cf1c6c8c79099d383b850ae053a102c8fdf15557caf4c268af3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1144697,
+      "sha256": "b475b2223f541873f3defa1767642eef171e1330469b7256188758ff984a0dd1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\evaluation\\final_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1659,
+      "sha256": "1556fd040ad477fdf893728c4876873a39fcaf506857e8dd8c6600e2a77be96b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 13555,
+      "sha256": "7a3b5ba484033a1bb019983a661e8594e77988f6f592e2945e0ea1c3b036af3a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_average_stdout.log": {
+      "type": "file",
+      "bytes": 1664,
+      "sha256": "41e09c1e63a785e60f167a952f39ea0c26cc42696f45f6c556127419c28b4211"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_prior_stdout.log": {
+      "type": "file",
+      "bytes": 1701,
+      "sha256": "77629cfbb38344f9358f7e08d55561439f1ff54640276c85fe982f0e4d06654c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_response1_stdout.log": {
+      "type": "file",
+      "bytes": 1711,
+      "sha256": "0e5c55a7a6471486d8e1f41ce26478712c25d1e678a2dde477f79ae1eadad008"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1705,
+      "sha256": "d9b6eacda11b2252a8dd7fa2ea935722a8a1ebca8105abd6e14c731e081efb7a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1706,
+      "sha256": "8657f83914546b8d3a087d3469c6a2a46e4ea57025ebaab584c655e1435de414"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1706,
+      "sha256": "763ee35bd3911bd82fc5acafb14144fbd46a6204b2ada9b0837a23bee61f12b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1703,
+      "sha256": "c10e6c32afe75555ee70e7fe8bf2c0a3989d6b71963e6154ee2c5a48d55249c5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\initial_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1701,
+      "sha256": "54d7abf1435ada929150a452e65ff03711e38221a3780fd927fb315c22db7e69"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_average_stdout.log": {
+      "type": "file",
+      "bytes": 1708,
+      "sha256": "873d5eafea5bbef4ea9eac34326076a01488b9b14f1da8c5cd99c3a235487c11"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_prior_stdout.log": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "168f771a5ca9ee2863485c0d1f2af815dba1ba4e99c3a4f9f3a9ae09fb54b50a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_response1_stdout.log": {
+      "type": "file",
+      "bytes": 1711,
+      "sha256": "677819ba3f22f2de68eda86e96a773f08c8b01dd527e431d12bd8db8458bad7d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1703,
+      "sha256": "305d96a6ff66b7a44b590861c7f77983cbd072ee52d84c2c3f6f35157a35f5f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1708,
+      "sha256": "ab0dfea4c4c874f5c8f681a42ffc6f52bb3b999448466ca0db3ac1e843a72d34"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1709,
+      "sha256": "f14a4ac0c8b56ba32355d4bcd84dfe00dce12b1af55544505e3d2c09a7957442"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1705,
+      "sha256": "ef90273df69e96dbb335306b4a3dff64504a9f01841afc531281ea06af80f455"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\quarter_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1704,
+      "sha256": "cbb7f9cd55bf33d3d35791186e562b62d5a79a9760f1a81265592d8c61c70a5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_average_stdout.log": {
+      "type": "file",
+      "bytes": 1701,
+      "sha256": "615628601823cdd42769cfbdddef64903f8ae4aa1f7473134d13e60fbd8994aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_prior_stdout.log": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "95b99299e2cf7572bbbe1ca64e3ab1e5890aa34db01ae64001d7e1cef36c52df"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_response1_stdout.log": {
+      "type": "file",
+      "bytes": 1703,
+      "sha256": "a8cbef9525fcacdb1cd59525bd525db04ab49905f972b4aef643c96682a4917b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1699,
+      "sha256": "ec85ebfbc832f95b289680ff48d39957b82a1acbc056772adfe2e7bd2c1be002"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1703,
+      "sha256": "34eb38d30f50477a6406ba653032b9493149216389a7af5c665410f45c24be46"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1701,
+      "sha256": "8bedf0d8256c008ab0fa3a90d5ee65a9cc9283241f00201692aece56b5dd7244"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1699,
+      "sha256": "5dc281ae8cee61702fd25204a228fa3b0d631789eca5cf5c4143408ed3b61608"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\half_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1700,
+      "sha256": "c8eebb85e668b6473812b0e7cdf96a37083bddee5bab553b3cfe31f632d3d0d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_average_stdout.log": {
+      "type": "file",
+      "bytes": 1700,
+      "sha256": "7f2266f69a48f5e2302177aca5fa4b79be56b8e4cee840d9d0565d42c11f6011"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_prior_stdout.log": {
+      "type": "file",
+      "bytes": 1697,
+      "sha256": "c50b1c69e2058b3c5eda1d4e7f0ed0a1bfeb287eb81af2658cffca2aca7c396c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_response1_stdout.log": {
+      "type": "file",
+      "bytes": 1707,
+      "sha256": "5b249dfd1e8ebc285b560cd5a8b61481ca2c24ca8609b3c248fab00867b2cbce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1705,
+      "sha256": "7321c4ea502655b3267287a3d0a035bf0fd6b10a28481ebd83f75bb1c8c165f4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1703,
+      "sha256": "530a46c2a7537b138f9f0060d053d2dab6b6ec221ecaf3c74ac1de4863e6171d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1703,
+      "sha256": "a54852835a2f0ac96c074015b4fdf01efa4c3e03b92f473198377a5efa33587f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1705,
+      "sha256": "10ec91c373f11948774b257b44ffb573c0cb19f2f27e43b7bab78df59f2917c5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\final_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1702,
+      "sha256": "794462b9a7ef0ed1f0add9d52d9c8ea0c09ee857fe4629a228d831628a2b5d41"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 35934,
+      "sha256": "7dd8de2e1f30018be98a74801794a1e0572a5d7051c6ee6cedaa5a3d23436cec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 14463,
+      "sha256": "03d64e4849d67b938c15d43874aa0061c9976a2f2d661cea707a402a8b980bae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-response-phase2-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 3734,
+      "sha256": "f69f783737b774ee89d2fad143b8ef1135e901c5879bede9a0ef58f6224fb39f"
+    }
+  }
+}

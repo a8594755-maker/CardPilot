@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-candidate-disagreement-exact-state-heldout128",
+  "title": "candidate_disagreement_exact_state_heldout128",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/candidate_disagreement_heldout128_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/candidate_disagreement_heldout128_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "All 128 exact states matched and all 128 sampling substreams changed. Global target action agreement was only 0.5469-0.6250, with 15-27 highest-risk-slot disagreements, 10.9%-15.6% cross-replicate regret above 5 bb, and worst-5% regret CVaR 29.15-66.12 bb. SB flop development-selected means reversed negative; BB turn and SB turn remained unstable. BB-flop continuation-CVaR2of3 retained 0.71875 agreement and positive two-way lower95 means but failed the reverse tail gate.",
+    "conclusion": "Do not train from any global 8x8x3 robust target or let positive aggregate means hide cross-replicate action/tail instability.",
+    "decision": "REJECT_GLOBAL_TARGET_REVISE_ONLY_BB_FLOP_CVAR_ADAPTIVE",
+    "next_step": "Use high-sample adaptive resampling on the nine exact unstable BB-flop CVaR rows; otherwise change hidden-state posterior, continuation distribution or target construction."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-greedy-es-direction-snr-scale-control-20260902",
+  "title": "Greedy ES direction SNR 32-to-128-pair scale control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T05:11:08+00:00",
+  "updated_at": "2026-09-02T05:27:30+00:00",
+  "started_at": "2026-09-02T05:11:08+00:00",
+  "ended_at": "2026-09-02T05:27:30+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The negative split-half direction correlation at 32 pairs per opponent is estimator under-sampling rather than intrinsically unlearnable signal; extending the exact same zero-center, sigma0.8 directions and deck prefixes to 128 pairs per opponent will make half and mean quarter rank correlations positive and stabilize at least four of eight direction signs.",
+  "material_change": "Freeze the exact prior center, random-feature model seed, eight normalized directions, sigma, six training opponents, seats, and pair0-31 evidence. Generate only pair32-127 supplements, then recompute direction fitness on four disjoint 32-pair quarters, two 64-pair halves, and the full 128-pair cohort. Do not update weights or run validation/Slumbot.",
+  "baseline": "At 32 pairs per opponent, all eight directions activated but independent 16-pair halves had Pearson correlation -0.6313 and the resulting center validation slope was -21.35 +/-41.85 bb/100. This control tests sample efficiency, not strength.",
+  "source": "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/run",
+  "parent_id": "v6-greedy-es-calibrated-signal-retry-20260902",
+  "command": "python scripts/alpha_holdem/v6_greedy_es_direction_snr_control.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --prior-run research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/run --seed 20262010 --directions 8 --sigma 0.8 --prior-pairs 32 --target-pairs 128 --dispersion-weight 0.25 --device cuda --out-dir research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_greedy_es_direction_snr_control.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --prior-run research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/run --seed 20262010 --directions 8 --sigma 0.8 --prior-pairs 32 --target-pairs 128 --dispersion-weight 0.25 --device cuda --out-dir research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:11:08+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:27:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "38a9495d1de9620b08c73bf71619bdea87e7c39361883c2d9988672a9aba142d",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T05:11:08+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/source_manifest.json",
+    "source_manifest_sha256": "7575a280d1433e519293ca7a1115cd28eabd5f817075c22d3ee18413a74a091b",
+    "source_files": 167
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 18432,
+    "lineage_training_hands": 36864,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 982.0,
+    "planned_training_hands": 18432,
+    "planned_evaluation_hands": 0,
+    "planned_slumbot_hands": 0,
+    "slumbot_hands": 0,
+    "qualification_hands": 0
+  },
+  "metrics": {
+    "prior_pairs_per_opponent": 32,
+    "full_pairs_per_opponent": 128,
+    "half_rank_correlation": 0.11904761904761905,
+    "mean_quarter_rank_correlation": -0.09126984126984128,
+    "sign_stable_directions": 6,
+    "full_nonzero_directions": 8,
+    "admitted": false,
+    "tests_passed": 266
+  },
+  "artifacts": [
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/code.patch",
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/source_manifest.json",
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/run",
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_greedy_es_direction_snr_control.py",
+    "scripts/alpha_holdem/test_v6_greedy_es_direction_snr_control.py"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "The fixed-center sigma0.8 ES direction cohort was extended exactly from 32 to 128 common-deck pairs per each of six opponents, adding 18,432 environment hands. The original prefix reproduced exactly. Half-cohort rank correlation improved to +0.1190 and 6/8 direction signs agreed in at least three quarters, but mean pairwise quarter rank correlation remained -0.0913 (range -0.6429 to +0.4286). All 266 tests passed.",
+    "conclusion": "Fourfold sampling improves the direction estimator but does not make its ordering reliably reproducible: independent quarter rankings remain anti-correlated on average. Applying the full128 update would violate the preregistered mechanism gate. This is evidence that the current 585-parameter, eight-direction greedy-ES recipe is too sample-inefficient on this hardware/broad league, not evidence that larger training budgets should make every method win Slumbot or that ES is universally invalid.",
+    "decision": "REJECT_CURRENT_GREEDY_ES_SAMPLE_EFFICIENCY_NO_UPDATE",
+    "next_step": "Close this ES recipe without applying the posthoc full128 direction. Return to methods with per-decision credit and better data efficiency, but require any next scalable route to demonstrate multi-seed geometric slope, broad opponent/seat gains, Standard10 preservation, and proxy/external directional agreement before large allocation."
+  },
+  "tags": [
+    "evolution-strategy",
+    "fixed-center",
+    "geometric-scale",
+    "signal-to-noise"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 31386,
+      "sha256": "7575a280d1433e519293ca7a1115cd28eabd5f817075c22d3ee18413a74a091b"
+    },
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-greedy-es-direction-snr-scale-control-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 40185,
+      "sha256": "de998f30834da359ccecbd9050c85d380b31315bfdb7338ae6ed9e8c47e0dc9f"
+    },
+    "scripts/alpha_holdem/v6_greedy_es_direction_snr_control.py": {
+      "type": "file",
+      "bytes": 11177,
+      "sha256": "3d7b52524088f47d82d518fe3411634d168b123d62322bd3fcbd8ec76cbe24d4"
+    },
+    "scripts/alpha_holdem/test_v6_greedy_es_direction_snr_control.py": {
+      "type": "file",
+      "bytes": 722,
+      "sha256": "9955093c5c4a67af62a1a46b076c61ed35eee772461e51cb8e69f84d63146e66"
+    }
+  }
+}

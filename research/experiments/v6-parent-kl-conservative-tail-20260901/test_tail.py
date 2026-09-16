@@ -1,0 +1,5 @@
+from test_smoke import test_preregistered_intervention_is_single_and_explicit
+
+
+def test_engine_expected_test_filename():
+    test_preregistered_intervention_is_single_and_explicit()

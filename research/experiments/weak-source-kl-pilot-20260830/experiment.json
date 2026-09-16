@@ -1,0 +1,578 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "weak-source-kl-pilot-20260830",
+  "title": "Matched weak-source-KL learned-policy pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T00:06:16+00:00",
+  "updated_at": "2026-08-31T01:01:37+00:00",
+  "started_at": "2026-08-31T00:06:16+00:00",
+  "ended_at": "2026-08-31T00:59:50+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Although local probes did not show systematic instantaneous gradient cancellation, accumulated anchoring to a demonstrably losing sampled source may constrain useful policy movement. Reducing only source KL from1to0.01 may improve independent multi-anchor learned-policy performance.",
+  "material_change": "Two newly initialized matched all-heads PPO arms with physical262144hand budgets, identical source, seeds, batch1024, collection4096, lr3e-5 and adaptive opponent league; source-KL coefficient1vs0.01 is the sole learning change. Preserve target-KL0.01 and all safety/measurement contracts.",
+  "baseline": "New matched source-KL1control plus unchanged original Standard10; old greedy and sampled external hands excluded from evaluation.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "standard10-strict-sampled-slumbot20k-20260830",
+  "command": "python -m pytest scripts/alpha_holdem/test_environment_hand_accounting.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_environment_hand_accounting.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:06:16+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/weak-source-kl-pilot-20260830/test_pilot.py scripts/alpha_holdem/test_environment_hand_accounting.py -q --tb=short --junitxml=research/experiments/weak-source-kl-pilot-20260830/prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:07:37+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-source-kl-pilot-20260830/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:07:37+00:00"
+    },
+    {
+      "command": "python research\\experiments\\weak-source-kl-pilot-20260830\\run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:07:39+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026090700 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id weak_kl_control_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\latest.pt --seed 20260907 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:07:40+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 54 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:27:20+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 0.01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026090700 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id weak_kl_weak_20260830 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\latest.pt --seed 20260907 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:27:26+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 54 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:47:24+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\evaluate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:47:31+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --candidate-label weak_batch_pilot_source --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260908 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:47:31+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\control.pt --candidate-label weak_batch_pilot_control --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260908 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:51:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt --candidate-label weak_batch_pilot_weak --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260908 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:55:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_vs_control.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:32+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:34+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:50+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-source-kl-pilot-20260830/finish_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:50+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/weak-source-kl-pilot-20260830/test_completed_report.py -q --tb=short --junitxml=research/experiments/weak-source-kl-pilot-20260830/report_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:50+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py research/experiments/weak-source-kl-pilot-20260830/finish_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:50+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/weak-source-kl-pilot-20260830/test_completed_report.py -q --tb=short --junitxml=research/experiments/weak-source-kl-pilot-20260830/report_tests_v2.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:50+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/weak-source-kl-pilot-20260830/raw_cell_review.py research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py research/experiments/weak-source-kl-pilot-20260830/finish_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T00:59:50+00:00"
+    },
+    {
+      "command": "python -c \"import sys,json; from pathlib import Path; sys.path.insert(0,'research/experiments/weak-source-kl-pilot-20260830'); from raw_cell_review import review_cell; base=Path('research/experiments/large-batch-optimizer-regimen-pilot-20260830/matrix'); results={name:review_cell(json.loads((base/(name+'.json')).read_text())) for name in ['source','control','large']}; print(json.dumps({'cells_checked':sum(map(len,results.values())),'new_poker_hands':0,'status':'PASS'}))\"",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-31T00:59:50+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "b4a1f91840acaec8bfc295aa8ea67caa3b3f15b04c1474b55727b7820e88e756",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T00:06:16+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/weak-source-kl-pilot-20260830/code.patch",
+    "patch_sha256": "47108d4a90a5ee09fdb8b37e662a06329d69f26572171b364ce254dc03dbb135",
+    "source_manifest": "research/experiments/weak-source-kl-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "353a3ffbcd643433db1354390c0285e8d890f07331a825e9c9454956b61f6df8",
+    "source_files": 59
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 531842,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 73728,
+    "wall_time_seconds": 3214.0
+  },
+  "metrics": {
+    "prerun_tests_passed": 14,
+    "control_pid": 45552,
+    "control_latest_iteration": 54,
+    "control_physical_hands": 266357,
+    "control_exit_code": 0,
+    "control_complete": 1,
+    "weak_pid": 42900,
+    "weak_latest_iteration": 54,
+    "weak_physical_hands": 265485,
+    "weak_exit_code": 0,
+    "weak_complete": 1,
+    "training_complete": 1,
+    "pilot_evaluation_complete": 1,
+    "admits_independent_confirmation": 1,
+    "supplemental_review_updates_merged": 1,
+    "independent_review_pass": 1,
+    "independent_report_tests_passed": 27,
+    "historical_cell_statistics_reviewed": 9,
+    "additional_poker_hands_from_report_tests": 0,
+    "control_adam_steps": 1570,
+    "control_unchanged_trunk_tensors": 76,
+    "control_max_reference_kl": 0.00143709552607366,
+    "control_max_clip_fraction": 0.0,
+    "weak_adam_steps": 1548,
+    "weak_unchanged_trunk_tensors": 76,
+    "weak_max_reference_kl": 0.12748363188334874,
+    "weak_max_clip_fraction": 0.004174346902540752,
+    "postclose_command_audit_false_positives": 1
+  },
+  "artifacts": [
+    "research/experiments/weak-source-kl-pilot-20260830/code.patch",
+    "research/experiments/weak-source-kl-pilot-20260830/source_manifest.json",
+    "research/experiments/weak-source-kl-pilot-20260830/preregistration.md",
+    "research/experiments/weak-source-kl-pilot-20260830/run_pilot.py",
+    "research/experiments/weak-source-kl-pilot-20260830/evaluate.py",
+    "research/experiments/weak-source-kl-pilot-20260830/test_pilot.py",
+    "research/experiments/weak-source-kl-pilot-20260830/prerun_tests.xml",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/memory_profile.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control_process_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\control.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak_process_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\checkpoint_selection.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_vs_control.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\pilot_analysis.json",
+    "research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py",
+    "research/experiments/weak-source-kl-pilot-20260830/test_completed_report.py",
+    "research/experiments/weak-source-kl-pilot-20260830/report_tests.xml",
+    "research/experiments/weak-source-kl-pilot-20260830/report_tests_v2.xml",
+    "research/experiments/weak-source-kl-pilot-20260830/raw_cell_review.py",
+    "research/experiments/weak-source-kl-pilot-20260830/nashpg_source_contract_notes.md",
+    "research/experiments/weak-source-kl-pilot-20260830/conditional_next_direction.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\deferred_review_updates.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\finish_review.py"
+  ],
+  "notes": [
+    "Past gradient probe showed no persistent local suppression,not absence of cumulative anchoring. This is a bounded causal coefficient test,not an assumption that removing regularization helps. Coef0.01 keeps the identical reference-model initialization/diagnostic path in both arms. No Slumbot games or benchmark-specific action rules.",
+    "Exact two-arm configuration and physical-accounting tests passed14. Admission now requires at leastone positive Bonferroni-adjusted primary lower bound,not a merely nominal interval. Snapshot and sequential training/evaluation wrapper starting; no Slumbot calls in this experiment.",
+    "Full execution snapshot frozen before both arms. Same source/deal seeds/collection/physical budgets; only source-KL coefficient and output identity differ. No live source edits allowed during this wrapper.",
+    "Both preregistered final physical endpoints frozen by budget only; original source hash unchanged. Starting fixed independent sampled evaluation.",
+    "Both frozen endpoints evaluated against source and matched source-KL control on independent seed. Complete raw evidence and independent CI recomputation passed. Inspect numerical/Adam health and result before finish; no claim of Slumbot success.",
+    "Original wrapper is terminal before merging supplemental review provenance. Deferred PENDING label is retained as original intent; merged metric establishes completion. No training or evaluation hands were added by offline tests/review.",
+    "Prepared independently computed two-pass raw paired statistics and strict Bonferroni gate review while the unchanged original control trainer was live. Existing training/evaluation scripts and frozen source snapshots were not edited.",
+    "Fourteen synthetic report tests passed,including full report generation with actual torch checkpoint deserialization, script hashing, exact Adam partial-step accounting, scalar coefficient enforcement and refusal to overwrite. These fixtures are not poker evidence; zero actual training/evaluation hands.",
+    "Defer experiment_log writes until the original wrapper exits,so only that wrapper updates the shared RUNNING record during production. The original evaluator still controls the fixed untouched matrix and registered admission rule.",
+    "Before any matrix outcome,read primary AlphaHoldem and NashPG papers; verified the latest NashPG v3 dated2026-08-03 and its current official repository. Saved a conditional next-direction memo distinguishing fixed KL(reference||current) here from refreshed KL(current||reference),with no claim that practical NashPG has exact convergence or200bb Slumbot success. No upstream code was installed or executed.",
+    "Extended only uncaptured postprocessing with raw_cell_review.py before the weak arm or matrix outcomes. Independently recomputes pair/seat means, sample variances, CI widths, totals, outcome counts and aggregate OOD validity from decision/node counts at frozen default threshold0.15. No admission-rule change. Current revision passes27synthetic tests; prior14-test XML retained. Synthetic tests add zero poker hands. OOD aggregate consistency is not a new per-action trace audit.",
+    "Read-only integration check of the new raw-cell postprocessor passed all9existing cells from the completed large-batch pilot. No historical evidence was edited, no games rerun, and none of those prior hands are added to this experiment accounting.",
+    "During the weak arm and before any matrix outcome,read current official NashPG source pinned to GitHub main SHA dda50fe112f2d5bbbc46af33c8f1550e0177cc29. Saved conditional source-contract notes: direct KL(current||reference), both-seat current-policy training, post-inner-round reference refresh, and upstream agent-only checkpoint API are not a lossless learner resume. Repository defaults differ from some paper settings; do not silently mix them. No upstream code installed/executed and no current training source modified. These are prospective mechanics, not a new experiment, statistical result, or override of the registered branch.",
+    "Post-close audit has one lexical false positive: the exact executed read-only python -c integration check contains dictionary-comprehension braces that COMMAND_PLACEHOLDER_RE treats as placeholders. Preserve its original exact command and deferred provenance rather than remove history to force a green audit. All80records validate; the other11recent records have zero warnings. This warning is unrelated to raw hands, source/model hashes, statistics or optimizer evidence."
+  ],
+  "result": {
+    "summary": "Matched source-KL1versus0.01 completed531842physical training hands and73728internal sampled hands. Independent raw,source,session,model and Adam reviews passed; WEAK_SOURCE_KL_ADMITS_CONFIRMATION.",
+    "conclusion": "standard10:+27.14209bb/100 adjustedCI[+1.45662,+52.82757]; slumbot_free:+9.38982bb/100 adjustedCI[-15.44950,+34.22913]; corrected_cfr96:+74.39673bb/100 adjustedCI[+11.81750,+136.97596]. Frozen trunk76tensors unchanged in both arms; exact Adam steps reconstructed from full/partial minibatches. These are internal pilot results,not Slumbot strength or Nash convergence.",
+    "decision": "WEAK_SOURCE_KL_ADMITS_CONFIRMATION",
+    "next_step": "Separately preregister independent sampled multi-anchor confirmation of exactly these frozen endpoints before any promotion; no discovery pooling."
+  },
+  "tags": [
+    "learned-weight-training"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 21,
+    "command_count": 22
+  },
+  "artifact_integrity": {
+    "research/experiments/weak-source-kl-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 12699405,
+      "sha256": "47108d4a90a5ee09fdb8b37e662a06329d69f26572171b364ce254dc03dbb135"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 10908,
+      "sha256": "353a3ffbcd643433db1354390c0285e8d890f07331a825e9c9454956b61f6df8"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 4743,
+      "sha256": "bf0fcd35819d3085c4f80b23042c4bb800b5219de642b440f84e00f8f4aeb143"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/run_pilot.py": {
+      "type": "file",
+      "bytes": 10096,
+      "sha256": "8a179cad9b693229228f4dca880ff44657a7dc84c9fcd66e92a4d59b57bd0eb5"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/evaluate.py": {
+      "type": "file",
+      "bytes": 7966,
+      "sha256": "760dfa37f4b77a9f814ac3d181f788f05c8aa984ac4fcf3f35638311cf10d235"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/test_pilot.py": {
+      "type": "file",
+      "bytes": 3280,
+      "sha256": "d1e36b609c4e6b7831aa7c3780bf09b0ea085995e13814ded82380b840fc7463"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2413,
+      "sha256": "550c36cac31a2076a7e9a9ebeba7938e0e294b2761a1260845690fde7b3d3e20"
+    },
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/memory_profile.json": {
+      "type": "file",
+      "bytes": 873,
+      "sha256": "a7c802240f43b2a36ba4886857abe32d9daa84a6ffe88e66e52369d28e695493"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 19525,
+      "sha256": "5dfe5c7775ae77937f45c8813bb1645d3331c209b588db8a571c3aabbade8fbe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 11816,
+      "sha256": "f3c8c3f2e4a7f799b3902e91dc2cd3e3f48d2fe4bb2611d6dc33fcebee7ee252"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 365811,
+      "sha256": "dcf1fcedcc541e02df426691edb19e21c6a18d4c264cfaaf0d2326eaae63b57d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control_process_stdout.log": {
+      "type": "file",
+      "bytes": 34342,
+      "sha256": "3849aca16e2177f0e49630fdbc045ac5b8c94795aab547d35663950723784b32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\control.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "9bffa0a8628725371d06d1c115de21cdd7e0bc2e45dcf92db140e4796a3fcbeb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control_audit.json": {
+      "type": "file",
+      "bytes": 9014,
+      "sha256": "dce72a35592220dd33b10f66115bab2435340405eaf476bba59caba8bbe53c15"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\latest.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "9bffa0a8628725371d06d1c115de21cdd7e0bc2e45dcf92db140e4796a3fcbeb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\run_manifest.json": {
+      "type": "file",
+      "bytes": 56614,
+      "sha256": "4ba55d2c82edd48944640d8fe4e70532dce3c8713d56e03995994aad41c11597"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1375244,
+      "sha256": "f2ae76158ee558c83e753ab1e23b393ab3b26c2d2aa3a1e46d7717308d5f709f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 139463,
+      "sha256": "d799a923126be8b20270b6740b55be2e8d77acb086d84288843794b36eb6d086"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\control\\latest_train.log": {
+      "type": "file",
+      "bytes": 23702,
+      "sha256": "4f3364afa24c53dc0a1726e025bb36f5e85a4989675e588b86141bd35974a7cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak_process_stdout.log": {
+      "type": "file",
+      "bytes": 34191,
+      "sha256": "9dbcb3e17ad8d21943d6b16f351e46cbf6074e47e07d60df6749f2b81cc566ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt": {
+      "type": "file",
+      "bytes": 133305012,
+      "sha256": "a68ac47aad7fa943f0e784e1c14be3d742fac7390a2cd853ba6cb971b429019b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak_audit.json": {
+      "type": "file",
+      "bytes": 8986,
+      "sha256": "aabf675bfaba5d85577057f36ee99e46140f65527396a4c1a47165478849d9c2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\latest.pt": {
+      "type": "file",
+      "bytes": 133305012,
+      "sha256": "a68ac47aad7fa943f0e784e1c14be3d742fac7390a2cd853ba6cb971b429019b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\run_manifest.json": {
+      "type": "file",
+      "bytes": 56936,
+      "sha256": "6eeb8488b3675d41d1e38e2a93be03cff67f162ab6c86ce7c4cfb96400f8ce37"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1394939,
+      "sha256": "50c9d2401bec0093ab6bbca131ed3512573d02a79b39d69158fd47e64367c7d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 139249,
+      "sha256": "97c57cbef23107f129f5122fa6180ef030cefb9593ed01e0c8d1560d5b20366b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\weak\\latest_train.log": {
+      "type": "file",
+      "bytes": 23761,
+      "sha256": "11706fb266669958ac07411a4654021202c5171f32162c3e39881c2bfae081ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\checkpoint_selection.json": {
+      "type": "file",
+      "bytes": 763,
+      "sha256": "7ab76105affb31f24f64774f486179388ece1f08e19335825671b307db2767a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.json": {
+      "type": "file",
+      "bytes": 656600,
+      "sha256": "7c4c67a33c90d460fd14b656230532032c1b78355b12101260964713a63e0720"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source.md": {
+      "type": "file",
+      "bytes": 1518,
+      "sha256": "942c2f6f7da42f69adb7cff5126da359725a4aaa145d8564d5c0521616a9158a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source_execution.json": {
+      "type": "file",
+      "bytes": 2074,
+      "sha256": "384fb3c8e3c3f53addde46442c286ba40b0b5f2554d8d3d07384a520e24bb594"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\source_stdout.log": {
+      "type": "file",
+      "bytes": 656600,
+      "sha256": "7c4c67a33c90d460fd14b656230532032c1b78355b12101260964713a63e0720"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.json": {
+      "type": "file",
+      "bytes": 657363,
+      "sha256": "b2ffa6faed787680333c6f76e7e6924e7521851eda6f20c02af9a9b3db5343f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control.md": {
+      "type": "file",
+      "bytes": 1550,
+      "sha256": "8c230d632b15728f5472e7efc407a0f5f49c9fcbd35af35b6818e29e8a697fea"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_execution.json": {
+      "type": "file",
+      "bytes": 2111,
+      "sha256": "a402048d775e33f8764b0231715302b006272fe9524e9ef78710ec3a2769f792"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_stdout.log": {
+      "type": "file",
+      "bytes": 657363,
+      "sha256": "b2ffa6faed787680333c6f76e7e6924e7521851eda6f20c02af9a9b3db5343f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.json": {
+      "type": "file",
+      "bytes": 665532,
+      "sha256": "1fe1501d89737f7d76263753e8501d62c88c0ce9f94230e8798546d72eb96244"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak.md": {
+      "type": "file",
+      "bytes": 1552,
+      "sha256": "8cb7ec12224b38738c49dde3a75566c687519b703320e216daef2e9235e036fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_execution.json": {
+      "type": "file",
+      "bytes": 2083,
+      "sha256": "5083d439cc4e641cc8952bf2e2b5ef6e5401cbf86fe63ac6201358c70a118f7b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_stdout.log": {
+      "type": "file",
+      "bytes": 665532,
+      "sha256": "1fe1501d89737f7d76263753e8501d62c88c0ce9f94230e8798546d72eb96244"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_vs_control.json": {
+      "type": "file",
+      "bytes": 4974,
+      "sha256": "3dc35b0998d72ae6203aa1baedddda464752da3bd5ca8029432f4b30e3f7a1d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\weak_vs_source.json": {
+      "type": "file",
+      "bytes": 4957,
+      "sha256": "acdf311f897a96a46d341240be75722cc0b73358e30fff6b1a268c055a57afb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\matrix\\control_vs_source.json": {
+      "type": "file",
+      "bytes": 4978,
+      "sha256": "89ebcd7f71fc9f444b6a68df88f09e38334f52abb5977bd98a38b3a5848bb9bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\pilot_analysis.json": {
+      "type": "file",
+      "bytes": 3826,
+      "sha256": "ff1a5cbe8b446b4a1c43dedd0ed5af946c779ed2a54c09e964532098329dad81"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/report_completed_pilot.py": {
+      "type": "file",
+      "bytes": 16841,
+      "sha256": "5c91d8fb7b550ac430c26904a55c0846f9393e6b93c6d30300a8c33257b383cc"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/test_completed_report.py": {
+      "type": "file",
+      "bytes": 11146,
+      "sha256": "c1b33fa11c9cef84567bd36e9061f26150bebe0c3502e10d46bfa9c28fdded64"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/report_tests.xml": {
+      "type": "file",
+      "bytes": 2543,
+      "sha256": "f36691f44ff2c86b5efcbfb2255f4c8a4bd7d6f798b60d94099b69c9a7ce8fba"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/report_tests_v2.xml": {
+      "type": "file",
+      "bytes": 4823,
+      "sha256": "53a8b0288becd42596fc30703663ddacaee73bf331522db08fd51391b3c59d0d"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/raw_cell_review.py": {
+      "type": "file",
+      "bytes": 4463,
+      "sha256": "287484bd4d535df028cb2b545b8cab98b4919aaf8817c38a7fae59ec4fc61cda"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/nashpg_source_contract_notes.md": {
+      "type": "file",
+      "bytes": 5265,
+      "sha256": "e10c5dda74e145bccea9b37b2d7312e7bde5b9394bc4fb3369fc75463df60f91"
+    },
+    "research/experiments/weak-source-kl-pilot-20260830/conditional_next_direction.md": {
+      "type": "file",
+      "bytes": 3754,
+      "sha256": "3bbb69a1dc9acaa58443bbf94000cd1a6deab2b0c9d7089681ae48164ea8eea3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\deferred_review_updates.json": {
+      "type": "file",
+      "bytes": 4745,
+      "sha256": "1f746edc4b7d6e77ffe67cd70cd4f707c1257cb2f694ff1286556bd1e6465359"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 40682,
+      "sha256": "4d789640d9f9e11deaac4d5708aaf42de20db3fef955f0d0cea1db543b560578"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 2455,
+      "sha256": "d441f1dbfd5c3b7a981fd031e5e47be82ef1a0b09803b64d7481f0c12590b1f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\finish_review.py": {
+      "type": "file",
+      "bytes": 4262,
+      "sha256": "9a4dc14b6785004260335ebebe1c3a283a7b682c460ff232cbd239444b6b5b17"
+    }
+  }
+}

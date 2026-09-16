@@ -1,0 +1,106 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-temporal-probability-qualification-20260908",
+  "title": "Fixed-dose temporal probability execution qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T07:24:41+00:00",
+  "updated_at": "2026-09-08T07:25:41+00:00",
+  "started_at": "2026-09-08T07:24:41+00:00",
+  "ended_at": "2026-09-08T07:25:41+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Outcome-independent temporal probability aggregation may stabilize final-iterate deployment; compatibility must be established before strength testing.",
+  "material_change": "Isolated equal legal-probability mean of root,262k,1M replay-control checkpoints for seeds1,3; frozen greedy execution, no weight or optimizer edits.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-post-replay-allocation-review-20260908",
+  "command": "python research/experiments/v6-temporal-probability-qualification-20260908/qualify.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-temporal-probability-qualification-20260908/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T07:24:41+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-temporal-probability-qualification-20260908/test_aggregate.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T07:25:41+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-temporal-probability-qualification-20260908/qualify.py"
+    ],
+    "captured_at": "2026-09-08T07:24:41+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-temporal-probability-qualification-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-temporal-probability-qualification-20260908/source_manifest.json",
+    "source_manifest_sha256": "de31438ae594e785632fa6f1a47f282e44205a893fc8ff4c1e2325482cc90172",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 60.0,
+    "training_hands": 0,
+    "final_qualification_hands": 0,
+    "fixture_hand_executions": 16
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-temporal-probability-qualification-20260908/code.patch",
+    "research/experiments/v6-temporal-probability-qualification-20260908/source_manifest.json",
+    "research/experiments/v6-temporal-probability-qualification-20260908/qualification.json",
+    "research/experiments/v6-temporal-probability-qualification-20260908/test_aggregate.py"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "Both retained seed lineages passed fixed-dose three-checkpoint probability aggregation on all four streets and both seats; eight edge tests passed.",
+    "conclusion": "Legal normalized probability averaging agrees with independent calculation and existing greedy action runtime; all six checkpoint hashes unchanged. Sixteen passive fixture executions are not strength evaluation.",
+    "decision": "Preserve frozen equal-probability contract for a preregistered matched strength comparison; no claim of improvement or cycling.",
+    "next_step": "Predeclare matched aggregate, final-iterate and own-root multi-anchor evaluation for both seeds; include fresh deck provenance and execution-cost measurement, without selecting checkpoints by outcomes."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-temporal-probability-qualification-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-temporal-probability-qualification-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 323,
+      "sha256": "de31438ae594e785632fa6f1a47f282e44205a893fc8ff4c1e2325482cc90172"
+    },
+    "research/experiments/v6-temporal-probability-qualification-20260908/qualification.json": {
+      "type": "file",
+      "bytes": 4412,
+      "sha256": "4ed0a2709f33de24eeaaa9c4996a004c6a9969f199d3d7951417a875cbccdff2"
+    },
+    "research/experiments/v6-temporal-probability-qualification-20260908/test_aggregate.py": {
+      "type": "file",
+      "bytes": 2295,
+      "sha256": "bcbfbed62cb1b80acc3906f3a8d159cc3ee3b776706c1a6f9fc2314541aa0de6"
+    }
+  }
+}

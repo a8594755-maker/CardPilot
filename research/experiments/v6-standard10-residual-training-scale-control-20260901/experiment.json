@@ -1,0 +1,141 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-residual-training-scale-control-20260901",
+  "title": "Matched Standard10 residual-regret training-scale control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:49:38+00:00",
+  "updated_at": "2026-09-01T15:59:46+00:00",
+  "started_at": "2026-09-01T15:49:38+00:00",
+  "ended_at": "2026-09-01T15:59:46+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Training and traversing at preservation scale0.01, rather than training at scale1 then shrinking only at deployment, will retain Standard10 behavior while improving the direct learned-anchor direction under the same root and optimizer budget.",
+  "material_change": "Train matched scale1 and scale0.01 Standard10-prior residual arms from fresh identically seeded networks on the same 8 root budget, then evaluate each fixed greedy ensemble on 1,024-pair four-anchor panels. Require scale0.01 to preserve <=25% disagreement, beat scale1 and be positive versus Standard10, and have at least 3/4 positive anchors.",
+  "baseline": "Frozen scale1/posthoc-scale0.01 confirmation was -1.0010 bb/100 versus Standard10 with 0.81-1.74% disagreement; generic anchors were positive but could not promote.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-standard10-residual-scale-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_standard10_residual_train_scale_control.py --standard10 models/baseline/standard10/latest.pt --iterations 2 --traversals-per-player 2 --train-steps 512 --eval-pairs 1024 --seed 60913 --output-dir research/experiments/v6-standard10-residual-training-scale-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_standard10_residual_train_scale_control.py --standard10 models/baseline/standard10/latest.pt --iterations 2 --traversals-per-player 2 --train-steps 512 --eval-pairs 1024 --seed 60913 --output-dir research/experiments/v6-standard10-residual-training-scale-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:49:38+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "70928862d81057a56f053a256c13e5fbec5c3f5167e6835b25d491dede491aa5",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_standard10_residual_train_scale_control.py",
+      "scripts/alpha_holdem/v6_standard10_residual_regret_smoke.py",
+      "scripts/alpha_holdem/physical_v6_cfr.py"
+    ],
+    "captured_at": "2026-09-01T15:49:38+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-residual-training-scale-control-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-standard10-residual-training-scale-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "b3972fc66e476585924015d09e6cd0691d16b7872c55d9bd0a2d359f593bf694",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 32768,
+    "wall_time_seconds": 608.0,
+    "planned_environment_training_hands": 16,
+    "planned_evaluation_hands": 32768,
+    "environment_training_hands": 16,
+    "decision_nodes": 37631
+  },
+  "metrics": {
+    "scale_0_01_standard10_delta_bb100": 1.220703125,
+    "scale_0_01_standard10_ci95_lower": -16.6627233085705,
+    "scale_0_01_standard10_ci95_upper": 19.1041295585705,
+    "scale_0_01_positive_anchor_points": 2,
+    "scale_0_01_mean_delta_bb100": -47.45654296875,
+    "scale_0_01_max_greedy_disagreement": 0.019539562778100213
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/code.patch",
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/source_manifest.json",
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/summary.json",
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_1/residual_policy.pt",
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_0.01/residual_policy.pt",
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_1/paired_evaluation.jsonl.gz",
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_0.01/paired_evaluation.jsonl.gz",
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "Final bounded residual-regret route control. No Slumbot. Stop this route if the preregistered learned-anchor gate fails."
+  ],
+  "result": {
+    "summary": "Matched eight-root arms completed 16 training roots and 32,768 evaluation hands. Training at scale0.01 reduced greedy disagreement to 0.73-1.95% and improved the Standard10 point from scale1 -206.6846 to +1.2207 bb/100, but only 2/4 anchors were positive; uniform was -106.4907 and min-bet -88.6577 with a wholly negative CI.",
+    "conclusion": "Preservation-scale training can retain Standard10 and avoid scale1 collapse, but its broad direction is seed/root sensitive and fails generalization. The preregistered 3/4 anchor gate failed, so no larger CFR allocation or Slumbot gate is justified.",
+    "decision": "REJECT_STANDARD10_RESIDUAL_REGRET_ROUTE",
+    "next_step": "Close residual-regret and from-zero Deep CFR routes. Reassess qualitatively different learned-weight approaches using direct external-transfer evidence rather than weak generic anchors; do not revive single-teacher imitation or local preservation patches."
+  },
+  "tags": [
+    "matched-control",
+    "residual-regret",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 680,
+      "sha256": "b3972fc66e476585924015d09e6cd0691d16b7872c55d9bd0a2d359f593bf694"
+    },
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 6933,
+      "sha256": "b265a763c8fa27c8789790c7e959cc74af99ef9917d621850c3383069a147070"
+    },
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_1/residual_policy.pt": {
+      "type": "file",
+      "bytes": 1953990,
+      "sha256": "d406f683400caec9676954cf324da2224218b558966255781e59db0adda9962f"
+    },
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_0.01/residual_policy.pt": {
+      "type": "file",
+      "bytes": 1953990,
+      "sha256": "c1c471ba563cacff5fd0861c7a9810d17c1bc9e4824a0155cc6a40fc60afb266"
+    },
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_1/paired_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 261196,
+      "sha256": "7d1327d0bf152faa98255ec163ed67bbcd774821e60ba519d01737253b7255d9"
+    },
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/run/scale_0.01/paired_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 245177,
+      "sha256": "92170c913f303fdccc91ffadb4944b92a1650146acb7bd29c8a7ed949d907605"
+    },
+    "research/experiments/v6-standard10-residual-training-scale-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1487,
+      "sha256": "14c87f36a9fdf31d64034840fc4845ffe425b036d07adacafd7f7586b512bb44"
+    }
+  }
+}

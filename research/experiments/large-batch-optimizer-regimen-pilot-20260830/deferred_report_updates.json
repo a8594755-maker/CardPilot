@@ -1,0 +1,30 @@
+{
+  "status": "PENDING_MERGE_AFTER_ORIGINAL_WRAPPER_EXIT",
+  "reason": "The production wrapper remains the sole experiment-record writer. These supplemental report/test artifacts do not change its captured training/evaluation source or preregistration.",
+  "commands_executed": [
+    "python -m pytest research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_completed_report.py -q",
+    "python research/experiments/large-batch-optimizer-regimen-pilot-20260830/inspect_completed_training.py"
+  ],
+  "metrics": {
+    "supplemental_report_tests_passed": 9
+  },
+  "artifacts": [
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/report_completed_pilot.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/test_completed_report.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/inspect_completed_training.py",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/training_mechanism_analysis.json",
+    "research/experiments/large-batch-optimizer-regimen-pilot-20260830/next_direction_review.md"
+  ],
+  "notes": [
+    "Added a post-completion-only independent result report with writer guard, raw contrast reconstruction, session/file/source SHA checks, finite model/Adam states, native-head/frozen-trunk checks, physical accounting and Adam-step reconstruction including partial minibatches. Initial8 synthetic tests passed; added a rounded printed-value-loss parser and reran9 tests, all passed, while unchanged production continued. The regimen changes critic steps as well as actor steps; descriptive training loss is not heldout critic quality.",
+    "An additional read-only check of the immutable control iteration8 archive matched all10 Adam state counters at438 steps to the persisted metric prefix, including16 partial-batch steps. No weights, counters, sessions or live source were edited by that check.",
+    "The three fixed anchors are used both for training and assessment. Fresh assessment deals are not a heldout opponent population. Report this limitation alongside the joint batch/LR and single-training-seed limitations.",
+    "During the unchanged fixed evaluation, CPU-only analysis of both final frozen checkpoints verified all76 shared-representation tensors unchanged and exact784/56 Adam steps. Postflop delta L2 was0.05442495/0.08212802,preflop delta L2 was0.03631740/0.05100213(control/large). These are descriptive parameter changes,not strength or causal batch evidence. The script read no evaluation outcomes,created zero hands,and retained source/checkpoint hashes.",
+    "Before reading treatment contrasts, documented conditional next directions: if the fixed gate passes, independent exact-endpoint confirmation; if it fails, repair/test stochastic external evidence audits then separately preregister an unchanged Standard10 native-sampled external baseline. Historicalgreedy20k is not a sampled-policy baseline. No external games or captured-source changes occurred during this review."
+  ],
+  "next_actions_after_wrapper_exit": [
+    "Run python research/experiments/large-batch-optimizer-regimen-pilot-20260830/report_completed_pilot.py exactly once after successful complete matrix.",
+    "Merge these executed commands, metrics, notes and artifact hashes with experiment_log.py update; also register the report command and completed_analysis.json/result_summary.md.",
+    "Review results and finish the same record. Do not silently drop pending supplemental provenance during goal continuation."
+  ]
+}
