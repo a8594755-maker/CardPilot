@@ -1,0 +1,153 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "seeded-kbest-iter64-replication-20260830",
+  "title": "Seeded K-best iter64 independent-deal replication",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T12:54:22+00:00",
+  "updated_at": "2026-08-30T12:57:54+00:00",
+  "started_at": "2026-08-30T12:54:22+00:00",
+  "ended_at": "2026-08-30T12:57:54+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The frozen seeded-K-best iter64 checkpoint will reproduce positive treatment-minus-control direction on both lower-variance Standard10 and slumbot_free anchors under an independent mirrored-deal seed.",
+  "material_change": "No training or policy selection. Re-evaluate the already frozen treatment iter64 and exact frozen fresh-only control iter64 with seed 20260854, 1,024 mirrored pairs per anchor, then compute paired treatment-minus-control deltas. This is the single replication authorized by the parent decision.",
+  "baseline": "Parent seed 20260853: iter64 Standard10 +0.439 CI95 [+0.023,+0.856], slumbot_free +0.161 CI crossing zero, CFR96 -0.904 CI crossing zero.",
+  "source": "seeded-historical-kbest-league-pilot-20260830 terminal decision; exact frozen control from adaptive-league-all-heads-pilot-20260830.",
+  "parent_id": "seeded-historical-kbest-league-pilot-20260830",
+  "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt --candidate-label control_iter64_seed20260854 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260854 --device cuda --priority below-normal --out-json research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.json --out-md research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.md --execution-json research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854_execution.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt --candidate-label control_iter64_seed20260854 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260854 --device cuda --priority below-normal --out-json research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.json --out-md research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.md --execution-json research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:54:22+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/seeded-historical-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263581.pt --candidate-label kbest_iter64_seed20260854 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260854 --device cuda --priority below-normal --out-json research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854.json --out-md research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854.md --execution-json research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:55:44+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.json --treatment research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854.json --out research/experiments/seeded-kbest-iter64-replication-20260830/paired_delta_seed20260854.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:57:54+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e1b5ad2c718abbaa2147026b841090c4afe87848010d565c06e41b3cc21905f5",
+    "code_paths": [
+      "scripts/alpha_holdem/v5_mirror_eval.py"
+    ],
+    "captured_at": "2026-08-30T12:54:22+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/seeded-kbest-iter64-replication-20260830/code.patch",
+    "patch_sha256": "d2b9602f501e8f374cb3b3a6c24a7e6a4ec7495c41abc77134a2a1b264ebafd9",
+    "source_manifest": "research/experiments/seeded-kbest-iter64-replication-20260830/source_manifest.json",
+    "source_manifest_sha256": "96d962275589f74d6a91a3eefbb60040678e5ef1cb00d5ab8a79794331a7334e",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 212.0
+  },
+  "metrics": {
+    "replication_standard10_delta_bb100": -0.341796875,
+    "replication_standard10_ci95_lower_bb100": -1.4479138708290018,
+    "replication_slumbot_free_delta_bb100": 0.953125,
+    "replication_slumbot_free_ci95_lower_bb100": -0.5579794461675838,
+    "replication_cfr96_delta_bb100": 0.5927734374999984
+  },
+  "artifacts": [
+    "research/experiments/seeded-kbest-iter64-replication-20260830/code.patch",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/source_manifest.json",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.json",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.md",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854_execution.json",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854.json",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854.md",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854_execution.json",
+    "research/experiments/seeded-kbest-iter64-replication-20260830/paired_delta_seed20260854.json"
+  ],
+  "notes": [
+    "Preregistered replication rule: require treatment-minus-control point estimates >0 on both Standard10 and slumbot_free under seed 20260854. CFR96 is reported but its much wider CI cannot rescue failure on either lower-variance anchor. No checkpoint reselection and no third seed.",
+    "Completed frozen control evaluation on seed 20260854 (6,144 new internal hands). Starting the frozen treatment on the exact same deals; total replication accounting will be 12,288 evaluation hands before paired reuse.",
+    "Independent replication failed the preregistered two-anchor rule: Standard10 reversed to -0.342 bb/100 (CI crossing zero), while slumbot_free was +0.953 (CI crossing zero). CFR96 was +0.593 (CI crossing zero). No third seed is permitted."
+  ],
+  "result": {
+    "summary": "Evaluated the exact frozen control and seeded-K-best iter64 treatment on an independent deal seed for 12,288 new internal hands and computed paired deltas.",
+    "conclusion": "The final-checkpoint signal did not replicate under the preregistered rule. Standard10 treatment-minus-control reversed from +0.439 on seed 20260853 to -0.342 on seed 20260854, while slumbot_free remained positive but inconclusive; all replication CIs crossed zero. The parent route therefore lacks reproducible lower-variance anchor improvement.",
+    "decision": "REJECT_REPLICATION_RETIRE_LOSS_KBEST_PROXY",
+    "next_step": "Do not run a third seed, deepen this checkpoint, or spend Slumbot hands. Retire loss-selected K-best as a strength route; preserve its dynamic membership/resume infrastructure for future principled opponent selection. Select a distinct learned-weight method using existing evidence."
+  },
+  "tags": [
+    "frozen-policy",
+    "matched-control",
+    "replication"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/seeded-kbest-iter64-replication-20260830/code.patch": {
+      "type": "file",
+      "bytes": 6585,
+      "sha256": "d2b9602f501e8f374cb3b3a6c24a7e6a4ec7495c41abc77134a2a1b264ebafd9"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 284,
+      "sha256": "96d962275589f74d6a91a3eefbb60040678e5ef1cb00d5ab8a79794331a7334e"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.json": {
+      "type": "file",
+      "bytes": 173016,
+      "sha256": "973e5b00e02c8eb8e35f1376b0ecad6afa8933bba998136487dd1c008d9f624e"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854.md": {
+      "type": "file",
+      "bytes": 1581,
+      "sha256": "0db818d4d1ff589c2a61bbb3dfaef3c8e8585dbe4e2beb2471fd05696814368b"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/control_iter64_seed20260854_execution.json": {
+      "type": "file",
+      "bytes": 1904,
+      "sha256": "3abfbef3099492a14661cc90348c044f31c085e6f00f072dc8c243645e99f57a"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854.json": {
+      "type": "file",
+      "bytes": 172923,
+      "sha256": "f22f54b4b07bff66f260cc204ff04aeed4edc3af0d77e5e0764bde9d9689feeb"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854.md": {
+      "type": "file",
+      "bytes": 1584,
+      "sha256": "2ddfd2b1c4271747293ca3a6791552f760d65bb991caa15f5f6d80b352292aa6"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/treatment_iter64_seed20260854_execution.json": {
+      "type": "file",
+      "bytes": 1913,
+      "sha256": "ec7f66e654126c83e5b1c9ec4a34f84b707b5c075681b71fcf30ced1bbe67078"
+    },
+    "research/experiments/seeded-kbest-iter64-replication-20260830/paired_delta_seed20260854.json": {
+      "type": "file",
+      "bytes": 5000,
+      "sha256": "5526969ff2dd2793ba438ddfac1e139fadfde2c6115dd28d6add31ced5468923"
+    }
+  }
+}

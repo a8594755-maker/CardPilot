@@ -1,0 +1,178 @@
+{
+  "anchor_count": 2,
+  "anchors": [
+    {
+      "anchor": "standard10",
+      "anchor_path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+      "anchor_sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+      "control": {
+        "anchor_observation_style": "legacy_v4",
+        "candidate_bb100": 15.5029296875,
+        "candidate_ci95_bb100": 23.410858975600757,
+        "candidate_observation_style": "legacy_v4",
+        "decisions": 12585,
+        "elapsed_seconds": 194.98888635635376,
+        "evaluation_contract": "physical_v6_candidate_legacy_v4_anchor_legacy_v4_v1",
+        "ood_nodes": {
+          "anchor": 0,
+          "candidate": 0
+        },
+        "pair_draws": 960,
+        "pair_losses": 24,
+        "pair_wins": 40
+      },
+      "evaluation_hands_per_candidate": 2048,
+      "pairs": 1024,
+      "seat_deltas": [
+        {
+          "delta_bb100": -38.76953125,
+          "delta_ci95_bb100": 40.902615616957476,
+          "seat": 0
+        },
+        {
+          "delta_bb100": 2.34375,
+          "delta_ci95_bb100": 14.963275464304674,
+          "seat": 1
+        }
+      ],
+      "seed": 20261921,
+      "treatment": {
+        "anchor_observation_style": "legacy_v4",
+        "candidate_bb100": -2.7099609375,
+        "candidate_ci95_bb100": 15.148087002199572,
+        "candidate_observation_style": "legacy_v4",
+        "decisions": 12507,
+        "elapsed_seconds": 192.8786597251892,
+        "evaluation_contract": "physical_v6_candidate_legacy_v4_anchor_legacy_v4_v1",
+        "ood_nodes": {
+          "anchor": 0,
+          "candidate": 0
+        },
+        "pair_draws": 984,
+        "pair_losses": 13,
+        "pair_wins": 27
+      },
+      "treatment_minus_control_bb100": -18.212890625,
+      "treatment_minus_control_ci95_bb100": 21.770655474019915
+    },
+    {
+      "anchor": "cfr4",
+      "anchor_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt",
+      "anchor_sha256": "571a9c413834247c80b63a797548689ea745878c060f265876d00bddcc3ff2db",
+      "control": {
+        "anchor_observation_style": "legacy_v4",
+        "candidate_bb100": 20.2119140625,
+        "candidate_ci95_bb100": 31.130634279346538,
+        "candidate_observation_style": "legacy_v4",
+        "decisions": 12299,
+        "elapsed_seconds": 194.185693025589,
+        "evaluation_contract": "physical_v6_candidate_legacy_v4_anchor_legacy_v4_v1",
+        "ood_nodes": {
+          "anchor": 0,
+          "candidate": 0
+        },
+        "pair_draws": 831,
+        "pair_losses": 110,
+        "pair_wins": 83
+      },
+      "evaluation_hands_per_candidate": 2048,
+      "pairs": 1024,
+      "seat_deltas": [
+        {
+          "delta_bb100": -4.8828125,
+          "delta_ci95_bb100": 7.460037496639884,
+          "seat": 0
+        },
+        {
+          "delta_bb100": -11.62109375,
+          "delta_ci95_bb100": 20.74807167956874,
+          "seat": 1
+        }
+      ],
+      "seed": 21261924,
+      "treatment": {
+        "anchor_observation_style": "legacy_v4",
+        "candidate_bb100": 11.9599609375,
+        "candidate_ci95_bb100": 32.322952779221495,
+        "candidate_observation_style": "legacy_v4",
+        "decisions": 12246,
+        "elapsed_seconds": 189.2952880859375,
+        "evaluation_contract": "physical_v6_candidate_legacy_v4_anchor_legacy_v4_v1",
+        "ood_nodes": {
+          "anchor": 0,
+          "candidate": 0
+        },
+        "pair_draws": 834,
+        "pair_losses": 113,
+        "pair_wins": 77
+      },
+      "treatment_minus_control_bb100": -8.251953125,
+      "treatment_minus_control_ci95_bb100": 11.01939729751571
+    }
+  ],
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_public_opponent_matched_eval.py",
+    "--control",
+    "research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt",
+    "--treatment",
+    "research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2/checkpoints/checkpoint_iter000032_hands000000131932.pt",
+    "--anchor",
+    "standard10=models/baseline/standard10/latest.pt",
+    "--anchor",
+    "cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt",
+    "--pairs-per-anchor",
+    "1024",
+    "--seed",
+    "20261921",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter32"
+  ],
+  "completed_at": "2026-09-02T21:03:48.803423+00:00",
+  "decision": "REJECT_PUBLIC_OPPONENT_TREATMENT",
+  "evaluation_hands": 8192,
+  "gates": {
+    "both_pooled_seat_deltas_nonnegative": false,
+    "pooled_delta_positive": false,
+    "positive_delta_on_at_least_three_of_four_anchors": false,
+    "standard10_delta_nonnegative": false
+  },
+  "input_paths": {
+    "anchor:cfr4": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt",
+    "anchor:standard10": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "control": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-geometric-pilot-20260902\\seed2\\latest.pt",
+    "treatment": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-262k-scale-20260902\\seed2\\checkpoints\\checkpoint_iter000032_hands000000131932.pt"
+  },
+  "input_sha256": {
+    "anchor:cfr4": "571a9c413834247c80b63a797548689ea745878c060f265876d00bddcc3ff2db",
+    "anchor:standard10": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "control": "41dd3ab819ead0fd6c4d45e0bb9652f9dd34e01818c486835985c3b3fa950228",
+    "treatment": "7b53ca4aa78d223383b8785b88d3e16daa1787ec65e6b862262c5dae70608e35"
+  },
+  "observation_style": "legacy_v4",
+  "pairs_per_anchor": 1024,
+  "policy_mode": "greedy",
+  "pooled_seat_deltas": [
+    {
+      "delta_bb100": -21.826171875,
+      "delta_ci95_bb100": 20.79655416980787,
+      "seat": 0
+    },
+    {
+      "delta_bb100": -4.638671875,
+      "delta_ci95_bb100": 12.790899109512138,
+      "seat": 1
+    }
+  ],
+  "pooled_treatment_minus_control_bb100": -13.232421875,
+  "pooled_treatment_minus_control_ci95_bb100": 12.199220302272666,
+  "positive_anchor_count": 0,
+  "promote": false,
+  "raw_pairs_sha256": "55cfd3b1abfe4aade27afea6079d5a72042f63f76e0a789b7fc37fa4eb8caa6b",
+  "schema": "cardpilot.public_opponent_matched_multi_anchor_eval.v1",
+  "starting_stack_bb": 200,
+  "status": "COMPLETED",
+  "wall_time_seconds": 777.4464104175568
+}

@@ -1,0 +1,157 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-mgda-logit-ensemble-feasibility-20260901",
+  "title": "Broad MGDA cross-seed logit ensemble feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T02:54:42+00:00",
+  "updated_at": "2026-09-02T03:39:24+00:00",
+  "started_at": "2026-09-02T02:54:42+00:00",
+  "ended_at": "2026-09-02T03:39:24+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A frozen equal-logit ensemble of the three independently initialized half-dose MGDA residuals will cancel seed-specific policy drift while retaining learned opponent responses, producing a positive 16k-to-65k broad-holdout slope and outperforming the paired mean constituent at 65k without breaching Standard10 preservation.",
+  "material_change": "At 16,384, 32,768, and 65,536 hands, load the three hash-verified half-dose residual checkpoints and form a frozen inference ensemble by averaging their logits and values. On wholly new common decks, evaluate the ensemble and all three constituents against the same three mixed-contract holdouts and both seats; share each Standard10 control rollout across candidates. Audit a fresh balanced source panel. No parameter update, Slumbot query, or new training hand is allowed.",
+  "baseline": "The half-dose individual-seed curve preserved Standard10 but failed reproducibility: 16k-to-65k slopes +57.11, -18.34, -12.59 and matched full32k differences +7.05, -52.53, +1.76. The failure is seed/domain instability rather than trainer integrity.",
+  "source": "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run",
+  "parent_id": "v6-broad-mgda-matched-dose-audit-20260901",
+  "command": "python scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py --run-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20261777 --pairs-per-holdout 256 --device cuda --out-dir research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py --run-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20261777 --pairs-per-holdout 256 --device cuda --out-dir research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T02:54:42+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_v6_broad_mgda_logit_ensemble.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:39:24+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:39:24+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:39:24+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "0274008380cf3272aed40894d8557b5cb753af2440406746aaf17fc4fe37a2d0",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T02:54:42+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/source_manifest.json",
+    "source_manifest_sha256": "d0dc58934cfa8fdb92173be99aa6914a1fa098fec71cd8976bb35ddb4438c5b0",
+    "source_files": 156
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 65536,
+    "offline_samples": 12288,
+    "evaluation_hands": 19968,
+    "wall_time_seconds": 2682.0,
+    "planned_evaluation_hands": 19968
+  },
+  "metrics": {
+    "ensemble_16k_delta_bb100": -9.00520833333333,
+    "ensemble_32k_delta_bb100": 3.9453125,
+    "ensemble_65k_delta_bb100": -18.1998697916667,
+    "ensemble_16k_to_65k_slope_bb100": -9.194010416666666,
+    "ensemble_65k_ci95_half_bb100": 69.2057846339422,
+    "ensemble_65k_gain_vs_mean_constituent_bb100": -12.493489583333334,
+    "ensemble_65k_gain_ci95_half_bb100": 55.405631247777485,
+    "final_nonnegative_holdouts": 1,
+    "final_nonnegative_seats": 1,
+    "source16k_agreement": 0.99365234375,
+    "source32k_agreement": 0.9873046875,
+    "source65k_agreement": 0.97412109375,
+    "minimum_source_partition_agreement": 0.9457700650759219,
+    "maximum_observed_all_slot_delta": 64,
+    "full_suite_tests_passed": 254
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/code.patch",
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/source_manifest.json",
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run",
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run/summary.json",
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run/evaluation_pairs.jsonl.gz",
+    "scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py",
+    "scripts/alpha_holdem/test_v6_broad_mgda_logit_ensemble.py"
+  ],
+  "notes": [
+    "Admission requires all integrity checks; ensemble source agreement >=95% overall and >=90% in every partition at every dose; positive 16k-to-65k ensemble slope; nonnegative final pooled delta, at least two of three final holdouts and both seats; and positive paired final ensemble-minus-mean-constituent delta. This is feasibility only; a passing result requires independent-cohort replication before scale.",
+    "The all-slot max-delta gate reported exactly 64 because float32 averaging of three full logits perturbed the shared -1e9 illegal-action sentinel. Legal actions were still masked and the frozen game outcomes remain valid, but the wrapper fails the registered all-slot telemetry contract and must be repaired before reuse."
+  ],
+  "result": {
+    "summary": "Evaluated a frozen three-seed logit ensemble and all three constituents at 16k, 32k, and 65k on new common decks: 19,968 actual frozen games, 12,288 fresh source-panel queries, and zero training hands. The ensemble curve was -9.01, +3.95, and -18.20 bb/100; 16k-to-65k slope -9.19. At 65k only 1/3 holdouts and 1/2 seats were nonnegative, and paired gain versus the mean constituent was -12.49 bb/100. Source greedy agreement remained 99.37%, 98.73%, and 97.41%. All 254 tests passed.",
+    "conclusion": "Cross-seed output averaging did not stabilize the broad-MGDA route: it worsened from 16k to 65k, underperformed the mean constituent, and failed pooled, holdout, and seat gates on untouched common decks. A separate telemetry flaw also shifted only masked illegal logits by 64 through float32 sentinel averaging. The performance evidence closes this ensemble route regardless of that diagnostic issue.",
+    "decision": "CLOSE_CROSS_SEED_LOGIT_ENSEMBLE",
+    "next_step": "Repair and regression-test base-exact ensemble arithmetic without rerunning this closed performance route. Then move to a different learned-weight training mechanism rather than further composing the same unstable MGDA seeds."
+  },
+  "tags": [
+    "ensemble",
+    "geometric-curve",
+    "mgda",
+    "source-preservation"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 29298,
+      "sha256": "d0dc58934cfa8fdb92173be99aa6914a1fa098fec71cd8976bb35ddb4438c5b0"
+    },
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 25008,
+      "sha256": "6dba480c8dde547ce999fb114f5385bfb29dff7c69cc0d367f83b0ba0e772e9c"
+    },
+    "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 627640,
+      "sha256": "30d6527a0dcf1bcd86ab7dc0a2ffc29e7cc60c05c6bdb592cac8ddb22a54dceb"
+    },
+    "scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py": {
+      "type": "file",
+      "bytes": 14532,
+      "sha256": "8cf2adfe71837a27c2300d48f916a097175f8d227e8615b4e8580a6e6b6bee52"
+    },
+    "scripts/alpha_holdem/test_v6_broad_mgda_logit_ensemble.py": {
+      "type": "file",
+      "bytes": 1849,
+      "sha256": "8631d5ad4edd045dc40b66da3911ac7f886e09c4955e623092410ef235180f50"
+    }
+  }
+}

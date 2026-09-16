@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-candidate-disagreement-bbflop-consensus-abstention",
+  "title": "candidate_disagreement_bbflop_consensus_abstention",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/candidate_disagreement_bbflop_cvar_consensus23_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/candidate_disagreement_bbflop_cvar_consensus23_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "The two independent uniform-hole replicates agreed on 23/32 continuation-CVaR2of3 actions and had positive aggregate lower95 deltas in both replicates, but 7/23 consensus rows were negative in at least one of six replicate-by-continuation cells, worst-six-way lower95 was -1.7397 bb, and 8/23 selected a new highest-risk slot.",
+    "conclusion": "Do not train the consensus point labels or treat aggregate positive means as sufficient while all-continuation tails and highest-risk transitions fail.",
+    "decision": "REVISE_HIDDEN_HOLE_POSTERIOR_NO_WEIGHT_TRAINING",
+    "next_step": "Change the action-history-conditioned opponent-hole posterior, continuation distribution, or learn a distributional/pairwise target that explicitly preserves uncertainty rather than taking a point argmax."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

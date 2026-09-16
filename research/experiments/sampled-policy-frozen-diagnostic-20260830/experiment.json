@@ -1,0 +1,268 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "sampled-policy-frozen-diagnostic-20260830",
+  "title": "Frozen sampled-policy evaluation diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T19:05:46+00:00",
+  "updated_at": "2026-08-30T19:23:03+00:00",
+  "started_at": "2026-08-30T19:05:46+00:00",
+  "ended_at": "2026-08-30T19:23:03+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The sampled policies optimized during training may improve distributionally even when greedy argmax changes little; a CRN-aligned sampled evaluator will reveal whether the prior greedy-only curves missed general learned-weight gains.",
+  "material_change": "Add an opt-in sampled-both-sides mode to the frozen mirrored evaluator, preserving greedy default and old artifacts. Use deterministic independent action uniforms indexed by evaluation seed, deal pair, physical seat, and per-seat decision count; preserve identical-policy mirror cancellation and paired treatment-control alignment.",
+  "baseline": "Frozen Standard10 and untouched adaptive-league-all-heads-pilot-20260830 iter64; paired-seat-average-actor-pilot-20260830 iter64 is the treatment.",
+  "source": "Existing frozen checkpoints only; no training or weight changes.",
+  "parent_id": "paired-seat-average-actor-pilot-20260830",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_sampled_mirror_eval.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_sampled_mirror_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:05:46+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/v5_mirror_eval.py scripts/alpha_holdem/paired_mirror_treatment_delta.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:08:33+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_sampled_mirror_eval.py scripts/alpha_holdem/test_paired_seat_actor_returns.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:08:33+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate models/baseline/standard10/latest.pt --candidate-label standard10_sampled_smoke --anchor standard10=models/baseline/standard10/latest.pt --pairs 64 --starting-stack 200 --include-pair-outcomes --seed 20260880 --policy-mode sampled_both_sides --device cuda --priority below-normal --out-json research/experiments/sampled-policy-frozen-diagnostic-20260830/smoke/standard10_self.json --out-md research/experiments/sampled-policy-frozen-diagnostic-20260830/smoke/standard10_self.md --execution-json research/experiments/sampled-policy-frozen-diagnostic-20260830/smoke/standard10_self_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:08:33+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate models/baseline/standard10/latest.pt --candidate-label standard10_sampled --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 4096 --starting-stack 200 --include-pair-outcomes --seed 20260881 --policy-mode sampled_both_sides --device cuda --priority below-normal --out-json research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.json --out-md research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.md --execution-json research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:09:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt --candidate-label all_heads_iter64_sampled --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 4096 --starting-stack 200 --include-pair-outcomes --seed 20260881 --policy-mode sampled_both_sides --device cuda --priority below-normal --out-json research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.json --out-md research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.md --execution-json research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:09:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/paired-seat-average-actor-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263479.pt --candidate-label paired_actor_iter64_sampled --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 4096 --starting-stack 200 --include-pair-outcomes --seed 20260881 --policy-mode sampled_both_sides --device cuda --priority below-normal --out-json research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.json --out-md research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.md --execution-json research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:09:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.json --treatment research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.json --out research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_vs_source_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:23:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.json --treatment research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.json --out research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_vs_source_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:23:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.json --treatment research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.json --out research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_vs_all_heads_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:23:03+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "51731c6e37b5dd210e162a4dfdf8e407fd18c1caddf0ef5f07fb94f3f565b3c5",
+    "code_paths": [
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/paired_mirror_treatment_delta.py"
+    ],
+    "captured_at": "2026-08-30T19:05:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/sampled-policy-frozen-diagnostic-20260830/code.patch",
+    "patch_sha256": "d2b9602f501e8f374cb3b3a6c24a7e6a4ec7495c41abc77134a2a1b264ebafd9",
+    "source_manifest": "research/experiments/sampled-policy-frozen-diagnostic-20260830/source_manifest.json",
+    "source_manifest_sha256": "fb37ed65aa49d50da870bf7c1472003a4e929012a388ce1280ccf9f14e875b5c",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 73856,
+    "wall_time_seconds": 1037.0
+  },
+  "metrics": {
+    "preregistered_pairs_per_anchor": 4096,
+    "preregistered_seed": 20260881,
+    "preregistered_confirmation_seed": 20260882,
+    "real_checkpoint_self_match_exact_zero": true,
+    "all_matrix_ood_valid": true,
+    "all_checkpoint_hashes_unchanged": true,
+    "confirmation_triggered": false,
+    "new_evaluator_tests_passed": 6,
+    "combined_tests_passed": 11
+  },
+  "artifacts": [
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/code.patch",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/source_manifest.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/smoke/standard10_self.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/smoke/standard10_self_execution.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10_execution.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64_execution.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64_execution.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/result_summary.md",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/evaluation_code/code.patch",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/evaluation_code/source_manifest.json",
+    "scripts/alpha_holdem/test_sampled_mirror_eval.py",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.md",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.md",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.md",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_vs_source_delta.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_vs_source_delta.json",
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_vs_all_heads_delta.json"
+  ],
+  "notes": [
+    "Fail closed on unit/reproducibility tests or nonzero identical-policy sampled mirror result. Evaluate source Standard10, untouched all-heads iter64, and paired actor iter64 against the same three frozen anchors, sampled on both sides, using the same action/deal random coordinates. Preserve every old greedy artifact. Primary comparison is learned candidate minus source; secondary is paired actor minus untouched all-heads control. Confirm only a candidate with all three point-positive deltas and at least one positive paired-CI lower bound on an independent seed; otherwise reject mode mismatch as the current explanation.",
+    "Six new evaluator tests and five existing paired-return tests passed. Greedy defaults and legacy missing action_rng metadata remain compatible; sampled comparisons reject mismatched RNG schema/anchor action streams.",
+    "The final evaluation_code snapshot captures the evaluator actually used; initial snapshot retained. Final patch SHA256 d70296d88ea9b55b7fa69802a0d8f02a59f77228c51f9989b8fec3b28525212a. All frozen model hashes were rechecked unchanged after the matrix.",
+    "Read-only trainer inspection found a legacy training-hand accounting gap: total_hands counts only transition-bearing hands and omits no-decision hero hands. This does not affect frozen evaluation outcomes but must be repaired before further training/scaling."
+  ],
+  "result": {
+    "summary": "A tested sampled-both-sides evaluator completed 73,856 frozen internal hands with exact self-match cancellation and unchanged checkpoint hashes; neither learned candidate met the preregistered cross-anchor confirmation condition.",
+    "conclusion": "No confirmable general learned-weight gain was hidden by the prior greedy-only evaluator at this sample size. Small sampled gains remain statistically unresolved; the single secondary slumbot_free positive interval is not a cross-anchor improvement.",
+    "decision": "NO_CONFIRMABLE_SAMPLED_GENERAL_GAIN",
+    "next_step": "Audit and repair physical-environment versus transition-bearing hand accounting while preserving legacy checkpoint counters and resume semantics before starting more training."
+  },
+  "tags": [
+    "crn",
+    "frozen-eval",
+    "no-training",
+    "stochastic-policy"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 10,
+    "command_count": 10
+  },
+  "artifact_integrity": {
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/code.patch": {
+      "type": "file",
+      "bytes": 6585,
+      "sha256": "d2b9602f501e8f374cb3b3a6c24a7e6a4ec7495c41abc77134a2a1b264ebafd9"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 472,
+      "sha256": "fb37ed65aa49d50da870bf7c1472003a4e929012a388ce1280ccf9f14e875b5c"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/smoke/standard10_self.json": {
+      "type": "file",
+      "bytes": 9807,
+      "sha256": "c467d3d72af5b6fa3520a1d113e6a073ac992c10cc9551cd648d2931c319c108"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/smoke/standard10_self_execution.json": {
+      "type": "file",
+      "bytes": 1567,
+      "sha256": "4a12818b686d3c77f53882f0b195cf963cd87438b49043d87002e38b76acfc80"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.json": {
+      "type": "file",
+      "bytes": 654859,
+      "sha256": "fe911065b0bf2350d5f8f3660ef798ce2c448a71363eecaa47ee0ba5d32be2de"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10_execution.json": {
+      "type": "file",
+      "bytes": 1826,
+      "sha256": "516183c19360576b680c0c4c5f45cfbe043c08f07ac05df4f237281d54e76de2"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.json": {
+      "type": "file",
+      "bytes": 655731,
+      "sha256": "5101b3746b03813af8e20dfb5ca975dfd9a79e4c00443607cadcc952252b05f2"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64_execution.json": {
+      "type": "file",
+      "bytes": 1941,
+      "sha256": "22d97953a36b9ce7dce8803da340d9c36d86c6f97f5828dbc5611c9650007f39"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.json": {
+      "type": "file",
+      "bytes": 655640,
+      "sha256": "d73b7673c6afb31770c857f604f5ce31060ece8e18ca72d902ae3464340e7b91"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64_execution.json": {
+      "type": "file",
+      "bytes": 1954,
+      "sha256": "59bc82b6b9a86aef1e0248ed244bb20d2149c17c252e61dbb1bbef31681eb18e"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 3414,
+      "sha256": "c5eff1d54cdbcb8757a9e920c7bcda6d6b46e5aee09545160aec0389df5fca6e"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/evaluation_code/code.patch": {
+      "type": "file",
+      "bytes": 14843,
+      "sha256": "d70296d88ea9b55b7fa69802a0d8f02a59f77228c51f9989b8fec3b28525212a"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/evaluation_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 472,
+      "sha256": "cb585128e8f2a1149c42269263c4ba89cf3c6e43070e6380d0afecbfbe4a934e"
+    },
+    "scripts/alpha_holdem/test_sampled_mirror_eval.py": {
+      "type": "file",
+      "bytes": 3863,
+      "sha256": "b2a1b9d4ba54e5397657301bacb32c41e9cb6fc9a14ee3ca28a8693a490dfe5b"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/standard10.md": {
+      "type": "file",
+      "bytes": 1487,
+      "sha256": "48099c3f9699b3b332dfd8bf131d87b5a2c78a500748a31aa26417ae5202e711"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_iter64.md": {
+      "type": "file",
+      "bytes": 1583,
+      "sha256": "ebcef12d60eb35aee1491d5000c6d081d7131b02918d88b32b53dbf64af5ffca"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_iter64.md": {
+      "type": "file",
+      "bytes": 1585,
+      "sha256": "3e9f4b875e04887554b1d96f8a5150d36af1c1da339b477d3aeee26f314ffc66"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/all_heads_vs_source_delta.json": {
+      "type": "file",
+      "bytes": 4973,
+      "sha256": "51bc066795986eb2f7d1e707c97995ab54bb0b355b3c5832f8cfd91f51394717"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_vs_source_delta.json": {
+      "type": "file",
+      "bytes": 4970,
+      "sha256": "54fe1a53d208019ad17b807f0021f523dd61445851027b2f3e56e15bec0c6059"
+    },
+    "research/experiments/sampled-policy-frozen-diagnostic-20260830/matrix/paired_actor_vs_all_heads_delta.json": {
+      "type": "file",
+      "bytes": 5074,
+      "sha256": "d3245f3fef433335b1f92734da907e4305fe24cbf79849c0fcd2d15a3e60c9fa"
+    }
+  }
+}

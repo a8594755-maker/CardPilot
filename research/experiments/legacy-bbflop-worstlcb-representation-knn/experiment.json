@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-bbflop-worstlcb-representation-knn",
+  "title": "bbflop_worstlcb_representation_knn",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/bbflop_worstlcb_representation_knn_c2_distillability_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/bbflop_worstlcb_representation_knn_c2_distillability_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "Frozen trunk plus source logits and legal mask produced positive robust and worst-continuation lower bounds for k=4,8,16,32 on independent 512-state data; raw observation features were poor. The k16 selector changed 18 rows whose mean source-logit gap was 9.8916, and all 18 exceeded the prior two-sided 4.2 residual cap.",
+    "conclusion": "Do not deploy the kNN selector as an action gate or claim it as a trained policy.",
+    "decision": "RETAIN_REPRESENTATION_CLUE_NO_POLICY",
+    "next_step": "Distill the locality clue into optimizer-trained weights using expanded posterior-conditioned data and pass independent-state plus tail gates."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

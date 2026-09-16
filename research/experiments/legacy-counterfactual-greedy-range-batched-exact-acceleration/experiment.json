@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-counterfactual-greedy-range-batched-exact-acceleration",
+  "title": "counterfactual_greedy_range_batched_exact_acceleration",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/counterfactual_greedy_range_batched_exact_acceleration_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/counterfactual_greedy_range_batched_exact_acceleration_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "The batched exact-greedy replay matched scalar acceptance and accepted replay state on 96 real-checkpoint hole proposals. A 256-proposal CPU benchmark was 44.19x faster with exact acceptance equality; 18 relevant tests passed.",
+    "conclusion": "Do not restart or relabel the healthy in-flight 128x2 C2 producer merely to use this optimization; its launch-time code remains authoritative.",
+    "decision": "RETAIN_ENGINEERING_ACCELERATION",
+    "next_step": "Use the batched path for future data production or benchmark a different device/batch size while preserving scalar equivalence."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

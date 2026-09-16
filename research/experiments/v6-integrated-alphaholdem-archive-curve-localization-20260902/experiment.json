@@ -1,0 +1,276 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-alphaholdem-archive-curve-localization-20260902",
+  "title": "Integrated AlphaHoldem 70k-to-262k archive-curve mechanism localization",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T20:50:16+00:00",
+  "updated_at": "2026-09-02T21:07:02+00:00",
+  "started_at": "2026-09-02T20:50:16+00:00",
+  "ended_at": "2026-09-02T21:07:02+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Across frozen iteration-32, iteration-48, and final checkpoints, the strongest-reference Standard10 slope degrades with additional environment hands while the CFR4 slope remains nonnegative, identifying an opponent-objective tradeoff rather than catastrophic source drift or endpoint-only noise.",
+  "material_change": "Evaluate three frozen scale endpoints per seed on identical fresh common-deck panels against Standard10 and CFR4, with both seats and raw pair evidence; fit paired within-seed archive curves without updating any policy.",
+  "baseline": "Completed v6-integrated-alphaholdem-262k-scale-20260902: 2/3 positive pooled final slopes but failed anchor/seat breadth; all source-preservation and continuation gates passed.",
+  "source": "Immutable 70k controls and 149k/226k/262k treatment archives from the three integrated-recipe lineages.",
+  "parent_id": "v6-integrated-alphaholdem-262k-scale-20260902",
+  "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed1_retry/checkpoints/checkpoint_iter000032_hands000000131844.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261920 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter32",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed1_retry/checkpoints/checkpoint_iter000032_hands000000131844.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261920 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter32",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed1_retry/checkpoints/checkpoint_iter000048_hands000000197704.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261920 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter48",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed1/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed1_retry/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261920 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_final",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2/checkpoints/checkpoint_iter000032_hands000000131932.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261921 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter32",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2/checkpoints/checkpoint_iter000048_hands000000197850.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261921 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter48",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261921 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_final",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed3/checkpoints/checkpoint_iter000032_hands000000131737.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261922 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter32",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed3/checkpoints/checkpoint_iter000048_hands000000197670.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261922 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter48",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-geometric-pilot-20260902/seed3/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed3/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --pairs-per-anchor 1024 --seed 20261922 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_final",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T20:50:43+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/analyze_v6_integrated_archive_curve.py --experiment-dir research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902 --prior-experiment-dir research/experiments/v6-integrated-alphaholdem-262k-scale-20260902 --hands seed1=69802,148620,225823,263423 --hands seed2=69608,152582,231768,263905 --hands seed3=69998,149709,226767,265036 --out research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/archive_curve_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T21:06:25+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "fdef92d03a726c6a99b3a1d938c28ce3dee07fe0ac6aa4b5ff45b2c42bfafeda",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T20:50:17+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/code.patch",
+    "patch_sha256": "8e10a8dfd065c085b3e1de5b223d789fb242ed6b3a7a482e8eee0b482d5c245a",
+    "source_manifest": "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/source_manifest.json",
+    "source_manifest_sha256": "5c3c68b018bbadeb34911e3b801757b970c2a9408d5185a99944ece8639fa66b",
+    "source_files": 225
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 18432,
+    "evaluation_hands": 73728,
+    "wall_time_seconds": 1006.0,
+    "planned_evaluation_hands": 73728,
+    "planned_offline_pair_rows": 18432
+  },
+  "metrics": {
+    "paired_final_minus_iter32_mean_bb100": -1.94677734375,
+    "paired_final_minus_iter32_t95_low_bb100": -17.050545897239928,
+    "paired_final_minus_iter32_t95_high_bb100": 13.15699120973993,
+    "standard10_final_minus_iter32_mean_bb100": 0.6917317708333334,
+    "cfr4_final_minus_iter32_mean_bb100": -4.585286458333333,
+    "prior_current_panel_sign_flip_count": 2
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/code.patch",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/source_manifest.json",
+    "scripts/alpha_holdem/analyze_v6_integrated_archive_curve.py",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter32/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter32/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter48/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter48/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_final/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_final/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter32/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter32/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter48/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter48/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_final/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_final/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter32/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter32/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter48/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter48/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_final/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_final/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/archive_curve_audit.json"
+  ],
+  "notes": [
+    "Preregistered interpretation: monotone or consistently negative Standard10 movement with nonnegative CFR4 movement selects league/preservation-objective intervention; nonmonotone wide-noise curves select at most one deeper convergence control; broad positive curves reopen scale. The same fresh seed is reused across endpoints within a lineage to enable paired endpoint contrasts, while seeds 20261920-20261922 are untouched by prior evaluations.",
+    "Added after experiment start and therefore separately artifact-hashed: raw-pair archive-curve auditor with SHA/count/key/deck/control identity gates, paired endpoint contrasts, seed-level t intervals, and prior-panel sign comparison."
+  ],
+  "result": {
+    "summary": "Nine frozen archive evaluations completed over 73,728 hands. All 18,432 raw pair rows passed SHA, count, uniqueness, common-deck, and identical-control gates. The paired 149k-to-262k pooled change averaged -1.947 bb/100 across seeds with t95 CI [-17.051, 13.157]; Standard10 and CFR4 contrasts were also inconclusive.",
+    "conclusion": "The preregistered selective Standard10 tradeoff hypothesis is rejected: neither key anchor has a coherent monotone curve, there is no statistically coherent broad decline or positive curve, and two of three lineages flip final common-anchor sign across independent fresh panels. Current approximately1k-pair-per-anchor frozen panels expose high between-deal and between-seed variance, not a mechanism-level reason to terminate a potentially long-horizon recipe.",
+    "decision": "RUN_ONE_SEED_1M_DEEP_CONVERGENCE_CONTROL",
+    "next_step": "Continue only Seed1, the sole lineage that passed the original 262k breadth and both-seat gate, from its exact 263,423-hand state to 1,048,576 actual hands. Preserve optimizer/replay/league/assignment state and use a nonoverlapping deal window; then require a larger frozen four-anchor both-seat panel before any replication or Slumbot spend."
+  },
+  "tags": [
+    "alpha-holdem",
+    "frozen-evaluation",
+    "mechanism-localization",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 10,
+    "command_count": 10
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816679,
+      "sha256": "8e10a8dfd065c085b3e1de5b223d789fb242ed6b3a7a482e8eee0b482d5c245a"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 42764,
+      "sha256": "5c3c68b018bbadeb34911e3b801757b970c2a9408d5185a99944ece8639fa66b"
+    },
+    "scripts/alpha_holdem/analyze_v6_integrated_archive_curve.py": {
+      "type": "file",
+      "bytes": 11495,
+      "sha256": "ba0f71d64e0984c3eeb7f58056d2b64d4783b043f8e2543ed1df0aea5df5045f"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter32/summary.json": {
+      "type": "file",
+      "bytes": 6813,
+      "sha256": "ec9df788f1c975bf8e290530ac2d6510de5e6474f9a653b0419ba05996aae9a0"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter32/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 132719,
+      "sha256": "c0295acf8d3ea7ab3838f4652fff99d77b54ae6db23658f37e04756a0e2fd038"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter48/summary.json": {
+      "type": "file",
+      "bytes": 6817,
+      "sha256": "3149cd030ab9fd2cf941b21d4861e7851548032d0df46f0eebd8d3b0406b9390"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_iter48/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133180,
+      "sha256": "25c304cc427b09bde82730ffe08b77dbf3db115f47ec4131f78917d0bfbb1049"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_final/summary.json": {
+      "type": "file",
+      "bytes": 6717,
+      "sha256": "15bfce34680f3eeed5b627feebde6084b615d2bd97886639a1dc536540e6dcee"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed1_final/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133392,
+      "sha256": "302b6d8d3406ef8656ef96bca010d346072ebca8e22051a4ef4fad79dff81dd6"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter32/summary.json": {
+      "type": "file",
+      "bytes": 6799,
+      "sha256": "7777ff7585c9265462b3570e01f4fa3101ccbd6e848522b4848f27bf8ba07307"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter32/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133393,
+      "sha256": "55cfd3b1abfe4aade27afea6079d5a72042f63f76e0a789b7fc37fa4eb8caa6b"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter48/summary.json": {
+      "type": "file",
+      "bytes": 6790,
+      "sha256": "3795538bfaf4e2250bc84991fd23750d721d64ab60faf2a5f8c058f971b39cd6"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_iter48/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133432,
+      "sha256": "6554c0e19dcf974c97dc3ffbac36bb175ea6a121f62079602de21797aa83fd56"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_final/summary.json": {
+      "type": "file",
+      "bytes": 6708,
+      "sha256": "742646e82922549a679ac567ea0c2b07b3075f975e1c12f18b8c3b5606142ddb"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed2_final/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133468,
+      "sha256": "675a7169f074049fad0e493a6c7b9c9ec5cad36779d60afca7bd1db1029bfe23"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter32/summary.json": {
+      "type": "file",
+      "bytes": 6787,
+      "sha256": "ce0f3779bae478726dcf5ca16b606b12678695f9ed7af14000c60db5334f4620"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter32/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133360,
+      "sha256": "b143b3a0f83d069b9594931460a3676f422e1945f361b7deb4422afab0e06680"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter48/summary.json": {
+      "type": "file",
+      "bytes": 6790,
+      "sha256": "26d884da4d23f7bf3e38f947f376dfe7f2b5c616e3c1ec3d5007f3c87bb04650"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_iter48/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133058,
+      "sha256": "14df4cf9b46bb0a366730ab780e883dafec7e54288b1ddb4e4aaa54cbeac2f77"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_final/summary.json": {
+      "type": "file",
+      "bytes": 6711,
+      "sha256": "f9f714178ef2344f5508b4da8bb5b3435d37fab8082f94a80f18c6661dfa917c"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/eval_seed3_final/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133336,
+      "sha256": "c1dc0565ddad38ddeea8cb2d6cdd0f901742985342f3cfc189ec80d5ab5c751e"
+    },
+    "research/experiments/v6-integrated-alphaholdem-archive-curve-localization-20260902/archive_curve_audit.json": {
+      "type": "file",
+      "bytes": 40029,
+      "sha256": "96ac21430c9b6dd0de733cfc9d98e7d7e3238075352eaebf86b42f9e44778998"
+    }
+  }
+}

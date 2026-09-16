@@ -1,0 +1,145 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-logit-ensemble-base-exact-contract-repair-20260901",
+  "title": "Base-exact logit ensemble contract repair",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T03:39:58+00:00",
+  "updated_at": "2026-09-02T03:44:23+00:00",
+  "started_at": "2026-09-02T03:39:58+00:00",
+  "ended_at": "2026-09-02T03:44:23+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Anchored output-space averaging will remove the float32 -1e9 illegal-mask sentinel error while leaving every legal logit and greedy action from the executed ensemble effectively unchanged and restoring the 0.25 all-slot residual cap.",
+  "material_change": "Change only LogitEnsemble numerical aggregation from direct mean of full logits to first-member anchored mean of relative outputs. On 4,096 fresh reachable states from the frozen 65k ensemble, compare pre-repair direct-mean and repaired logits/actions against the exact Standard10 base. Require checkpoint hashes, 100% legal-action agreement, maximum legal-logit change <=1e-5, old all-slot artifact >=1, and repaired all-slot residual <=0.250001. Generate no hands or policy updates.",
+  "baseline": "The completed ensemble feasibility had valid game outcomes but reported max all-slot delta exactly 64 because direct float32 averaging perturbed identical -1e9 illegal logits; all substantive performance gates independently failed.",
+  "source": "research/experiments/v6-broad-mgda-logit-ensemble-feasibility-20260901/run/summary.json",
+  "parent_id": "v6-broad-mgda-logit-ensemble-feasibility-20260901",
+  "command": "python scripts/alpha_holdem/v6_logit_ensemble_contract_audit.py --run-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --dose-hands 65536 --states 4096 --seed 20261791 --device cuda --out-dir research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_logit_ensemble_contract_audit.py --run-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --dose-hands 65536 --states 4096 --seed 20261791 --device cuda --out-dir research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:39:58+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_v6_broad_mgda_logit_ensemble.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:44:23+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py scripts/alpha_holdem/v6_logit_ensemble_contract_audit.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:44:23+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:44:23+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "26fd46d6f21aaa0346a231c7ee7392113ce71165a81f5e4d29c6a994967109ee",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T03:39:58+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/source_manifest.json",
+    "source_manifest_sha256": "0bdc89892adc6ef1e7917a6b046f5a6c7c58900c24c3a17713483e7adbf15649",
+    "source_files": 158
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 65536,
+    "offline_samples": 4096,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 265.0
+  },
+  "metrics": {
+    "states": 4096,
+    "action_matches": 4096,
+    "max_legal_logit_change": 3.814697265625e-06,
+    "max_old_all_slot_delta": 64,
+    "max_new_all_slot_delta": 0.243366718292236,
+    "max_old_legal_delta": 0.243366718292236,
+    "max_new_legal_delta": 0.243366718292236,
+    "full_suite_tests_passed": 255
+  },
+  "artifacts": [
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/code.patch",
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/source_manifest.json",
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/run",
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/run/summary.json",
+    "scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py",
+    "scripts/alpha_holdem/v6_logit_ensemble_contract_audit.py",
+    "scripts/alpha_holdem/test_v6_broad_mgda_logit_ensemble.py"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "Base-exact anchored logit averaging was verified on 4,096 fresh reachable states from the three frozen 65k checkpoints. It reproduced the old 64-logit illegal-sentinel artifact, reduced repaired all-slot max residual to 0.243367, retained the same legal max, changed legal logits by at most 3.81e-6, and matched all 4,096 greedy actions. All 255 tests passed.",
+    "conclusion": "The prior ensemble feasibility's cap failure was isolated to float32 aggregation of masked -1e9 slots; game decisions and performance evidence remain valid. Anchored relative-logit averaging repairs the telemetry contract without behavioral change. The ensemble route remains closed for performance reasons, not because of this implementation defect.",
+    "decision": "ENSEMBLE_BASE_EXACT_REPAIR_VERIFIED",
+    "next_step": "Do not rerun the closed ensemble performance experiment. Select a genuinely different learned-weight training mechanism with broad multi-seed geometric evidence and Standard10 retention."
+  },
+  "tags": [
+    "contract-repair",
+    "ensemble",
+    "numerical-stability"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 29678,
+      "sha256": "0bdc89892adc6ef1e7917a6b046f5a6c7c58900c24c3a17713483e7adbf15649"
+    },
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-logit-ensemble-base-exact-contract-repair-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 2908,
+      "sha256": "6654246398a9406ae31fe4383cec7107b9c6d7f5e335a13387ff51e30459bc4d"
+    },
+    "scripts/alpha_holdem/v6_broad_mgda_logit_ensemble.py": {
+      "type": "file",
+      "bytes": 14998,
+      "sha256": "415ee27df3856450e3bea71c634b96b76e0868136dc05023815c5e927c3946b5"
+    },
+    "scripts/alpha_holdem/v6_logit_ensemble_contract_audit.py": {
+      "type": "file",
+      "bytes": 6965,
+      "sha256": "34a4eb321f3d68ed65439e28ebfb657439b8823f352e33f7d78b705b77bc2237"
+    },
+    "scripts/alpha_holdem/test_v6_broad_mgda_logit_ensemble.py": {
+      "type": "file",
+      "bytes": 2246,
+      "sha256": "b63f582b295165dd7157f0598ea9e584bed208afed43bda37ed99100cee798d8"
+    }
+  }
+}

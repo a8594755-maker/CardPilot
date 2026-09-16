@@ -1,0 +1,927 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-causal-tcn-matched-reward-pilot-20260831",
+  "title": "Matched causal-TCN reward pilot",
+  "status": "FAILED",
+  "created_at": "2026-08-31T23:32:58+00:00",
+  "updated_at": "2026-09-01T00:00:30+00:00",
+  "started_at": "2026-08-31T23:35:47+00:00",
+  "ended_at": "2026-09-01T00:00:30+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Causal ordered action features improve PPO generalization over architecture-free head-only training across a fixed five-anchor opponent panel.",
+  "material_change": "Matched 262144-hand control and causal-TCN treatment with a 122880-hand common-deck source/control/treatment matrix.",
+  "baseline": "Causal-TCN smoke passed its fixed source point gate at -7.8024 bb/100; flat sequence matched treatment failed with only 2/5 positive anchors.",
+  "source": "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/preregistration.md",
+  "parent_id": "v6-causal-tcn-reward-smoke-20260831",
+  "command": "python research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:32:58+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:35:55+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026103700 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_causal_tcn_matched_control_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\latest.pt --seed 20261037 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream --all-policy-heads-only-training",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:35:59+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 54 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:41:28+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026103700 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_causal_tcn_matched_treatment_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\latest.pt --seed 20261037 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream --causal-sequence-policy-adapter-hidden 128 --causal-sequence-adapter-only-training",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:41:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 54 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:47:59+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261038 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:48:00+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831",
+      "scripts/alpha_holdem/network_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/execution_v6.py"
+    ],
+    "captured_at": "2026-08-31T23:32:58+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/code.patch",
+    "patch_sha256": "6d5a66c623b1b1be2dc097341f81342dddc4eba612ffb0f39092c6ae77687b07",
+    "source_manifest": "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/source_manifest.json",
+    "source_manifest_sha256": "9471f5c361b4dc0bf54109402a97384cd71343f5a63a145e80100b37f50002f8",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 532300,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 122880,
+    "wall_time_seconds": 1483.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_arm": "treatment",
+    "wall_time_seconds": 1443.094000000041
+  },
+  "artifacts": [
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/preregistration.md",
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/code.patch",
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/source_manifest.json",
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/run_pilot.py",
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/review_finish.py",
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/test_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\source_legacy.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\control.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\treatment.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\failure.txt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\run_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\test_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\tmpx64x5q0g",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\run_pilot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000004_hands000000016421.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000008_hands000000032953.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000012_hands000000049411.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000016_hands000000065869.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000020_hands000000082361.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000024_hands000000098890.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000028_hands000000115366.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000032_hands000000131977.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000036_hands000000148458.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000040_hands000000164906.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000044_hands000000181381.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000048_hands000000197890.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000052_hands000000214377.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000004_hands000000016568.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000008_hands000000033037.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000012_hands000000049488.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000016_hands000000065935.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000020_hands000000082426.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000024_hands000000098884.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000028_hands000000115376.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000032_hands000000131893.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000036_hands000000148435.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000040_hands000000164982.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000044_hands000000181411.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000048_hands000000197873.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000052_hands000000214407.pt",
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/failure.txt",
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/execution.json"
+  ],
+  "notes": [
+    "Fixed matched design and gates before implementation; smoke endpoint is admission evidence only and is not reused.",
+    "Implementation admission tests passed before any environment hands; matched seeds, budgets and gates remain exactly preregistered.",
+    "control final frozen after terminal health/session audit PASS",
+    "treatment final frozen after terminal health/session audit PASS",
+    "All evaluator processes exited and all 15 cells have exactly4096 indexed pairs plus summary before parent closure; recovery will not generate new hands."
+  ],
+  "result": {
+    "summary": "Both matched arms and all 15 evaluation cells completed, but the wrapper failed before aggregation when atomic execution.json replacement received WinError5.",
+    "conclusion": "The failure is terminal orchestration only: control/treatment checkpoints, both PASS session audits, and all 61440 raw pairs are preserved; no rerun is allowed.",
+    "decision": "TERMINAL_AGGREGATION_FAILED_EVIDENCE_PRESERVED",
+    "next_step": "Run a separately logged read-only terminal recovery that verifies hashes and session independence and recomputes the preregistered statistics from the preserved raw JSONL."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 21,
+    "command_count": 21
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2020,
+      "sha256": "4e702ace1d9ae759e7a72d329ac308376dd68abbfe405d51c1a07fef3cd783d1"
+    },
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 254544,
+      "sha256": "6d5a66c623b1b1be2dc097341f81342dddc4eba612ffb0f39092c6ae77687b07"
+    },
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1231,
+      "sha256": "9471f5c361b4dc0bf54109402a97384cd71343f5a63a145e80100b37f50002f8"
+    },
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/run_pilot.py": {
+      "type": "file",
+      "bytes": 17245,
+      "sha256": "7a05f3789f06823f2d60040d305afb3306dfb2035a4037bab61709b2fcdb7775"
+    },
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 5504,
+      "sha256": "a4871b011dca85929179605b50c62f63c2532087a091b0a25f8921c08b8859f8"
+    },
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/test_pilot.py": {
+      "type": "file",
+      "bytes": 2528,
+      "sha256": "3378aeb51ad48e1ee791d2cc22868f72176a7857bfc87c4650f296a9665f613f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13840,
+      "sha256": "b7834c0270242353f0748e0538c4ddab4b7acd2a20ded0fc0b6262837cb70c73"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 391412,
+      "sha256": "d02487669acd76e30c82c0d650308f1356d7ce394eed0a6281da2836e8f2a181"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23582,
+      "sha256": "2fa408b68fa7bce34baa84f1bbe86e9d20b70325fd8ec1680099c8df30fe58fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 733,
+      "sha256": "40f93ba61cccea5a93ab54d971a2a322f134bc162bc19ec60c031c33e343bd0a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 26659,
+      "sha256": "86bdb2df3e2f40e2c85859d7c8b263087c8add2ca7a9a0bfa6fa018dbb1e8618"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\source_legacy.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\control.pt": {
+      "type": "file",
+      "bytes": 199384688,
+      "sha256": "db0ba8443bd1ef45e43acc9b7f758921827c5066904e23b92a23d085e995c22c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\frozen\\treatment.pt": {
+      "type": "file",
+      "bytes": 202394748,
+      "sha256": "43c9e44cd3c4a899496437ba18a5efcfe084ab00ff36e239271f5326bccbe45e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 702,
+      "sha256": "93c658121588e2780299045fabc1257e102cf46e5c915762e19595d3aa864d28"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1723,
+      "sha256": "b20988ad4bd0b9b4de056674d634fcbd7bb27c84e69c81cd2585a828c917ae19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1723,
+      "sha256": "4df92215339afa6d0998b36073674d8ef9113eea394a39e71171c4d46240c131"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1722,
+      "sha256": "d3767819dd904240f0b2de50dda4f7b2d4f8be94979981b2dd8472fc84c39ae7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1722,
+      "sha256": "5330bb99069f3c52070f24ea5868b1d14003b9b552e7ebc4a873c61d8f2a5d13"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "fd31ce75c6111211ec5a51ba3861eac282caad5ed4f027d6f358d9888d746a34"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\control_stdout.log": {
+      "type": "file",
+      "bytes": 36618,
+      "sha256": "5957dc09b113247857ad7746fbdb6b4cea52c11ce6f56e65b22ddb3614b2d710"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 9614,
+      "sha256": "f46c7ec2bb8178c3592d9468bc2a819b7a4a53d5cf2bfcc424e552884ea45e80"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\failure.txt": {
+      "type": "file",
+      "bytes": 1166,
+      "sha256": "e04a1b8665fc0a0237e82d1fd1de4b984f92776cf9c8134d1cdb07e3d86c6406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 2020,
+      "sha256": "4e702ace1d9ae759e7a72d329ac308376dd68abbfe405d51c1a07fef3cd783d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 5504,
+      "sha256": "a4871b011dca85929179605b50c62f63c2532087a091b0a25f8921c08b8859f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\run_pilot.py": {
+      "type": "file",
+      "bytes": 17245,
+      "sha256": "7a05f3789f06823f2d60040d305afb3306dfb2035a4037bab61709b2fcdb7775"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1678,
+      "sha256": "4c2bcc181dd45803e707e81aadc45d5b4032cbba289f89a29cbcd625e7f6b982"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1720,
+      "sha256": "cddf669ce1feb3ccdd632ba4f9b689b520e2e040db059229989e11f62d52820f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1723,
+      "sha256": "4830af4aca93c6e68b23e2d7d87e71dc4af90ce414ce5fbca4e11c05235089db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1715,
+      "sha256": "a2ded945c06f5d0cda26e230d72e595c4d32837b2c8aab88f26496330a42ecb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1721,
+      "sha256": "056bcf9ad387c8e69aeafb73ca3bd3b874e5beb882b407e63dcafdfeaa738ed1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\test_pilot.py": {
+      "type": "file",
+      "bytes": 2528,
+      "sha256": "3378aeb51ad48e1ee791d2cc22868f72176a7857bfc87c4650f296a9665f613f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\tmpx64x5q0g": {
+      "type": "file",
+      "bytes": 8266,
+      "sha256": "c485b80f521cfd80ce6529e37bcce26bcd5fac7e8e81d5d89c50bc352e727622"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1725,
+      "sha256": "03602369ebbf5b874c62e90ad9d151ec532415aeef134849521106bcefdc7d2d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1728,
+      "sha256": "49297c9b3fd8056beb3acde813a8bf0efa05dbea4e21dc4d63b9519fd40bb65f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1723,
+      "sha256": "f90bab93c99ce838784b5fcae6cdd9fc04c2b0177efe845dc6b3bad41ef0d4c5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1727,
+      "sha256": "f1a2e830a17fee8f8bf7953a0190ba2d318096af289559e31e66b2b8c1e35aee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1723,
+      "sha256": "137179697baabf8b49ab8d42395e4f1af0426656295a6968f8c122670675c9ee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\treatment_stdout.log": {
+      "type": "file",
+      "bytes": 36867,
+      "sha256": "35a519fae1b6b15e3cec83d5f9bd96e0910370742e6d9ca65d6404d56ca383e1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 11235,
+      "sha256": "955b9b616f30c80f4c9cd68de2a21cf653c66c4892266639e984f0dd47b6b66a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\run_pilot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 35156,
+      "sha256": "827418053ed44cfb5a326e5a6289bb0ae1a2f656a10cfd5b742c27d782a4f8f7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 12805,
+      "sha256": "daa43aba91621fa40bb7eb5638be666ad696c1483a928a1da131f24de652846f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 5405,
+      "sha256": "06ec31b3b3738a61670769094dba8fabdaccb4ac1c194cee65c17dcc3d44e2aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147225,
+      "sha256": "b87b3f6d61a65e0a9dad7ca4dc6a142341438aeb5f2a66a0ce328a2e7c302b58"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1680,
+      "sha256": "5e84ba457e42d6e329431daa143e7fba03f11bd283da2075b929b0d9d5a21e82"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1138524,
+      "sha256": "25153b859d7df75bfc0a3d3c71d4b359207f70ea5faddac0de1c0766d5aabdbb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1680,
+      "sha256": "8af5499d2b1a9ab125f7e025c7004eb5755b114083863ccc7c2123618a200437"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145355,
+      "sha256": "b059909ddb0d0dc08e433ca575f599a2dc26f75ab470b7f2d07c7151626328fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1679,
+      "sha256": "44b66950241e8be085a84776feccb04ec0eed80231a44700e4377cea500c7c68"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148569,
+      "sha256": "853cb357cabefe1aad94251e2eb40ec9b12192d1db722813cf5a126e3d0c51d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1679,
+      "sha256": "4ddb836f63a942a19a5e7782d95bfc3879dad88ef2a1e87bbdc38af9c73a0017"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148969,
+      "sha256": "53fdaf27472541f76e927bd67202e592b4e077f030664bd0dbc68f07e1b67a6c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\control_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "64c12b32c958212c9e620bad12ecc321a76a123748e8ac559415c79058817cfe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148285,
+      "sha256": "d4b5b48c8f2665287e1e8f8c53d09537472ce7eeeaf28e62915740819a548058"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1635,
+      "sha256": "475c9b8de903904bfb2d2b22c0f94ca7ac4407c77b081f2a471ad7a2e055c156"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139190,
+      "sha256": "d68499cf812275dfa82844423dae5d0584b5e04582adedc864a618c391fa51cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1677,
+      "sha256": "7670f7a9bf43f38f80cb6737880f4d12a87ba970e96d2234edcf11e5d36bc362"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146556,
+      "sha256": "29345f672f0158a79e83d5ca76370d2f338f272cf3f70a4f971b473356c84c63"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1680,
+      "sha256": "18f4d4decef7f3216386a7a7e6e881234f96119f3d40911ef9fe1290033e964b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149810,
+      "sha256": "4345334d35d1196b06a75542b77523a7635f927dc7b7b9ad0b3197de180eaf10"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1672,
+      "sha256": "5fb30aef2f7e4b465725b030d5c47029b065b69c164bf7b35f5ad5c669d7e0af"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150569,
+      "sha256": "37edfb508ff5652e0f71280428cd1792225bc3ac9f2478e532910b057488bac7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1678,
+      "sha256": "3f6d22949dafa78382b39241bb351083dc8ce3d262b097163450125bccf59a4f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148047,
+      "sha256": "93dd227da672130f9aa7a3e3544c56afafa250ef43ef01ceb32e8f73f9b7d2ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1682,
+      "sha256": "7268c360607977b48cf863af99d35b0c42dc31cd7020f344f0ebf793e2bc5a9f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1138973,
+      "sha256": "ada23350f3ac6f9330bc4a6e9f0c1046aa2b5a13e69080212edc16133348a68b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1685,
+      "sha256": "59e946f57ca342137f6269ba5fc76bd7f2a4b6649d503516feb6e72f4908e346"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146157,
+      "sha256": "c1b23c05c7303ee9f53afcf4dfd6e4d8add17227b737b07642d11750f3f16013"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1680,
+      "sha256": "6e913b4a06c3fc3760e7affad5c34978596575f732f515f162c181daa7fc7d85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149424,
+      "sha256": "d625c9beb20b4f42ac893225e82baa18c19de094eddc4540377ffa82a667a4da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1684,
+      "sha256": "ab70f683ad28f09c9b523fd0ef72e45a106e7497d7507aa81fbb7fc3f27181cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149953,
+      "sha256": "744042a775c4293e41663796df35aae86ff31cfacc6693143d9f276b6fabd52a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1680,
+      "sha256": "6a72da0aa6883bdb703f276df5645c97aea0e2438c6f11c4bdbbedea5f082d15"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 10049,
+      "sha256": "9685d35f83cb2f6c05938899e9c997d3b6c14b094aaac545f4a30b074100612c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1416045,
+      "sha256": "7e5b188a77aa04930963b8f3301aeb9268bad1d20f59acf72c9b3c92402dfdc7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\latest.pt": {
+      "type": "file",
+      "bytes": 199384688,
+      "sha256": "db0ba8443bd1ef45e43acc9b7f758921827c5066904e23b92a23d085e995c22c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\latest_train.log": {
+      "type": "file",
+      "bytes": 23833,
+      "sha256": "7b117f04b89dcec203260bfebe4789047f9387d2e9d6be319d4217695cda7816"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 146063,
+      "sha256": "2db60ab44402539759e14e77ec21aeb156a05a28f89f0be072a3e632749d4292"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59368,
+      "sha256": "b112549d4fb5d005ad089881e1f21ead0cb37e4f1c9c0dfe0cc246f687a45e5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\session_audit.json": {
+      "type": "file",
+      "bytes": 10049,
+      "sha256": "9685d35f83cb2f6c05938899e9c997d3b6c14b094aaac545f4a30b074100612c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 10078,
+      "sha256": "bd2ec9484bc4ee9334227c88538d10796263cc740b396a3d7447acae8446129c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1418936,
+      "sha256": "ee7e22d03143aed4757bdfffd9877e8173366d5b1d819d1aecaf59d4b95a76d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\latest.pt": {
+      "type": "file",
+      "bytes": 202394748,
+      "sha256": "43c9e44cd3c4a899496437ba18a5efcfe084ab00ff36e239271f5326bccbe45e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\latest_train.log": {
+      "type": "file",
+      "bytes": 23825,
+      "sha256": "973e24db781c7da2e5b99a8a51327af0ecf822254378a2a7db2dccb7c3ebcee5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 146144,
+      "sha256": "a67393a3f1884f9feb14c99367c6cfaa8750cae43174e2585c74031b80f74c1e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59511,
+      "sha256": "08d1b508b75e2dd26a6fed82b6ebe6b678164b56976cb08003628b594f335d8d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\session_audit.json": {
+      "type": "file",
+      "bytes": 10078,
+      "sha256": "bd2ec9484bc4ee9334227c88538d10796263cc740b396a3d7447acae8446129c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000004_hands000000016421.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "c84733862a5f5933c6873f3f4fe08ed625c395e82e5b95e000a5897213680b23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000008_hands000000032953.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "cf2997ea40c48a81a64dfa441a4b549487c0153e915abe12a7b0dcaa02eb4b0a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000012_hands000000049411.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "09f4ed4c5d5e9e0751e12f60dc56109c16e6dca0a6e59920b7615f379c16acc3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000016_hands000000065869.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "6c3c6e6ae892c0d77f0ab21725955ceaae396399d9787006a9262856dcb0a78e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000020_hands000000082361.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "e55f28cd96f023aef4bb61cfe7772466101ca19c661ef23abd94c56a3bbd11b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000024_hands000000098890.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "45a7d17401f71288b0a38d58efd74c9271cc54185db61738a1964da974499a2e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000028_hands000000115366.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "f16e32f89901c89117b80e670de4c9c76e5983ad5b070ec2606160ddfd9e2468"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000032_hands000000131977.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "65620c4fd4461b2e9f62adce3585a3cc749c129811d997c90df874880a493174"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000036_hands000000148458.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "cedb535c7d85e7de8af36bb21ed97e6b0e183d227141a368e548d9b84950882b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000040_hands000000164906.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "d7bdf3663669c0176b5788ad19ec3803fd1ab384a68c975e579b6876d569d1e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000044_hands000000181381.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "b6d5916ff049d4e77f05a33562aa9cad7e6365b92871af2ea91b8fa41b493001"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000048_hands000000197890.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "edb73a3085f8ca106444ab5d11344f1755b3bca4cb4461f70cc9b8ba0b21ed9c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000052_hands000000214377.pt": {
+      "type": "file",
+      "bytes": 199409694,
+      "sha256": "b034beff72492176b400823ab56aa6f32007ed6f440456f785c52c3acdc08f4f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000004_hands000000016568.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "2d343e57758bb892545cae536ce5dc6f25cb5dd8bf8e738fc3b67f4c3db27c7c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000008_hands000000033037.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "bf03a80edfa8694cc186375220d5c98ee13f9fd1dafcb18ce50be6aee9b70dba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000012_hands000000049488.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "d72e258fe63e3368c869f1b48188754ae699d627b1f6dbdff8b37732774d6d65"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000016_hands000000065935.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "38de6d3e3a288f1a2fe533f2ce3c9eb5db755cc415ab6b327dbdc8a200e19ed8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000020_hands000000082426.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "5adf60ccd00469de997670ab0efdf97727207ba65c676010371792b1f47938ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000024_hands000000098884.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "b050231119119cf933b7ba219cd2760ef768574710d8ff29a6e993ee4e0b9b0b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000028_hands000000115376.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "83a5d5b1b4d8cf3bee07d9fd46bdfe54d9f400532917d4be7395574395709b10"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000032_hands000000131893.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "0336bc75da297140cfa7259f9cba05c2a2749ce797b3d84a24011fb5e3c84f9e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000036_hands000000148435.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "a5f7fdddcafa8d9b0003595eca38c35a97b64db7276d30c44452d00e83a8a7c6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000040_hands000000164982.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "75eebe8b56ce43bdcddbfeac8f30eb41fdbe6558d3b6399e7b4540a30c462403"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000044_hands000000181411.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "0d23887886b1dded6c5e1c142390efd29b012e22d8f0d8f738536642713d1b03"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000048_hands000000197873.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "a4d13ee00e27e08c49ac80f02e62bb8ef2c9f37ef326ed95b818daa2c00285ad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000052_hands000000214407.pt": {
+      "type": "file",
+      "bytes": 202422246,
+      "sha256": "bec2d5437bd2578b320e269cc2236b8b9544e06487fb248ccc9d345528735d48"
+    },
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/failure.txt": {
+      "type": "file",
+      "bytes": 1166,
+      "sha256": "e04a1b8665fc0a0237e82d1fd1de4b984f92776cf9c8134d1cdb07e3d86c6406"
+    },
+    "research/experiments/v6-causal-tcn-matched-reward-pilot-20260831/execution.json": {
+      "type": "file",
+      "bytes": 9614,
+      "sha256": "f46c7ec2bb8178c3592d9468bc2a819b7a4a53d5cf2bfcc424e552884ea45e80"
+    }
+  }
+}

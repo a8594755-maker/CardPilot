@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-bbflop-counterfactual-moe-policy-wrapper-20260829",
+  "title": "bbflop_counterfactual_moe_policy_wrapper_20260829",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/bbflop_counterfactual_moe_policy_wrapper_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/bbflop_counterfactual_moe_policy_wrapper_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "On 512 frozen BB-flop states the pure-network wrapper reproduced the diagnostic MoE with zero greedy mismatches and 9.54e-7 maximum logit error; the public SB route reproduced source logits exactly. Two boundary tests pass.",
+    "conclusion": "Do not externally evaluate or claim strength for the rejected posterior32 MoE merely because its deployment topology is exact.",
+    "decision": "RETAIN_TOPOLOGY_ONLY_NO_POLICY_CLAIM",
+    "next_step": "A posterior128 MoE passes cross-seed, cross-opponent, heldout, tail and unsupported-action gates, then receives frozen compiled-policy identity and end-to-end inference parity."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

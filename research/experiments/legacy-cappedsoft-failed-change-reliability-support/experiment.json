@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-cappedsoft-failed-change-reliability-support",
+  "title": "cappedsoft_failed_change_reliability_support",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/cappedsoft_residual_training_support_disagreement64_c2_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/cappedsoft_residual_training_support_disagreement64_c2_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "On 64 exact disagreement states, 51.6% of seed4363 changes were negative and only 32.8% were nonnegative against all three opponents; worst-opponent mean was -0.832 +/-0.613 bb/state. Three residual seeds were unanimous on 87.5% of rows and on 27/33 negative rows. Exact 2048-state training support yielded nearest/action-legal AUC 0.649/0.681, with six missing action-legal support rows all negative and extreme BB/SB-flop novelty.",
+    "conclusion": "Do not use candidate-continuation conversion, optimizer-seed disagreement, sampling uncertainty alone, or a deployed distance/kNN gate as the primary repair.",
+    "decision": "REVISE_TO_CANDIDATE_DISTRIBUTION_DATA_AGGREGATION",
+    "next_step": "Aggregate all-legal counterfactual data on candidate-disagreement and missing legal-context support, then learn source preservation and action ranking into weights with cross-seed/cross-opponent/tail gates."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

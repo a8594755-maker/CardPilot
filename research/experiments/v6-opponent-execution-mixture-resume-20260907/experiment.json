@@ -1,0 +1,220 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-opponent-execution-mixture-resume-20260907",
+  "title": "Two-seed real-worker opponent mixture resume qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-07T12:16:02+00:00",
+  "updated_at": "2026-09-07T12:21:07+00:00",
+  "started_at": "2026-09-07T12:16:02+00:00",
+  "ended_at": "2026-09-07T12:21:07+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Qualified opponent execution mixture can run through real retained-parent PPO without resetting optimizer replay counters or hero execution.",
+  "material_change": "Two fixed additional16384 physical-hand resumes from current recent endpoints; mixture0.5 only and new managed attempt namespaces.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-opponent-execution-mixture-qualification-20260907",
+  "command": "python -B -u research/experiments/v6-opponent-execution-mixture-resume-20260907/run_smoke.py",
+  "commands": [
+    {
+      "command": "python -B -u research/experiments/v6-opponent-execution-mixture-resume-20260907/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T12:16:02+00:00"
+    },
+    {
+      "command": "python -B -u research/experiments/v6-opponent-execution-mixture-resume-20260907/run_smoke_v2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T12:16:34+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 13661429 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\latest.pt --seed 20263001 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed1_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.5",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T12:16:38+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 13657940 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\latest.pt --seed 20263003 --max-runtime-seconds 600 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-anchor-recent-two-seed-geometric-20260907\\seed3_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.5",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T12:18:03+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-opponent-execution-mixture-resume-20260907/review_smoke_v2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T12:21:07+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-opponent-execution-mixture-resume-20260907"
+    ],
+    "captured_at": "2026-09-07T12:16:02+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-opponent-execution-mixture-resume-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-opponent-execution-mixture-resume-20260907/source_manifest.json",
+    "source_manifest_sha256": "edb2e265ee26d7d9841f75cb0515ab67dcfa6846f64531741e4bc29cf665cc85",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 36079,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 305.0,
+    "training_hands": 36079,
+    "slumbot_hands": 0,
+    "new_transition_hands": 32998,
+    "new_no_decision_hands": 2387,
+    "residual_worker_tail_hands": 694,
+    "new_replay_rows": 58298,
+    "final_qualification_hands": 0
+  },
+  "metrics": {
+    "smoke_phase": "TRAINING_SEED3",
+    "smoke_complete": true,
+    "training_subprocess_wall_seconds": 154.8822709
+  },
+  "artifacts": [
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/protocol.md",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/code.patch",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/source_manifest.json",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/run_smoke_v2.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\smoke_result_v2.json",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/terminal_review.json",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/smoke_result_v2.json",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/review_smoke_v2.py",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed1_smoke_v2/mixture_runtime.json",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed1_smoke_v2/mixture_observation.json",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed3_smoke_v2/mixture_runtime.json",
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed3_smoke_v2/mixture_observation.json"
+  ],
+  "notes": [
+    "RTX4070 observed3percent utilization,2840MiB used,314GB disk free; no live AlphaHoldem Python owner before launch. Unrelated user processes preserved.",
+    "First controller exited during command construction: set_option rejects absent new mixture option. No train subprocess/process.json, managed attempt or new hand was created. Preserve seed1_smoke copied prefixes and smoke_ownership/input_contract. Corrected preparation uses run_smoke_v2.py and entirely separate seedN_smoke_v2 paths, appending the new option exactly once. This is pre-execution correction, not replay/retry of executed poker.",
+    "First preparation failed before training due to absent option replacement; original directories/contracts preserved. Corrected separate v2 attempts each ran once. Terminal reviewer uses at least one newly assigned snapshot: each four-update smoke creates a final snapshot after its final rollout, so the old selector-specific two-assigned-snapshot requirement is inapplicable. Actual mixture probabilities, legal masks and forward counts were independently checked. No full unique training-deck corpus or bitwise worker continuation claimed; mixture sidecar must be bound for future resumes."
+  ],
+  "result": {
+    "summary": "Both retained-seed real-worker mixture resumes passed: 36079 new physical hands,58298 replay rows,71320 actual opponent forward rows; full initial state and terminal evidence verified.",
+    "conclusion": "Mixture operates in real training with preserved optimizer replay counters and hero route; both four-update jobs exited cleanly. Mechanism qualification only, no strength result.",
+    "decision": "Proceed to a single matched two-seed mixture-versus-sampled training family with geometric checkpoints, keeping frozen parent and sidecar execution contracts explicit.",
+    "next_step": "Prepare fixed-dose two-seed matched control experiment from retained current recent parents; qualify zero-mixture binding and resume manifests before launch, then assess own-parent and multi-anchor curves."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/protocol.md": {
+      "type": "file",
+      "bytes": 1961,
+      "sha256": "3ddf3f58e5f477066bdb08dd172977f1fc037e33ecfe39753e4797129a2ed392"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 1183,
+      "sha256": "edb2e265ee26d7d9841f75cb0515ab67dcfa6846f64531741e4bc29cf665cc85"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/run_smoke_v2.py": {
+      "type": "file",
+      "bytes": 9432,
+      "sha256": "1858d7f9c77d28898e90cb8934912ecfc09c9725f5650aea549fa9e7b92b6322"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\command.json": {
+      "type": "file",
+      "bytes": 3557,
+      "sha256": "22397192695370b438b3a7a99eabbf12f5b95052dc59e8fe97d9e3cc64357f2b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\verification.json": {
+      "type": "file",
+      "bytes": 88485,
+      "sha256": "4b100ed1f0522f8fdf9628c5b70140e88597dc84dcd13fc464f87faa3efaee21"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed1_smoke_v2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 809,
+      "sha256": "1e80f21257562f943c67b1fa25b2a8d70cc67c0c0cffa0b0d6c95b5377c47a77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\command.json": {
+      "type": "file",
+      "bytes": 3557,
+      "sha256": "425dbbcf546ab095c27d0e279b635e2a03bf29bf5dd10e4d10d73c7fa68a85ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\verification.json": {
+      "type": "file",
+      "bytes": 88918,
+      "sha256": "8e78eaf4697e02e9f9302748b0f27a1849185c8d216318c4fe8854b2113132ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\seed3_smoke_v2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 809,
+      "sha256": "06e1529cdd8ecd54b0f9a8c4f5d39efa8ff8debe931d6958f5ef9244d12b6f1d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-resume-20260907\\smoke_result_v2.json": {
+      "type": "file",
+      "bytes": 199596,
+      "sha256": "ea08ad20bfc5a7789c1d660a6aca89f582711fdb3b6075ae427fae1183552149"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/terminal_review.json": {
+      "type": "file",
+      "bytes": 11427,
+      "sha256": "0d72db9efc0ec6ebd0006e8d9cc6edd8f76170918079e6fbe277266c798536c6"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/smoke_result_v2.json": {
+      "type": "file",
+      "bytes": 199596,
+      "sha256": "ea08ad20bfc5a7789c1d660a6aca89f582711fdb3b6075ae427fae1183552149"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/review_smoke_v2.py": {
+      "type": "file",
+      "bytes": 7803,
+      "sha256": "1a39e6e7c25c09c443314d7747d4f529a0e9e8739c67509076212f19199dc4e8"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed1_smoke_v2/mixture_runtime.json": {
+      "type": "file",
+      "bytes": 4258,
+      "sha256": "2a2fbf24c691ff51a37442626b9e40a7d632ce04c02dcd5d6c64f6216aaf92fa"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed1_smoke_v2/mixture_observation.json": {
+      "type": "file",
+      "bytes": 6036,
+      "sha256": "b676ba7b2c70545571c6eb7546537ee164634be9e93f1c74f43c3dd6dde520da"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed3_smoke_v2/mixture_runtime.json": {
+      "type": "file",
+      "bytes": 4258,
+      "sha256": "2f7b0ca948a3af9a0b4e8620fd474fca418e2fcc9020846546c227d523259d5d"
+    },
+    "research/experiments/v6-opponent-execution-mixture-resume-20260907/seed3_smoke_v2/mixture_observation.json": {
+      "type": "file",
+      "bytes": 3229,
+      "sha256": "d62868d3ca46586adb2378f47fe0aa44475b588d0fa0980bd15bcc96374c601f"
+    }
+  }
+}

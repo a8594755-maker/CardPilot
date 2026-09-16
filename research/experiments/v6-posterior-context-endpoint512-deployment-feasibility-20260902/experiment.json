@@ -1,0 +1,149 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-posterior-context-endpoint512-deployment-feasibility-20260902",
+  "title": "Posterior-context endpoint512 frozen deployment feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T09:41:19+00:00",
+  "updated_at": "2026-09-02T09:42:59+00:00",
+  "started_at": "2026-09-02T09:41:19+00:00",
+  "ended_at": "2026-09-02T09:42:59+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The selected seed2 endpoint512 residual can be packaged with its frozen classifier and hash-bound Standard10 base, reproduce reliability-shrunk source logits exactly, preserve exact Standard10 behavior at zero context, and maintain independent 64-hand cold-start context state in durable journaled sessions.",
+  "material_change": "Add a hash-bound contextual deployment bundle and public terminal-history session tracker; do not alter learned tensors, cold-start length 64, or fixed entropy reliability power 1.",
+  "baseline": "Standard10 greedy is used exactly for the first 64 hands of every new session; posterior-context seed2 endpoint512 activates only afterward.",
+  "source": "research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run/seed2_endpoint512.pt",
+  "parent_id": "v6-posterior-context-128to512-three-seed-curve-20260902",
+  "command": "python scripts/alpha_holdem/v6_contextual_deployment_feasibility.py --source-checkpoint research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run/seed2_endpoint512.pt --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --states 512 --session-hands 70 --seed 2026090207 --out-dir research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_contextual_deployment_feasibility.py --source-checkpoint research/experiments/v6-posterior-context-128to512-three-seed-curve-20260902/run/seed2_endpoint512.pt --base-checkpoint models/baseline/standard10/latest.pt --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --states 512 --session-hands 70 --seed 2026090207 --out-dir research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:41:19+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T09:42:59+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "ee72d9a47ed46980fcb0ccc62339647b1b9e476c858d4f814894421b95f0ef06",
+    "code_paths": [
+      "scripts/alpha_holdem/contextual_execution_v6.py",
+      "scripts/alpha_holdem/play_slumbot_v6_journaled.py",
+      "scripts/alpha_holdem/v6_contextual_deployment_feasibility.py",
+      "scripts/alpha_holdem/test_contextual_execution_v6.py"
+    ],
+    "captured_at": "2026-09-02T09:41:19+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/source_manifest.json",
+    "source_manifest_sha256": "87f12d70a82efd34440572fadc94c54a1f92c3f4d71915436101e433b84b8422",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 140,
+    "wall_time_seconds": 100.0,
+    "training_hands": 0
+  },
+  "metrics": {
+    "parity_states": 512,
+    "source_bundle_max_logit_error": 0,
+    "zero_context_max_logit_error": 0,
+    "offline_sessions": 2,
+    "full_tests_passed": 294
+  },
+  "artifacts": [
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/code.patch",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/source_manifest.json",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/summary.json",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/posterior_context_endpoint512_seed2_deployment.pt",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_1/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_1/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_2/hands.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_2/journal.jsonl",
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/tests.xml"
+  ],
+  "notes": [
+    "Offline feasibility only; planned fixture evaluation=140 hands. Fresh Slumbot is not authorized by this record unless every deployment gate passes."
+  ],
+  "result": {
+    "summary": "Hash-bound deployment bundle d5cda4c7 exactly reproduced the reliability-shrunk seed2 endpoint512 source on 512 reachable states and exactly recovered Standard10 logits at zero context. Two independent 70-hand offline journal sessions completed with 527 decisions: all first-64-hand decisions used cold-start Standard10, both crossed into contextual execution on hand65, both began from the identical zero-count hash, and their final count hashes differed. Full suite: 294 passed.",
+    "conclusion": "The learned tensors and fixed reliability policy are deployable without conversion drift. Public terminal histories support durable, session-local opponent context; the 64-hand cold-start boundary and context carry are evidenced per hand. This is deployment validity only, not a strength result.",
+    "decision": "ADMIT_ENDPOINT512_SEED2_CONTEXTUAL_GREEDY_FRESH5K_DIRECTIONAL_GATE",
+    "next_step": "Create a separate fresh Slumbot 8x625 greedy experiment using deployment SHA d5cda4c7, 64-hand Standard10 cold start per independent session, raw-hand CI, session-independence audit, and exact contextual replay before any larger external allocation."
+  },
+  "tags": [
+    "deployment",
+    "offline",
+    "posterior-context"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 861,
+      "sha256": "87f12d70a82efd34440572fadc94c54a1f92c3f4d71915436101e433b84b8422"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 4355,
+      "sha256": "d8f9d3251a7a6cfaa70cc77e99628f5605ccd614341ee96f3a6a8522d27ef60f"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/posterior_context_endpoint512_seed2_deployment.pt": {
+      "type": "file",
+      "bytes": 481238,
+      "sha256": "d5cda4c74e2745f73a4b2290798606fdd00aa827c681f563adf7be534bc857d2"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_1/hands.jsonl": {
+      "type": "file",
+      "bytes": 557420,
+      "sha256": "53111dfb9bf86e11f688a5e97469d33fed4b91bc7dab6bf08039c116ef93a7d3"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_1/journal.jsonl": {
+      "type": "file",
+      "bytes": 875739,
+      "sha256": "847ed56867619218019f76e672e68aae388cec11bc8ca8255921b53fb497ca05"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_2/hands.jsonl": {
+      "type": "file",
+      "bytes": 594681,
+      "sha256": "33cb5c3033569c7d744ea97472ced9d687871347b7ada476df614203bf40436e"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/run/mock_session_2/journal.jsonl": {
+      "type": "file",
+      "bytes": 930017,
+      "sha256": "675d382d76edfd70f0f3add7e7ca0385fa4f13fe0ad8e0f8a6a48c88b174339a"
+    },
+    "research/experiments/v6-posterior-context-endpoint512-deployment-feasibility-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 44556,
+      "sha256": "1571bd749c2f879a7e7bbe84fa40b1bcc538ed116f9a939ddee08a948805f0c3"
+    }
+  }
+}

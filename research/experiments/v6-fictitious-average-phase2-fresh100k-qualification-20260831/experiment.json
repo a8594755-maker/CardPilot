@@ -1,0 +1,126 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-fictitious-average-phase2-fresh100k-qualification-20260831",
+  "title": "Conditional exact phase2 average fresh100k qualification",
+  "status": "STOPPED",
+  "created_at": "2026-08-31T20:07:39+00:00",
+  "updated_at": "2026-08-31T20:29:05+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-31T20:16:22+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The unchanged phase2 average may satisfy the original100k goal if an independent20k pilot first supports allocating confirmation.",
+  "material_change": "Preregister exactly8fresh12500hand sessions of c60dfc88, no pilot pooling or optional extension; full evidence plus raw/sessionCI required.",
+  "baseline": "",
+  "source": "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/preregistration.md",
+  "parent_id": "v6-fictitious-average-phase2-fresh20k-slumbot-20260831",
+  "command": "python -m pytest research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/test_qualification.py -q --junitxml=research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/preparation_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/test_qualification.py -q --junitxml=research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/preparation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:07:39+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/qualification_stats.py research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/test_qualification.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:08:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831"
+    ],
+    "captured_at": "2026-08-31T20:07:39+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/source_manifest.json",
+    "source_manifest_sha256": "d9026f163a5e846a67918000eacc018325758b2d57100ae09792855db90f52fb",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 0,
+    "slumbot_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/preregistration.md",
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/code.patch",
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/source_manifest.json",
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/preparation_tests.xml",
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/qualification_stats.py",
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/test_qualification.py",
+    "research/experiments/v6-fictitious-average-phase2-fresh20k-slumbot-20260831/reviewed_analysis.json"
+  ],
+  "notes": [
+    "Conditional protocol/statistics preparation only while8pilot sessionsRUNNING. No interimreturns inspected, no launcher/execution/network/modelquery/newhands. Require terminalpositive parentreview before any qualificationimplementation/admission; sameexactepoch08 only.",
+    "18offline tests PASS and py_compile PASS. Exactly100k requirement rejects20k/partial/extended cohorts, preserves200bb chipbound, and separates positivepoint/rawCI/sessionCI from full evidence validity. Still PLANNED with no launcher/execution,network,modelqueries or physicalhands; parentinterimreturns not inspected.",
+    "Explicit qualificationexecution walltime=0seconds: thisconditional record never launched a qualificationprocess or session and has0hands. Offlinepreparation test duration remains in preparation_tests.xml;zero here does not claim preparation consumed no time. STOPPED after independentlynegativeparent, originalstart-null/stop timestamps preserved."
+  ],
+  "result": {
+    "summary": "Conditional100k not admitted: completed fixed20k parent point-182.1045bb/100, both CIs entirelynegative. Zero qualification hands.",
+    "conclusion": "Prospective qualification/statistics contract passed18offline tests, but parentallocation condition failed. Preserve preparation and all parentevidence; no100k launch, extension, pooling or checkpointrescue.",
+    "decision": "PARENT_PILOT_NOT_POSITIVE_NO_QUALIFICATION",
+    "next_step": "Diagnose teacher-mixture versus learned-average behavior using preserveddata, before choosing another learned-weight experiment."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4274,
+      "sha256": "0bf6db5d961b6e9850dac0a21567a493aa74662f758f539bac1cd18d46e517bb"
+    },
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1050,
+      "sha256": "d9026f163a5e846a67918000eacc018325758b2d57100ae09792855db90f52fb"
+    },
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/preparation_tests.xml": {
+      "type": "file",
+      "bytes": 3545,
+      "sha256": "6d9eb41f18d39c44514200ce5589adbed48430b218f29b50ccaf8e898f6588c6"
+    },
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/qualification_stats.py": {
+      "type": "file",
+      "bytes": 1916,
+      "sha256": "be30f535247ae47be4ccf15dd5e2c01806db5448fea51194290d7fdcd2ad291d"
+    },
+    "research/experiments/v6-fictitious-average-phase2-fresh100k-qualification-20260831/test_qualification.py": {
+      "type": "file",
+      "bytes": 2466,
+      "sha256": "b4fafcd7d0c0b3a735fbc61684d5cc8f490c1673189c0208a04424a65713072d"
+    },
+    "research/experiments/v6-fictitious-average-phase2-fresh20k-slumbot-20260831/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 4019,
+      "sha256": "7bfa2ac10f555fc0585c3ab6e4375c8db9fce50806351645214a948542153b3b"
+    }
+  }
+}

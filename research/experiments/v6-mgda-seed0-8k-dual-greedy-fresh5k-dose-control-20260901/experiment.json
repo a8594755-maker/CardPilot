@@ -1,0 +1,313 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901",
+  "title": "Frozen MGDA seed0 8k dual-contract external dose control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T19:04:34+00:00",
+  "updated_at": "2026-09-01T19:10:08+00:00",
+  "started_at": "2026-09-01T19:04:34+00:00",
+  "ended_at": "2026-09-01T19:10:08+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The seed0 8k parent will outperform its 12k child on fresh Slumbot, indicating that the internally positive final 4k continuation reversed external performance rather than the entire bounded-residual route lacking transfer.",
+  "material_change": "Evaluate exact 8k deployment SHA 7a81e5c3 with base SHA 91b0c587 for eight independent fresh 625-hand greedy journaled sessions, then compare raw independent-sample 8k and 12k results and CIs. No retry, replacement, or additional training.",
+  "baseline": "Exact seed0 12k fresh5k: -54.53 bb/100 CI[-92.619,-16.441]. Historical Standard10 fresh20k: -11.4275 CI[-28.7124,5.8574]. Internal 12k-minus-8k slope was +21.758 CI[4.759,38.758].",
+  "source": "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/dual_contract_seed0_8k_deployment.pt",
+  "parent_id": "v6-mgda-seed0-8k-dual-deployment-feasibility-20260901",
+  "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/alpha_holdem/bench_dual_contract_slumbot.ps1 -ModelPath research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/dual_contract_seed0_8k_deployment.pt -BaseModel models/baseline/standard10/latest.pt -OutDir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions -SessionPrefix mgda8k_20260901 -HandsPerSession 625 -Sessions 8 -SeedBase 2026092200 -LaunchStaggerSeconds 1 -PythonExe C:/Users/a8594/AppData/Local/Programs/Python/Python312/python.exe",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/alpha_holdem/bench_dual_contract_slumbot.ps1 -ModelPath research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/dual_contract_seed0_8k_deployment.pt -BaseModel models/baseline/standard10/latest.pt -OutDir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions -SessionPrefix mgda8k_20260901 -HandsPerSession 625 -Sessions 8 -SeedBase 2026092200 -LaunchStaggerSeconds 1 -PythonExe C:/Users/a8594/AppData/Local/Programs/Python/Python312/python.exe",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:04:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/summarize_journaled_slumbot_gate.py --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s01 --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s02 --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s03 --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s04 --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s05 --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s06 --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s07 --session-dir research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s08 --out-json research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/gate_summary.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:10:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/compare_journaled_slumbot_samples.py --earlier-root research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions --later-root research/experiments/v6-mgda-seed0-12k-dual-greedy-fresh5k-20260901/sessions --out-json research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/dose_comparison.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:10:08+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:10:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5a066079f9ba5ab3b2a86422e70336231f07139cd891f3b432479fcdafa1502b",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T19:04:34+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "41b47237c573562f03619845acfb1686f2412eee074778017601e6def4265c21",
+    "source_files": 144
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 8192,
+    "offline_samples": 0,
+    "evaluation_hands": 5000,
+    "wall_time_seconds": 334.0,
+    "slumbot_hands": 5000,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 5000
+  },
+  "metrics": {
+    "bb_per_100": -34.42,
+    "ci95_low_bb_per_100": -76.93211276137002,
+    "ci95_high_bb_per_100": 8.092112761370013,
+    "seat0_bb_per_100": -26.497603833865814,
+    "seat1_bb_per_100": -42.36778846153847,
+    "later12k_minus_earlier8k_bb_per_100": -20.11,
+    "dose_delta_ci95_low_bb_per_100": -77.1895300476568,
+    "dose_delta_ci95_high_bb_per_100": 36.969530047656804,
+    "decision_replays": 15053,
+    "request_count": 20053,
+    "sessions": 8,
+    "tests_passed": 241
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/code.patch",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/ci_summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/session_audit.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/session_independence.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/gate_summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/dose_comparison.json",
+    "scripts/alpha_holdem/compare_journaled_slumbot_samples.py",
+    "scripts/alpha_holdem/test_compare_journaled_slumbot_samples.py",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s01/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s01/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s01/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s02/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s02/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s02/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s03/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s03/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s03/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s04/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s04/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s04/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s05/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s05/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s05/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s06/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s06/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s06/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s07/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s07/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s07/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s08/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s08/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s08/summary.json"
+  ],
+  "notes": [
+    "Primary diagnostic is independent 12k-minus-8k bb/100 with a raw normal CI from all 10,000 hands. Call external dose reversal clear only if that CI upper bound is below zero. Downgrade the bounded-residual route if both 8k and 12k raw upper CIs are below the Standard10 point estimate. Otherwise treat point-order evidence as suggestive and prioritize multi-seed or greater precision."
+  ],
+  "result": {
+    "summary": "The exact 8k bundle completed eight independent fresh625 sessions (5,000 hands) at -34.42 bb/100 CI[-76.932,+8.092], with seats -26.498 and -42.368. All 15,053 decisions and 20,053 requests passed replay/evidence audits. Relative to the independent 12k fresh5k, 12k-minus-8k was -20.11 bb/100 CI[-77.190,+36.970], opposite the internal +21.758 slope but not statistically resolved. Full suite: 241 passed.",
+    "conclusion": "The external point curve reverses the internally positive 8k-to-12k curve, but independent-sample uncertainty is too wide to call a clear dose reversal. The preregistered route-downgrade condition also failed because the 8k upper CI exceeds both zero and the Standard10 point. Six-objective MGDA remains a real training mechanism whose current internal evaluation is not a reliable promotion proxy.",
+    "decision": "HOLD_MGDA_EXTERNAL_DOSE_DIRECTION_PENDING_MULTI_SEED",
+    "next_step": "Do not expand seed0 to 20k or increase its training dose. Obtain one independent-seed external checkpoint observation, preferably seed1 12k because it already has an exact frozen checkpoint and internally different seat behavior. Use it to distinguish seed-specific variance from route-level transfer failure; then either redesign the external-aligned training objective or resume geometric scaling only with a validated proxy."
+  },
+  "tags": [
+    "dose-control",
+    "dual-contract",
+    "external-evaluation",
+    "fresh5k",
+    "greedy"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 27011,
+      "sha256": "41b47237c573562f03619845acfb1686f2412eee074778017601e6def4265c21"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/ci_summary.json": {
+      "type": "file",
+      "bytes": 2046,
+      "sha256": "c7be10066278ec2f100f910de0a808d8775ab2fa31bd2782c5ed9a54895a7a68"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/session_audit.json": {
+      "type": "file",
+      "bytes": 9540,
+      "sha256": "c6918ebb6dd7622d84a3af251fe6065d4aba24a99336ab58e80b9355e4eea26a"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/session_independence.json": {
+      "type": "file",
+      "bytes": 10569,
+      "sha256": "facf2ec754f93ffb7e4324759eb9f30b6798702d8f8bc9e384c78d9e5b6d024a"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/gate_summary.json": {
+      "type": "file",
+      "bytes": 10947,
+      "sha256": "04322a45bb65e49fe2ccdc95a7e7e59bdc669e14565c803d2523a306d4c718e8"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/dose_comparison.json": {
+      "type": "file",
+      "bytes": 1448,
+      "sha256": "e7fdaee15f47a18077007b04708b7a1571d43f94bb82e61b21ac90694c45bb7d"
+    },
+    "scripts/alpha_holdem/compare_journaled_slumbot_samples.py": {
+      "type": "file",
+      "bytes": 3894,
+      "sha256": "af2c7d2f8e11a52606a341ea453b345586402461696e47a8bad345ebb5799425"
+    },
+    "scripts/alpha_holdem/test_compare_journaled_slumbot_samples.py": {
+      "type": "file",
+      "bytes": 411,
+      "sha256": "85fe864556ac92d46b5783ec911af19531d3219627411449a4857e9eb8d2bdbe"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s01/journal.jsonl": {
+      "type": "file",
+      "bytes": 5830652,
+      "sha256": "9dddf0ac0fc9221faadbbc50ea4c5f42b303c5c1998f8b2777a80ee48406c402"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s01/hands.jsonl": {
+      "type": "file",
+      "bytes": 3526585,
+      "sha256": "b87b2a22da1a0993b5db40cbc7bd76d50568ea176858e215bcb1f02873743e2c"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s01/summary.json": {
+      "type": "file",
+      "bytes": 5184,
+      "sha256": "6f1511ae189c4a57c52772a3845392e686d5788e21b32600e90b7eb76243cba9"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s02/journal.jsonl": {
+      "type": "file",
+      "bytes": 5815232,
+      "sha256": "a7d2d99ceb6c0391cf775e5f30660b6998895d053153952c31bc52eb59f369ad"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s02/hands.jsonl": {
+      "type": "file",
+      "bytes": 3519794,
+      "sha256": "6b8ab7341e3ea06862ef9ec290678f209b9ca0dc4cd859a3edb2985cffb3b65c"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s02/summary.json": {
+      "type": "file",
+      "bytes": 5185,
+      "sha256": "5f7fe6ba6dd69da3f36f7fc293663e4824185a4941314f2ce26ac1fb3e08fa44"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s03/journal.jsonl": {
+      "type": "file",
+      "bytes": 5591277,
+      "sha256": "4f6af5398cdc16760c89f324eb5d9dafd2b99725ee60473a421e4155f631ad2c"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s03/hands.jsonl": {
+      "type": "file",
+      "bytes": 3396642,
+      "sha256": "f846d270da17dfef13d2b39edef5a174626fb74b6240ed546a396e2122f30c78"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s03/summary.json": {
+      "type": "file",
+      "bytes": 5186,
+      "sha256": "671aab79334c09ea973983932d69b02ce5f7b2143e68b584bf1b5b6bad5ba456"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s04/journal.jsonl": {
+      "type": "file",
+      "bytes": 5695226,
+      "sha256": "b20fcb71e99d3977fc3b5450f97eccfa72326e385b2c0f5948cb30ce5184eeb1"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s04/hands.jsonl": {
+      "type": "file",
+      "bytes": 3453193,
+      "sha256": "bad5e98c6c02234a4a94744dd5a8daec1854abaa2601aa4d14bf5185a9012881"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s04/summary.json": {
+      "type": "file",
+      "bytes": 5185,
+      "sha256": "b16a34ccc6dcc6caf8830ba0e1bb5336ab6ae2b1a39b4199547c0c0528a66698"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s05/journal.jsonl": {
+      "type": "file",
+      "bytes": 5808320,
+      "sha256": "c8f381be8273cd94d7a4ab2fce03cd843e4f50b557e9ea5d8a3d60ba7ad04dd5"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s05/hands.jsonl": {
+      "type": "file",
+      "bytes": 3516779,
+      "sha256": "25cf611e870af5366f474e8e1154352005b4ff72f8a6945c968919ed8274d2bd"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s05/summary.json": {
+      "type": "file",
+      "bytes": 5186,
+      "sha256": "17f8d804eb8b500c2ec114cfcef255264bb3b5d82b46518772ca08133f05393d"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s06/journal.jsonl": {
+      "type": "file",
+      "bytes": 5617873,
+      "sha256": "55ae24af401f76afa288ec8ef1915cdc2d22fda566ab6a47edbedbe198a42634"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s06/hands.jsonl": {
+      "type": "file",
+      "bytes": 3410373,
+      "sha256": "91bebdf06f4f6438ad735326d394db2146c26b5a7d46d50d046c44653cb4d251"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s06/summary.json": {
+      "type": "file",
+      "bytes": 5185,
+      "sha256": "518c4af94a06b7edf37b2eb86443fa65d0036705594bb5afacabaa2f3edf1aad"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s07/journal.jsonl": {
+      "type": "file",
+      "bytes": 5581705,
+      "sha256": "bb6b4244506c955e483706334985ca564d34afd9d3895b3a3e6f4d365f3eb229"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s07/hands.jsonl": {
+      "type": "file",
+      "bytes": 3391034,
+      "sha256": "18f4ab334675104b5a28ca71ba25ccaa7c3cee1c2934343dc18be0f0e57a1fe1"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s07/summary.json": {
+      "type": "file",
+      "bytes": 5185,
+      "sha256": "45debec9240969517eac45d489fb4f69e56fd4e29256693be3a34289ef06b387"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s08/journal.jsonl": {
+      "type": "file",
+      "bytes": 5887593,
+      "sha256": "98ceb81614f1eed016b26ada71ba1b2d284351326f36e5ef79c67adda6b2ead2"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s08/hands.jsonl": {
+      "type": "file",
+      "bytes": 3557077,
+      "sha256": "52d5ca1a2f03b618889333aca4d0b0cd715efb61e2cfec1603ba2a2edd80cebf"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-greedy-fresh5k-dose-control-20260901/sessions/s08/summary.json": {
+      "type": "file",
+      "bytes": 5186,
+      "sha256": "7c0ff7b34f0badf43feb4d32c4dfc53e0cb7306108b8e0bfbc272a158b4781f8"
+    }
+  }
+}

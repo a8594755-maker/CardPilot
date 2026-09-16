@@ -1,0 +1,166 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-slumbot-loss-attribution-20260904",
+  "title": "Integrated 1M/2M Slumbot loss attribution with held-out solver proxy",
+  "status": "COMPLETED",
+  "created_at": "2026-09-04T05:39:48+00:00",
+  "updated_at": "2026-09-04T05:41:54+00:00",
+  "started_at": "2026-09-04T05:39:48+00:00",
+  "ended_at": "2026-09-04T05:41:54+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A small set of general hand/state classes explains a replicated share of the 1M and 2M external losses across independent sessions, and at least one such class also has elevated disagreement from high-confidence Standard10+CFR4 consensus on held-out matched final states.",
+  "material_change": "Zero-new-Slumbot hand-level discovery/confirmation attribution over the two audited 20k cohorts, followed by a label-free Standard10+CFR4 matched-state proxy gate; no learned weights or benchmark-specific rules are changed.",
+  "baseline": "Seed1 1M scored -21.7592 bb/100 CI95 [-44.2479,0.7295]; Seed1 2M scored -38.02 CI95 [-59.4244,-16.6156]. Prior outcome-blind replay rejected simple Standard10-distance attribution, and bounded public-objective MGDA failed untouched breadth translation.",
+  "source": "Audited raw hands from v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903 and v6-integrated-seed1-2m-greedy-fresh20k-slumbot-20260903 plus CPU-exact state replay from v6-integrated-1m-2m-slumbot-state-drift-20260903.",
+  "parent_id": "v6-static-current-kl-1m-scale-20260903",
+  "command": "python research/experiments/v6-integrated-slumbot-loss-attribution-20260904/analyze.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-integrated-slumbot-loss-attribution-20260904/analyze.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T05:39:48+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-integrated-slumbot-loss-attribution-20260904/sensitivity.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T05:41:54+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "c9b5480965e52d94239d7e867a5aed5841a1ff6ab9604e468a79a5da73da474a",
+    "code_paths": [
+      "research/experiments/v6-integrated-slumbot-loss-attribution-20260904"
+    ],
+    "captured_at": "2026-09-04T05:39:48+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/source_manifest.json",
+    "source_manifest_sha256": "f958f7093402813dae9c598274ec0413cc214a2402be8cf5d648e43577ae032b",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 162088,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 126.0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "reused_slumbot_hands": 40000,
+    "planned_offline_state_queries": 37967
+  },
+  "metrics": {
+    "reused_decision_states": 124121,
+    "cfr4_final_state_queries": 37967,
+    "discovery_nominees": 12,
+    "confirmed_classes": 10,
+    "supported_classes": 1,
+    "highpot_1m_confirm_hands": 625,
+    "highpot_1m_confirm_net_bb": -2065.84,
+    "highpot_1m_delta_bb100": -340.7104,
+    "highpot_2m_confirm_hands": 594,
+    "highpot_2m_confirm_net_bb": -3412,
+    "highpot_2m_delta_bb100": -571.71037,
+    "highpot_1m_teacher_uplift": 0.0445531452,
+    "highpot_2m_teacher_uplift": 0.0313114631
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/preregistration.md",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/analyze.py",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/test_analyze.py",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/code.patch",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/source_manifest.json",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/input_manifest.json",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/hand_attribution_raw.jsonl.gz",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/analysis.json",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/sensitivity.py",
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/sensitivity.json"
+  ],
+  "notes": [
+    "Sessions1-4 are discovery and sessions5-8 untouched confirmation in each corpus. Candidate classes are fixed in preregistration. Outcome tails are descriptive only; no Slumbot action or reward becomes a training target. Proxy support additionally requires elevated disagreement from high-confidence Standard10+CFR4 consensus in both confirmation corpora.",
+    "Post-hoc robustness, not used to change the preregistered decision: every leave-one-confirmation-session-out high-pot effect remained negative in both corpora. Approximate independent-binomial disagreement-uplift CIs were [+0.0267,+0.0624] at 1M and [+0.0151,+0.0475] at 2M.",
+    "The 39 high-confidence teacher-consensus disagreements in confirmed high-pot states were almost entirely on-policy all-in versus teacher check/call. Their observed outcome direction did not replicate: 1M had 24 hands net -70 bb, while 2M had 15 hands net +570 bb. This forbids interpreting the teacher action as a causal correction or using it as an action label."
+  ],
+  "result": {
+    "summary": "Across two independent 20k external cohorts, final-decision pots at least 30bb concentrated replicated losses and elevated high-confidence Standard10+CFR4 consensus disagreement. The preregistered class gate passed for this one class; all fold-related correlations failed the solver proxy.",
+    "conclusion": "Large-pot states are a credible general coverage/value-calibration risk class: their negative excess survives every leave-one-session-out check and the policy differs from two general teachers more often there. However the specific all-in-versus-check/call discrepancy has opposite observed outcomes across 1M and 2M, so no action reversal, Slumbot label imitation, or direct solver-teacher patch is justified. The result localizes where to test internal critic calibration, not what action to take.",
+    "decision": "ADMIT_GENERAL_HIGH_POT_VALUE_COVERAGE_AUDIT; NO_ACTION_LABEL_INTERVENTION",
+    "next_step": "On fresh internal matched deals across multiple general opponents and both seats, measure terminal-return critic calibration and policy regret proxies stratified by pot/exposure, with special emphasis on final pots at least30bb. Compare the retained static-current-KL 1M endpoints with their parents and Standard10; only train a general high-pot resampling or value-calibration intervention if the internal defect replicates independently of Slumbot outcomes."
+  },
+  "tags": [
+    "attribution",
+    "no-new-slumbot",
+    "slumbot-existing-evidence",
+    "solver-proxy"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/preregistration.md": {
+      "type": "file",
+      "bytes": 3883,
+      "sha256": "5b2b734393f078fb9c58507ef40f82c6ff96a6bcf2cb68891fafe986a278bb47"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/analyze.py": {
+      "type": "file",
+      "bytes": 20412,
+      "sha256": "0bee28caf23e0cb0bf354b1b2c2f585551a2e29700127c03ad9f96413f8816d7"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/test_analyze.py": {
+      "type": "file",
+      "bytes": 1761,
+      "sha256": "b5492db029c4783546b01fc787f908ac2a1976b09d40bf66b000598bdaae7cbe"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/source_manifest.json": {
+      "type": "file",
+      "bytes": 977,
+      "sha256": "f958f7093402813dae9c598274ec0413cc214a2402be8cf5d648e43577ae032b"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/input_manifest.json": {
+      "type": "file",
+      "bytes": 6280,
+      "sha256": "5bfe371d3f6798f1893e4ec464491edd27c4d3d9c3e2106d70e82b1604972f68"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/hand_attribution_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 1353111,
+      "sha256": "e8883263d363365a02a62b37b847def062d763222e8c8f49582e9b2da24c424b"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/analysis.json": {
+      "type": "file",
+      "bytes": 130621,
+      "sha256": "e2b4b6180c110040fb7f594c7b892774d757cfde4499b2c5a9e7c15508cfbd0b"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/sensitivity.py": {
+      "type": "file",
+      "bytes": 4176,
+      "sha256": "5fc62e50be62f941605da0ad3e379035c2b8189cbb4ea6781ce081a9f1d1b9fd"
+    },
+    "research/experiments/v6-integrated-slumbot-loss-attribution-20260904/sensitivity.json": {
+      "type": "file",
+      "bytes": 9720,
+      "sha256": "a18927ce7ef2a56fdeb8a985adb9abd36258be13dff4dcb8c2cc6f238f3cf6c1"
+    }
+  }
+}

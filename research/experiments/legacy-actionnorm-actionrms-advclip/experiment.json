@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-actionnorm-actionrms-advclip",
+  "title": "actionnorm_actionrms_advclip",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "AGENTS.md#Current-State",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "AGENTS.md#Current-State"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "Action normalization prevented all-in collapse but the optimizer-continuous 10M curve fell to -1.1108 +/-0.5138 bb/100; action-RMS was -0.7568 +/-0.6840 at 650k; symmetric clipping removed useful state-dependent signal.",
+    "conclusion": "Do not extend these normalization-only methods with more hands or tune only the clip/RMS coefficient.",
+    "decision": "REJECT_UNCHANGED_NORMALIZATION_SCALE",
+    "next_step": "The advantage target gains genuine alternative-action evidence while preserving state-dependent ranking."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

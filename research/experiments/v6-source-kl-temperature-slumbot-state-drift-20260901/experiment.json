@@ -1,0 +1,156 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-kl-temperature-slumbot-state-drift-20260901",
+  "title": "Source-KL-temperature versus Standard10 Slumbot-state drift diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T07:46:52+00:00",
+  "updated_at": "2026-09-01T07:47:57+00:00",
+  "started_at": "2026-09-01T07:46:52+00:00",
+  "ended_at": "2026-09-01T07:47:57+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The catastrophic fresh5k transfer may be explained by concentrated greedy/action-distribution drift from rebound Standard10 on the treatment's own audited Slumbot states, despite small aggregate source KL and positive fixed-anchor scores.",
+  "material_change": "Outcome-blind replay of every audited treatment decision state through the frozen treatment and rebound Standard10 under the same v6 observation/action contract. Measure TV, bidirectional KL, greedy disagreement, slot mix, and street/seat partitions. Do not read outcomes into state rows; no network calls or new Slumbot hands.",
+  "baseline": "Frozen treatment fresh5k -142.7232 bb/100 CI[-200.6425,-84.8039], 0/8 positive; historical Standard10 greedy -11.4275. Internal treatment-control panel was +1.3412 CI[-10.0687,12.7510], showing proxy transfer failure.",
+  "source": "Treatment SHA9e156681... and rebound Standard10 anchor SHA944f5f66...; 5,000-hand parent audit PASS.",
+  "parent_id": "v6-source-kl-temperature-65k-greedy-fresh5k-slumbot-20260901",
+  "command": "python research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/run_diagnostic.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/run_diagnostic.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:46:52+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T07:47:27+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/run_diagnostic.py",
+      "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/review_finish.py"
+    ],
+    "captured_at": "2026-09-01T07:46:53+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/source_manifest.json",
+    "source_manifest_sha256": "55096b88dae1fa60d9b0962480cf42f56bb11542b75b9ec6bb047aca8b949b36",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 30156,
+    "wall_time_seconds": 65.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 17.65600000001723,
+    "states": 15078,
+    "overall_total_variation": 0.019753999515376403,
+    "overall_greedy_disagreement": 0.02487067250298448,
+    "largest_partition_tv": 0.029550693557747337
+  },
+  "artifacts": [
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/code.patch",
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\state_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\analysis.json",
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/reviewed_analysis.json",
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/result_summary.md"
+  ],
+  "notes": [
+    "This diagnoses policy behavior only. It cannot estimate counterfactual Standard10 value because states are treatment-on-policy and outcomes are excluded.",
+    "No outcomes, network calls, training hands, or new Slumbot hands were used; treatment-on-policy states cannot estimate counterfactual Standard10 value."
+  ],
+  "result": {
+    "summary": "Outcome-blind replay compared the frozen treatment and rebound Standard10 on all 15,078 audited treatment-policy Slumbot decision states.",
+    "conclusion": "No broad or concentrated distribution collapse was found: overall TV 0.019754 and greedy disagreement 2.487%; the largest supported street/seat partition was river BB with TV 0.029551 and disagreement 5.191%. The catastrophic fresh5k score therefore cannot be explained by large aggregate drift, though a small number of high-leverage argmax flips remains plausible.",
+    "decision": "NO_CONCENTRATED_POLICY_DRIFT",
+    "next_step": "Characterize the 375 treatment-versus-Standard10 greedy disagreements by public pot/effective-stack leverage and action-slot transition without using outcomes. If disagreements concentrate in high-stakes decisions, test a learned-weight risk-sensitive preservation objective; otherwise abandon this preservation family and revisit external-state-valid training data."
+  },
+  "tags": [
+    "diagnostic",
+    "outcome-blind",
+    "slumbot-states",
+    "source-kl",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 562,
+      "sha256": "55096b88dae1fa60d9b0962480cf42f56bb11542b75b9ec6bb047aca8b949b36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13896,
+      "sha256": "9de4a0120e6ba3c9785aa13b6c492adc45ac310e3f298ff31291ef5d4008406e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 456881,
+      "sha256": "9b041274829ef9b1727cc7dc60477a711ec84883200970756656921243a6c3c2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 24446,
+      "sha256": "022d2ded705ad686eaf7f2d50e1652dd4915eb20d3c21857f1506a70ddafac01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 2635,
+      "sha256": "24f939ae1f887e7073d01ff9f420e92bce0149463e17052d5028b0cb6e49fb83"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12159259,
+      "sha256": "7c85daf55ff1c5ba6f1fdc93227db2b98227987556ec55e4f769aadb1334a378"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-kl-temperature-slumbot-state-drift-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 18822,
+      "sha256": "8f5d30f457f1e32b9ff0a2c48fc2680cd42256bfd8fa89c7fc68731ff95a6231"
+    },
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 802,
+      "sha256": "4546a885ffed4faf9159e0e5b803daf9c937d79a84292189c76733a0019d19da"
+    },
+    "research/experiments/v6-source-kl-temperature-slumbot-state-drift-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 558,
+      "sha256": "f4ca9a2e80f2827368b181a8cbb4d0e8c97d0faae4264f565b6f8b68cfc89030"
+    }
+  }
+}

@@ -1,0 +1,345 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "native-rules-contract-repair-20260831",
+  "title": "Versioned native HUNL rules and policy contract repair",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T07:13:29+00:00",
+  "updated_at": "2026-08-31T07:32:48+00:00",
+  "started_at": "2026-08-31T07:13:29+00:00",
+  "ended_at": "2026-08-31T07:32:48+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An independently validated integer-chip versioned rules core and shared policy contract remove the five reproduced production discrepancies without changing legacy evidence.",
+  "material_change": "Introduce an explicit new environment and action-observation contract; validate directed boundaries and4096 seeded oracle trajectories before any new training.",
+  "baseline": "native-state-contract-audit-20260831",
+  "source": "scripts/alpha_holdem",
+  "parent_id": "native-state-contract-audit-20260831",
+  "command": "python -m pip download --no-deps --only-binary=:all: pokerkit==0.7.5 --dest research/experiments/native-rules-contract-repair-20260831/oracle_wheels",
+  "commands": [
+    {
+      "command": "python -m pip download --no-deps --only-binary=:all: pokerkit==0.7.5 --dest research/experiments/native-rules-contract-repair-20260831/oracle_wheels",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:13:29+00:00"
+    },
+    {
+      "command": "python -m pip install --no-index --no-deps --target research/experiments/native-rules-contract-repair-20260831/oracle_vendor --report research/experiments/native-rules-contract-repair-20260831/oracle_install_report.json research/experiments/native-rules-contract-repair-20260831/oracle_wheels/pokerkit-0.7.5-py3-none-any.whl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:19:47+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/native-rules-contract-repair-20260831/test_contract.py -q --junitxml=research/experiments/native-rules-contract-repair-20260831/dev_tests_01.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:19:47+00:00"
+    },
+    {
+      "command": "python research\\experiments\\native-rules-contract-repair-20260831\\run_validation.py --attempt core01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:21:37+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/native-rules-contract-repair-20260831/test_contract.py -q --junitxml=research/experiments/native-rules-contract-repair-20260831/dev_tests_02.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:22:10+00:00"
+    },
+    {
+      "command": "python research\\experiments\\native-rules-contract-repair-20260831\\run_validation.py --attempt final01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:31:02+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/native-rules-contract-repair-20260831/test_contract.py research/experiments/native-rules-contract-repair-20260831/test_integration.py -q --junitxml=research/experiments/native-rules-contract-repair-20260831/dev_tests_03.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:31:14+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/native-rules-contract-repair-20260831/test_contract.py research/experiments/native-rules-contract-repair-20260831/test_integration.py -q --junitxml=research/experiments/native-rules-contract-repair-20260831/dev_tests_04.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:31:14+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/native-rules-contract-repair-20260831/test_contract.py research/experiments/native-rules-contract-repair-20260831/test_integration.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_mirror_deals.py scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_slumbot_transport.py scripts/alpha_holdem/test_slumbot_ci_from_hands.py -q --junitxml=research/experiments/native-rules-contract-repair-20260831/dev_tests_05.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:31:14+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/policy_contract_v6.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:31:14+00:00"
+    },
+    {
+      "command": "python research/experiments/native-rules-contract-repair-20260831/review_and_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:32:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "b4a1f91840acaec8bfc295aa8ea67caa3b3f15b04c1474b55727b7820e88e756",
+    "code_paths": [
+      "research/experiments/native-rules-contract-repair-20260831/preregistration.md"
+    ],
+    "captured_at": "2026-08-31T07:13:29+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/native-rules-contract-repair-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/native-rules-contract-repair-20260831/source_manifest.json",
+    "source_manifest_sha256": "67abae582232d66d478456d1d231604796c9ff1f0e5ad12ffc7a7286b3bbbab3",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1159.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "core01_validation_hands": 4096,
+    "directed_tests_passed": 35,
+    "development_terminal_fixture_pairs": 13,
+    "final01_validation_hands": 4096,
+    "integration_and_regression_tests_passed": 88,
+    "final_validation_hands": 4096,
+    "checked_decisions": 34159,
+    "tests_passed": 88,
+    "executed_oracle_validation_hands": 8192,
+    "unique_fixed_validation_deals": 4096
+  },
+  "artifacts": [
+    "research/experiments/native-rules-contract-repair-20260831/preregistration.md",
+    "research/experiments/native-rules-contract-repair-20260831/code.patch",
+    "research/experiments/native-rules-contract-repair-20260831/source_manifest.json",
+    "research/experiments/native-rules-contract-repair-20260831/oracle_install_report.json",
+    "research/experiments/native-rules-contract-repair-20260831/oracle_wheels/pokerkit-0.7.5-py3-none-any.whl",
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_01.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\imports.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\oracle_source_hashes.json",
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_02.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\events.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\imports.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\oracle_source_hashes.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\tests_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\test_command.json",
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_03.xml",
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_04.xml",
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_05.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\review_and_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Legacy sources and completed evidence remain immutable. Dependency fetch is permitted; validation itself has zero network. Core-only pass does not admit training until adapter integration passes.",
+    "Development attempt01:23passed12failed, all failures at oracle board comparison after first flop. Investigating representation in independent harness; retained failed XML. No strength data or training generated.",
+    "core01: PASS; 4096/4096 seeded oracle validation hands, zero policy evaluation or training. Core-only evidence; integration remains required.",
+    "Attempt02:35/35 passed. Attempt01 failures were oracle card formatting (str(Card) is long human description); corrected comparison uses rank.value+suit.value. core01 PASS4096: import paths explicitly record original live files, all10 source/copy hashes matched before/after, not isolated-copy execution. Legacy engine/environment remain untouched; training integration still pending.",
+    "final01: PASS; 4096/4096 seeded oracle validation hands and34159decision checks, zero policy evaluation or training. This repeats the same fixed seed as core01, not independent strength evidence.",
+    "Attempt03 was collection error: test import path omitted train_v5 CLI sibling directory; no tests ran. After matching real CLI import paths, attempt04 passed44, attempt05 passed88 including existing accounting/replay/deal/transport/CI regression tests. Production trainer now supports explicitv6, while old environment/evaluator/client are preserved. v6 legacy rebinding requires new run identity and fresh optimizer/counters, excludes inherited pool and legacy replay. Old ELO tournament and unversioned offline replay fail closed.",
+    "Read-only raw-event/hand/source review passed. Only infrastructure readiness established; no actual optimizer update or live benchmark. Next work is a separately recorded v6 training smoke."
+  ],
+  "result": {
+    "summary": "Versioned integer-chip v6 passed88tests and4096fixed independent-oracle hands with34159per-decision contract checks; zero training or Slumbot.",
+    "conclusion": "The five reproduced discrepancies are repaired in explicitv6 execution paths. Legacy sources/results remain reproducible; positive learned strength is not established.",
+    "decision": "V6_CONTRACT_REPAIR_VALIDATED",
+    "next_step": "Preregister a bounded actual v6 training smoke, verify optimizer and physical counters, then establish corrected-contract baseline/learning curves without pooling legacy results."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/native-rules-contract-repair-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 3709,
+      "sha256": "0eac31d4e5428d18cac921aecfb0b06f89098d9584c0a9aab80eafc520dcbe78"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 322,
+      "sha256": "67abae582232d66d478456d1d231604796c9ff1f0e5ad12ffc7a7286b3bbbab3"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/oracle_install_report.json": {
+      "type": "file",
+      "bytes": 19763,
+      "sha256": "8f1a00b837ff8e38aebd9bfd9dd7da96a57429585216b292ecc1159eb06b1766"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/oracle_wheels/pokerkit-0.7.5-py3-none-any.whl": {
+      "type": "file",
+      "bytes": 113874,
+      "sha256": "3e1a0b2a8a9785369c86e2c1392dd2204ee536fbcbe77a779c875bd545eb63e8"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_01.xml": {
+      "type": "file",
+      "bytes": 35106,
+      "sha256": "1a4a4c4e7c7baff306cf1d09c656196e2448afcdae05738b44ca1cb55be511cb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\analysis.json": {
+      "type": "file",
+      "bytes": 874,
+      "sha256": "5ef194d7d23f5046e80838094aae31a99ee54311cd68f109f934555421f1684c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 1606098,
+      "sha256": "10e74b3432d5fb2791ab412d9815207ed986614afd21cb1880e374f26a5a45b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\events.jsonl": {
+      "type": "file",
+      "bytes": 2260634,
+      "sha256": "848ce76e74f81385504e03ef730f590d1a4ffa674c0e9f4455490c15c8e1d154"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1966,
+      "sha256": "4a0ace749d85820d802f4fe957cf878d81d465803a75ae90662fd936620edbf3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 3263,
+      "sha256": "85bfe687bb873428e556a5e9f15e28181faed6510ec5bf5b49bfe010f69f1175"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\imports.json": {
+      "type": "file",
+      "bytes": 468,
+      "sha256": "541bd88bdf898ed58f282f048c3f2457f29a170f2074376757ea8afc155694d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\core01\\oracle_source_hashes.json": {
+      "type": "file",
+      "bytes": 868,
+      "sha256": "f67c65686db5aea34264cd7e6310a65f5a40d287839ab65c419714527178371b"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_02.xml": {
+      "type": "file",
+      "bytes": 5555,
+      "sha256": "4d65c73b2e63ee1e8b0a456713c2f1fb21d8b169e24d67a1ad13ae95f91f6080"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\analysis.json": {
+      "type": "file",
+      "bytes": 981,
+      "sha256": "f95a334824cb9221ba470fdb4ede77ee3bc6367cea52eec98346962af28f07d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 1966088,
+      "sha256": "727151d6a30fac0bcf4321b432084883c027f7204fc3383a087be27c9bcfb604"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\events.jsonl": {
+      "type": "file",
+      "bytes": 2260634,
+      "sha256": "848ce76e74f81385504e03ef730f590d1a4ffa674c0e9f4455490c15c8e1d154"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13155,
+      "sha256": "ba1d859a6d1eb01b9e65ea275cf2defdb85b82263ddedfc55f26c650146b02cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22917,
+      "sha256": "e0b67bad6d670d8393fddd714ddd8c5bc0495d72f76f071f7d1cea404b69aff7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\imports.json": {
+      "type": "file",
+      "bytes": 468,
+      "sha256": "541bd88bdf898ed58f282f048c3f2457f29a170f2074376757ea8afc155694d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\oracle_source_hashes.json": {
+      "type": "file",
+      "bytes": 868,
+      "sha256": "f67c65686db5aea34264cd7e6310a65f5a40d287839ab65c419714527178371b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\tests.xml": {
+      "type": "file",
+      "bytes": 13473,
+      "sha256": "e8438deb3691a6efcc560bae0a1fb320513e2c10b6dd73d64cdb024b54463029"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\tests_stdout.log": {
+      "type": "file",
+      "bytes": 309,
+      "sha256": "0394c04c35baa622970b2659676423da7f01f1abdd6c88bd331a98bd22b75679"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\final01\\test_command.json": {
+      "type": "file",
+      "bytes": 910,
+      "sha256": "527f11a36e08b4d51a4cae43ed828c982da6ec48a8eb6caafd746675eda46c46"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_03.xml": {
+      "type": "file",
+      "bytes": 1110,
+      "sha256": "c3ea787a764222b212e98337b2c347a6861f7ded2e9a48e6573fc7a8ff282438"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_04.xml": {
+      "type": "file",
+      "bytes": 7052,
+      "sha256": "8cb0c4d653e943a39bc220090ce6ecd5d48f7c93e9bc3cb0f7c8279ac773f403"
+    },
+    "research/experiments/native-rules-contract-repair-20260831/dev_tests_05.xml": {
+      "type": "file",
+      "bytes": 13473,
+      "sha256": "1c496b984500f91c9405932dd16c93e017d7d3885e1bf70fa7f2c4199d144717"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\review_and_finish.py": {
+      "type": "file",
+      "bytes": 8735,
+      "sha256": "876af0317207f4f737b22caabece4bea4f6eae28a0b59db59e7d5d9f447ed55d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1931,
+      "sha256": "c6454d85a82e083c062b7e8a01044652033f62976c275acd09fa9ee373a0f484"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\native-rules-contract-repair-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1450,
+      "sha256": "60ad6b14dcbd59f29437e2865b1e27f840431984b2f8ec2c024468d8b5ad042f"
+    }
+  }
+}

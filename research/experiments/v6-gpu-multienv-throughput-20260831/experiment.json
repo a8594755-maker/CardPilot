@@ -1,0 +1,412 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-gpu-multienv-throughput-20260831",
+  "title": "Corrected-v6 real-GPU multi-environment throughput qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T10:58:37+00:00",
+  "updated_at": "2026-08-31T11:10:06+00:00",
+  "started_at": "2026-08-31T10:58:37+00:00",
+  "ended_at": "2026-08-31T11:10:06+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Multi-environment workers improve physical training throughput while preserving whole-hand stream, numerical and accounting health.",
+  "material_change": "Three fixed fresh-start 32768physical-hand arms:12workers with single1,multi4,multi8; same PPO regimen and seed; no strength promotion.",
+  "baseline": "v6-full-network-learning-curve-20260831",
+  "source": "baseline-standard10-20260829",
+  "parent_id": "v6-source-kl-retention-pilot-20260831",
+  "command": "python research/experiments/v6-gpu-multienv-throughput-20260831/run_benchmark.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-gpu-multienv-throughput-20260831/run_benchmark.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:58:37+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-gpu-multienv-throughput-20260831/run_benchmark.py research/experiments/v6-gpu-multienv-throughput-20260831/test_benchmark.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:58:54+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\test_benchmark.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:58:57+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 32768 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026092500 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_gpu_single1_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\latest.pt --seed 20260925 --max-runtime-seconds 1200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:58:58+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-gpu-multienv-throughput-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:01:15+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1 --expected-target-hands 99999999 --expected-target-environment-hands 32768 --expected-final-iteration 7 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:05:17+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 32768 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026092500 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_gpu_multi4_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\latest.pt --seed 20260925 --max-runtime-seconds 1200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 4 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:05:22+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4 --expected-target-hands 99999999 --expected-target-environment-hands 32768 --expected-final-iteration 7 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:07:48+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 32768 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026092500 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_gpu_multi8_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\latest.pt --seed 20260925 --max-runtime-seconds 1200 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:07:53+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8 --expected-target-hands 99999999 --expected-target-environment-hands 32768 --expected-final-iteration 7 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:09:34+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-gpu-multienv-throughput-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:10:00+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-gpu-multienv-throughput-20260831/run_benchmark.py",
+      "research/experiments/v6-gpu-multienv-throughput-20260831/test_benchmark.py",
+      "research/experiments/v6-gpu-multienv-throughput-20260831/preregistration.md",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/policy_contract_v6.py"
+    ],
+    "captured_at": "2026-08-31T10:58:37+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-gpu-multienv-throughput-20260831/code.patch",
+    "patch_sha256": "aaac4e98a8ff0757f4d7aaac2640303fcdca2813d1afb2c163c238707daa26ff",
+    "source_manifest": "research/experiments/v6-gpu-multienv-throughput-20260831/source_manifest.json",
+    "source_manifest_sha256": "5128dbd1306636f2cc7ffa80ee83284eccead4db642ab7133b21ec4a81ee2ad0",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 106827,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 689.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_arm": "multi8",
+    "active_iteration": 7,
+    "selected_fresh_start_configuration": "multi8"
+  },
+  "artifacts": [
+    "research/experiments/v6-gpu-multienv-throughput-20260831/code.patch",
+    "research/experiments/v6-gpu-multienv-throughput-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\anchor_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\single1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\multi4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\multi8_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\review_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\review_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\review_code\\copy_manifest.json"
+  ],
+  "notes": [
+    "Added a separate post-run independent reviewer; its own snapshot will be captured before recording final review. Active training/runtime snapshot unchanged.",
+    "single1 terminal health PASS; 37332 actual physical hands; not strength evidence.",
+    "multi4 terminal health PASS; 35845 actual physical hands; not strength evidence.",
+    "multi8 terminal health PASS; 33650 actual physical hands; not strength evidence.",
+    "All three fixed arms complete. Selected configuration=multi8; independent review required. No policy promotion."
+  ],
+  "result": {
+    "summary": "Three fresh GPU arms completed 106827 physical hands; health/evidence PASS; MULTIENV_FRESH_START_THROUGHPUT_QUALIFIED.",
+    "conclusion": "Selected multi8 by fixed wall/warm throughput thresholds; no strength or resume qualification.",
+    "decision": "MULTIENV_FRESH_START_THROUGHPUT_QUALIFIED",
+    "next_step": "Use the qualified fresh-start configuration in a newly preregistered broader learned-weight training experiment; keep untouched evaluation and external admission separate."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-gpu-multienv-throughput-20260831/code.patch": {
+      "type": "file",
+      "bytes": 198736,
+      "sha256": "aaac4e98a8ff0757f4d7aaac2640303fcdca2813d1afb2c163c238707daa26ff"
+    },
+    "research/experiments/v6-gpu-multienv-throughput-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1084,
+      "sha256": "5128dbd1306636f2cc7ffa80ee83284eccead4db642ab7133b21ec4a81ee2ad0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13608,
+      "sha256": "a3d76b9633ede41ee5c5d2de60b09bc5574036836956076449dc6d29d221a8cc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22949,
+      "sha256": "c6ae5d0b237cef292284f2692a432d9da846e37096aa6b3b8a310788a2eccf2d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2037,
+      "sha256": "c94a13f1cc129ba51c90f50755f52541e790bcd67eda764cc53eee3af0974529"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\anchor_manifest.json": {
+      "type": "file",
+      "bytes": 1097,
+      "sha256": "2a0ea42b1c3e54b5c46399e9c42f9ae21fffd9d31a51c8ca66d655e5a0a62ca2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\single1_stdout.log": {
+      "type": "file",
+      "bytes": 6323,
+      "sha256": "508f10fe27035cc1925c5e6d624c014e9dc0d01ffe12e1fe1b9291d72435bc04"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\latest.pt": {
+      "type": "file",
+      "bytes": 198567240,
+      "sha256": "d73e903283aed04184331ffa9374516c60163f422d03e65593d4da0aa06894a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57641,
+      "sha256": "63a967fbd074551e5cfc7410d669299281bc2d9e5671ed41e2ec4cbb2554ed98"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 181478,
+      "sha256": "2df07f12c4cdbb4099ac7f6469ddaa840106900f9299686a61e89c527273c6af"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 17319,
+      "sha256": "60d71dabbed48802f850f78f188e434b1bbfeeff0f2371b8d435be06f2bf5d6d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\latest_train.log": {
+      "type": "file",
+      "bytes": 3063,
+      "sha256": "d9e325509350490651732cac67299435c68e7ec581ee3508ffee911aa245bd7e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\session_audit.json": {
+      "type": "file",
+      "bytes": 4965,
+      "sha256": "b18b953617001d40ce2ac75b5b6bc07857bf5a3d3469f8d42591f56f75788004"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\analysis.json": {
+      "type": "file",
+      "bytes": 3624,
+      "sha256": "57226f52c99be1d1c99984348d15d42ff6e5bfe3bb9b87460f82d8e463248f1f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\single1\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 4965,
+      "sha256": "b18b953617001d40ce2ac75b5b6bc07857bf5a3d3469f8d42591f56f75788004"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 11119,
+      "sha256": "2f1da801ec637ef4c5ce4fcf03b8a1170d40020502b4f774f1bb6835e13389e7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\multi4_stdout.log": {
+      "type": "file",
+      "bytes": 6323,
+      "sha256": "38728080e259ac2bd264b1b0f22f57b7e2c33fb3fb8f30dec4012292b29986f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\latest.pt": {
+      "type": "file",
+      "bytes": 198567240,
+      "sha256": "c980a7b3d92ead63ccb59105f9427cddb2764dc8ca1f2e284256115eae406a3c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57110,
+      "sha256": "bd459e0345cfc0da48fca57322604b257ec5feab2ef39b5a95b265b24a6d4d52"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 180971,
+      "sha256": "1613e8cc6381c8d7a84613132610a65e55319ca45cba4ee8edc00c3d65cb6224"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 17311,
+      "sha256": "68ec48684b2981781d286973b3fac69af961aff180324c4727df9938103845c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\latest_train.log": {
+      "type": "file",
+      "bytes": 3076,
+      "sha256": "3bad6f48a80f9473dd88189dccbdedf3c3df06a236153c2b3093a75cb0f5a766"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\session_audit.json": {
+      "type": "file",
+      "bytes": 4962,
+      "sha256": "193783e53dd4be0f17425bd197ba29b66fa3eb4028077091aec61ef0172456b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\analysis.json": {
+      "type": "file",
+      "bytes": 3612,
+      "sha256": "f93805ae715c177736dec238a21a1b1976bdb2dd8d02f158f3f55aa5280af069"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi4\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 4962,
+      "sha256": "193783e53dd4be0f17425bd197ba29b66fa3eb4028077091aec61ef0172456b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\multi8_stdout.log": {
+      "type": "file",
+      "bytes": 6325,
+      "sha256": "998d3c5271c2d7894216314afea13c820356ddb29d7f7bbe5c17ad4f5ce19d34"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\latest.pt": {
+      "type": "file",
+      "bytes": 198567240,
+      "sha256": "42cd484b231faa83b96f00b94ede7b87accf1ad3c6f3d2718e33bd86ebdb0d1d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\run_manifest.json": {
+      "type": "file",
+      "bytes": 57226,
+      "sha256": "57cc4539fa0333254082d991ce85b7ed1feaf65a4d679ab14bec00cd42d01a71"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 180261,
+      "sha256": "cd9b861b9e39158c64a887d707136962d3fb704fdc162f3ddea81fc1fddc0645"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 17306,
+      "sha256": "6c4cba12ee0e534923b42f4173d80887493611105bf0e99d72526aa87901b418"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\latest_train.log": {
+      "type": "file",
+      "bytes": 3078,
+      "sha256": "decd87c6447e6e0f27f20d138cfa56ebef6fb18b07c56c8fe78600f8be9a8644"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\session_audit.json": {
+      "type": "file",
+      "bytes": 4960,
+      "sha256": "99efb2581cffe4203f2ab6b164e8e797acd56f6551fe715d381e993d4c1e41cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\analysis.json": {
+      "type": "file",
+      "bytes": 3609,
+      "sha256": "8fd0c379c52ac5d28b723ec0a78e588ccb285ca9d37d2b17d8e50070dd91b8ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\arms\\multi8\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 4960,
+      "sha256": "99efb2581cffe4203f2ab6b164e8e797acd56f6551fe715d381e993d4c1e41cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 12562,
+      "sha256": "78f65e373c756a2f6eb5eacbf27d55f9a7819b89f1b6afde968e32d570af36db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1270,
+      "sha256": "20c2669a14cb51f9231b9c416e2de19ae5049c23d5837c06efb639998f494fde"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 945,
+      "sha256": "24b538cf549e44ec9b14d539b395ed08a70377d67251bd94ca5fea6c81b06dce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\review_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 319,
+      "sha256": "d94e56ab94fc90607ffbe86c2f339fc1d049adf7f6080151cedc846b0e8f7212"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\review_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-gpu-multienv-throughput-20260831\\review_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 364,
+      "sha256": "0681c8c9e4b2f21dea2d1ec2603ef8bf730305efbbfd3d4277feb53c2c6f45a2"
+    }
+  }
+}

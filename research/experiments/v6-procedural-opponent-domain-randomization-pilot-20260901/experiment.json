@@ -1,0 +1,312 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-procedural-opponent-domain-randomization-pilot-20260901",
+  "title": "Matched procedural-opponent domain-randomization pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T04:02:22+00:00",
+  "updated_at": "2026-09-01T04:31:23+00:00",
+  "started_at": "2026-09-01T04:02:22+00:00",
+  "ended_at": "2026-09-01T04:31:06+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Against the exact raw parent and under matched sampled-PPO continuation, replacing external learned-parent hands with broad per-hand procedural styles will improve untouched procedural-family generalization without materially changing the parent generic-greedy execution contract.",
+  "material_change": "Train two 65,536-physical-hand continuations from the same raw parent with identical optimizer, source-KL 0.1, deals, assignment RNG, self-play share, single-rollout mechanics, and trainable tensor scope. Control uses the frozen raw parent on external hands; treatment replaces those external hands with procedural style v1. Compare frozen endpoints on fixed untouched procedural seeds and parent-state preservation; no Slumbot unless the joint gate passes.",
+  "baseline": "Exact raw parent SHA256 9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4; prior broad learned weight population and Standard10-parent soup failed preservation/transfer, while the procedural contract smoke passed only technical validity.",
+  "source": "v6-procedural-opponent-contract-smoke-20260901 and raw actor-EMA parent",
+  "parent_id": "v6-procedural-opponent-contract-smoke-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 198089 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction 0 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026110700 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_procedural_domain_control_20260901 --run-dir research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control --out research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/latest.pt --seed 20261107 --max-runtime-seconds 1800 --resume research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 198089 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction 0 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026110700 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_procedural_domain_control_20260901 --run-dir research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control --out research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/latest.pt --seed 20261107 --max-runtime-seconds 1800 --resume research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:02:22+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 198089 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction 1 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026110700 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_procedural_domain_treatment_20260901 --run-dir research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment --out research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/latest.pt --seed 20261107 --max-runtime-seconds 1800 --resume research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:12:34+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/test_evaluate_heldout.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:21:29+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/evaluate_heldout.py --control research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/latest.pt --treatment research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/latest.pt --out-dir research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/heldout_greedy_32k --device cuda --pairs-per-block 4096 --chunk-pairs 128",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:21:29+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/evaluate_preservation.py --parent research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --control research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/latest.pt --treatment research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/latest.pt --out-dir research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/preservation --device cuda",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:25:59+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/audit.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:30:57+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_procedural_opponent.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/test_evaluate_heldout.py --junitxml=research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:30:57+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py validate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:31:23+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-01T04:02:22+00:00 --out-json research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/ledger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:31:23+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4ad931ecf1aa8910b836aadb2bf7b7a22b95a4b0d0ebc588c047d695ea200b1a",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-09-01T04:02:22+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/code.patch",
+    "patch_sha256": "dc3f21bdcdd99d78115e4554bada692318cdf2a91783f6fad060fb4dbdb347ac",
+    "source_manifest": "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "dfdb0bbdec908a3973342e2a35698f64ed8b1e21f8cda44158413cd7b4bdedec",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 135274,
+    "lineage_training_hands": 0,
+    "offline_samples": 14963,
+    "evaluation_hands": 131136,
+    "wall_time_seconds": 1724.0,
+    "environment_training_hands": 135274,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "primary_paired_delta_bb_per_100": 26.851287841796875,
+    "control_final_reference_kl": 0.0019,
+    "treatment_procedural_hands": 58520,
+    "treatment_procedural_decisions": 220040,
+    "treatment_final_reference_kl": 0.003077361951856052,
+    "primary_paired_delta_ci95_lower": 18.03491898105866,
+    "primary_paired_delta_ci95_upper": 35.66765670253509,
+    "positive_seed_blocks": 7,
+    "treatment_parent_state_mean_tv": 0.0264886224421882,
+    "treatment_parent_state_greedy_disagreement": 0.028069237452382545,
+    "control_parent_state_mean_tv": 0.00995675023,
+    "control_parent_state_greedy_disagreement": 0.00888859
+  },
+  "artifacts": [
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/code.patch",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/heldout_greedy_32k/summary.json",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/heldout_greedy_32k/pairs.jsonl",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/audit.json",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/tests.xml",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/latest.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/run_manifest.json",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/h1_training_metrics.jsonl",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/opponent_assignments.jsonl",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000032_hands000000132038.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000040_hands000000165035.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/latest.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/run_manifest.json",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/h1_training_metrics.jsonl",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/opponent_assignments.jsonl",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000032_hands000000131971.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000040_hands000000164921.pt",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/preservation/summary.json",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/preservation/state_metrics.jsonl",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/audit.py",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/evaluate_heldout.py",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/evaluate_preservation.py",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/test_evaluate_heldout.py",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/test_train_v5_procedural_opponent.py",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/train_v5.py",
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/ledger_audit.json"
+  ],
+  "notes": [
+    "Preregistered primary gate: fixed untouched common-randomness procedural evaluation must have treatment-minus-control paired bb/100 > 0 with 95% CI lower > 0 and at least 6/8 seed blocks positive. Joint preservation gate: treatment parent-state mean TV <= 0.02 and greedy disagreement <= 0.02. No Slumbot allocation unless all gates pass.",
+    "Standard10 historical greedy -11.4275 bb/100 and strict sampled -48.9778, plus single imitation teacher about -18.5025, are treated as warnings that execution-contract preservation matters; neither is used as a training target here.",
+    "Control completed iteration43 at 199211 lineage physical hands (66658 new) with finite metrics and final source-reference KL about0.0019. Starting preregistered treatment from the untouched same parent.",
+    "Batched greedy evaluator passed exact deployment-decide parity on128 random live states and complete 64-hand common-randomness smoke evidence before the frozen 32,768-pair run.",
+    "Primary untouched greedy heldout gate passed on32768 mirrored pairs: treatment-control +26.8513 bb/100, paired95%CI[18.0349,35.6677],7/8 blocks positive. Proceeding only to preregistered parent-state preservation.",
+    "Final evidence audit recomputed all 32768 raw paired outcomes and all 14963 parent-state rows exactly. Both arms contain the preregistered contiguous 16 assignment records for iterations28-43; normalized schedules match. Audit PASS and 27 contract/regression tests PASS.",
+    "The final treatment passed the untouched procedural primary gate but failed both preregistered parent-state preservation thresholds: mean TV0.026489>0.02 and greedy disagreement0.028069>0.02. It is therefore ineligible for Slumbot evaluation.",
+    "Post-finish ledger validation: 163 records valid; audit scoped from this experiment creation included1 record with0 warnings."
+  ],
+  "result": {
+    "summary": "Matched continuations completed 135274 new physical environment hands. On 32768 untouched common-randomness mirrored procedural pairs, treatment-control was +26.8513 bb/100 with paired95%CI[18.0349,35.6677] and 7/8 positive blocks. However treatment drift on 14963 audited raw-parent Slumbot states was mean TV0.026489 and greedy disagreement0.028069, exceeding both preregistered 0.02 preservation limits.",
+    "conclusion": "Procedural opponent domain randomization produced a statistically clear gain against its heldout opponent family, but the final endpoint did not preserve the strongest known learned checkpoint deployment behavior closely enough. The joint gate failed, so no Slumbot hands were allocated and the endpoint is not a promotion candidate.",
+    "decision": "FINAL_TREATMENT_JOINT_GATE_NOT_PASSED",
+    "next_step": "Run a logged read-only checkpoint-window study: evaluate treatment/control iteration32 and40 archives on the frozen parent-state preservation corpus first. Only an archive passing both <=0.02 thresholds may receive a fresh, previously unused heldout procedural qualification; only a candidate passing both gates may advance to a separate small generic-greedy Slumbot transfer test."
+  },
+  "tags": [
+    "domain-randomization",
+    "matched-pilot",
+    "procedural-opponent",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 9,
+    "command_count": 9
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 243441,
+      "sha256": "dc3f21bdcdd99d78115e4554bada692318cdf2a91783f6fad060fb4dbdb347ac"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 279,
+      "sha256": "dfdb0bbdec908a3973342e2a35698f64ed8b1e21f8cda44158413cd7b4bdedec"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/heldout_greedy_32k/summary.json": {
+      "type": "file",
+      "bytes": 5133,
+      "sha256": "a810e38cf137371026cfe67b5b9a97db8421a6794c22803e276c29d24f732180"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/heldout_greedy_32k/pairs.jsonl": {
+      "type": "file",
+      "bytes": 17225816,
+      "sha256": "a6e07b0d5bebe6b4bc1571772d78119794c02bbf7f9a546db8c9e1a369e4ddb9"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/audit.json": {
+      "type": "file",
+      "bytes": 4452,
+      "sha256": "7cfa32b4f8676fb88efe2c04d1e2e1c4d205efb78fc50220cccd3b1d47a2837f"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 4540,
+      "sha256": "a94d31500bd4a8ac1d0c0e00189f4a6bad2e16e08f92d9a031260410f1429d6c"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/latest.pt": {
+      "type": "file",
+      "bytes": 66958596,
+      "sha256": "b27b664af2e87110d50fdb6779ed3b1a712e95b79525cd8150eebb7297ea0dad"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/run_manifest.json": {
+      "type": "file",
+      "bytes": 58135,
+      "sha256": "405bd1d0a6a623feeda937d9db83450e93a906a554acc168e36b1024a1233b5f"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 433783,
+      "sha256": "6511a0d08300e59de165a137c48f3eaecc52036ec6e35dc1862e51714c8840f6"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 37714,
+      "sha256": "46da452e65306b6c29122ec5e856a2115f1a28c09d71f5974a6918ee31308e3c"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000032_hands000000132038.pt": {
+      "type": "file",
+      "bytes": 66971798,
+      "sha256": "fe232a82842861738e4b89e35fce9cb8fe5119b3a722911e48f137c05a18b93d"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/control/checkpoints/checkpoint_iter000040_hands000000165035.pt": {
+      "type": "file",
+      "bytes": 66971798,
+      "sha256": "bfb2bfc553072e2ac58bc04d357d6294ca1d91e50553fb22777ede03e8627809"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/latest.pt": {
+      "type": "file",
+      "bytes": 66958660,
+      "sha256": "4671dda29f7e44034b1d755ecde4664b57895118cb96e38a97c674e547e619dd"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/run_manifest.json": {
+      "type": "file",
+      "bytes": 57808,
+      "sha256": "ce9f66ce41ffee8a6840e5063dfe087d65708289c2a307d3ca961fae805f921e"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 432283,
+      "sha256": "01bb37364e78c03ae53a3c12d2fb928ffe6a011a5a634929bc41df5c57d5ed39"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 37746,
+      "sha256": "3939459a620147b466705ccfff935bdd28188a4437dcd7605e462816bf710b07"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000032_hands000000131971.pt": {
+      "type": "file",
+      "bytes": 66971862,
+      "sha256": "fc30b57a63e852740937165b62de2c8a8343cd515870eff566019be2bb27ef11"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/treatment/checkpoints/checkpoint_iter000040_hands000000164921.pt": {
+      "type": "file",
+      "bytes": 66971926,
+      "sha256": "31ce8e7371e00e28b259dd1dcafdf749bc8879c48451889289cc115f10e76049"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/preservation/summary.json": {
+      "type": "file",
+      "bytes": 3413,
+      "sha256": "64194b2afff04039338dc8814f55018da4d551e16041ae71e596cc2ac7e8aa3d"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/preservation/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 3290813,
+      "sha256": "d71f7d11595f7e1a5bc467a855a85e6e15eaaea868644610ede6f841b5d5b5e1"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/audit.py": {
+      "type": "file",
+      "bytes": 10336,
+      "sha256": "0ace38a1faff535039ab5e6a00b3493fd0c1f07ca87deaef7f09c76efb2943ad"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/evaluate_heldout.py": {
+      "type": "file",
+      "bytes": 13958,
+      "sha256": "d506f4109f7b2b4d3522e7eb7d42d6e6910244982f13de12c1d309769c8285fe"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/evaluate_preservation.py": {
+      "type": "file",
+      "bytes": 7899,
+      "sha256": "933138270e2cc49154330078628b59e0877568102f69081b5c35932c78b4df03"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/test_evaluate_heldout.py": {
+      "type": "file",
+      "bytes": 2864,
+      "sha256": "a52654d84c1f3f6b0b3aef2d305abef12c9c8982b76e31739d94ee0324a856f6"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/test_train_v5_procedural_opponent.py": {
+      "type": "file",
+      "bytes": 8323,
+      "sha256": "add8e8a608e2505a0e17eb3c47764a12e9d46fbb56d393d4a7a0970d15ac72b9"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/execution_code/train_v5.py": {
+      "type": "file",
+      "bytes": 442928,
+      "sha256": "0ab4ed5acd010f209e46671a2dd7ce7447280ece9b9ee43d8da1934fb9c24ba4"
+    },
+    "research/experiments/v6-procedural-opponent-domain-randomization-pilot-20260901/ledger_audit.json": {
+      "type": "file",
+      "bytes": 242,
+      "sha256": "0d5dae8fafff527fddae102d55b1a4090fe8199d3e033436ea1bf1a848ddc507"
+    }
+  }
+}

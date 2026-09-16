@@ -1,0 +1,177 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-alphaholdem-recipe-contract-smoke-20260902",
+  "title": "Integrated AlphaHoldem recipe contract smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T16:48:59+00:00",
+  "updated_at": "2026-09-02T17:04:00+00:00",
+  "started_at": "2026-09-02T16:48:59+00:00",
+  "ended_at": "2026-09-02T17:04:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "On the corrected physical-v6/legacy-v4 execution contract, the previously isolated AlphaHoldem components—Trinal-Clip PPO, serialized complete-hand replay, dynamic loss-K-best historical opponents, and paper-scale 16,384 minibatch with 3e-4 Adam—can operate jointly for 16,384 actual environment hands while preserving exact accounting, nonzero replay, pool growth, finite updates, and the frozen Standard10 trust region.",
+  "material_change": "Combine existing default-off mechanisms without changing their implementations: replay buffer 2 iterations at ratio0.5, loss-K-best pool K=5 with snapshots every2 updates, large minibatch16384/lr3e-4, all-policy-head updates around Standard10 with source-KL1, corrected v6 physical environment and legacy-v4 observation bridge. Run four iterations only as a mechanism smoke.",
+  "baseline": "Each component was previously tested separately at 131k-263k hands, but no experiment integrated replay, K-best, and paper batch/LR under the corrected legacy execution contract. The current broad-MGDA recipe failed its 2/3 positive geometric-slope gate.",
+  "source": "AlphaHoldem AAAI 2022 equations3-4 and K-Best Self-Play; local serialized replay and dynamic-pool implementations",
+  "parent_id": "v6-standard10-reference-reconciliation-20260902",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 16384 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026170200 --fixed-training-deal-stream --fixed-training-deal-start-index 12000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_integrated_alphaholdem_smoke_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run --out research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest.pt --seed 20261702 --max-runtime-seconds 1800 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 16384 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026170200 --fixed-training-deal-stream --fixed-training-deal-start-index 12000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_integrated_alphaholdem_smoke_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run --out research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest.pt --seed 20261702 --max-runtime-seconds 1800 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T16:48:59+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 16384 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026170200 --fixed-training-deal-stream --fixed-training-deal-start-index 12000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_integrated_alphaholdem_smoke_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run --out research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest.pt --seed 20261702 --max-runtime-seconds 1800 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T16:50:58+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_integrated_alphaholdem_smoke.py --run-dir research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run --base models/baseline/standard10/latest.pt --out research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T17:04:00+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest.pt --out-dir research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/drift --states 20000 --seed 20261703 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T17:04:00+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "f9043c568559a1f49f460da88e40c3bad2a2c3932458e9343983643e6ad8bd5f",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T16:48:59+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/source_manifest.json",
+    "source_manifest_sha256": "c109dcf8ee9d4395c85f89ade20caf035b79f1ce43e024718733c684e56772eb",
+    "source_files": 220
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 18809,
+    "lineage_training_hands": 0,
+    "offline_samples": 20000,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 901.0,
+    "planned_environment_training_hands": 16384,
+    "failed_attempt_environment_hands": 0,
+    "environment_training_hands": 18809,
+    "transition_hands": 16499,
+    "replay_rows": 21928
+  },
+  "metrics": {
+    "contract_tests_passed": 13,
+    "contract_audit_gates_passed": 17,
+    "contract_audit_gates_total": 17,
+    "max_approx_kl": 0.0008803285891190171,
+    "max_importance_ratio": 1.37,
+    "max_reference_policy_kl": 0.001679087639786303,
+    "source_drift_mean_tv": 0.012841030858209965,
+    "source_drift_greedy_disagreement": 0.0164,
+    "dynamic_pool_final_size": 5
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/code.patch",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/source_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest.pt",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/run_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/h1_training_metrics.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/opponent_assignments.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest_train.log",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/audit.json",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/drift/drift_analysis.json",
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/drift/drift_raw.jsonl.gz"
+  ],
+  "notes": [
+    "Smoke gates mechanism health only. A negative or positive poker score at 16k is not a scaling decision; no external calls and no fresh Slumbot selection.",
+    "Attempt1 stopped before environment initialization with zero hands: the migration validator conflated enabling a fresh replay buffer after explicit v6 rebind with importing old-contract replay. Minimal repair now permits only an empty replay boundary when optimizer and hand counter reset; validate_resume still rejects any nonempty/cumulative legacy replay state. Thirteen targeted contract/replay tests pass.",
+    "First attempt consumed zero environment hands and exposed a fresh-empty-replay migration validator bug; the minimal repair preserves rejection of all nonempty legacy replay state. Retry completed from the immutable Standard10 parent with no imported replay.",
+    "This experiment is a mechanism smoke only. It provides no Slumbot strength evidence and must not be interpreted as positive or negative poker learning at 18.8k hands."
+  ],
+  "result": {
+    "summary": "The integrated replay x dynamic loss-K-best x paper-batch Trinal-Clip recipe completed 18,809 actual environment hands across four contiguous updates. Independent audit passed 17/17 gates: exact accounting and assignment replay, fresh then nonzero serialized replay (21,928 rows), pool growth 3 to 5, finite updates, importance ratio max 1.37 below delta1=3, KL health, optimizer synchronization, hash-bound archives, and only ten allowed head tensors changed. Outcome-blind balanced 20,000-state drift also passed (mean TV 0.01284; greedy disagreement 1.64%).",
+    "conclusion": "The joint AlphaHoldem mechanisms are operational on the corrected physical-v6/legacy-v4 execution contract and preserve the Standard10 source policy at smoke scale. This resolves an implementation-contract question only; 18,809 hands are far too small to judge general poker strength, and no external evaluation was used.",
+    "decision": "ADMIT_INTEGRATED_RECIPE_TO_MULTI_SEED_GEOMETRIC_PILOT",
+    "next_step": "Run three preregistered seeds on independent fixed deal streams through approximately 16k and 65k actual environment-hand anchors with the identical integrated recipe. Evaluate within-seed slopes on untouched multi-opponent, both-seat common deals plus balanced source drift. Scale toward 262k/1M only if slopes reproduce and proxy directions agree; stop only for explicit mechanism collapse or proxy reversal, not early absolute Slumbot negativity."
+  },
+  "tags": [
+    "AlphaHoldem",
+    "k-best",
+    "large-batch",
+    "mechanism-smoke",
+    "replay"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 41790,
+      "sha256": "c109dcf8ee9d4395c85f89ade20caf035b79f1ce43e024718733c684e56772eb"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest.pt": {
+      "type": "file",
+      "bytes": 310189808,
+      "sha256": "031c98799c02b6794f2e2c1e8e0397c1f8f2b9508e5fcb7b2c9df593d836dc50"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/run_manifest.json": {
+      "type": "file",
+      "bytes": 105341,
+      "sha256": "bfcef737d2a25cd5b199e8aae57deab748b431cddefa4c4ff47308082a94b5a4"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 116861,
+      "sha256": "ea0204b0442e484a5bd76525a3b24a5cc8a41f75b2ead896130bee319a09c9e2"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 10439,
+      "sha256": "c731650d4efc648ff61b82ce73cac12ef9033661644a4ad5e41d27166e6de1b1"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/run/latest_train.log": {
+      "type": "file",
+      "bytes": 1844,
+      "sha256": "7a3654b703258b74ebe84389c7820bcac2cfff8a20db3ed91591c0cba6f6823d"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/audit.json": {
+      "type": "file",
+      "bytes": 3555,
+      "sha256": "cb6e4744d2750a13320b91793aeee42d6cc3e90e33b09af90b260da6f5d737f9"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/drift/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4388,
+      "sha256": "54b19620b3931bb484b168d5df0a2d1de61c68070ddd03d6dd29d71661f67fbb"
+    },
+    "research/experiments/v6-integrated-alphaholdem-recipe-contract-smoke-20260902/drift/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319386,
+      "sha256": "7319f08b97e5c5d45050642fbba007e8192d41ab6df983ad7305396ce13b56b8"
+    }
+  }
+}

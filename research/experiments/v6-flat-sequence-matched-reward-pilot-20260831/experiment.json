@@ -1,0 +1,951 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-flat-sequence-matched-reward-pilot-20260831",
+  "title": "Matched flat-sequence reward pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T22:52:14+00:00",
+  "updated_at": "2026-08-31T23:19:03+00:00",
+  "started_at": "2026-08-31T22:54:59+00:00",
+  "ended_at": "2026-08-31T23:19:03+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The backend-stable full action-sequence residual learns a stronger v6 policy than matched existing policy heads when source, optimizer budget, deals, opponents and regularization are held fixed.",
+  "material_change": "Matched control/treatment262144 physical hands each, followed by fixed3x5x4096-pair common-deck matrix; only treatment eligible.",
+  "baseline": "Recovered35546-hand flat-sequence smoke +4.8445bb/100 versus source, CI crosses0.",
+  "source": "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/preregistration.md",
+  "parent_id": "v6-flat-sequence-smoke-terminal-recovery-20260831",
+  "command": "python research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:52:14+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:55:02+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026103300 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_flat_sequence_matched_control_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\latest.pt --seed 20261033 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream --all-policy-heads-only-training",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T22:55:06+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 53 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:00:13+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026103300 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_flat_sequence_matched_treatment_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\latest.pt --seed 20261033 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream --flat-sequence-policy-adapter-hidden 128 --flat-sequence-adapter-only-training",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:00:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 53 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:02+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:11+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:13+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:14+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:19+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261034 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:06:20+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:18:58+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831",
+      "scripts/alpha_holdem/network_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/execution_v6.py"
+    ],
+    "captured_at": "2026-08-31T22:52:14+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/code.patch",
+    "patch_sha256": "cc471f4a1b2bee58a6e900ac408221fa1d7c94a7adbb0e122f99ee1220d7d5a8",
+    "source_manifest": "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/source_manifest.json",
+    "source_manifest_sha256": "42950a470c5a5e048f7264edd7be9ad17f3beb67fbed137a007b86323c098281",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 525564,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 122880,
+    "wall_time_seconds": 1444.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_arm": "treatment",
+    "wall_time_seconds": 1408.109999999986,
+    "review_wall_time_seconds": 6.045999999972992
+  },
+  "artifacts": [
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/preregistration.md",
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/code.patch",
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/source_manifest.json",
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/run_pilot.py",
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/review_finish.py",
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/test_pilot.py",
+    "scripts/alpha_holdem/network_hybrid_h1.py",
+    "scripts/alpha_holdem/train_v5.py",
+    "scripts/alpha_holdem/v5_mirror_eval.py",
+    "scripts/alpha_holdem/execution_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\source_legacy.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\control.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\treatment.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\run_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\test_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\run_pilot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000004_hands000000016398.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000008_hands000000032856.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000012_hands000000049363.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000016_hands000000065842.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000020_hands000000082338.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000024_hands000000098824.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000028_hands000000115315.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000032_hands000000131829.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000036_hands000000148313.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000040_hands000000164762.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000044_hands000000181341.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000048_hands000000197847.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000052_hands000000214299.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000004_hands000000016430.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000008_hands000000033003.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000012_hands000000049520.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000016_hands000000066025.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000020_hands000000082471.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000024_hands000000098900.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000028_hands000000115335.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000032_hands000000131934.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000036_hands000000148463.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000040_hands000000164964.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000044_hands000000181457.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000048_hands000000197893.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000052_hands000000214398.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Fixed final-only two-arm design; no fallback promotion, checkpoint selection, extension or Slumbot. Common-deck15-cell evaluation starts only after both finals freeze.",
+    "Admission tests4PASS; exact matched commands and joint gate frozen. Sequential order control then treatment; no endpoint inspection or matrix until both finals audit/freeze.",
+    "control final frozen after terminal health/session audit PASS",
+    "treatment final frozen after terminal health/session audit PASS"
+  ],
+  "result": {
+    "summary": "Matched flat-sequence reward pilot completed: FLAT_SEQUENCE_MATCHED_REWARD_GATE_NOT_PASSED.",
+    "conclusion": "Matched known-anchor internal evidence is not external strength or a training-seed replication.",
+    "decision": "FLAT_SEQUENCE_MATCHED_REWARD_GATE_NOT_PASSED",
+    "next_step": "Reject this flat-sequence PPO route and implement a causal sequence actor with centralized critic/EMA evaluation."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 22,
+    "command_count": 22
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 1990,
+      "sha256": "56c8c1f3c0cc012d067ca2870bd9f577313fa365cb22b16d644d09da638b5f13"
+    },
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 244596,
+      "sha256": "cc471f4a1b2bee58a6e900ac408221fa1d7c94a7adbb0e122f99ee1220d7d5a8"
+    },
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1237,
+      "sha256": "42950a470c5a5e048f7264edd7be9ad17f3beb67fbed137a007b86323c098281"
+    },
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/run_pilot.py": {
+      "type": "file",
+      "bytes": 16999,
+      "sha256": "1893e0b062abd7f3013ab18f9ee94a35d5c3d0e155aa1efa13291231bef299ff"
+    },
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 5534,
+      "sha256": "73f80634fdf1949f4f799be77186f7cfe832f2f9abb5f94f40416cce82e6e0b1"
+    },
+    "research/experiments/v6-flat-sequence-matched-reward-pilot-20260831/test_pilot.py": {
+      "type": "file",
+      "bytes": 2025,
+      "sha256": "139fcbd9aaaa5aab46908a7266d6cf38dbe4831d65ea218a95903cef042abd97"
+    },
+    "scripts/alpha_holdem/network_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 35207,
+      "sha256": "8073485555b9b3447d5e206f6ddf0ffa8f5be919ec1972d89e6a895e8259a890"
+    },
+    "scripts/alpha_holdem/train_v5.py": {
+      "type": "file",
+      "bytes": 407839,
+      "sha256": "5418d00c3dd0d79e1f0424760a5098968a7c2bf6128f302b7bc701710a52ad29"
+    },
+    "scripts/alpha_holdem/v5_mirror_eval.py": {
+      "type": "file",
+      "bytes": 39605,
+      "sha256": "2be921608e684b2b5cd41d84cceb718e7a80e4032a653e08a36bb796572c524b"
+    },
+    "scripts/alpha_holdem/execution_v6.py": {
+      "type": "file",
+      "bytes": 2916,
+      "sha256": "2e3c891bb9acee3e1c18c0bbd8588c48bdc2d28208db4d8f0463f78f6627aa4e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13852,
+      "sha256": "dc5893f03087357d28c8acb78ba5bc48e66cb008d04ec0757be3312c64870639"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 381464,
+      "sha256": "8ab9f7dae977d3533b1fc80828ee53191211964c683999e99c4e9399f8e0bec2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23831,
+      "sha256": "270ffd6102387456af08f7e6afb301fa012772eb0fa8f698a4ef38667f14d06b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 915,
+      "sha256": "54a0af2f4022d36b29a5565b77e00ba52cdfc50d17e5c4421470bde2ecaa0925"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 26926,
+      "sha256": "abb48bd2a3e27d48cadb5a0e5dfa96ecff663c1a5bf0099e912d0b4e51f79279"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\source_legacy.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\control.pt": {
+      "type": "file",
+      "bytes": 199384624,
+      "sha256": "aac61fd660a3f307fac4164e3080851b6b0600a8f94bd73a251ae7eb439addd3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\frozen\\treatment.pt": {
+      "type": "file",
+      "bytes": 205631276,
+      "sha256": "9207f36d30410bc3c487f1cf297f66d90da931423e03b12bb853bc220b61093e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 711,
+      "sha256": "16b9c4d4051d65d8fc777d4afea1ec1ab8a686ba6bc3577cab7c008403cb80f1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 1944,
+      "sha256": "0cf598fae74d3480b1819cb7a2ce84052981cb293a7bd2e272903cd5b25d78b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "e470cae2099de2e3f050dfec40b80f8d0f60d806114a96411f3344f0c9d51f8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1735,
+      "sha256": "beec6212d8f5dd259da5f06e51c73c86aeb8a1f5f8eaace2acc33d42d240331b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1735,
+      "sha256": "029ebb3bdc63fa4a3e7736774880358f71bfa4dc954dea89ea44caf453ff88ac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1733,
+      "sha256": "db192ac6b6f85dc1d972fa634d2fba596c06987a45e3b8b2544a51fba78cd083"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1730,
+      "sha256": "a6b8e9c84de86cfda87431175fed3132179234b7872abe682c9885e8d1e612e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\control_stdout.log": {
+      "type": "file",
+      "bytes": 36259,
+      "sha256": "4b316dc9606822a4ac7434a23b61265fb7feb5d88639653f6be0323588e22ceb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 8442,
+      "sha256": "158eb6cf12e17352bab293f9536c11551a5aa4ea85aa452b7bb4f41aef923711"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 1990,
+      "sha256": "56c8c1f3c0cc012d067ca2870bd9f577313fa365cb22b16d644d09da638b5f13"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 5534,
+      "sha256": "73f80634fdf1949f4f799be77186f7cfe832f2f9abb5f94f40416cce82e6e0b1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\run_pilot.py": {
+      "type": "file",
+      "bytes": 16999,
+      "sha256": "1893e0b062abd7f3013ab18f9ee94a35d5c3d0e155aa1efa13291231bef299ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "3848216e5388e515db6d0ec7ecf032268cbbe1fe010822f7b5a9fcf4ea36913a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "f0fe7f487c10acf7a4dcaddc4911467e358517886805d973140a04d2414fb0d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1731,
+      "sha256": "bfdcf7838254c405b2cad354d3bc91ffa3c98d5b116ce1ee6fc8655ee341bb80"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1731,
+      "sha256": "9e2a7c6dcbe6b9eb6bcd1b52f64cc01e7ecd67e1a4b9c797178634391600d706"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1731,
+      "sha256": "ec0acd2a57d0837bb942d794653bf447dd9addb3d4a82beecb648b22967837d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\test_pilot.py": {
+      "type": "file",
+      "bytes": 2025,
+      "sha256": "139fcbd9aaaa5aab46908a7266d6cf38dbe4831d65ea218a95903cef042abd97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1737,
+      "sha256": "0c835881627a88269a67b1adf13efdceec6d0a66d8dea1b4fa28e9757fc228d4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1739,
+      "sha256": "8b19ccbf7a5dc66b2a0883741637d15a70985a371680ea040ff44f6bc769cad4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1739,
+      "sha256": "53aa839a75065fa0278db777e3d9c579935009c55209c48ef86d2c32a5d41c0e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1738,
+      "sha256": "0850063926d76f99920afb3daa125308cef3f6aced3cb37f92dc2c4d323aa75e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1738,
+      "sha256": "3d74908bd6b1ab9d65b826e2088df02e8ef91494da5b970acd5b61edace5dae9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\treatment_stdout.log": {
+      "type": "file",
+      "bytes": 36502,
+      "sha256": "8f6e3efb6b620f05283c2907de370eb0f531f74a89e4d5728e0182df234b455e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 11634,
+      "sha256": "b47f3be7671a57629fbdba5818f523f0942f9f31eb0d9ab9cb1370d08d1f4e33"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\run_pilot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 35430,
+      "sha256": "ea1581df082597502d44252a27afe70740741081b74a3e006a19b14d9d80a79d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 11773,
+      "sha256": "64c430223b03b7ef78f8e91745a6dff5901678fa2e9af2565c9e8925f66835fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\__pycache__\\test_pilot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 3556,
+      "sha256": "a2ef535945d7ad888e0187f1232daeec1fc28a0fcc6878965a814de22eeb2503"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146990,
+      "sha256": "25ed8bdebbc52c65873dc6179743f985ada161059f602117abda37818bbebf3d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "6584e07eb9fa3cde7f34a2fb2ae9a0c9f0b063c9c35b7c73358f724d97b15c49"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1138686,
+      "sha256": "7aabc9c011ba69939193d9683fe61e57624a27162c50b9d0ab6012b10b2c7d95"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "ff8d4051153356688b84d82ac63efd3adf06d51b326c267b7a9e2a09a94309ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145369,
+      "sha256": "15e7af826797bbed975a68cca6298e1269a857c2680f32e3b1799579c6135723"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "4afb2bce78f3dbc2403b42462e32799bb4378ce6c75e67b0d0089a1c0574ae98"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148395,
+      "sha256": "2355422a7f525d4c71f5fae623b878e8a4c3d441c35b7450a98c0e851361bf00"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1690,
+      "sha256": "fbe1609d5163121c7a0d043599a40cc1c461b4c812c216983d9c3c6d54d01631"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148826,
+      "sha256": "6fb7d2f034ae8cf1449e75615027a21c5fec9d8df36ff2d0dac0fe3c72853fc7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\control_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1687,
+      "sha256": "9f8ae43bb004d523c5d14ee22f89997c66318e8e574db5f06fcae1b3c393507e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148388,
+      "sha256": "620466c1e860a4a649b6d32bf6bd059a162ff2f2fd3b8dabb3e1c4ace0fef8c0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1648,
+      "sha256": "7d22652fefd8a72382d49fffb0d52bcb15d1f9f97bb098cf9f8c4ed6ceab1a0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139398,
+      "sha256": "892f03c5bcabb6609e873061e198596f6266bbda18a91afb00b1988b9a825f76"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "94dfa10da46c5e60d515e12f54baeccb99644d75fded20863b7524c3eff694e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146704,
+      "sha256": "0671d9ccc86e3844a84298f56986c350bc31cee9f8cdbdecf5caad450877f7aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1688,
+      "sha256": "8a79b480d3c4c8f098db6701b9db00d89ebe12927feac3807ef544711d29d64a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150018,
+      "sha256": "e0e3e28bc1f3fab207a2049e6c50f64bdcfb357e38e0c6f55cfbbaea973606bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1688,
+      "sha256": "6655ebb1c82d2accf871c80b21dd64781807679a7265249a32f8f21d48d2173f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150648,
+      "sha256": "89f4c7caf962c1f91374032c439bde852d8acf21d961a085f0370681e896f137"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1688,
+      "sha256": "da380e6a9d38efd4d5fca859495c676c269f2f1f67a10a7182df0a29b10d6615"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148420,
+      "sha256": "e09bf50710593cc2257858d07aa519522d152e869421a60e40c465e7452e9641"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "70d86a6f3dbf94369a68fe231073590627cf7d4e47191c14787205cd4de8b3d4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139195,
+      "sha256": "d5b7a8f39d7b1f58e75572a5fe42bd28f8edfb81231d3d68fb37d038210a983c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1696,
+      "sha256": "55f286f8caea165e6ffde4d26ff84b4c88ef6167c9157a52e965ad8694a9df0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146384,
+      "sha256": "41943f2d21e39c38b02f1eb62b10b781cb7b1fd5f69246ccb8f5bc14360246f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1696,
+      "sha256": "fe0c527989d685f4d070f7160decfe6144e4898eb91103b05a68f699cc48449b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149852,
+      "sha256": "ce3648ff62d578b5b384dbd6a77c52c7294d5d1a0abf81a43d0695dc3232d7f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "4a1b717c69b38bee934c039d73b4903f63368a377d32c5dff9bc7f53c39f67e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150215,
+      "sha256": "a85a14fba94362213046dc45445af76890afb4c1377f1e5ef3b896891ff12893"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\matrix\\treatment_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "e816490fd525de9cc2924a46be57ce86fd326aa99864f90a38c78203411c74e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 10108,
+      "sha256": "4aaaf36492c2a22fc784e77cba7f6effc58f917f6da316ae2929eef326ec09f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1394229,
+      "sha256": "e760b2bcd410e961b82bd831409c327611c849e568a16981d50d7197af0d33c9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\latest.pt": {
+      "type": "file",
+      "bytes": 199384624,
+      "sha256": "aac61fd660a3f307fac4164e3080851b6b0600a8f94bd73a251ae7eb439addd3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\latest_train.log": {
+      "type": "file",
+      "bytes": 23391,
+      "sha256": "475760453b709d1a6953c5c04291648599154a098717abb4f5f6e6633dcd8292"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 143210,
+      "sha256": "2c959a843385981f5ac0bc8f9ced4368ddf2605ceb436aa11875131bf986fd04"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59388,
+      "sha256": "ae5b94736ebde3c1083a4f3b9924babb21fc11963935fec9a7aef5473f70593c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\session_audit.json": {
+      "type": "file",
+      "bytes": 10108,
+      "sha256": "4aaaf36492c2a22fc784e77cba7f6effc58f917f6da316ae2929eef326ec09f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 10137,
+      "sha256": "139baa19418eeeb3848815575c8e18fedeba244c45be5ce428ece3d1b3cfefeb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1388135,
+      "sha256": "b56d528605fb38ed0dc68976f3c204948c5de88a2ba6eedc84ac4833dcddd3a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\latest.pt": {
+      "type": "file",
+      "bytes": 205631276,
+      "sha256": "9207f36d30410bc3c487f1cf297f66d90da931423e03b12bb853bc220b61093e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\latest_train.log": {
+      "type": "file",
+      "bytes": 23383,
+      "sha256": "471f29eabf4b3180131e1130cf784b5171a8ed0713db201c7f01da50cfc0bf3c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 143310,
+      "sha256": "4046c4f60e1ed8eeb2e1ad5f8481eeb7f83f5e755ab8f38d6eef241a2e7c1716"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59149,
+      "sha256": "b2fc0f1537642ea7b72cafb245ed41cc860330abd31e7644794ed200439c95b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\session_audit.json": {
+      "type": "file",
+      "bytes": 10137,
+      "sha256": "139baa19418eeeb3848815575c8e18fedeba244c45be5ce428ece3d1b3cfefeb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000004_hands000000016398.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "58d26c4d63e2883f6dea485e661037d99b6fe52ac56f62d1f8fcc6499ee58511"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000008_hands000000032856.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "742cd1445289cb0387549d143409e17ebdc5a997c940645267de563ebda7293e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000012_hands000000049363.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "8131f5c9006361130cd579e61fc7865a3316dd35d1c5b0dc99992b58c91bf51d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000016_hands000000065842.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "8f036f9936bfb91b8f2a5e28a0c22d2494fe3325762d3f0b76932c6323f2a323"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000020_hands000000082338.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "9295e9e2153e38bfeb8d690a16d7cf79c97773fa1054dc8e4bdc58f5982f8d9f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000024_hands000000098824.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "5f073fcbe8abd2b015a9bddc8e4decfd479e4207ec323852be901f81a41578f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000028_hands000000115315.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "21908351ed3d27704663e7488eee2326195dd84c79e9e2f9a6c380d52731deb8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000032_hands000000131829.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "b7c46804ab522a147384c0b0094d3d66037417ce56fb3e9328f58460e18af187"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000036_hands000000148313.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "a43ab68b4c13a978ba88d6a3ac1727d485d30730cd16b90656ba0de97670245d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000040_hands000000164762.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "eab6f4c44e51f2d102fafd2e1030669e4019598578581bb43e3b98888dfff00e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000044_hands000000181341.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "440bd68b81bf9f07800f0a39a2f52e338187a6b0fa0cb9f5e9a463d2b948a343"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000048_hands000000197847.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "fc67a683db2966401614d10dd9fd3803439d8c30ed7ea581ff9c54eb0203bb4b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\control\\checkpoints\\checkpoint_iter000052_hands000000214299.pt": {
+      "type": "file",
+      "bytes": 199409630,
+      "sha256": "d338fecb84fb20845f3199922911479fd4ff4d0b02d2af19e8e3c6196ce6692a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000004_hands000000016430.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "1bcaf4c44c2d491648e445232a578e5411643bc4fffe50f5f54df9ade3f3d841"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000008_hands000000033003.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "17059fcefd1467db1d3b07784071a68b38ec7caaed2561f354bbe70a3f4f4872"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000012_hands000000049520.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "7327c75a63fde61e57e086a9c6311a0c6a53e10420699e55cb1733fd5e425f8f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000016_hands000000066025.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "d7e323aa1e65d5dde62c33e0be3eff5e751708ebb18398e6e460239212e2da26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000020_hands000000082471.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "37e074dab9d925e669a187a6f2a3298fafcf6218fa70c11e21a4a0c44de02ac8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000024_hands000000098900.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "2c4008a079f30930d995f934139739e65e9ec14032cd9168acb8429473b9b69e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000028_hands000000115335.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "d1056beaccb51a81238ed61b8ef56076eeb584d4dfa0adfc7ba3318780ccddcd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000032_hands000000131934.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "822cd1061083750c148f7f2ae37e32218c3c5af37c5413d427258103b6a4c346"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000036_hands000000148463.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "f7b244a10aff2e0bd410495cf1684db171fcd9d49c085ad0a4870f7c95518b44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000040_hands000000164964.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "270882b352709dc7b73a9b475904e3fc925075ce7f8bf936746c6ec26911ac1a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000044_hands000000181457.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "80d8ae75d62998554a15b9a92b5286b68279311df1553a6755c9b6e34cd1931c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000048_hands000000197893.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "cc89d6cc6a2d2de2e9ec7f6aa61a4d73d6b7e5bf25e172bd9645b3008bf2965f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000052_hands000000214398.pt": {
+      "type": "file",
+      "bytes": 205657990,
+      "sha256": "96dafd1e2f6ab4972b5c717a1996f19a999d530bb69b3698adf7a939f918c650"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 2134,
+      "sha256": "bdb6353e0500dd86a98addbf877368feb6b2731b78832dbd8f594f95074a597d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-flat-sequence-matched-reward-pilot-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 313,
+      "sha256": "a796f8efd2b14852b7f8a8317c70b4b5d5f50718dc3887fd61550d0fd2548d36"
+    }
+  }
+}

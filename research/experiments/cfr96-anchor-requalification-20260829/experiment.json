@@ -1,0 +1,114 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "cfr96-anchor-requalification-20260829",
+  "title": "Requalify preserved CFR96 learned policy",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T21:45:02+00:00",
+  "updated_at": "2026-08-30T02:18:47+00:00",
+  "started_at": "2026-08-29T21:45:02+00:00",
+  "ended_at": "2026-08-29T21:54:58+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The preserved 200bb CFR96 residual policy has complementary postflop strength and may outperform Standard10 on paired internal play without benchmark-specific rules.",
+  "material_change": "Requalify the cold-stored frozen corrected-CFR96 policy against Standard10 with integrity checks, paired mirrored play, and only then a small fresh Slumbot gate.",
+  "baseline": "Standard10 fresh20k -11.4275 bb/100 CI95 [-28.7124, 5.8574].",
+  "source": "C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+  "parent_id": null,
+  "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate <cfr96> --anchor standard10=<standard10> --pairs 4096 --seed 2026082901 --device cuda",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "provenance_gap": "Historical record predates automatic patch/source-manifest capture; the exact dirty worktree cannot be reconstructed post hoc."
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 994208,
+    "evaluation_hands": 8693,
+    "wall_time_seconds": 596.0,
+    "slumbot_hands": 501
+  },
+  "metrics": {
+    "mirror_bb_per_100": 2.6063232421874964,
+    "mirror_ci95_half_width": 7.684068100089368,
+    "mirror_ci95_lower": -5.077744857901872,
+    "mirror_ci95_upper": 10.290391342276864,
+    "mirror_bb_seat_bb": 18.9541015625,
+    "mirror_sb_seat_bb": -13.741455078125,
+    "mirror_ood_rate": 0,
+    "slumbot_hands": 501,
+    "slumbot_bb_per_100": -314.7145708582834,
+    "slumbot_ci95_lower": -544.8402776834649,
+    "slumbot_ci95_upper": -84.58886403310191,
+    "slumbot_bb_seat_bb": -371.49402390438246,
+    "slumbot_sb_seat_bb": -257.708,
+    "showdown_bb_per_100": -915.027397260274,
+    "session_independence_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/cfr96-anchor-requalification-20260829/mirror4096.json",
+    "research/experiments/cfr96-anchor-requalification-20260829/slumbot_fresh5k/partial_ci.json",
+    "research/experiments/cfr96-anchor-requalification-20260829/slumbot_fresh5k/partial_loss_report.json",
+    "research/experiments/cfr96-anchor-requalification-20260829/slumbot_fresh5k/session_independence.json"
+  ],
+  "notes": [
+    "4096 paired mirror deals did not establish superiority; fresh Slumbot 5k is authorized only as a cheap domain-specific elimination gate.",
+    "Fresh5k gate was stopped at 501 hands because its 95% CI upper bound was already below zero; remaining hands had no decision value.",
+    "Post-hoc infrastructure repair refreshed verifiable wall-time and artifact-integrity fields. The exact historical dirty-worktree patch/source manifest and placeholder commands cannot be reconstructed without falsifying provenance; the record explicitly preserves that gap."
+  ],
+  "result": {
+    "summary": "CFR96 was internally indistinguishable from Standard10 (+2.61 bb/100, CI95 about [-5.08,+10.29]) but catastrophically failed 501 fresh Slumbot hands at -314.71 bb/100, CI95 [-544.84,-84.59].",
+    "conclusion": "The narrow SRP CFR residual adapter does not generalize to live 200bb topology; both seats fail, with severe river-showdown and BB 3-bet-pot losses. Do not spend more Slumbot hands or tune only adapter KL/width.",
+    "decision": "REJECT_CFR96_AS_POLICY",
+    "next_step": "Measure and repair observation/data coverage across preflop and postflop topologies before training another learned policy; add a reproducible coverage audit and use it to design the next representation/data experiment."
+  },
+  "tags": [
+    "cfr",
+    "learned-policy",
+    "requalification"
+  ],
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate <cfr96> --anchor standard10=<standard10> --pairs 4096 --seed 2026082901 --device cuda",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-29T21:45:02+00:00"
+    }
+  ],
+  "reproducibility": {
+    "exact_command_available": false,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 0,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/cfr96-anchor-requalification-20260829/mirror4096.json": {
+      "type": "file",
+      "bytes": 232450,
+      "sha256": "8b57c628c92bf707e263370fd2a1b85b9d9289c23b84b99bbccc06799fe75bee"
+    },
+    "research/experiments/cfr96-anchor-requalification-20260829/slumbot_fresh5k/partial_ci.json": {
+      "type": "file",
+      "bytes": 1477,
+      "sha256": "27fe2283a9a93e348cb6391bdda4711da5520e78aab7b1b79ee34da68057f349"
+    },
+    "research/experiments/cfr96-anchor-requalification-20260829/slumbot_fresh5k/partial_loss_report.json": {
+      "type": "file",
+      "bytes": 17101,
+      "sha256": "4fbdd9727a8a89f4f0d4347d614ef8230c37eaa4509de470221d64a0f636adb8"
+    },
+    "research/experiments/cfr96-anchor-requalification-20260829/slumbot_fresh5k/session_independence.json": {
+      "type": "file",
+      "bytes": 4651,
+      "sha256": "68fd0efcede19910a85917241ded1e8a94a7c8dcf950298456446d1be0cba479"
+    }
+  }
+}

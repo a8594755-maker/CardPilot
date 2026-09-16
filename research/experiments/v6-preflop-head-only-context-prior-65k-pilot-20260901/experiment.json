@@ -1,0 +1,213 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-preflop-head-only-context-prior-65k-pilot-20260901",
+  "title": "Matched 65k preflop-head-only contextual prior pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T09:19:23+00:00",
+  "updated_at": "2026-09-01T09:53:19+00:00",
+  "started_at": "2026-09-01T09:19:23+00:00",
+  "ended_at": "2026-09-01T09:53:19+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At 65k hands, the isolated contextual prior treatment will sustain healthier SB-open and BB-defense policies and improve untouched learned-anchor performance over a matched preflop-only PPO control, while postflop execution remains exactly frozen.",
+  "material_change": "Train fresh matched 65,536-physical-hand preflop-head-only control/treatment arms from the frozen soup with new seed/deals, duplicate-soup plus 50% procedural rollouts, source KL 0.1, identical assignments and reset optimizer/counters. Treatment alone enables both validated contextual prior coefficients at 0.01.",
+  "baseline": "The 8k isolated mechanism smoke passed all gates: BB raise 94.03% to 89.80%, SB raise 99.62% to 99.38%, postflop policy exact, overall parent TV 0.01245. No strength evidence yet; current best soup is -41.8162 fresh20k Slumbot.",
+  "source": "Frozen source/reference SHA256 66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c. Same public-state context definitions and targets as admitted smoke.",
+  "parent_id": "v6-preflop-head-only-context-prior-smoke-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --preflop-head-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112700 --fixed-training-deal-stream --fixed-training-deal-start-index 8000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_preflop_head_only_context_prior_65k_control_20260901 --run-dir research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control --out research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control/latest.pt --seed 20261127 --max-runtime-seconds 1800 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --preflop-head-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112700 --fixed-training-deal-stream --fixed-training-deal-start-index 8000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_preflop_head_only_context_prior_65k_control_20260901 --run-dir research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control --out research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control/latest.pt --seed 20261127 --max-runtime-seconds 1800 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:19:23+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --preflop-sb-open-action-prior-coef .01 --preflop-bb-vs-open-action-prior-coef .01 --separate-preflop-head --preflop-head-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112700 --fixed-training-deal-stream --fixed-training-deal-start-index 8000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_preflop_head_only_context_prior_65k_treatment_20260901 --run-dir research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/treatment --out research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/treatment/latest.pt --seed 20261127 --max-runtime-seconds 1800 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:31:41+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/evaluate_mechanism.py --parent research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --control research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control/latest.pt --treatment research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/treatment/latest.pt --out-dir research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/mechanism --device cuda",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:43:46+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:44:42+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:53:19+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem --junitxml=research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:53:19+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e4ed1c179f84f8f3e9abe1c1651ef8afffd9ecea6113ee26c243e98abcaedd12",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T09:19:23+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/code.patch",
+    "patch_sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9",
+    "source_manifest": "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "dcedfee3544e784dabed03ff292cdca943066f9dba5e7aca837ad3fa898faa57",
+    "source_files": 74
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 135641,
+    "lineage_training_hands": 0,
+    "offline_samples": 60671,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 2036.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 135641
+  },
+  "metrics": {
+    "control_physical_hands": 67777,
+    "control_transition_hands": 65853,
+    "control_final_iteration": 16,
+    "control_max_reference_kl": 0.0023,
+    "control_kl_stops": 0,
+    "treatment_physical_hands": 67864,
+    "treatment_transition_hands": 65948,
+    "treatment_final_iteration": 16,
+    "treatment_max_reference_kl": 0.04569955808775765,
+    "treatment_kl_stops": 0,
+    "treatment_parent_overall_tv": 0.06376559704483259,
+    "treatment_parent_overall_disagreement": 0.08377973001928433,
+    "control_parent_overall_tv": 0.007186518971385462,
+    "bb_treatment_greedy_raise_frequency": 0.46708185053380785,
+    "sb_treatment_greedy_raise_frequency": 0.9664,
+    "postflop_treatment_parent_tv": 0,
+    "bb_control_greedy_raise_frequency": 0.9268238434163701,
+    "sb_control_greedy_raise_frequency": 0.9962,
+    "learned_panel_pooled_delta_bb100": 5.418863932291667,
+    "learned_panel_ci95_lower": -28.40367859245004,
+    "learned_panel_ci95_upper": 39.24140645703337,
+    "learned_panel_positive_anchors": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/code.patch",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control/session_audit.json",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/treatment/session_audit.json",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/mechanism/summary.json",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/mechanism/state_metrics.jsonl",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/evaluate_mechanism.py",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/run_eval.py",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/eval/paired_delta.json",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/audit_review.py",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/terminal_review.json",
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/tests.xml"
+  ],
+  "notes": [
+    "Preregistered endpoint: final iter after each arm first crosses 65,536 physical hands. Health requires both session audits PASS, exact source/pool hashes, identical normalized assignments, fresh optimizer/counters, zero KL stops, only preflop/value tensors changed, and bitwise parent postflop policy.",
+    "After health, replay source corpus outcome-blind and run untouched current-v6 mirrored 2,048 pairs per arm against each of Standard10, slumbot_free and corrected CFR96 using a new common-randomness seed. Consider exploratory matched fresh5k Slumbot only if treatment improves contextual target distance, keeps overall parent TV/disagreement <=0.05, pooled learned-panel delta >0, and is positive on at least 2/3 anchors. No 100k qualification from this pilot.",
+    "Control frozen at preregistered iter16 endpoint: 67,777 physical/65,853 transition hands, max displayed source KL 0.0023, zero stops.",
+    "Both iter16 fixed-pool session audits PASS with 16 archives/assignments, optimizer step454, exact source hashes and zero KL stops.",
+    "Outcome-blind corpus: postflop exactly preserved and contextual aggression corrected, but treatment-parent overall TV/disagreement 0.06377/0.08378 exceed the preregistered 0.05 Slumbot-allocation boundary. Slumbot allocation is therefore disallowed for iter16.",
+    "Independent terminal review PASS: hashes, 16-row assignment chains, both session audits, strict tensor scope, exact postflop preservation, 60,671 mechanism rows, all 6,144 learned-panel pair decks/rewards/CIs, and failed Slumbot allocation gate recomputed. 175 tests PASS."
+  ],
+  "result": {
+    "summary": "Matched 65k arms completed 135,641 physical hands. Treatment strongly reduced BB-vs-open raise frequency 92.68% to 46.71% and kept postflop policy exact, but exceeded preservation limits (overall parent TV/disagreement 0.06377/0.08378). Learned panel was inconclusive at +5.42 bb/100 CI[-28.40,39.24] with only 1/3 positive anchors.",
+    "conclusion": "The isolated prior direction is mechanistically effective but coefficient 0.01 for 65k hands is an excessive dose. Iter16 fails both drift criteria and anchor-consistency, so it is rejected without Slumbot evaluation; the immutable checkpoint curve can identify an earlier safe dose without new training.",
+    "decision": "REJECT_ITER16_OVERDOSED_NO_SLUMBOT_ALLOCATION",
+    "next_step": "Open a separate outcome-blind dose-curve experiment over the archived matched checkpoints. Replay fixed source states at even iterations to find the latest treatment endpoint satisfying overall parent TV/disagreement <=0.05 with improved contextual target distance, then run a fresh untouched anchor panel only at that preregistered boundary checkpoint."
+  },
+  "tags": [
+    "65k",
+    "action-prior",
+    "matched-pilot",
+    "preflop",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795324,
+      "sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13653,
+      "sha256": "dcedfee3544e784dabed03ff292cdca943066f9dba5e7aca837ad3fa898faa57"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/control/session_audit.json": {
+      "type": "file",
+      "bytes": 10831,
+      "sha256": "825b1ab070a4b2bb9e1a2cbba7477b67a9cb6cc96bd45fbaaef8ef45a261c338"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 10864,
+      "sha256": "dccb40b6fcb90478fc1d27c299dd78c0962dbecc27ecc23b54e831152f3e08d5"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/mechanism/summary.json": {
+      "type": "file",
+      "bytes": 10252,
+      "sha256": "dd3a5f58d5425c6129ce9a7748fde86c60f2eb78b8e2b0ed93d613a55acb8791"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/mechanism/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 32451927,
+      "sha256": "83f9cbf7ea966e9d30ea7a707b2eb1bb222928d3169818e8c7498b36533787c6"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/evaluate_mechanism.py": {
+      "type": "file",
+      "bytes": 10563,
+      "sha256": "7dac60a5f3db34e2585c73806a816f5483a8e660f7bb92710b8cc7dddbef3b49"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/run_eval.py": {
+      "type": "file",
+      "bytes": 702,
+      "sha256": "f65a8836611a52e1f811dfa1d95fec62c430f69dc8535cf2f72ebf1a2968e41d"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/eval/paired_delta.json": {
+      "type": "file",
+      "bytes": 13874,
+      "sha256": "c9dad7bda1f1cdd33c143ce9627dfc6c63a0fbe37efa5cd625a90c3a95db1d48"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/audit_review.py": {
+      "type": "file",
+      "bytes": 4477,
+      "sha256": "ed8a04602817e0cbb6bf41517404cb7172e62ba6b63bcca79573be70116ba3d7"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/terminal_review.json": {
+      "type": "file",
+      "bytes": 2197,
+      "sha256": "874afa1b96d4ea971d365bb8dedeaa7e38c10867ede1033b2b36b34e2f12488f"
+    },
+    "research/experiments/v6-preflop-head-only-context-prior-65k-pilot-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 26264,
+      "sha256": "23624f252c65fdcfadbc5f981dda3cc2b0bb4c78d1b8ecf4f17cbdc41a77c788"
+    }
+  }
+}

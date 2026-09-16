@@ -1,0 +1,138 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-soup-uniform-mixed-league-smoke-20260901",
+  "title": "Current-v6 soup uniform mixed-opponent smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T08:04:51+00:00",
+  "updated_at": "2026-09-01T08:10:03+00:00",
+  "started_at": "2026-09-01T08:04:51+00:00",
+  "ended_at": "2026-09-01T08:10:03+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Starting from the strongest current-v6 external-tested soup, a reset-optimizer all-policy-head continuation can execute an auditable 50/50 procedural and uniform diverse learned-opponent mixture with fresh accounting, finite PPO/source-KL metrics, and identity-safe assignment provenance.",
+  "material_change": "Correct the pre-environment scheduler incompatibility by using a uniform four-checkpoint learned population alongside a 50% procedural share; keep soup initialization/reference and all other training controls fixed.",
+  "baseline": "The immediately preceding adaptive mixture was rejected by CLI before environment initialization with zero hands. Prior all-procedural and Standard10-initialized learned-league routes do not test this combination.",
+  "source": "Frozen soup SHA256 66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c; learned pool SHAs 66c225...,9fd38a...,1c050e...,9e1566....",
+  "parent_id": "v6-soup-mixed-league-contract-smoke-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/production/train/latest.pt research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/latest.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112100 --fixed-training-deal-stream --fixed-training-deal-start-index 4000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 0 --run-id v6_soup_uniform_mixed_league_smoke_20260901 --run-dir research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production --out research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/latest.pt --seed 20261121 --max-runtime-seconds 900 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt research/experiments/v6-parent-kl-conservative-tail-recovery-20260901/production/train/latest.pt research/experiments/v6-source-kl-temperature-65k-pilot-20260901/treatment/latest.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112100 --fixed-training-deal-stream --fixed-training-deal-start-index 4000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 0 --run-id v6_soup_uniform_mixed_league_smoke_20260901 --run-dir research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production --out research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/latest.pt --seed 20261121 --max-runtime-seconds 900 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:04:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 4 --expected-archive-every 0 --expected-normalization global --out research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T08:10:02+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "7b4146e0acb029a54fb7c0aa401739b7c974d65068d7b6d54884b033dc6d8447",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T08:04:51+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/code.patch",
+    "patch_sha256": "ffc0114db9eca5bf5bc1790e75e21cdd8e33524d35532af5267e75190af6ea02",
+    "source_manifest": "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "125d569d2fe9851d4e806b0b0e1ac8d3ea2b5b170a2a756f8dae0a5983b6edd5",
+    "source_files": 73
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 8674,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 312.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 8674
+  },
+  "metrics": {
+    "final_iteration": 2,
+    "transition_hands": 8215,
+    "physical_hands": 8674,
+    "procedural_hands": 4407,
+    "max_reference_policy_kl": 0.00036291525300059997,
+    "kl_early_stops": 0,
+    "optimizer_step": 56
+  },
+  "artifacts": [
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/code.patch",
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/latest.pt",
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/run_manifest.json",
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/h1_training_metrics.jsonl",
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/opponent_assignments.jsonl",
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/session_audit.json"
+  ],
+  "notes": [
+    "Technical gate only: >=8192 physical hands; fresh counters and optimizer; all four learned identities plus procedural hands observed; assignment/session evidence pass; finite metrics; zero KL early stops. Smoke reward is not a strength gate.",
+    "Training completed iter2: 8,674 physical/8,215 transition-bearing hands, 4,407 procedural. Four learned opponent identities all appeared. Source KL max0.000363, zero KL stops, optimizer fresh step56 versus stale source step984, and only the ten allowed policy/preflop/value tensors changed."
+  ],
+  "result": {
+    "summary": "Corrected uniform mixed-opponent smoke completed 8,674 physical hands with all four learned identities and 4,407 procedural hands; fresh optimizer/accounting, tensor scope, RNG chain, hashes, and finite health all passed.",
+    "conclusion": "The current-v6 soup can validly initialize a mixed procedural/learned all-heads continuation. This technical result supports a matched diversity pilot but is not strength evidence.",
+    "decision": "ADMIT_MATCHED_65K_UNIFORM_POOL_DIVERSITY_PILOT",
+    "next_step": "Start both arms freshly from the exact soup with identical seed/deal/procedural schedule and source KL: control uses only the soup learned opponent; treatment uses the preregistered four-checkpoint current-v6 population. Select external testing only after terminal health and outcome-blind source-drift review."
+  },
+  "tags": [
+    "mixed-opponents",
+    "technical-smoke",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12790475,
+      "sha256": "ffc0114db9eca5bf5bc1790e75e21cdd8e33524d35532af5267e75190af6ea02"
+    },
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13460,
+      "sha256": "125d569d2fe9851d4e806b0b0e1ac8d3ea2b5b170a2a756f8dae0a5983b6edd5"
+    },
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/latest.pt": {
+      "type": "file",
+      "bytes": 166057290,
+      "sha256": "7fc63999267c2d313c07d84692c20924bfdfb2c7201f5de322bd570e385a421d"
+    },
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 60802,
+      "sha256": "aa569cd3a580ddbe8e8e8f8daaadf3ce7821af89c2c880513071d6ab025df1cd"
+    },
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 55176,
+      "sha256": "9e960fa192481b204a5d681ce667b85d06ba6035f24b6a6078d1760240e9d6bf"
+    },
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5548,
+      "sha256": "2e91d0f6e1daf4ed3e4d550d2da5e38679404d17976d34af56391677f1b44ee5"
+    },
+    "research/experiments/v6-soup-uniform-mixed-league-smoke-20260901/session_audit.json": {
+      "type": "file",
+      "bytes": 4936,
+      "sha256": "43b44d371764172db6d92b6af6228ec74d7dac520ceb621ae39849f0aa4bb1c4"
+    }
+  }
+}

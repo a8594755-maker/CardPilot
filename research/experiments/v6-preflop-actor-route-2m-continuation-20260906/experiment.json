@@ -1,0 +1,1498 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-preflop-actor-route-2m-continuation-20260906",
+  "title": "Bounded two-seed actor-route unchanged-regimen 1M to 2M continuation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-06T16:55:06+00:00",
+  "updated_at": "2026-09-07T04:32:37+00:00",
+  "started_at": "2026-09-06T16:55:06+00:00",
+  "ended_at": "2026-09-07T04:32:34+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An additional fixed geometric dose may distinguish delayed learning from nonreproducible short-run changes; current external mixed-seed contrasts do not establish superiority or mechanism failure.",
+  "material_change": "Continue all four exact 1M actor-route endpoints to 2097152 post-split physical hands per branch, unchanged optimizer/replay/pool/route/seeds; one reduced 32768-hand internal terminal check, no automatic external or larger scale.",
+  "baseline": "Detached full-network route, seeds1 and3, matched physical dose; original actor-split common evaluation parents",
+  "source": "v6-preflop-actor-route-two-seed-external-fresh80k-20260906",
+  "parent_id": "v6-preflop-actor-trunk-two-seed-geometric-20260906",
+  "command": "python -B research/experiments/v6-preflop-actor-route-2m-continuation-20260906/qualify.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-preflop-actor-route-2m-continuation-20260906/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T16:55:06+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-preflop-actor-route-2m-continuation-20260906/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T16:55:33+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\test_scale.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T16:55:33+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File research/experiments/v6-preflop-actor-route-2m-continuation-20260906/launch.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T16:56:12+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\run_scale.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T16:56:17+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12595386 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\seed1_detached_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T16:56:21+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12595386 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\seed1_connected_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T17:25:50+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12589293 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\seed3_connected_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T17:55:15+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 12589293 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-trunk-two-seed-geometric-20260906\\seed3_detached_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T18:23:50+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 512 --seed 20264411 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_detached_stage3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T18:52:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 512 --seed 20264411 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_connected_stage3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T18:54:38+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 512 --seed 20264431 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_detached_stage3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T18:57:08+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_full_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 512 --seed 20264431 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_connected_stage3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-06T18:59:32+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/close_completed_scale.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\post_analysis\\terminal_followthrough.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\post_analysis\\terminal_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualify_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\post_analysis\\test_terminal_review.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\post_analysis\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualify_followthrough.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\post_analysis\\test_terminal_followthrough.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\post_analysis\\followthrough_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/launch_followthrough.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since \"2026-09-06T16:55:06+00:00\" --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:29+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiment_log.py audit --since 2026-09-06T16:55:06+00:00 --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\post_finish_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T04:32:37+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-preflop-actor-route-2m-continuation-20260906"
+    ],
+    "captured_at": "2026-09-06T16:55:06+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/source_manifest.json",
+    "source_manifest_sha256": "70e72db71a400a3f50117b3a459b89c34ef1df893b8d4161742c8811b8e9ebfc",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4190918,
+    "lineage_training_hands": 12596243,
+    "offline_samples": 0,
+    "evaluation_hands": 32768,
+    "wall_time_seconds": 41848.0,
+    "slumbot_hands": 0,
+    "final_qualification_hands": 0,
+    "new_transition_hands": 3689651,
+    "new_replay_rows": 6475085,
+    "new_no_decision_hands": 500353,
+    "residual_worker_tail_hands": 914
+  },
+  "metrics": {
+    "resume_preflight_passed": true,
+    "minimum_new_physical_target": 4185219,
+    "controller_phase": "FIXED_2M_COMPLETE_NEEDS_RESEARCH_REVIEW",
+    "training_started": true,
+    "training_subprocess_wall_seconds": 6816.437474400038,
+    "all_job_wall_seconds": 7328.789526100038,
+    "controller_wall_seconds": 7562.015029000002,
+    "review_wall_seconds": 29.109000000054948,
+    "actual_new_physical_hands_per_training_wall_second": 614.8252684396364,
+    "unique_new_evaluation_decks": 4096,
+    "prior_common_deck_rows_checked": 772098,
+    "statistical_not_bitwise_worker_continuation": true,
+    "terminal_review_passed": true,
+    "closure_input_hashes_rechecked": 1093,
+    "curve_1m_to_2m": {
+      "1": {
+        "relative_advantage_change": {
+          "pooled": {
+            "bb100": 9.6400146484375,
+            "se_bb100": 15.341603111955797,
+            "ci95": [
+              -20.42952745099586,
+              39.70955674787086
+            ],
+            "earlier_paired_decks": 8192,
+            "later_paired_decks": 2048
+          },
+          "by_anchor": {
+            "standard10": {
+              "bb100": 3.79638671875,
+              "se_bb100": 21.17183854066705,
+              "ci95": [
+                -37.700416820957415,
+                45.293190258457415
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            },
+            "cfr4": {
+              "bb100": 42.7470703125,
+              "se_bb100": 33.39879909726387,
+              "ci95": [
+                -22.714575918137186,
+                108.20871654313719
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            },
+            "legacy_iter16": {
+              "bb100": 23.71826171875,
+              "se_bb100": 31.876186954578937,
+              "ci95": [
+                -38.75906471222471,
+                86.19558814972471
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            },
+            "legacy_mixed65k": {
+              "bb100": -31.70166015625,
+              "se_bb100": 34.461104710731846,
+              "ci95": [
+                -99.24542538928442,
+                35.84210507678442
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            }
+          },
+          "by_seat": {
+            "0": {
+              "bb100": 10.75439453125,
+              "se_bb100": 27.905522600582227,
+              "ci95": [
+                -43.94042976589117,
+                65.44921882839117
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "1": {
+              "bb100": 8.525634765625,
+              "se_bb100": 16.269030727206214,
+              "ci95": [
+                -23.36166545969918,
+                40.41293499094918
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            }
+          }
+        },
+        "parent_relative_changes": {
+          "connected": {
+            "pooled": {
+              "bb100": 6.7269287109375,
+              "se_bb100": 19.352821443298723,
+              "ci95": [
+                -31.204601317927995,
+                44.658458739802995
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": 24.365234375,
+                "se_bb100": 46.38178964689899,
+                "ci95": [
+                  -66.54307333292202,
+                  115.27354208292202
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": 10.98974609375,
+                "se_bb100": 27.475328542246228,
+                "ci95": [
+                  -42.8618978490526,
+                  64.84139003655261
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": 16.22314453125,
+                "se_bb100": 39.44519797548819,
+                "ci95": [
+                  -61.08944350070685,
+                  93.53573256320685
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": -24.67041015625,
+                "se_bb100": 39.13404314278936,
+                "ci95": [
+                  -101.37313471611714,
+                  52.032314403617136
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": 11.66650390625,
+                "se_bb100": 33.8830871464278,
+                "ci95": [
+                  -54.74434690074848,
+                  78.07735471324848
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": 1.787353515625,
+                "se_bb100": 20.039799967623072,
+                "ci95": [
+                  -37.49065442091622,
+                  41.06536145216622
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          },
+          "detached": {
+            "pooled": {
+              "bb100": -2.9130859375,
+              "se_bb100": 22.001223541805214,
+              "ci95": [
+                -46.03548407943822,
+                40.20931220443822
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": 20.56884765625,
+                "se_bb100": 45.565555726225995,
+                "ci95": [
+                  -68.73964156715294,
+                  109.87733687965294
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": -31.75732421875,
+                "se_bb100": 32.65811096682113,
+                "ci95": [
+                  -95.76722171371941,
+                  32.25257327621941
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": -7.4951171875,
+                "se_bb100": 43.3358230597808,
+                "ci95": [
+                  -92.43333038467037,
+                  77.44309600967037
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": 7.03125,
+                "se_bb100": 52.26382951568601,
+                "ci95": [
+                  -95.40585585074459,
+                  109.46835585074459
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": 0.9121093749999964,
+                "se_bb100": 39.68465029742775,
+                "ci95": [
+                  -76.8698052079584,
+                  78.6940239579584
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": -6.73828125,
+                "se_bb100": 19.154672682446606,
+                "ci95": [
+                  -44.28143970759535,
+                  30.804877207595347
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          }
+        },
+        "absolute_changes": {
+          "connected": {
+            "pooled": {
+              "bb100": -4.052978515625,
+              "se_bb100": 9.605407970456087,
+              "ci95": [
+                -22.87957813771893,
+                14.77362110646893
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": -0.09765625,
+                "se_bb100": 14.340511666579737,
+                "ci95": [
+                  -28.205059116496283,
+                  28.009746616496283
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": 4.80859375,
+                "se_bb100": 22.556634725542118,
+                "ci95": [
+                  -39.40241031206255,
+                  49.01959781206255
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": -1.67236328125,
+                "se_bb100": 20.168382724109986,
+                "ci95": [
+                  -41.20239342050557,
+                  37.85766685800557
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": -19.25048828125,
+                "se_bb100": 18.867071974874975,
+                "ci95": [
+                  -56.22994935200495,
+                  17.72897278950495
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": 33.768310546875,
+                "se_bb100": 29.802099370835368,
+                "ci95": [
+                  -24.64380421996232,
+                  92.18042531371232
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": -41.874267578125,
+                "se_bb100": 29.754227369756922,
+                "ci95": [
+                  -100.19255322284857,
+                  16.444018066598566
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          },
+          "detached": {
+            "pooled": {
+              "bb100": -13.6929931640625,
+              "se_bb100": 13.644949918760283,
+              "ci95": [
+                -40.437095004832656,
+                13.051108676707653
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": -3.89404296875,
+                "se_bb100": 19.71022443656974,
+                "ci95": [
+                  -42.52608286442669,
+                  34.73799692692669
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": -37.9384765625,
+                "se_bb100": 25.153142798990594,
+                "ci95": [
+                  -87.23863644852156,
+                  11.36168332352156
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": -25.390625,
+                "se_bb100": 29.325347826167746,
+                "ci95": [
+                  -82.86830673928878,
+                  32.08705673928878
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": 12.451171875,
+                "se_bb100": 33.16828165824272,
+                "ci95": [
+                  -52.55866017515572,
+                  77.46100392515572
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": 23.013916015625,
+                "se_bb100": 31.74469672948307,
+                "ci95": [
+                  -39.205689574161816,
+                  85.23352160541182
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": -50.39990234375,
+                "se_bb100": 28.828955875038844,
+                "ci95": [
+                  -106.90465585882613,
+                  6.104851171326132
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          }
+        },
+        "new_physical_hands": {
+          "connected": 1044495,
+          "detached": 1049173
+        }
+      },
+      "3": {
+        "relative_advantage_change": {
+          "pooled": {
+            "bb100": 19.7777099609375,
+            "se_bb100": 21.10920731739673,
+            "ci95": [
+              -21.596336381160093,
+              61.15175630303509
+            ],
+            "earlier_paired_decks": 8192,
+            "later_paired_decks": 2048
+          },
+          "by_anchor": {
+            "standard10": {
+              "bb100": 30.615234375,
+              "se_bb100": 32.85334721282074,
+              "ci95": [
+                -33.77732616212866,
+                95.00779491212866
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            },
+            "cfr4": {
+              "bb100": -3.34765625,
+              "se_bb100": 43.93283890632509,
+              "ci95": [
+                -89.45602050639717,
+                82.76070800639717
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            },
+            "legacy_iter16": {
+              "bb100": 71.98486328125,
+              "se_bb100": 56.92261232836733,
+              "ci95": [
+                -39.583456882349964,
+                183.55318344484996
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            },
+            "legacy_mixed65k": {
+              "bb100": -20.1416015625,
+              "se_bb100": 29.63720636339139,
+              "ci95": [
+                -78.23052603474713,
+                37.94732290974712
+              ],
+              "earlier_paired_decks": 2048,
+              "later_paired_decks": 512
+            }
+          },
+          "by_seat": {
+            "0": {
+              "bb100": 61.54541015625,
+              "se_bb100": 35.61830853271331,
+              "ci95": [
+                -8.266474567868087,
+                131.3572948803681
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "1": {
+              "bb100": -21.989990234375,
+              "se_bb100": 24.153963261461268,
+              "ci95": [
+                -69.33175822683909,
+                25.351777758089085
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            }
+          }
+        },
+        "parent_relative_changes": {
+          "connected": {
+            "pooled": {
+              "bb100": -29.1827392578125,
+              "se_bb100": 24.23796911534167,
+              "ci95": [
+                -76.68915872388217,
+                18.323680208257173
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": -19.82421875,
+                "se_bb100": 31.03060806589773,
+                "ci95": [
+                  -80.64421055915955,
+                  40.99577305915955
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": -57.685546875,
+                "se_bb100": 56.94341689142983,
+                "ci95": [
+                  -169.29464398220244,
+                  53.92355023220246
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": 2.5634765625,
+                "se_bb100": 39.132181101442896,
+                "ci95": [
+                  -74.13559839632808,
+                  79.26255152132808
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": -41.78466796875,
+                "se_bb100": 60.553813090150975,
+                "ci95": [
+                  -160.4701416254459,
+                  76.9008056879459
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": -54.3701171875,
+                "se_bb100": 26.865942383710404,
+                "ci95": [
+                  -107.0273642595724,
+                  -1.7128701154276058
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": -3.995361328125,
+                "se_bb100": 39.765245655433844,
+                "ci95": [
+                  -81.93524281277533,
+                  73.94452015652533
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          },
+          "detached": {
+            "pooled": {
+              "bb100": -48.96044921875,
+              "se_bb100": 25.461993903647123,
+              "ci95": [
+                -98.86595726989836,
+                0.9450588323983595
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": -50.439453125,
+                "se_bb100": 41.68407899692711,
+                "ci95": [
+                  -132.14024795897714,
+                  31.26134170897714
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": -54.337890625,
+                "se_bb100": 51.907381960386594,
+                "ci95": [
+                  -156.0763592673577,
+                  47.40057801735772
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": -69.42138671875,
+                "se_bb100": 53.54598745349734,
+                "ci95": [
+                  -174.37152212760478,
+                  35.52874869010478
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": -21.64306640625,
+                "se_bb100": 55.548465857364185,
+                "ci95": [
+                  -130.5180594866838,
+                  87.2319266741838
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": -115.91552734375,
+                "se_bb100": 40.330055043827265,
+                "ci95": [
+                  -194.96243522965142,
+                  -36.86861945784857
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": 17.99462890625,
+                "se_bb100": 36.780218992102654,
+                "ci95": [
+                  -54.094600318271205,
+                  90.0838581307712
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          }
+        },
+        "absolute_changes": {
+          "connected": {
+            "pooled": {
+              "bb100": -5.5919189453125,
+              "se_bb100": 14.391907990825915,
+              "ci95": [
+                -33.800058607331295,
+                22.616220716706295
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": -37.9638671875,
+                "se_bb100": 20.3284993284016,
+                "ci95": [
+                  -77.80772587116712,
+                  1.8799914961671291
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": -14.48193359375,
+                "se_bb100": 28.94419528603321,
+                "ci95": [
+                  -71.2125563543751,
+                  42.24868916687509
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": 51.7578125,
+                "se_bb100": 30.653860636936795,
+                "ci95": [
+                  -8.323754348396115,
+                  111.83937934839611
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": -21.6796875,
+                "se_bb100": 33.49708236734097,
+                "ci95": [
+                  -87.33396893998831,
+                  43.97459393998831
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": 13.937255859375,
+                "se_bb100": 35.78102340861325,
+                "ci95": [
+                  -56.193550021506965,
+                  84.06806174025697
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": -25.12109375,
+                "se_bb100": 37.97815821393871,
+                "ci95": [
+                  -99.55828384931988,
+                  49.31609634931988
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          },
+          "detached": {
+            "pooled": {
+              "bb100": -25.36962890625,
+              "se_bb100": 19.494952893371398,
+              "ci95": [
+                -63.57973657725794,
+                12.84047876475794
+              ],
+              "earlier_paired_decks": 8192,
+              "later_paired_decks": 2048
+            },
+            "by_anchor": {
+              "standard10": {
+                "bb100": -68.5791015625,
+                "se_bb100": 32.709350696920446,
+                "ci95": [
+                  -132.68942892846405,
+                  -4.468774196535932
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "cfr4": {
+                "bb100": -11.13427734375,
+                "se_bb100": 38.97497094759176,
+                "ci95": [
+                  -87.52522040102984,
+                  65.25666571352984
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_iter16": {
+                "bb100": -20.22705078125,
+                "se_bb100": 48.70483968352974,
+                "ci95": [
+                  -115.68853656096829,
+                  75.23443499846829
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              },
+              "legacy_mixed65k": {
+                "bb100": -1.5380859375,
+                "se_bb100": 33.53934296858371,
+                "ci95": [
+                  -67.27519815592407,
+                  64.19902628092407
+                ],
+                "earlier_paired_decks": 2048,
+                "later_paired_decks": 512
+              }
+            },
+            "by_seat": {
+              "0": {
+                "bb100": -47.608154296875,
+                "se_bb100": 45.089930654983455,
+                "ci95": [
+                  -135.98441838064258,
+                  40.768109786892566
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              },
+              "1": {
+                "bb100": -3.131103515625,
+                "se_bb100": 33.83602066983348,
+                "ci95": [
+                  -69.44970402849862,
+                  63.187496997248616
+                ],
+                "earlier_paired_decks": 8192,
+                "later_paired_decks": 2048
+              }
+            }
+          }
+        },
+        "new_physical_hands": {
+          "connected": 1048847,
+          "detached": 1048403
+        }
+      }
+    },
+    "goal_achieved": false,
+    "launch_audit_scope_deviation_preserved": true
+  },
+  "artifacts": [
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/preregistration.md",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/code.patch",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\test_result.json",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/launch.ps1",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed1_detached_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_detached_stage3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_detached_stage3\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed1_connected_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_connected_stage3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_connected_stage3\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed3_detached_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_detached_stage3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_detached_stage3\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed3_connected_stage3\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_connected_stage3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_connected_stage3\\common_deck_pairs.jsonl.gz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\stage3_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\controller_result.json",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/controller.stderr.log",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/controller.stdout.log",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/close_completed_scale.py",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/curve_1m_to_2m.json",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough.stderr.log",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough.stdout.log",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough_execution.json",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough_qualification.json",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough_tests.xml",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/launch_followthrough.ps1",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/launch_observations.md",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualification.json",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualify_followthrough.py",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualify_review.py",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/README.md",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_followthrough.py",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_review.py",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_review.stderr.log",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_review.stdout.log",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/test_terminal_followthrough.py",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/test_terminal_review.py",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/tests.xml",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_terminal_review.json",
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_finish_audit.json"
+  ],
+  "notes": [
+    "External predecessor correctly finished with0 metadata warnings. This is a bounded scale-uncertainty allocation, not promotion. Old evidence, unknown historical crash tail and all inherited counter offsets remain. No competing writer.",
+    "Four current frozen parents passed actual serialized-state preflight and23 changed-binding tests. Only target/resume/output/registry command fields differ; actual optimizer LR retained. Initial real-resume equality and fresh namespace gate remain mandatory for each branch.",
+    "seed1_detached_stage3: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "seed1_connected_stage3: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "seed3_connected_stage3: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "seed3_detached_stage3: exact actual initial full-network model/optimizer/replay/counters/RNG/pool checked;LR=9.999999999999996e-05.",
+    "Completed original fixed2M jobs and the single independent reviewer; neither rerun. Added retained1M-to2M independent-deck analysis and deferred helper qualification/actual commands. Preserve 348-record/238-warning mis-scoped launch audit; corrected explicitISO one-record audit passed. Full logger wall includes overnight idle and user discussion; separate controller/training/review wall metrics are actual execution costs. Earlier unknown crash tails remain unknown; statistical worker continuation is not bitwise. Replay is not new environment hands."
+  ],
+  "result": {
+    "summary": "Four retained actor-route endpoints completed fixed2M: 4190918 new physical training hands,32768 internal executions,4096 unique evaluation decks; independent terminal review passed.",
+    "conclusion": "Connected-minus-detached +18.6401/+23.6543 bb100, both nominal95CI include zero. Connected versus original parent -6.1401/-12.1704. No replicated positive own learning curve; relative advantage may reflect control deterioration. Integrity passed, external strength untested at2M.",
+    "decision": "Evidence shortage, not winning policy or global long-run mechanism disproof. Keep all four endpoints and unchanged raw evidence. No promotion, final qualification or automatic larger training allocation.",
+    "next_step": "Separately preregister fixed untouched external calibration of all four2M policies using the qualified legacy-observation greedy executor before deciding further compute. Compare both seeds and controls; do not cherry-pick or use Slumbot action labels."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 23,
+    "command_count": 23
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/preregistration.md": {
+      "type": "file",
+      "bytes": 3736,
+      "sha256": "6424c33eaf2bfbd09e968c1bea2c287157ce5c7f9af2fd4c60b2303d5c2dd369"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/source_manifest.json": {
+      "type": "file",
+      "bytes": 1405,
+      "sha256": "70e72db71a400a3f50117b3a459b89c34ef1df893b8d4161742c8811b8e9ebfc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\qualification.json": {
+      "type": "file",
+      "bytes": 225878,
+      "sha256": "30997b6df2aa3422cd0b784930c623c4c046af8fa0dd54ecffa017e764189164"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\commands.json": {
+      "type": "file",
+      "bytes": 21905,
+      "sha256": "9b540d5e16b0fb947e1e6d3bea16d1ddf5021aadde775764763cc4efe2c1daa6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\tests.xml": {
+      "type": "file",
+      "bytes": 4382,
+      "sha256": "04d21e5067ecf4cf9c9514fab48a7b2a1ef73322a2e141d68b5a715f7f0efa38"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\test_result.json": {
+      "type": "file",
+      "bytes": 735,
+      "sha256": "d63378a25eecfb35d0a8966872e23c3e08a31ea5ac1f37326335b318646e1bea"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/launch.ps1": {
+      "type": "file",
+      "bytes": 1062,
+      "sha256": "02a75bf482e0261ee40f151635b7785af0739a1b692508b89fc165215e4140fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\ownership.json": {
+      "type": "file",
+      "bytes": 514,
+      "sha256": "fe0b56e320789ee476680f29117d2e45922e20ce7e98fd02d65d294225983385"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\input_contract.json": {
+      "type": "file",
+      "bytes": 222901,
+      "sha256": "3693be357fae870dafca4ce70fc661088ca505b3e6d306b5501574dde18def3b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\command.json": {
+      "type": "file",
+      "bytes": 3524,
+      "sha256": "7776f28b5e82f0dfae179f24525a180cf9cd86a6df9ac733a7a5d011d2cee573"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 368271570,
+      "sha256": "089ea68a0238a4a6d0b1ce735db41918cdc0104a9e44348d135f1eaf8043b288"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 710,
+      "sha256": "a20f963a7755ea945f317078719095a9296871acb9752f02c8edfceed9ee64a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\latest.pt": {
+      "type": "file",
+      "bytes": 381068050,
+      "sha256": "6ee1cac98c1bece29c18723c7c89da574f24968fce8ffd4e412d02233b3e908c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\verification.json": {
+      "type": "file",
+      "bytes": 16962,
+      "sha256": "82fd5e94439f7929c866e85b42cbbcf5187cd668b12b7890827b4fbd60d3d33c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\termination.json": {
+      "type": "file",
+      "bytes": 649,
+      "sha256": "09d145440d90156e2ec714dacfb6e09f6abf3ea7bc0a72f0e8455213996dae81"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 80346598,
+      "sha256": "e5d46d2509b2a442ee55979871cc3ec5b712593196e9f149f394286bf7134548"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_detached_stage3\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 7489536,
+      "sha256": "a57f3ca60da51eecdc2ab5e9d7934f80f0b718e9b642668d12fa0b6d691c2247"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\command.json": {
+      "type": "file",
+      "bytes": 3559,
+      "sha256": "36fc8e5fc7fef7142fe3696bb2c63a99d8d2d6adf83de36c1c97372b6cddb2da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 371990802,
+      "sha256": "55b4f5118b96ba950e1af766ab1864be0aae107a9eaf642419b20cdccef2a068"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 709,
+      "sha256": "5d0cbcdada104c6039537eaaec51f12f965496e98f2d5d9eb2197a50564c1086"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\latest.pt": {
+      "type": "file",
+      "bytes": 375939474,
+      "sha256": "c9459d471dbaea0662533633631fb3b86a8e7d164238a887098aabe72d1c29e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\verification.json": {
+      "type": "file",
+      "bytes": 16965,
+      "sha256": "f1f5abaa74d4e8ae088d70cdd8eddf673d26c5cfab4fa4ff3b43f6181e61f873"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\termination.json": {
+      "type": "file",
+      "bytes": 647,
+      "sha256": "6a0a15abb9a232201f91ce33f978c508296916ba274fbb3ca2c9ae4a52b9c8e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 80461285,
+      "sha256": "891850cc16b364caa48832a91c93ea1decab612aadf23468c168680d97280870"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed1_connected_stage3\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 7497621,
+      "sha256": "0394e599ca4a2b6d682d3f2169d3e26a358fc18840858c7f44c6fdd99a3ea89a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\command.json": {
+      "type": "file",
+      "bytes": 3559,
+      "sha256": "636de797be461b767661bdc8226b9924eaceb17d4fdd040bae94d92cdac4ee49"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 381319826,
+      "sha256": "8fe4053bb347e220b1f990dd41175f97db1a5283937909afe081c3b91f6fa57a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 709,
+      "sha256": "594a6c445ba3b6ee504460b77b9b96f600ac8e88ac7e0da465f627ec81386014"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\latest.pt": {
+      "type": "file",
+      "bytes": 382010194,
+      "sha256": "d2c7acdde6e97eec6290c07904943fbcda734d5acec57bb7e89cd12843136e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\verification.json": {
+      "type": "file",
+      "bytes": 16967,
+      "sha256": "c9283dab2b36e9e02c0e6567ea6d42f81f54556cdca4b35a156bb62be6049a01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\termination.json": {
+      "type": "file",
+      "bytes": 648,
+      "sha256": "babb267dfd9cd065f8fbd5b723aab435fdbae876f1abdcd282fcdf0a60053c32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 80559556,
+      "sha256": "c1ef3205ebfd9bcbd3d824c39021abf8e2d7101853977915a6a44733e0fb6c33"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_connected_stage3\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 7518289,
+      "sha256": "bc9ae37bbdc9ac064724e3ef05c2cdee834d1a63f727dbda37755cff2e7796fb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\command.json": {
+      "type": "file",
+      "bytes": 3524,
+      "sha256": "3df7fa0597a92be30b7bbea1163d051638741292e5cb95ee4a4c82748fdd6080"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 379019154,
+      "sha256": "6b75b834fcb6e380906a0b7756665bfb70ce9b194a90815728e13d134b574406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 710,
+      "sha256": "b3985d093c2bde353d630cb3d499dfdefbf21e5c93aa1d8c26ae9d775c3d041e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\latest.pt": {
+      "type": "file",
+      "bytes": 362690898,
+      "sha256": "f6c60086948010d95f9f0f6ce6586793d543087d2e41fa90bf03040fbf5de9dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\verification.json": {
+      "type": "file",
+      "bytes": 16964,
+      "sha256": "d3efda210f7d7fa4d45c3b8f730993b0fad7a1eda6d1b87b6fb70b8ccfdea084"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\termination.json": {
+      "type": "file",
+      "bytes": 649,
+      "sha256": "db308ebfeb399706974c346d6255705289bdd87b35e0233bc45fa7f5d923c6d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 80655660,
+      "sha256": "8747682fb449547af930bbec5157ca0846cc5e6b8c3f40d6ea5aca69fc25d123"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\seed3_detached_stage3\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 7529864,
+      "sha256": "75f409bb4e21d22591574c5857975b653919e87c27cfcefc62cedb7cefd06242"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed1_detached_stage3\\command.json": {
+      "type": "file",
+      "bytes": 1290,
+      "sha256": "da9090adffb3ad47d14bd69bce01179baee6ab37ddcf17db1821dcff8dfdaada"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_detached_stage3\\summary.json": {
+      "type": "file",
+      "bytes": 11561,
+      "sha256": "12963a90ad9673a003ea709c80d9943055880705035466d4f8a9cf96c9f9d3d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_detached_stage3\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 140724,
+      "sha256": "f296f228cceaa62af9fcb8db976a3bfb4f352a4fbe4675702089267254efd929"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed1_connected_stage3\\command.json": {
+      "type": "file",
+      "bytes": 1292,
+      "sha256": "6a9e8c2f6b7840102800910c47df85f31662c6b926541d9de4bfb64ef410bd2b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_connected_stage3\\summary.json": {
+      "type": "file",
+      "bytes": 11545,
+      "sha256": "d0154c6b0cfad4bd3c7611038d0347b802f1e5d96631e782232e99c221dc8db2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed1_connected_stage3\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 139193,
+      "sha256": "61976f8fd2128f8c838eb2e8825b48598c5b915a2ece9829be01ee0e56f5e52a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed3_detached_stage3\\command.json": {
+      "type": "file",
+      "bytes": 1290,
+      "sha256": "e1b54d086fa11ae78bbb6fb5dc4f88edc032d07bab793fd587a110d6eedf00c3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_detached_stage3\\summary.json": {
+      "type": "file",
+      "bytes": 11577,
+      "sha256": "6196e89c156ca95c34e7e04e99ec75b967e0c6829533314351de6506c8eb813f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_detached_stage3\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 141383,
+      "sha256": "0fa29d7c696c76564f7129acbe5cf3d88630d34615f0d8adf110b028a4a83147"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\job_eval_seed3_connected_stage3\\command.json": {
+      "type": "file",
+      "bytes": 1292,
+      "sha256": "b798cb2cefc2e0fc3d0abc3f036367278ad34328ac59d7637c5ff0547c44ed96"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_connected_stage3\\summary.json": {
+      "type": "file",
+      "bytes": 11554,
+      "sha256": "50bc6b5fbf418edbc2792a02cb2dc227c80dee876a84e5c4443ee701a10b6821"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\eval_seed3_connected_stage3\\common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 139136,
+      "sha256": "6200890500ce1151b9eb8edcde53a36f07a067606b38a364c8d0e034b5303fd3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\stage3_analysis.json": {
+      "type": "file",
+      "bytes": 22067,
+      "sha256": "398164c2366d20bb5ac730c13b0235deba75ccc77e38e0679cd40d935a0abeff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-preflop-actor-route-2m-continuation-20260906\\controller_result.json": {
+      "type": "file",
+      "bytes": 78952,
+      "sha256": "a9e40faa3feabb9e4b9f99828c7a28a8326754d5defc14a75aa84366cfabd9a8"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/controller.stderr.log": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/controller.stdout.log": {
+      "type": "file",
+      "bytes": 131636,
+      "sha256": "db859daa856a98d2c9ad9286eb34cd4a4ba38d1b0078e22aeb552c617b1fb195"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/close_completed_scale.py": {
+      "type": "file",
+      "bytes": 10570,
+      "sha256": "59acd984103e8afc76f3e4b2f2338fb1ae45742d87b53eba1f98cfc7fd63d1df"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/curve_1m_to_2m.json": {
+      "type": "file",
+      "bytes": 265855,
+      "sha256": "0495179e3e5d7dd9909d9ca1e2ef49f13a3218a9745af6283091701afd111b4c"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough.stderr.log": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough.stdout.log": {
+      "type": "file",
+      "bytes": 95,
+      "sha256": "a0112e706cd0c4632d597d63b13d23fe563c2a75d3cd3f4a1bd2005d220e29ab"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough_execution.json": {
+      "type": "file",
+      "bytes": 1158,
+      "sha256": "78cc16866f00eb721e6d60b995a686d066317aace92feb5bbd76e66b82b89e9d"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough_qualification.json": {
+      "type": "file",
+      "bytes": 2766,
+      "sha256": "4e37ded643ed3e17a46c9d9d246d953e4bc1e5a0715aa5ef516014e190cfdd04"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/followthrough_tests.xml": {
+      "type": "file",
+      "bytes": 1627,
+      "sha256": "4ec7f80c98d3d92ff23460324c667dcb275e3ae4cd4ec44fbd9a746e80e1b47d"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/launch_followthrough.ps1": {
+      "type": "file",
+      "bytes": 767,
+      "sha256": "6c31067c9c1bc54b5c89f4f3a1c3afd9058399772f5cbb3b5862ced3142ea076"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/launch_observations.md": {
+      "type": "file",
+      "bytes": 2068,
+      "sha256": "20a3aa01f202788f7c9d5a2dc3403090d360d11f441e0cda64ac22cd3a4e48ba"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualification.json": {
+      "type": "file",
+      "bytes": 3462,
+      "sha256": "e9c5059b617bd32bf496ee532829f437db79d77d6aad53fc6fddcc0f14356ff6"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualify_followthrough.py": {
+      "type": "file",
+      "bytes": 2050,
+      "sha256": "adaa45cd9963df3b7b5d97403c39f7780c45ef61031d45371cf5c1699065d3c0"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/qualify_review.py": {
+      "type": "file",
+      "bytes": 2670,
+      "sha256": "69744298376aa2410836a1048c45c4d81d66be17881d9ff361c45dbd0f4c0df3"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/README.md": {
+      "type": "file",
+      "bytes": 3750,
+      "sha256": "f5d98bd7bae04fc15ba7dbc089d6439405ec7a0391c9d2e0f740882358571819"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_followthrough.py": {
+      "type": "file",
+      "bytes": 4360,
+      "sha256": "0206d90773881e58d0d6ef463d3c74620de045e185b601259ed958d84bc31d7c"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_review.py": {
+      "type": "file",
+      "bytes": 16069,
+      "sha256": "57cec46f3cb7d077c6564e052da293891a49d411ea463f851a4b49368cf5f66a"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_review.stderr.log": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/terminal_review.stdout.log": {
+      "type": "file",
+      "bytes": 404,
+      "sha256": "1cd51e2b9d75218b81c5b8383fbcede681649d924e55da63f70442ceace9d524"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/test_terminal_followthrough.py": {
+      "type": "file",
+      "bytes": 1823,
+      "sha256": "c85d7341ca98f25bde2284f16c48dffe2d5067283271f6775aa6242e06393152"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/test_terminal_review.py": {
+      "type": "file",
+      "bytes": 5447,
+      "sha256": "764dc0d859cfda397cfb681c9020a83eba9d738d81f0b5d479c0453b0e9a13e2"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_analysis/tests.xml": {
+      "type": "file",
+      "bytes": 3620,
+      "sha256": "94b36741d4b5524d243ee5130ece80c96acf30b74398344e7b19502054000d61"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_terminal_review.json": {
+      "type": "file",
+      "bytes": 275418,
+      "sha256": "bdc338b79f4a3f3bd27d5335233b079f0260f9f8b1e0ba0770af243bd41971d2"
+    },
+    "research/experiments/v6-preflop-actor-route-2m-continuation-20260906/post_finish_audit.json": {
+      "type": "file",
+      "bytes": 231,
+      "sha256": "fbf27e9d332a10cbf18c3e470b9d7bc99e0c8280c0b0c661a7e559268919c2e4"
+    }
+  }
+}

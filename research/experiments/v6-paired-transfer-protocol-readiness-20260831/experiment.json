@@ -1,0 +1,151 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-paired-transfer-protocol-readiness-20260831",
+  "title": "Offline balanced two-arm external transfer protocol",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T14:50:35+00:00",
+  "updated_at": "2026-08-31T14:51:57+00:00",
+  "started_at": "2026-08-31T14:50:35+00:00",
+  "ended_at": "2026-08-31T14:50:40+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Balanced fixed16-session design and explicit unpaired raw/session contrasts can compare the preregistered self-play endpoints without accidental hand pairing or posthoc internal selection.",
+  "material_change": "New isolated offline schedule/statistics/cross-arm audit helpers and synthetic tests only; do not change active trainer/copies or generate game hands.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-selfplay75-transfer-pilot-r4-20260831",
+  "command": "python research/experiments/v6-paired-transfer-protocol-readiness-20260831/run_readiness.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-paired-transfer-protocol-readiness-20260831/run_readiness.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:50:35+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\test_protocol.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:50:36+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-paired-transfer-protocol-readiness-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T14:50:35+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-paired-transfer-protocol-readiness-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-paired-transfer-protocol-readiness-20260831/source_manifest.json",
+    "source_manifest_sha256": "940be068d11656b354f195f1da389f1e69635d00c7211435526cdae8801bcb85",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 5.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/preregistration.md",
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/code.patch",
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\test_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\reserved_schedule.json",
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/post_finish_audit.json"
+  ],
+  "notes": [
+    "Meaningful protocol-readiness experiment while real training continues; numeric fixture arrays are not poker hands or learning samples. Both actual-weight deployment parity and final-hash review remain required before a separately logged live40k cohort.",
+    "Synthetic arithmetic/schedule/audit fixtures only; no model calls, poker hands or network. Active76original/copy pairs and anchors preserved.",
+    "Post-finish audit1record0warnings. Independent process completed normally.34tests cover reserved16session balance, unpaired Welch raw/session CIs against SciPy1.17.0, cohort/malformed evidence rejection, token isolation and fixed positive-point tie-break. No neural queries or external sessions launched."
+  ],
+  "result": {
+    "summary": "Offline paired transfer protocol passed34tests with zero hands/network/model queries; active76pairs preserved.",
+    "conclusion": "Balanced16-session scheduling and unpaired raw/session arithmetic qualified offline; not live evidence or a strength result.",
+    "decision": "PAIRED_EXTERNAL_PROTOCOL_OFFLINE_READY",
+    "next_step": "After both training finals and full review, qualify actual-weight deployment parity and freeze a separate external20k-per-arm record."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4132,
+      "sha256": "f57cb93374a923e0bc7a455a18489663df1406bb8a0dae58256529fb2c8acc9d"
+    },
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1360,
+      "sha256": "940be068d11656b354f195f1da389f1e69635d00c7211435526cdae8801bcb85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1150,
+      "sha256": "3562463198bcc28cc786d47597ec6491972e3f943e322e8c41edd816de2da792"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1841,
+      "sha256": "985c4f4b4005b0309a738e7b41ca6874c3ada8d15602e5040f08d8cdd3a4578c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 6174,
+      "sha256": "479fd47b776814f9dd48cd84a4d3377e0739091f312ffdfe29a021e116943d35"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\test_stdout.log": {
+      "type": "file",
+      "bytes": 229,
+      "sha256": "abe49c5f790fbe0ad853ba37a2f5f2650b8ab64ee6065a9e7db0dcae43b68708"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 546,
+      "sha256": "8aed7a92db157a43102b400514f07c6d0365ef0fe96c87b5b1c2d1ac005860f9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-paired-transfer-protocol-readiness-20260831\\reserved_schedule.json": {
+      "type": "file",
+      "bytes": 3637,
+      "sha256": "524b1d7fce0cc9b3237772014a90e32e447a39c30b9515384ad15bbb84ea58fa"
+    },
+    "research/experiments/v6-paired-transfer-protocol-readiness-20260831/post_finish_audit.json": {
+      "type": "file",
+      "bytes": 230,
+      "sha256": "d9589dae9de5e59885762abc2a0cb36d94bff0214cc923206d7ce9bf65b96ea9"
+    }
+  }
+}

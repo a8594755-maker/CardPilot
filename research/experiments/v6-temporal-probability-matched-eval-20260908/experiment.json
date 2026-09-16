@@ -1,0 +1,161 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-temporal-probability-matched-eval-20260908",
+  "title": "Fixed temporal aggregate matched two-seed evaluation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T07:27:50+00:00",
+  "updated_at": "2026-09-08T08:04:33+00:00",
+  "started_at": "2026-09-08T07:27:50+00:00",
+  "ended_at": "2026-09-08T08:04:33+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A fixed outcome-independent temporal probability aggregate may improve deployment stability versus final iterate and own root across both seeds and panels.",
+  "material_change": "No training; fixed 98304 internal physical200bb executions, three policies, eight anchors, two seeds, matched mirrored decks.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-temporal-probability-qualification-20260908",
+  "command": "python -B -u research/experiments/v6-temporal-probability-matched-eval-20260908/run.py",
+  "commands": [
+    {
+      "command": "python -B -u research/experiments/v6-temporal-probability-matched-eval-20260908/run.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T07:27:50+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-temporal-probability-matched-eval-20260908/post_analysis/test_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T08:04:33+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-temporal-probability-matched-eval-20260908/post_analysis/review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T08:04:33+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-temporal-probability-matched-eval-20260908"
+    ],
+    "captured_at": "2026-09-08T07:27:50+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-temporal-probability-matched-eval-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-temporal-probability-matched-eval-20260908/source_manifest.json",
+    "source_manifest_sha256": "915c2e86de0f1ec53b16194bbb7a54af3056782d696e635da470a297b8cfd418",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 2203.0,
+    "training_hands": 0,
+    "final_qualification_hands": 0
+  },
+  "metrics": {
+    "evaluation_wall_seconds": 2114.641,
+    "aggregate_execution_cost_ratio": 2.0807
+  },
+  "artifacts": [
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/preregistration.md",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/code.patch",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/source_manifest.json",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/input_contract.json",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/terminal.json",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/post_terminal_review.json",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/post_analysis/review.py",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/post_analysis/test_review.py",
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/decision.md"
+  ],
+  "notes": [
+    "Completed seed1 standard10; fixed horizon continues.",
+    "Completed seed1 cfr4; fixed horizon continues.",
+    "Completed seed1 legacy_iter16; fixed horizon continues.",
+    "Completed seed1 legacy_mixed65k; fixed horizon continues.",
+    "Completed seed1 mixture_s1; fixed horizon continues.",
+    "Completed seed1 mixture_s3; fixed horizon continues.",
+    "Completed seed1 heads_s1; fixed horizon continues.",
+    "Completed seed1 heads_s3; fixed horizon continues.",
+    "Completed seed3 standard10; fixed horizon continues.",
+    "Completed seed3 cfr4; fixed horizon continues.",
+    "Completed seed3 legacy_iter16; fixed horizon continues.",
+    "Completed seed3 legacy_mixed65k; fixed horizon continues.",
+    "Completed seed3 mixture_s1; fixed horizon continues.",
+    "Completed seed3 mixture_s3; fixed horizon continues.",
+    "Completed seed3 heads_s1; fixed horizon continues.",
+    "Completed seed3 heads_s3; fixed horizon continues."
+  ],
+  "result": {
+    "summary": "98304 fixed internal executions complete; independent raw/hash/deck review passed. Aggregate-minus-final S1-1.2216,S3+8.2383bb/100 both CI include zero; external gate false.",
+    "conclusion": "No replicated aggregate gain; own-root CIs also span zero. Aggregate execution costs about2.08x final; conditional unadjusted evidence is insufficient, not proof averaging or longer training cannot work.",
+    "decision": "Do not promote aggregate, tune ensemble weights or launch external calibration. Preserve all evidence and return allocation to learned-weight training.",
+    "next_step": "Consult retained realized-update evidence before choosing a longer stationary training continuation versus actor-objective revision; do not repeat completed audits or another deployment sweep."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/preregistration.md": {
+      "type": "file",
+      "bytes": 2238,
+      "sha256": "257be7f2c55be76fd1ffd7469a1f009d3e91a4aede6f18b60b711c440ee4207c"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 747,
+      "sha256": "915c2e86de0f1ec53b16194bbb7a54af3056782d696e635da470a297b8cfd418"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/input_contract.json": {
+      "type": "file",
+      "bytes": 39398,
+      "sha256": "74a33c8ab4ee8bd18457edd7032f6ecf764ea18a7adcbb8e3a633010894267b8"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/terminal.json": {
+      "type": "file",
+      "bytes": 6677,
+      "sha256": "a2c86dafa80b84a05e3e36c74576f4fc08b5064d027bb9ca90d6e21f0e317620"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/post_terminal_review.json": {
+      "type": "file",
+      "bytes": 61200,
+      "sha256": "e67c96fed996e1c8e8093eb01bc14ef8275ec960d956f4858f6b7e5be5444b4b"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/post_analysis/review.py": {
+      "type": "file",
+      "bytes": 6064,
+      "sha256": "a7de3f6a98da5e5168a35bfd3e9400bc7ed58422b57eaa9ba3bd943f1c5e4210"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/post_analysis/test_review.py": {
+      "type": "file",
+      "bytes": 1478,
+      "sha256": "f458118bca6e38121d8cb3e1f3df4b1bbb2c7ab0ce67c9f14cd1e214e62ccc20"
+    },
+    "research/experiments/v6-temporal-probability-matched-eval-20260908/decision.md": {
+      "type": "file",
+      "bytes": 1931,
+      "sha256": "b1cc08795698657c1bef0e9f8e042da3f95df09b9b6b22cb820b365144af63d6"
+    }
+  }
+}

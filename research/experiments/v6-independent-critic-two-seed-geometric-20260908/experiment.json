@@ -1,0 +1,648 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-independent-critic-two-seed-geometric-20260908",
+  "title": "Independent critic versus shared-feature critic two-seed learned-weight curve",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T10:43:19+00:00",
+  "updated_at": "2026-09-08T14:41:41+00:00",
+  "started_at": "2026-09-08T10:43:19+00:00",
+  "ended_at": "2026-09-08T14:41:41+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A trainable independent observable-state value encoder improves replicated broad actor learning beyond the detached shared-feature critic at matched actual environment-hand doses.",
+  "material_change": "One matched architectural control from original fixed2M parents; frozen262k/1M doses, retained Adam replay and actor contracts.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-independent-observable-critic-qualification-20260908",
+  "command": "python research/experiment_log.py validate",
+  "commands": [
+    {
+      "command": "python research/experiment_log.py validate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:43:19+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/check_eval_bridge.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:45:00+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18108686 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:48:10+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18108686 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --independent-observable-critic",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T10:57:06+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18114349 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --independent-observable-critic",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:09:02+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18114349 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:20:45+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/preflight.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:30:33+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/run_stage1.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:30:33+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609084101 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_control_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:30:43+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609084101 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_independent_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:39:25+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609084301 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_control_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:48:21+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609084301 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_independent_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T11:57:18+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_evaluation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T12:06:48+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/prepare_stage2_evaluation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T12:06:48+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/run_stage2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T12:06:48+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18895118 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T12:06:53+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18895118 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --independent-observable-critic",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T12:33:10+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18900781 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --independent-observable-critic",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T13:07:32+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\train_job.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 18900781 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T13:40:10+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/run_stage2_evaluation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:05:49+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_training.py C:/Users/a8594/CardPilot/research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed1_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:05:49+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_training.py C:/Users/a8594/CardPilot/research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed1_independent_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:05:49+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_training.py C:/Users/a8594/CardPilot/research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed3_independent_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:05:49+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_training.py C:/Users/a8594/CardPilot/research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed3_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:05:49+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609085101 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:05:56+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed1_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609085101 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_independent_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:14:22+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609085301 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:23:01+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_candidate.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fixed-regimen-two-seed-2m-20260908\\seed3_control_stage1\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor mixture_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed1_mixture_stage2\\latest.pt --anchor mixture_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\seed3_mixture_stage2\\latest.pt --anchor heads_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed1_heads_stage2\\latest.pt --anchor heads_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-current-kl-representation-pilot-20260905\\seed3_heads_stage2\\latest.pt --pairs-per-anchor 1024 --seed 202609085301 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_independent_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:31:35+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_stage2_evaluation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T14:41:41+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-independent-observable-critic-qualification-20260908/candidate_train.py"
+    ],
+    "captured_at": "2026-09-08T10:43:20+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-independent-critic-two-seed-geometric-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-independent-critic-two-seed-geometric-20260908/source_manifest.json",
+    "source_manifest_sha256": "1ba83e0d9f9797a53371f0e0afcfb0e4c0806ee1424e54ecbac2d07d42b1bef5",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 262144,
+    "wall_time_seconds": 14302.0,
+    "training_hands": 4202704
+  },
+  "metrics": {
+    "phase": "seed3_control_stage2",
+    "new_transition_hands": 3779201,
+    "new_replay_rows": 6721192,
+    "training_job_wall_seconds": 9594.8129428
+  },
+  "artifacts": [
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/code.patch",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/source_manifest.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/protocol.md",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/eval_candidate.py",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/check_eval_bridge.py",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/eval_bridge_checks.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\terminal_training.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\terminal_training.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\terminal_training.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\terminal_training.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage1_training_terminal.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/input_contract.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_training.py",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/run_evaluation.py",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_evaluation.py",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/paired_contrast.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_control_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_independent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_independent_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_control_stage1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_independent_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_independent_stage1\\summary.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage1_raw_review.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage1_evaluation_terminal.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/prepare_stage2_evaluation.py",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/run_stage2_evaluation.py",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_stage2_evaluation.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\terminal_training.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\terminal_training.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\terminal_training.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\job_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\terminal_training.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_training_terminal.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed1_control_stage2/independent_review.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed1_independent_stage2/independent_review.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed3_independent_stage2/independent_review.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed3_control_stage2/independent_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_control_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_independent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_independent_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_control_stage2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_independent_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_independent_stage2\\summary.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_raw_review.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_evaluation_terminal.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_evaluation_execution.json",
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/result.md"
+  ],
+  "notes": [
+    "Production setup only; smoke descendants excluded. Independent critic qualified mechanically but no strength advantage established.",
+    "Fixed original parents, two doses, four-job order and eight-anchor paired evaluation seeds/counts/stopping. Actor-only evaluator bridge passed128 real trained states; checkpoint files unchanged. Initial fixture import mixed shared/frozen alpha_holdem namespaces; replaced dependency-heavy historical helper with local retained-state extraction before successful rerun. Production orchestration and input/deck freezing pending; no new hands.",
+    "All four stage1 runs exit0 and independent training reviews passed;1056015 new physical hands. No strength evidence until fixed raw evaluation. New critic has extra measured runtime; no unchanged-scale decision from training losses.",
+    "Stage1 all four evaluation processes exit0; raw/hash/prescribed-deck/paired-parent review passed131072 executions16384 unique decks. Independent-minus-control S1 -7.8186 CI[-19.8670,4.2298], S3 4.9286 CI[-5.8571,15.7143]. Mixed inconclusive, no replicated broad collapse; continue preregistered1M dose from retained stage1 endpoints. Stage2 isolated evaluation prepared with cumulative accounting and cross-dose deck overlap guards; two mocked fail-closed gate checks passed, no evaluation launched. No Slumbot or unseen-family evidence."
+  ],
+  "result": {
+    "summary": "Fixed two-seed critic trial completed 4202704 physical training and 262144 internal evaluation executions; all training and raw reviews passed.",
+    "conclusion": "1M treatment-control S1 -3.0259 CI[-15.0240,8.9722], S3 +1.3275 CI[-10.0113,12.6664]. Directional support not met; transfer contrasts negative in both seeds, inconclusive CIs, no replicated broad collapse. Independent critic costs 30.4 percent more training time without demonstrated benefit.",
+    "decision": "Do not promote or automatically scale independent critic; retain both lineages and all evidence. Insufficient benefit evidence, not algorithm-wide causal rejection.",
+    "next_step": "Bounded method-allocation review of sampled training versus greedy deployment objective alignment using completed evidence and existing external calibration; preregister at most one material intervention before new training."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 29,
+    "command_count": 29
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 342,
+      "sha256": "1ba83e0d9f9797a53371f0e0afcfb0e4c0806ee1424e54ecbac2d07d42b1bef5"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/protocol.md": {
+      "type": "file",
+      "bytes": 4878,
+      "sha256": "221a821c304ed7bee498ffa1bb66b77b129c12c9cdeea8c58769d7fb8cf4f9f3"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/eval_candidate.py": {
+      "type": "file",
+      "bytes": 1657,
+      "sha256": "54b0ad801679eddca76c1530f248cf9e959fb70005756b73ff6ec44b66bed0db"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/check_eval_bridge.py": {
+      "type": "file",
+      "bytes": 2987,
+      "sha256": "c10f93b2c25b466056fdb91b886dc60d8f4acb0a59ed2d13dfd9e8d68fc7ca06"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/eval_bridge_checks.json": {
+      "type": "file",
+      "bytes": 10703,
+      "sha256": "2aece332cac0cc5aa5df47aa21a88419b13ef49258c6a333ec479a631f6dd44c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3540,
+      "sha256": "0a0ee6a75f9360299db3fbc923178a0f1c04135c04ee1ad2d71d9e752c64ea44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\job_contract.json": {
+      "type": "file",
+      "bytes": 52099,
+      "sha256": "059b0c0516fc2c9148143c1d2050922bec6bf78eed2824aba714a92a676ba015"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage1\\terminal_training.json": {
+      "type": "file",
+      "bytes": 296,
+      "sha256": "f83663dd7b59564fdd5655eb3c511031485ea7f1e1fe163f7cf55e6e7f22a129"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3590,
+      "sha256": "fd6282cd05ccb1e048d6c2c8906895fa43067a185f9db181da5c01fafb88d15f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\job_contract.json": {
+      "type": "file",
+      "bytes": 52103,
+      "sha256": "db19ad30386f8339c51f5153584e43edef4c021a0e007c21498430df906829fe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage1\\terminal_training.json": {
+      "type": "file",
+      "bytes": 301,
+      "sha256": "16e16880fe896060264cbfb7dec1eb9876cb6755ec3b0b0a3b3edcd92916bc73"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3590,
+      "sha256": "5dd208fd0894de51039a017ecba0ea0ef24c5738aa5ce94b54040f0fbe77d0d0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\job_contract.json": {
+      "type": "file",
+      "bytes": 52103,
+      "sha256": "edceadc315ac0257169fd613b9752aea324edb38f724c4d12614bc5d908dc65c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage1\\terminal_training.json": {
+      "type": "file",
+      "bytes": 301,
+      "sha256": "31d32f427d45300e06d5663a3cbf7e03af8267830e4e7c264d3971e4da2e3f51"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3540,
+      "sha256": "ea3a04eca7dd86eec6e74aaef97fe16ebaec72f27903be950e08a2b2175d50b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\job_contract.json": {
+      "type": "file",
+      "bytes": 52099,
+      "sha256": "1a25f3fe5fac7ec2710ba14c8d9d109bc71a9d6db9c347a570ffb261541b9db4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage1\\terminal_training.json": {
+      "type": "file",
+      "bytes": 296,
+      "sha256": "5c24d30b3ef343fbc4dd751353ad7536b0dcd991aeb337cee8477506ee611cb5"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage1_training_terminal.json": {
+      "type": "file",
+      "bytes": 1410,
+      "sha256": "cd8d036955fc143faf79d9aeb77f5c5ff07e67da21ec12219a96fb26218f8aa4"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/input_contract.json": {
+      "type": "file",
+      "bytes": 92239,
+      "sha256": "96619fdd5982d8e1252300b0d97e2fc42e1f3d5bb09deca3e1bb5c9c244df829"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_training.py": {
+      "type": "file",
+      "bytes": 6826,
+      "sha256": "1ec010969ae389cc969625d8afa235c10a4e1458bf5d78d432ba00b8b06ebe0a"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/run_evaluation.py": {
+      "type": "file",
+      "bytes": 4859,
+      "sha256": "082b46e99c20023baece2d5bd02e062e733b69f7f99a9319fcf88e9a383e8fcf"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_evaluation.py": {
+      "type": "file",
+      "bytes": 4809,
+      "sha256": "f04d1c7a96f9abdcd4b5f041f41f4b864ef04b4f69aa196353fdcf2cac6178e2"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/paired_contrast.py": {
+      "type": "file",
+      "bytes": 1220,
+      "sha256": "e349afdddd3e7c972c894315ba96c1db12df055582d24491f690c3103c88c26d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1991,
+      "sha256": "9d13306c1b309d2ee6829583200ddeb928e603f63ce9efc1aa0ce8edd06ca0de"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_control_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 21045,
+      "sha256": "0b950b9d21394ba119a02effdee91d49202a0cfe6d029f9d68b6187748a2d725"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_independent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1999,
+      "sha256": "c33761a989f44dee64c9019178dd6ada24d35c4ac8ea000b040152bc44a62716"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_independent_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 21044,
+      "sha256": "eec092bdbaf09e576992cc28f16400808512ce05be5cae2adc11c2426e0acc72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1991,
+      "sha256": "232895b70c25f2ddd55f413a6cf2b12573405c23f505899ee4b98c14033be730"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_control_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 21073,
+      "sha256": "ebec14ffb9593b5814676918e8b52c6e076a2c7e7c306112c5c1c41cb4709c5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_independent_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1999,
+      "sha256": "c25ef4124b6df0c9496ba207ccb763b87b1b1ef38c08d4d841c9b4e72083dec3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_independent_stage1\\summary.json": {
+      "type": "file",
+      "bytes": 21064,
+      "sha256": "cd3157f4a021b1b6566dccfb1982782906acc15ca39533a1cff719441cf9bc21"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage1_raw_review.json": {
+      "type": "file",
+      "bytes": 38082,
+      "sha256": "f48ed9a823205402681eab821d5638ec5176024600b5fb0fa1bdf65410636a5e"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage1_evaluation_terminal.json": {
+      "type": "file",
+      "bytes": 69,
+      "sha256": "b5b29b735ad42bf61a19850ffd923aaddc461cc793b65ffc9024e47d5e6db71b"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/prepare_stage2_evaluation.py": {
+      "type": "file",
+      "bytes": 2953,
+      "sha256": "4e3fa21e9d0e982fbdc340b3af2fcfcbc71559cb1069a09410c8993da5370001"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/run_stage2_evaluation.py": {
+      "type": "file",
+      "bytes": 5181,
+      "sha256": "29a37725120f3e5d94f035c23cdd14ea6a037dd56a247d006b4f7924cad11490"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/review_stage2_evaluation.py": {
+      "type": "file",
+      "bytes": 5360,
+      "sha256": "37e9a54151ce664c0fd21d734034075621d336c113efbdb1a42ce25415e1845d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3552,
+      "sha256": "2971ee91b7523f7baaec2a4382dbee7a68f6b1a3348ceba3d7d95d487facb08a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\job_contract.json": {
+      "type": "file",
+      "bytes": 52111,
+      "sha256": "d504eadf97157ce67128d4c465bb46b22c3fc52e2ea6ecdd9f4a9133e7311f38"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_control_stage2\\terminal_training.json": {
+      "type": "file",
+      "bytes": 298,
+      "sha256": "4628fe7b71d09a0a1e8067e3efc5dd3250203f945225a8365f31ab2661f281d0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3606,
+      "sha256": "20e21afa68044f59cdc673736066350038e6930c11951a7ea94ff53a222fe83a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\job_contract.json": {
+      "type": "file",
+      "bytes": 52119,
+      "sha256": "446d6abd91139063996d807014541fade238d85203fac7e7588896c564a46419"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed1_independent_stage2\\terminal_training.json": {
+      "type": "file",
+      "bytes": 302,
+      "sha256": "5d6ccd762c0ac7ca5a1947c779770475c62e1fc8e286a6bec675e08ed2e5cdce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3606,
+      "sha256": "632dcd9544f25cda7915196c41639098b8c6e9dbae532e42fdb0705d8cd7e5fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\job_contract.json": {
+      "type": "file",
+      "bytes": 52119,
+      "sha256": "7d772e096196eb0fc808c5a5c8b9ef764f347b7d9d8510ea8af67ff331f16272"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_independent_stage2\\terminal_training.json": {
+      "type": "file",
+      "bytes": 302,
+      "sha256": "5713a2348b297182ab245296d80e80464230199a729ff0d48f5977065b1538d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3552,
+      "sha256": "5d354237d123ac66b17719d8be951fa7d057ef3cf53735e59dc3d7f0706d1eef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\job_contract.json": {
+      "type": "file",
+      "bytes": 52111,
+      "sha256": "51b0fbb367a36a018e3e40dbc87e65efb281feab0cd81a076826fdd565a1d715"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\seed3_control_stage2\\terminal_training.json": {
+      "type": "file",
+      "bytes": 298,
+      "sha256": "dbed61bd2867bae874029860123d3abbd045b0e5e90a0d879b93865d9ce0dd72"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_training_terminal.json": {
+      "type": "file",
+      "bytes": 1416,
+      "sha256": "8c43357a54c636e7d05c6f82bfc2fcfc24cff0079a83c6ef2661433b81e77c71"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed1_control_stage2/independent_review.json": {
+      "type": "file",
+      "bytes": 438,
+      "sha256": "69412e8ed7a06188e1c55c399e77beba6a4e427286748af706a42031bf31d543"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed1_independent_stage2/independent_review.json": {
+      "type": "file",
+      "bytes": 442,
+      "sha256": "47017fe705a68f2f6904f2810cd9afc3e1cbd404bb759f5d9c125d993533a0c3"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed3_independent_stage2/independent_review.json": {
+      "type": "file",
+      "bytes": 442,
+      "sha256": "1c983e35668f1bbeac33335c041c6135d08b604393a488ed9de4e531dce8e073"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/seed3_control_stage2/independent_review.json": {
+      "type": "file",
+      "bytes": 438,
+      "sha256": "0b22dddaa88aa639a843d2fa74ac78db5f0edc09f6af57711fa47dc5a5a22fe8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1991,
+      "sha256": "d2d63fc39bf313f8b61b9d9e766ce8885d0e755ba1b113a17ed43929457672e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_control_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 21057,
+      "sha256": "79f5fc0f2422d8cad635019526473781664b165590852ac0fe542622406e9dfe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed1_independent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1999,
+      "sha256": "7924bffbcebb0d746f44311eea247dda4e9a87db02704c975866f98bed1e9155"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed1_independent_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 21060,
+      "sha256": "01c084ce8f020b080f645ae61dcc18ee05867e5026eaf14b200407c9ac7c8789"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1991,
+      "sha256": "23464b1aba34e71acf1907b64e714f32d4cd513f88b9199f361acca326d64732"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_control_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 21061,
+      "sha256": "64e15d977224afaad07784e45309ee73166c04c92ab39f5d1162d348497b956c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\evaluation_job_seed3_independent_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1999,
+      "sha256": "c12efe74316c16ba28514d7b6266067c1331216ad3549a8d758e996c8cf740b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-independent-critic-two-seed-geometric-20260908\\eval_seed3_independent_stage2\\summary.json": {
+      "type": "file",
+      "bytes": 21079,
+      "sha256": "537ae03a260eb785e72e14ce586a6c5f9c99afb4ca7ba75ffcee5b4ff0845333"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_raw_review.json": {
+      "type": "file",
+      "bytes": 38164,
+      "sha256": "925ca44e1444c07575aa001ea42c62e3ce186c19be810c1ad1ff6c535ec79e8e"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_evaluation_terminal.json": {
+      "type": "file",
+      "bytes": 69,
+      "sha256": "b5b29b735ad42bf61a19850ffd923aaddc461cc793b65ffc9024e47d5e6db71b"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/stage2_evaluation_execution.json": {
+      "type": "file",
+      "bytes": 62781,
+      "sha256": "78987e4fcda4edcca3b664dd615e077c110f81008dc5f7918b132cd76c0050c3"
+    },
+    "research/experiments/v6-independent-critic-two-seed-geometric-20260908/result.md": {
+      "type": "file",
+      "bytes": 3257,
+      "sha256": "14581e0b94e68b27ec9cce9fe5545c7e291fde1445022875f4ed927da2ffea43"
+    }
+  }
+}

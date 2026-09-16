@@ -1,0 +1,484 @@
+{
+  "base": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py",
+    "--experiment-dir",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904",
+    "--base",
+    "models/baseline/standard10/latest.pt",
+    "--min-environment-hands",
+    "2097152",
+    "--expected-archive-iteration",
+    "256",
+    "--expected-archive-iteration",
+    "320",
+    "--expected-archive-iteration",
+    "384",
+    "--schema",
+    "cardpilot.static_current_kl_2m_training_audit.v1",
+    "--out",
+    "research/experiments/v6-static-current-kl-2m-scale-20260904/training_audit.json"
+  ],
+  "passed": false,
+  "passed_runs": 1,
+  "runs": [
+    {
+      "archives": [
+        {
+          "hands": 1054530,
+          "iteration": 256,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed1\\checkpoints\\checkpoint_iter000256_hands000001054530.pt",
+          "sha256": "32f067f11e7ae0e790f153c92c3ba0306ff3e1f6cd1d5a0c99200d166e6ccffa"
+        },
+        {
+          "hands": 1318178,
+          "iteration": 320,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed1\\checkpoints\\checkpoint_iter000320_hands000001318178.pt",
+          "sha256": "8ccd2f1a0a5d6a3858ba5d1fb060f1eb52785bc927ab2404c2916fdb0e01ca11"
+        },
+        {
+          "hands": 1581629,
+          "iteration": 384,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed1\\checkpoints\\checkpoint_iter000384_hands000001581629.pt",
+          "sha256": "af28ee2c25a247d8b00d8a65d07e590f0ee4ef9e9a8e9d2b3052d0e8a4a3f1f8"
+        }
+      ],
+      "assignment_audit": {
+        "pending_assignments": null,
+        "records_verified": 440,
+        "tail_iteration": 440,
+        "tail_sha256": "ed0d760d622ef2019bb55112c30bc6f1212802bf96029ceacd57ac6a8b9036ca"
+      },
+      "bridge_lineage": [
+        {
+          "iteration": 440,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed1\\latest.pt",
+          "sha256": "fba34e5690efc7faa6747adb84d29ff576382711dfcfee885c4728a67248868f"
+        },
+        {
+          "iteration": 221,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-1m-scale-20260903\\seed1\\latest.pt",
+          "sha256": "1fdc7ebc2560888938cc55bbf6c9eef05deb2e5c9270fbebb123d3143357dbe3"
+        },
+        {
+          "iteration": 55,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-262k-scale-20260903\\seed1\\latest.pt",
+          "sha256": "1e9cda7fb9793554d767f36957df9c730baab32e1d2cd5f972497ab25d044e43"
+        },
+        {
+          "iteration": 13,
+          "legacy_weights_rebound_to_new_contract": true,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-nashpg-moving-reference-geometric-20260903\\static_seed1\\latest.pt",
+          "sha256": "8b92b254396156d3e65833725e03b2f5ba30ae6aa9906c688b15aa5b856c8238"
+        }
+      ],
+      "changed_tensors": [
+        "policy_head.bias",
+        "policy_head.weight",
+        "preflop_policy_head.bias",
+        "preflop_policy_head.weight",
+        "value_head.0.bias",
+        "value_head.0.weight",
+        "value_head.2.bias",
+        "value_head.2.weight",
+        "value_head.4.bias",
+        "value_head.4.weight"
+      ],
+      "continuation": {
+        "final_optimizer_step": 1758,
+        "first_new_candidate_id": 113,
+        "last_new_candidate_id": 222,
+        "new_environment_hands": 1044662,
+        "new_replay_rows": 1589561,
+        "new_transition_hands": 902014,
+        "optimizer_lr": 9.999999999999996e-05,
+        "recovery_boundaries": [
+          {
+            "checkpoint_sha256": "4c70b801b2743c323b5b8f90322ce95a06c0a8785c31ec8350fc262c5b7d7205",
+            "environment_hands_after_boundary_to_final": 1044662,
+            "gates": {
+              "assignment_boundary_exact": true,
+              "checkpoint_metric_boundary_exact": true,
+              "deal_recovery_exact_and_disjoint": true,
+              "final_deal_start_matches_config": true,
+              "final_segment_physical_accounting": true,
+              "optimizer_continued_across_boundary": true,
+              "preflight_passed_and_sha_bound": true,
+              "recovered_physical_prefix_exact": true,
+              "resume_anchor_identity_exact": true,
+              "source_incident_preflight_exact": true
+            },
+            "iteration": 221,
+            "optimizer_step": 882,
+            "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed1_resume_preflight_iter221.json",
+            "physical_environment_hands": 1052694,
+            "recovered_physical_prefix": 1052694,
+            "recovery_deal_start_index": 33300000,
+            "sha256": "bff7ee072b41170eb64c49f688d048af681beeb3494b89928312c31eb41367b2",
+            "source_deal_start_index": 33300000,
+            "transition_hands": 910278,
+            "uncommitted_worker_tail_hands": 0
+          }
+        ]
+      },
+      "final_pool_ids": [
+        0,
+        1,
+        2,
+        132,
+        53
+      ],
+      "gates": {
+        "all_12_workers_completed_hands": true,
+        "assignment_prefix_exact": true,
+        "assignment_rng_replay_exact": true,
+        "checkpoint_manifest_metric_identity": true,
+        "contiguous_updates": true,
+        "corrected_legacy_contract_bound": true,
+        "dynamic_pool_healthy": true,
+        "finite_health_metrics": true,
+        "fresh_replay_boundary_then_nonzero": true,
+        "geometric_archives_present": true,
+        "importance_ratios_below_delta1": true,
+        "manifest_finished": true,
+        "metric_prefix_exact": true,
+        "monotonic_candidate_identity_repair_active": true,
+        "new_deal_window_exact_and_disjoint": true,
+        "only_policy_and_value_heads_changed": true,
+        "optimizer_continued_with_lr_preserved": true,
+        "optimizer_state_nonempty_and_synchronized": true,
+        "paper_recipe_exact": true,
+        "parent_checkpoint_hash_exact": true,
+        "parent_identity_exact": true,
+        "physical_accounting_exact": true,
+        "physical_environment_target_reached": true,
+        "recovery_boundaries_all_exact": true,
+        "replay_accounting_exact": true,
+        "replay_cumulative_exact": true,
+        "resume_controls_exact": true,
+        "same_lineage_and_run_id": true,
+        "stage_row_passed": true,
+        "static_current_kl_contract_exact": true,
+        "suffix_only_no_reset": true,
+        "transition_accounting_exact": true,
+        "trust_region_healthy": true
+      },
+      "hashes": {
+        "assignments": "c1b9b99366a8236fc3a22fd222a1cb7aaa4f4c9f5415b3913ecc3566c38feaa3",
+        "checkpoint": "fba34e5690efc7faa6747adb84d29ff576382711dfcfee885c4728a67248868f",
+        "log": "daec42d190494607a539747c11cd94ceaa815a08654d231f10169f3b306e8c49",
+        "manifest": "4773ad8d563c094ff8fc1856c0193ac22b800c8b64ac4f57134e0fb8ca11ccef",
+        "metrics": "d1e7bba710ba8f6548715bc0449d6389633a59bf6de318d717940d20f026fa7c"
+      },
+      "iterations": 440,
+      "max_approx_kl": 0.002030349103733897,
+      "max_importance_ratio": 1.37,
+      "max_reference_policy_kl": 0.0016543747624382377,
+      "name": "seed1",
+      "parent": {
+        "iteration": 221,
+        "max_candidate_id": 112,
+        "optimizer_step": 882,
+        "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-1m-scale-20260903\\seed1\\latest.pt",
+        "physical_environment_hands": 1052694,
+        "sha256": "1fdc7ebc2560888938cc55bbf6c9eef05deb2e5c9270fbebb123d3143357dbe3",
+        "transition_hands": 910278
+      },
+      "passed": true,
+      "physical_environment_hands": 2097356,
+      "replay_cumulative_rows": 3191639,
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed1",
+      "transition_hands": 1812292
+    },
+    {
+      "archives": [
+        {
+          "hands": 1054342,
+          "iteration": 256,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed2\\checkpoints\\checkpoint_iter000256_hands000001054342.pt",
+          "sha256": "600490e832125aef7a940a515a549448e5b3d0752fdab8e381b91f45958f88ef"
+        },
+        {
+          "hands": 1318016,
+          "iteration": 320,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed2\\checkpoints\\checkpoint_iter000320_hands000001318016.pt",
+          "sha256": "523769bc59642672eccb1607a26122fcf5462ec41b64567c02c1da6409b04caa"
+        },
+        {
+          "hands": 1581754,
+          "iteration": 384,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed2\\checkpoints\\checkpoint_iter000384_hands000001581754.pt",
+          "sha256": "437ff8808dfc2e139790126e6750a078c5ce6ed556b01bf5428e3c0efe6ec286"
+        }
+      ],
+      "assignment_audit": {
+        "pending_assignments": null,
+        "records_verified": 444,
+        "tail_iteration": 444,
+        "tail_sha256": "90cfb712a5af2b99070ddf6d871a3895d2d979d5cd935bab4948ed7e0bfbc553"
+      },
+      "bridge_lineage": [
+        {
+          "iteration": 444,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed2\\latest.pt",
+          "sha256": "82f21bf84eb8c7acf90ff64321e17d79f467f6fa5aa8adbbe6ddcf09bb4514fe"
+        },
+        {
+          "iteration": 222,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-1m-scale-20260903\\seed2\\latest.pt",
+          "sha256": "d17081e1d611f9c1bbc4129c715211780d2c8e1f48519c8699b071481a85e27c"
+        }
+      ],
+      "changed_tensors": [
+        "policy_head.bias",
+        "policy_head.weight",
+        "preflop_policy_head.bias",
+        "preflop_policy_head.weight",
+        "value_head.0.bias",
+        "value_head.0.weight",
+        "value_head.2.bias",
+        "value_head.2.weight",
+        "value_head.4.bias",
+        "value_head.4.weight"
+      ],
+      "continuation": {
+        "final_optimizer_step": 1774,
+        "first_new_candidate_id": 112,
+        "last_new_candidate_id": 222,
+        "new_environment_hands": 1050377,
+        "new_replay_rows": 1615642,
+        "new_transition_hands": 914745,
+        "optimizer_lr": 9.999999999999996e-05,
+        "recovery_boundaries": []
+      },
+      "final_pool_ids": [
+        0,
+        1,
+        2,
+        122,
+        206
+      ],
+      "gates": {
+        "all_12_workers_completed_hands": true,
+        "assignment_prefix_exact": true,
+        "assignment_rng_replay_exact": true,
+        "checkpoint_manifest_metric_identity": true,
+        "contiguous_updates": true,
+        "corrected_legacy_contract_bound": false,
+        "dynamic_pool_healthy": true,
+        "finite_health_metrics": true,
+        "fresh_replay_boundary_then_nonzero": true,
+        "geometric_archives_present": true,
+        "importance_ratios_below_delta1": true,
+        "manifest_finished": true,
+        "metric_prefix_exact": true,
+        "monotonic_candidate_identity_repair_active": true,
+        "new_deal_window_exact_and_disjoint": true,
+        "only_policy_and_value_heads_changed": true,
+        "optimizer_continued_with_lr_preserved": true,
+        "optimizer_state_nonempty_and_synchronized": true,
+        "paper_recipe_exact": true,
+        "parent_checkpoint_hash_exact": true,
+        "parent_identity_exact": true,
+        "physical_accounting_exact": true,
+        "physical_environment_target_reached": true,
+        "replay_accounting_exact": true,
+        "replay_cumulative_exact": true,
+        "resume_controls_exact": true,
+        "same_lineage_and_run_id": true,
+        "stage_row_passed": true,
+        "static_current_kl_contract_exact": true,
+        "suffix_only_no_reset": true,
+        "transition_accounting_exact": true,
+        "trust_region_healthy": true
+      },
+      "hashes": {
+        "assignments": "7ad9c7f826511cefccdd29c904e8f954f1040768cd36f32e18c67fe537c8f834",
+        "checkpoint": "82f21bf84eb8c7acf90ff64321e17d79f467f6fa5aa8adbbe6ddcf09bb4514fe",
+        "log": "bc41d29b1aad67d52cad1c213eff03613a0a17d954ebdb8c19160bf016cf7480",
+        "manifest": "bc52d5d85122dd9f0cda8bc82435e4768707f3c894105d50019fbbe8742ac00f",
+        "metrics": "9d1cc118092bf25b4865f826fd2e2429f9ad6d31b17d9c020b56b0c778c7fbbe"
+      },
+      "iterations": 444,
+      "max_approx_kl": 0.0009553084382787347,
+      "max_importance_ratio": 1.36,
+      "max_reference_policy_kl": 0.0019780073780566454,
+      "name": "seed2",
+      "parent": {
+        "iteration": 222,
+        "max_candidate_id": 111,
+        "optimizer_step": 886,
+        "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-1m-scale-20260903\\seed2\\latest.pt",
+        "physical_environment_hands": 1049409,
+        "sha256": "d17081e1d611f9c1bbc4129c715211780d2c8e1f48519c8699b071481a85e27c",
+        "transition_hands": 914261
+      },
+      "passed": false,
+      "physical_environment_hands": 2099786,
+      "replay_cumulative_rows": 3222071,
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed2",
+      "transition_hands": 1829006
+    },
+    {
+      "archives": [
+        {
+          "hands": 1054278,
+          "iteration": 256,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed3\\checkpoints\\checkpoint_iter000256_hands000001054278.pt",
+          "sha256": "7d48ea6137a22bf060c144a3cf59281cde66c87a5c7c0b9ea68d67e81ce1059c"
+        },
+        {
+          "hands": 1317738,
+          "iteration": 320,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed3\\checkpoints\\checkpoint_iter000320_hands000001317738.pt",
+          "sha256": "976d80c01dfc21cc830c1d7c41cc841541d7f6b2aa56f7b1a98a1b965a4acdd0"
+        },
+        {
+          "hands": 1581352,
+          "iteration": 384,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed3\\checkpoints\\checkpoint_iter000384_hands000001581352.pt",
+          "sha256": "fae143a937945e4391a501641145d4706419501e0ace571442a67e8f9b4148c5"
+        }
+      ],
+      "assignment_audit": {
+        "pending_assignments": null,
+        "records_verified": 440,
+        "tail_iteration": 440,
+        "tail_sha256": "81d917af235505aee8042e9ab42a351be2f6b4d7cee1cd5de79a5f815d27aa1c"
+      },
+      "bridge_lineage": [
+        {
+          "iteration": 440,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed3\\latest.pt",
+          "sha256": "3e24831fc240e26bafe5389dd84b0f65d00f283de74f1580a2b86ae67ce6a7b0"
+        },
+        {
+          "iteration": 219,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-1m-scale-20260903\\seed3\\latest.pt",
+          "sha256": "9c3235d2254d923103730310946b1c23be3e3122068f68bdc9e6273554bd9ee5"
+        }
+      ],
+      "changed_tensors": [
+        "policy_head.bias",
+        "policy_head.weight",
+        "preflop_policy_head.bias",
+        "preflop_policy_head.weight",
+        "value_head.0.bias",
+        "value_head.0.weight",
+        "value_head.2.bias",
+        "value_head.2.weight",
+        "value_head.4.bias",
+        "value_head.4.weight"
+      ],
+      "continuation": {
+        "final_optimizer_step": 1758,
+        "first_new_candidate_id": 111,
+        "last_new_candidate_id": 221,
+        "new_environment_hands": 1048953,
+        "new_replay_rows": 1610493,
+        "new_transition_hands": 910329,
+        "optimizer_lr": 9.999999999999996e-05,
+        "recovery_boundaries": []
+      },
+      "final_pool_ids": [
+        0,
+        1,
+        2,
+        217,
+        219
+      ],
+      "gates": {
+        "all_12_workers_completed_hands": true,
+        "assignment_prefix_exact": true,
+        "assignment_rng_replay_exact": true,
+        "checkpoint_manifest_metric_identity": true,
+        "contiguous_updates": true,
+        "corrected_legacy_contract_bound": false,
+        "dynamic_pool_healthy": true,
+        "finite_health_metrics": true,
+        "fresh_replay_boundary_then_nonzero": true,
+        "geometric_archives_present": true,
+        "importance_ratios_below_delta1": true,
+        "manifest_finished": true,
+        "metric_prefix_exact": true,
+        "monotonic_candidate_identity_repair_active": true,
+        "new_deal_window_exact_and_disjoint": true,
+        "only_policy_and_value_heads_changed": true,
+        "optimizer_continued_with_lr_preserved": true,
+        "optimizer_state_nonempty_and_synchronized": true,
+        "paper_recipe_exact": true,
+        "parent_checkpoint_hash_exact": true,
+        "parent_identity_exact": true,
+        "physical_accounting_exact": true,
+        "physical_environment_target_reached": true,
+        "replay_accounting_exact": true,
+        "replay_cumulative_exact": true,
+        "resume_controls_exact": true,
+        "same_lineage_and_run_id": true,
+        "stage_row_passed": true,
+        "static_current_kl_contract_exact": true,
+        "suffix_only_no_reset": true,
+        "transition_accounting_exact": true,
+        "trust_region_healthy": true
+      },
+      "hashes": {
+        "assignments": "bd97ff2ff824553f66b55693dfd0d0156706b12188e10902eb96b51f82daad92",
+        "checkpoint": "3e24831fc240e26bafe5389dd84b0f65d00f283de74f1580a2b86ae67ce6a7b0",
+        "log": "ae048651162960cbeeaf6bc21b7d10e28f37d8e538e29863c1bf95079fee84b3",
+        "manifest": "5943d8d23889734caf8ac6342fca1f0b955e1ba18e7a69c34650f5ce657124ff",
+        "metrics": "9392ae2831a449893f34060ca2ce8301c6f3375e8ec78b545143838f9092be33"
+      },
+      "iterations": 440,
+      "max_approx_kl": 0.0009898178977891803,
+      "max_importance_ratio": 1.45,
+      "max_reference_policy_kl": 0.0015527503564953804,
+      "name": "seed3",
+      "parent": {
+        "iteration": 219,
+        "max_candidate_id": 110,
+        "optimizer_step": 874,
+        "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-1m-scale-20260903\\seed3\\latest.pt",
+        "physical_environment_hands": 1050707,
+        "sha256": "9c3235d2254d923103730310946b1c23be3e3122068f68bdc9e6273554bd9ee5",
+        "transition_hands": 901833
+      },
+      "passed": false,
+      "physical_environment_hands": 2099660,
+      "replay_cumulative_rows": 3183420,
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\seed3",
+      "transition_hands": 1812162
+    }
+  ],
+  "schema": "cardpilot.static_current_kl_2m_training_audit.v1",
+  "session_independence": {
+    "assignment_chains_unique": true,
+    "deal_starts_unique": true,
+    "recovery_preflights_unique": true,
+    "training_seeds_unique": true
+  },
+  "stage_manifest": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-2m-scale-20260904\\resume_stage_manifest.json",
+    "sha256": "5dfc81ead90bab9886cc5a768b5f4a243a4f3222aefaa9c4f7fabbcfda2c6af7"
+  },
+  "total_new_environment_hands": 3143992,
+  "total_physical_environment_hands": 6296802
+}

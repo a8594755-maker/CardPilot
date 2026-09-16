@@ -1,0 +1,236 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-static-current-kl-262k-scale-20260903",
+  "title": "Static current-KL 65k-to-262k multi-seed scale",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T17:58:00+00:00",
+  "updated_at": "2026-09-03T19:23:47+00:00",
+  "started_at": "2026-09-03T17:58:00+00:00",
+  "ended_at": "2026-09-03T19:23:30+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The mechanically stable static KL(current||initial Standard10) lineages will retain positive geometric multi-anchor slopes when continued from about 65k to about 262k cumulative physical hands across at least two of three seeds without catastrophic source-policy drift.",
+  "material_change": "Exact-state continuation of the three admitted static current-KL lineages only; preserve optimizer, serialized complete-hand replay, loss-K-best pool, adaptive league, assignment RNG/evidence, run IDs, and initial Standard10 reference while moving to disjoint fixed-deal ranges.",
+  "baseline": "Frozen 65k static endpoints from v6-nashpg-moving-reference-geometric-20260903; all three had positive 16k-to-65k pooled slopes and low Standard10 drift.",
+  "source": "research/experiments/v6-nashpg-moving-reference-geometric-20260903",
+  "parent_id": "v6-nashpg-moving-reference-geometric-20260903",
+  "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-262k-scale-20260903/run_training.ps1",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-262k-scale-20260903/run_training.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:58:00+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-262k-scale-20260903/run_evaluation.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T18:55:50+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_static_current_kl_262k.py --experiment-dir research/experiments/v6-static-current-kl-262k-scale-20260903 --out research/experiments/v6-static-current-kl-262k-scale-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T19:22:45+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py validate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T19:23:42+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-03T17:58:00+00:00 --out-json research/experiments/v6-static-current-kl-262k-scale-20260903/logger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T19:23:42+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "d4174a1c212395e3e746fa8a260125f381656353162813e7d7de4a84e76161e9",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T17:58:00+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-static-current-kl-262k-scale-20260903/code.patch",
+    "patch_sha256": "78819c3eef63a9d7505b3acb5f563d50dbe99ead14cdffd21666d735e1d435d0",
+    "source_manifest": "research/experiments/v6-static-current-kl-262k-scale-20260903/source_manifest.json",
+    "source_manifest_sha256": "10274c7dc8fe775afce2990cfd254ddf6c66b5feaac072148633d1d3b56e7a4f",
+    "source_files": 253
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 593330,
+    "lineage_training_hands": 795006,
+    "offline_samples": 60000,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 5130.0,
+    "planned_environment_training_hands": 786432,
+    "environment_training_hands": 593330
+  },
+  "metrics": {
+    "seed1_slope_bb100": -2.752685546875,
+    "seed2_slope_bb100": 0.994140625,
+    "seed3_slope_bb100": 5.5860595703125,
+    "combined_slope_bb100": 1.2758382161458333,
+    "combined_ci95_low_bb100": -2.2308981836751576,
+    "combined_ci95_high_bb100": 4.782574615966824,
+    "positive_seed_count": 2,
+    "breadth_qualified_seed_count": 1,
+    "collapse_seed_count": 1,
+    "max_drift_mean_tv": 0.010462730170274517,
+    "max_greedy_disagreement": 0.0115
+  },
+  "artifacts": [
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/code.patch",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/source_manifest.json",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/preregistration.md",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/run_training.ps1",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/resume_stage_manifest.json",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/seed1",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/seed2",
+    "scripts/alpha_holdem/audit_v6_static_current_kl_262k_training.py",
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_262k.py",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/run_evaluation.ps1",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/seed3",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/training_audit.json",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/eval_seed1",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/eval_seed2",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/eval_seed3",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/drift_seed1",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/drift_seed2",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/drift_seed3",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/aggregate.json",
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/logger_audit.json"
+  ],
+  "notes": [
+    "No moving-reference arm and no Slumbot calls. This scale decision follows replicated static slopes and explicitly does not treat 65k absolute strength as a benchmark gate.",
+    "Parent SHA256s and staged metric/assignment prefix SHA256s are pinned in the launcher. Existing scale-resume preflight will independently replay assignment RNG and verify optimizer, serialized replay, pool, adaptive league, counters, and nonoverlapping deal windows before training.",
+    "Seed1 exact continuation completed naturally at 264,945 cumulative physical hands (198,955 new), transition marker 226,348, iteration55. No reset, replay recovery, KL stop, NaN, or ratio breach; seed2 exact continuation started.",
+    "Seed2 exact continuation completed naturally at 262,859 cumulative physical hands (192,994 new), transition marker 230,498, iteration56. No reset, replay recovery, KL stop, NaN, or ratio breach; seed3 exact continuation started.",
+    "Seed1 and Seed2 exact-state continuations finished naturally at 264945 and 262859 cumulative physical hands; generic read-only audits pass all gates. Seed3 remains in the original uninterrupted launcher session. Frozen evaluation and aggregate tooling were fixed before observing endpoints and refuse overwrite.",
+    "Seed3 completed naturally in the original uninterrupted launcher session at 267202 cumulative physical hands (201381 new), transition marker 230610, iteration56. All three lineages are frozen; total new environment hands 593330 and cumulative physical hands 795006. No Slumbot calls.",
+    "Training audit initially surfaced candidate ID reuse on seed2/3 because OpponentPool.load_from_checkpoint derives next_id only from active snapshots, not rejected candidate history. Read-only causal audit showed all reused IDs previously belonged only to rejected candidates, active IDs were unique at every assignment, and full (snapshot_id, snapshot_iteration, snapshot_hands) refs remained globally unique and hash-bound. The issue is recorded as a future provenance repair, while all causal mechanics, exact prefixes, accounting, and session-independence gates pass 3/3.",
+    "Post-finish experiment-log validation passed 324 records; audit since experiment start found 1 record and 0 warnings."
+  ],
+  "result": {
+    "summary": "Three exact-state static current-KL lineages added 593330 physical environment hands and reached 264945, 262859, and 267202 cumulative hands. Across 98304 untouched multi-anchor evaluation hands, 65k-to-262k slopes were -2.753, +0.994, and +5.586 bb/100; combined +1.276 with raw 95% CI [-2.231,+4.783]. All 60k outcome-blind drift states were safe.",
+    "conclusion": "Mechanics and evidence integrity passed, with a documented noncausal candidate-ID reuse provenance limitation on seed2/3. Two of three slopes and the median were positive, but only seed3 met both-seat and three-anchor breadth simultaneously; seed1 alone showed broad collapse. This is mixed, underpowered evidence, not replicated mechanism failure and not sufficient for preregistered promotion.",
+    "decision": "INSUFFICIENT_SCALE_OR_MIXED_DIRECTIONAL_EVIDENCE",
+    "next_step": "Repair OpponentPool resume next_id provenance first, then run an independent fresh-only higher-precision matched confirmation of the same frozen 65k-to-262k endpoints before deciding whether to scale selected lineages toward 1M. Do not call Slumbot from this result."
+  },
+  "tags": [
+    "current-kl",
+    "exact-continuation",
+    "geometric-learning-curve",
+    "multi-seed"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12846825,
+      "sha256": "78819c3eef63a9d7505b3acb5f563d50dbe99ead14cdffd21666d735e1d435d0"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 48301,
+      "sha256": "10274c7dc8fe775afce2990cfd254ddf6c66b5feaac072148633d1d3b56e7a4f"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/preregistration.md": {
+      "type": "file",
+      "bytes": 2156,
+      "sha256": "41c0137deaa718831494a29000d12bedbf979d55d12e1e222d510ca568972a57"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/run_training.ps1": {
+      "type": "file",
+      "bytes": 6633,
+      "sha256": "9bdfd5032e6a10d2af1dc296f46fc7821b4a64ea7290cb710c4de4770ca36db9"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/resume_stage_manifest.json": {
+      "type": "file",
+      "bytes": 7273,
+      "sha256": "f5ad9d361d027f998c1c36d4d9eadcb38ccdc9a30e5dc291e0ebd38f49a3d8a2"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "scripts/alpha_holdem/audit_v6_static_current_kl_262k_training.py": {
+      "type": "file",
+      "bytes": 14756,
+      "sha256": "50b9415f7b111f1628b275ce3fff904536ad4cf81b3cb6c35e882ad257e4dfb6"
+    },
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_262k.py": {
+      "type": "file",
+      "bytes": 11881,
+      "sha256": "818b639ce6701c95d751e09fdaedfc0b217817de73cf227b27faad9cfdf10723"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/run_evaluation.ps1": {
+      "type": "file",
+      "bytes": 3453,
+      "sha256": "d93cd9663ed508e669f3bfb0fdbbcdf2f523bf8796ed4a7c74dbd25e3e1d8feb"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/training_audit.json": {
+      "type": "file",
+      "bytes": 19895,
+      "sha256": "50e92a3efd942b5a3bb6a365d66f88c0cd79386683e9dea9e278c5307f5aaf49"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/eval_seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/eval_seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/eval_seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/drift_seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/drift_seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/drift_seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 14989,
+      "sha256": "601f8f8cee8889cf5d277d365c6e6a64293836a314632ac51ca8032e6fbb22c9"
+    },
+    "research/experiments/v6-static-current-kl-262k-scale-20260903/logger_audit.json": {
+      "type": "file",
+      "bytes": 224,
+      "sha256": "90566f3ab773d98faef981eee50f5b70f41f4d8149c8b5cc54732cd949c092ea"
+    }
+  }
+}

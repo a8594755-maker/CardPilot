@@ -1,0 +1,1248 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-actor-low-lr-tail-20260901",
+  "title": "Actor-head low-LR convergence tail",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T01:55:28+00:00",
+  "updated_at": "2026-09-01T02:25:32+00:00",
+  "started_at": "2026-09-01T01:55:28+00:00",
+  "ended_at": "2026-09-01T02:25:32+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The current strongest external candidate may be under-converged: preserving its exact Adam moments and terminal 1e-5 learning rate for a disjoint second 131k physical-hand segment can improve greedy policy strength without the destructive drift observed in earlier full-network scale-ups.",
+  "material_change": "Resume the exact raw actor-head checkpoint without resetting optimizer, legacy hand counter, EMA, adaptive-league state, or assignment RNG; use disjoint fixed-deal indices from 132553 and hold LR at the inherited 1e-5 until 262144 physical lineage hands. Evaluate only as a convergence mechanism gate before any fresh Slumbot allocation.",
+  "baseline": "v6-actor-ema-terminal-smoke-20260831 frozen raw endpoint; greedy fresh5k -9.4188 bb/100 CI crossing zero",
+  "source": "research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt sha256=9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4",
+  "parent_id": "v6-actor-raw-greedy-fresh5k-slumbot-20260901",
+  "command": "python research/experiments/v6-actor-low-lr-tail-20260901/run_tail.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-actor-low-lr-tail-20260901/run_tail.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:55:28+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\test_tail.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:58:10+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\source_legacy.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026104200 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_actor_ema_terminal_smoke_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\latest.pt --seed 20261042 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt --allow-resume --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:58:16+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-actor-low-lr-tail-20260901/run_tail.py --recover-zero-hand-cli",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:00:14+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\test_tail.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:00:26+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\source_legacy.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026104200 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_actor_ema_terminal_smoke_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\latest.pt --seed 20261042 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:00:32+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 53 --expected-pool-size 5 --expected-archive-every 8 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:08:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:01+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor1.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:03+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor2.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:05+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor3.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:06+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor4.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:08+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor1.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:11+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor2.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:13+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor3.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor4.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor1.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:20+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor2.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor3.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:23+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\tail_raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor4.pt --pairs 2048 --seed 20261101 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:09:25+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T01:55:28+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-actor-low-lr-tail-20260901/code.patch",
+    "patch_sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91",
+    "source_manifest": "research/experiments/v6-actor-low-lr-tail-20260901/source_manifest.json",
+    "source_manifest_sha256": "8fac41217d2d8058b7f21a357254b05113c2f278e2591cace8bc2e0988bef3db",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 130469,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 61440,
+    "wall_time_seconds": 1804.0,
+    "slumbot_hands": 0,
+    "lineage_physical_hands": 263022
+  },
+  "metrics": {
+    "wall_time_seconds": 1352.4369999999763,
+    "tail_parent_bb100": 46.37392578125,
+    "tail_parent_ci95_low": 7.497038157077732,
+    "tail_parent_ci95_high": 85.25081340542226,
+    "tail_source_bb100": 218.53896484375,
+    "positive_tail_parent_anchors": 4
+  },
+  "artifacts": [
+    "research/experiments/v6-actor-low-lr-tail-20260901/code.patch",
+    "research/experiments/v6-actor-low-lr-tail-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\source_legacy.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\prefix_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\failure.txt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\run_tail.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\test_tail.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\train_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\__pycache__\\run_tail.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\__pycache__\\test_tail.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000008_hands000000033021.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000016_hands000000066017.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000024_hands000000099005.pt",
+    "research/experiments/v6-actor-low-lr-tail-20260901/failure.txt",
+    "research/experiments/v6-actor-low-lr-tail-20260901/train_stdout.log",
+    "research/experiments/v6-actor-low-lr-tail-20260901/execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\tail_raw.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\train_stdout_recovery.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\tail_audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000032_hands000000132035.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000040_hands000000165056.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000048_hands000000198050.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiment_log.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiments\\v6-actor-low-lr-tail-20260901\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiments\\v6-actor-low-lr-tail-20260901\\run_tail.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiments\\v6-actor-low-lr-tail-20260901\\test_tail.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\analyze_dump.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_allin_runout_ev_log.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_counterfactual_policy_replay_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_counterfactual_replay_dataset.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_mirrored_selfplay_log.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_paired_seat_average_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_hand_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_session_independence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_dynamic_pool_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_elo_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_replay_session.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\combine_slumbot_logs.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\counterfactual_q_replay.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\distill_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\environment.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\environment_v55.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\environment_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\evaluate.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\evaluate_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\execution_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\network.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\network_hybrid_h1.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\policy_contract_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\ppo_hand_gradient_noise.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\rules_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_ci_from_hands.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_journal_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_terminal_v6.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_transport.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\teacher_live_coverage_audit.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_counterfactual_policy_only.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_distill_cfr_v55_compact.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_environment_hand_accounting.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_paired_seat_actor_returns.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_ppo_gradient_diagnostics.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_ppo_gradient_update_equivalence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_ppo_hand_gradient_noise.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_sampled_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_slumbot_ci_from_hands.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_slumbot_execution_telemetry.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_slumbot_transport.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_stochastic_slumbot_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_teacher_live_coverage_audit.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_allin_ev.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_dynamic_pool.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_elo_pool.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_mirror_deals.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_replay.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\train_v5.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_exp_w1_value_warmup.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_hybrid_h1_critic.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_hybrid_h2_targets.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_slumbot_loss_report.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_slumbot_promotion_gate.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_training_curve_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\validate_compact_v55_bridge.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\validate_train_v5_replay_resume.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\__init__.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\deep_cfr\\game_state.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\deep_cfr\\hand_eval.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\deep_cfr\\__init__.py",
+    "research/experiments/v6-actor-low-lr-tail-20260901/result_summary.md",
+    "research/experiments/v6-actor-low-lr-tail-20260901/reviewed_analysis.json",
+    "research/experiments/v6-actor-low-lr-tail-20260901/review_tests.xml",
+    "research/experiments/v6-actor-low-lr-tail-20260901/frozen/tail_raw.pt"
+  ],
+  "notes": [
+    "Training-opponent matrix is a mechanism/convergence gate only, not a generalization claim. No Slumbot hands unless all preregistered gates pass.",
+    "Zero-hand startup attempt exited 2 at argparse because the intended inherited-optimizer contract omitted the explicit --no-reset-optimizer acknowledgement required by train_v5.py. Verified copied latest.pt remains bitwise parent SHA, metrics and assignment provenance remain at prefix hashes, and counters are zero. Recovery adds only that acknowledgement; no training/evaluation evidence was generated or replaced.",
+    "Evidence limitation found by independent review: a recovery evaluation-loop path mistakenly overwrote execution.json with a stale recovery snapshot. The authoritative recovery_execution.json is complete; the zero-hand startup failure remains evidenced by immutable train_stdout.log/failure.txt, the recorded first trainer command lacking --no-reset-optimizer, the corrected exact command containing it, and parent checkpoint/prefix hashes. The bug was patched before review; no model, hand, matrix, or decision artifact changed."
+  ],
+  "result": {
+    "summary": "Optimizer-continuous low-LR actor tail reached 263022 physical lineage hands and passed its internal greedy convergence gate; independent evidence review passed with a documented stale execution-snapshot limitation.",
+    "conclusion": "A second 130469-hand segment materially improved the candidate over its parent on the training-opponent greedy matrix (+46.37 bb/100, paired CI lower +7.50, 4/5 anchors positive). This is not generalization evidence, but it justifies the preregistered independent fresh5k Slumbot pilot.",
+    "decision": "ADMIT_INDEPENDENT_GREEDY_FRESH5K",
+    "next_step": "Freeze SHA 6f3bf54433d72fdc4ebb9de33c52947c6da4fd0af2259d8b9561f7956821db5b and run exactly one independent 8x625 generic-greedy fresh Slumbot pilot; extend only under a new preregistered positive transfer gate."
+  },
+  "tags": [
+    "learned-policy",
+    "scale-continuation",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 22,
+    "command_count": 22
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-actor-low-lr-tail-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12742975,
+      "sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "8fac41217d2d8058b7f21a357254b05113c2f278e2591cace8bc2e0988bef3db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13580,
+      "sha256": "6ef5c9b4d6307cf1c0f12b5925fc0998ad691b8da45d7b18e4adde6fde066154"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22077,
+      "sha256": "7467bc626bec29f93fe6277e5090c3569512f81ec5b877fd35921191d0334ede"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 664,
+      "sha256": "e99cd565b5ae15c64d0dd25d78da0c33ed525f6cb3553f65e5d5c6b7d4c19af2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 24558,
+      "sha256": "138b9211b23f6c41115cd166bf2bb70e68c7d6f44a95d11e2b93b278496ffe36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\parent_raw.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\source_legacy.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\prefix_manifest.json": {
+      "type": "file",
+      "bytes": 512,
+      "sha256": "871984febe151ee9e949124d800f352f7fb0c73c4205db62f046585501fac1d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 4107,
+      "sha256": "a5e22457f7b95cf8ed00a119050607269b02394711ce3cd1202efa10062cb2ad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\failure.txt": {
+      "type": "file",
+      "bytes": 293,
+      "sha256": "f4628a9ccbdcd677421be96fe15425dac5e5ea37feabebb54de4083d946e8355"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\preregistration.md": {
+      "type": "file",
+      "bytes": 2299,
+      "sha256": "f185126e940e6b8964a9d9d17e44693eff605e2c7ff01ebb08eca5217e791bd9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\run_tail.py": {
+      "type": "file",
+      "bytes": 17902,
+      "sha256": "475ee9ca8ab10a31be74ce723d540e81c0a10a69382449d167f99430db08892b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\test_tail.py": {
+      "type": "file",
+      "bytes": 2151,
+      "sha256": "7300e78c087b366656271cb7691166cf254bcb20f7a738849ead847cea48054b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\train_stdout.log": {
+      "type": "file",
+      "bytes": 16734,
+      "sha256": "9a5ab2fd5fd7ae0769e6984bc1d41abea1be253a0fffb1a4f0a7452e9d2e8b10"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\__pycache__\\run_tail.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 30370,
+      "sha256": "827c2c2c36943da37dc7e3734e8c1244fb017d20f95db3b63da3beb65016b32f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\__pycache__\\test_tail.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 12078,
+      "sha256": "90c6aa73fb2b6944c0913d14e33d57d423d235754ed78dfbf4f8c1e488f06026"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 6322,
+      "sha256": "495ce9bf705ff2de557979ee8934caaef9eae887094ec1065bf5ff74bde722ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1391554,
+      "sha256": "ad3ffe93dcca741fa58295ae8c0918efad4a078937ed396076c3ca67a1787f54"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\latest.pt": {
+      "type": "file",
+      "bytes": 199404580,
+      "sha256": "6f3bf54433d72fdc4ebb9de33c52947c6da4fd0af2259d8b9561f7956821db5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\latest_train.log": {
+      "type": "file",
+      "bytes": 23427,
+      "sha256": "d40aec3fa6d8e8ffd446469323e9890bf35f02eb57c7d898845e1ef76b784f5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 142972,
+      "sha256": "a76ae9e82b3075a4cd0417c8f190b7f9304f5e036e8dac9a132a02a763476e57"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\run_manifest.json": {
+      "type": "file",
+      "bytes": 60021,
+      "sha256": "5e5a0518d2b0f0adf38c70cef01e5d0e863dd54c7fa798de0ae21b82de67894d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\session_audit.json": {
+      "type": "file",
+      "bytes": 7316,
+      "sha256": "21a34b6846ae945e9b963b432ee17642c1dce033fa71ad8359cbe9b12658cfec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000008_hands000000033021.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "461d8c2ed0ade277abc8b06b036dcc3104d749b72f382f2a540e6e1b21fd298e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000016_hands000000066017.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "a2fa5233d4c8322d4f0644dcb09c9084942e419f0ff453d6e0bd2266fd3521a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000024_hands000000099005.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "c759cb1094e6125dea4efc7d8c1905ca9bfd6c75f2ce52d107da7b448f0e7eec"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/failure.txt": {
+      "type": "file",
+      "bytes": 293,
+      "sha256": "f4628a9ccbdcd677421be96fe15425dac5e5ea37feabebb54de4083d946e8355"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/train_stdout.log": {
+      "type": "file",
+      "bytes": 16734,
+      "sha256": "9a5ab2fd5fd7ae0769e6984bc1d41abea1be253a0fffb1a4f0a7452e9d2e8b10"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/execution.json": {
+      "type": "file",
+      "bytes": 4107,
+      "sha256": "a5e22457f7b95cf8ed00a119050607269b02394711ce3cd1202efa10062cb2ad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13580,
+      "sha256": "c4ad7ec9cfa24935cb521ffc657628bc72ca79982748e2d76e66c013662d45ea"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22003,
+      "sha256": "321d5cbf04c3d6b2084ea58b017b17c8f9da355f00200f083a1880a7a54634e9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_tests.xml": {
+      "type": "file",
+      "bytes": 664,
+      "sha256": "1b089e9f0378f6d076c6ebde4106ab26bbd080d48ad25b85ec9e92d56686c049"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 656,
+      "sha256": "7a8198552c6bd31f8ffad924915d62c5631c411f4bff74549df148baf93c98b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\frozen\\tail_raw.pt": {
+      "type": "file",
+      "bytes": 199404580,
+      "sha256": "6f3bf54433d72fdc4ebb9de33c52947c6da4fd0af2259d8b9561f7956821db5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 1911,
+      "sha256": "09550aa762b3a1b5677570e3613e81c0b56a6d344ab86ef87776f8c64617b899"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1618,
+      "sha256": "0ad851208959b0e038fc800c16474ce14846fe1d242bc263ead0626c66ab8108"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1619,
+      "sha256": "377e0adaa633df9b87682a3d65392bd8231d584f21d9bbc2922c49dadbc56d12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1620,
+      "sha256": "459216cbc68a64d259917b6adb1a107531645ce9fa4e2866f3641c818e747890"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1620,
+      "sha256": "2ee8684679258c109bcbf90e050d5d7eb834acf066c61c65380e3727d222787b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\parent_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1621,
+      "sha256": "90c249edb05e5324f2488b91a9ed8cff142fbdaeadfe61032a1640573976af02"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_execution.json": {
+      "type": "file",
+      "bytes": 4220,
+      "sha256": "61692ac90667ddf637cf4adc6b74a3702c543e769a01867104f0c2aac3abee3c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1577,
+      "sha256": "eb18d98bd73f980f99c6cde8ffc306baf2c0aba2b2666fd2a0eb468e228c7bbb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1619,
+      "sha256": "bff79e9bd85d267a2a3e0337285b11f85e821131d87bfcbcd51da77936d37535"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1616,
+      "sha256": "06e3f55a430dcf290f3ef3954c72935d8a11f755865cd3b971eb5b06f540aa57"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1616,
+      "sha256": "b589769fb94ed2d3a48721db4708309a03913af24de9fbc20669d6fcd30aaff3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1617,
+      "sha256": "a6e3c97aefbf25897cbcaf5ea147127f82d49b6333a2c08a1b26bf0019bcd0ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1618,
+      "sha256": "dfdb80edc4875b297d4ac5f2a676b94d868adbd6d9c4c9d2bd84ba2959d36b61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1615,
+      "sha256": "6809c2e6a9188533e7811e09d39a3f5834a2f38abb607071c752c688e2aa9e44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1616,
+      "sha256": "055afe52b7a1ab4b99825f53c0566cf13b429b32cde26047b65467f5e66eb596"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1616,
+      "sha256": "527c7ad5800fb361ef032918c7f67489ad516ebd9ac53e4843de8edb45fc4b88"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\tail_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1616,
+      "sha256": "bbcef93a5feaaff161b98c50a85e99ce1ca3115f12058b945859cab45d66c196"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\train_stdout_recovery.log": {
+      "type": "file",
+      "bytes": 17993,
+      "sha256": "a20c2f9817979a1149df55ce4681fcb93cc77b5728a92f1af253a0b8c14397bf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574664,
+      "sha256": "cbbca47e8b61adbecc5036a77e71c52c3712ac717f35370097c76daa93194b22"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1686,
+      "sha256": "af093654253c84363ff8a3f22795eca3621136e6f14137209cbef5c5264e25b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 568901,
+      "sha256": "d51859ee38530e70db848967c64cb311d05b4b4a07d87fe8cbcc1df5db6c3860"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1687,
+      "sha256": "25e08147501b5f5b2b17d8775bc43bc53f5a3954b2d81c10c123ac9b0d20accf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573103,
+      "sha256": "a93a71900333eb8bea938d1695e1ff00cbf9bdc26b0858563441b3a7218c875b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1688,
+      "sha256": "3df1806256a8125fc25e4c4ca88b31931b10dbb120188b99c0f249d956ca3153"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 575314,
+      "sha256": "5ca6b9137ea291396cb63e4335a68523b59aff903a1f7b77056992e7ce69ac9e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1688,
+      "sha256": "3d3a00332bde4310c0f8bfe614891ae5472419f4c47d85a70bb8359e1130eff5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 575374,
+      "sha256": "4d6ae19e17bc1ce0d66c0ba0af6e27ab7a56a1eec399658480e5ed90d5fce224"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\parent_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1689,
+      "sha256": "4d6a7d7d0d8433033c79c9eda718102779ffb5907e28e2d4051e741666d6dfd9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574973,
+      "sha256": "006d8d0d20605cf670163b687eccd2786818c7ad87fd18bf95bac63f5868725f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1645,
+      "sha256": "9a7505d7b2e3c30aca7b54aa3201cea50e9fb4405c4bee7e0aae17812a47d599"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 569094,
+      "sha256": "71ea5ad7968aebacb3009fe260635c6df8dba0f4415a9c238e51984e8b198163"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1687,
+      "sha256": "bd330df7ca520cb9618aaf2d5e62915c55ca184ffbe1d4ecbf3bb241d33fb499"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573276,
+      "sha256": "dbffd0699fa2e5c21d9b9aeff48ac51b0cc05573ab3c6d0f4bbf030d0596141c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1684,
+      "sha256": "e97a5542a7b41b160995cd13caf12f21bb5cb75aa020a40ffa46cedeac0034ae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 575637,
+      "sha256": "9049fc9e1b1965b7c84471dc90aeb3f7b671835ac00429cf09b67f0e4f7510fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1684,
+      "sha256": "178332cc15466cbf9381098ba75d527f3a1aa9f88ee9c52e784c1618802aa5be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 575493,
+      "sha256": "bc0202cb5cb1f912a55ddcf864d7bbf79f397954332549829d04e809b0ccc959"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1685,
+      "sha256": "a05adc548ac7ab63e0b8076ecb272d41d3115820f9c85e7d94980b05cfa536d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574368,
+      "sha256": "4bacaf31bcc38a29bbb9959cbde73549e54b44633ce89a32379433a1d5dd9394"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1686,
+      "sha256": "2d3ea819d3e1c4c688aacdc7c1f8f99163cfefa2a76c0be46d976244e9b8397e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 568718,
+      "sha256": "53c53652d6592aa65748d368613b716c74b1858388956b3e63a377a555f8a782"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1683,
+      "sha256": "3e119fe4fef0380d2e4a77333801678da9f71503edc6255e1abb51f78d22a957"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572886,
+      "sha256": "a841b083334b82cef283c32e4824f692511287d4bbadd5a1c25b358e1b3c85a1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1684,
+      "sha256": "322516be8751b1fb669190e7fcea82355f2309cc62a4680c7eba289633c7ee41"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574986,
+      "sha256": "447e47bba626e62c81ea3c058409010058cc376af502a3c91be350ef0ef85634"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1684,
+      "sha256": "280d903d1daf390cf44465bae53987ea52940a11da2a5f7919bd322f25fe0ded"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 575036,
+      "sha256": "ad764c5950fe375ca59dea5df95aa354dba388e8d4c01a0a731b0fc2ebde7a6a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\matrix\\tail_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1684,
+      "sha256": "8f5bea9031ad6ed823d167df98f4e033107757eb297a002209388c07b0063ced"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\tail_audit_stdout.log": {
+      "type": "file",
+      "bytes": 7316,
+      "sha256": "21a34b6846ae945e9b963b432ee17642c1dce033fa71ad8359cbe9b12658cfec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000032_hands000000132035.pt": {
+      "type": "file",
+      "bytes": 199429846,
+      "sha256": "886ed836ac673a747ff1f4de425938c3a25f92a7b97055e5ab5052e0bb700374"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000040_hands000000165056.pt": {
+      "type": "file",
+      "bytes": 199429846,
+      "sha256": "a7fb326e37a06e796038643bfa7c4d99f1304d0f5d6cb9feb1dbb2a4cfbe05cf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\production\\train\\checkpoints\\checkpoint_iter000048_hands000000198050.pt": {
+      "type": "file",
+      "bytes": 199429846,
+      "sha256": "1cdc67c1969927be68d5e2b633da6aae94febd9e83ef5c0381bd3c8e0afafab3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiment_log.py": {
+      "type": "file",
+      "bytes": 25641,
+      "sha256": "2d3d3d7360f0d0ca6709cee6d12e063b75b02fb5bb86e87b0a4b32035abe23ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiments\\v6-actor-low-lr-tail-20260901\\preregistration.md": {
+      "type": "file",
+      "bytes": 2299,
+      "sha256": "f185126e940e6b8964a9d9d17e44693eff605e2c7ff01ebb08eca5217e791bd9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiments\\v6-actor-low-lr-tail-20260901\\run_tail.py": {
+      "type": "file",
+      "bytes": 17911,
+      "sha256": "1e2af38c1631866a8db8322b4c6287a71d8db86abade795d2118a2bde1f8987d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\research\\experiments\\v6-actor-low-lr-tail-20260901\\test_tail.py": {
+      "type": "file",
+      "bytes": 2151,
+      "sha256": "7300e78c087b366656271cb7691166cf254bcb20f7a738849ead847cea48054b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\analyze_dump.py": {
+      "type": "file",
+      "bytes": 9106,
+      "sha256": "491ff1cd45d812f80777ae5918313dcf0f047fdb558f221a52fc076624386eb0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_allin_runout_ev_log.py": {
+      "type": "file",
+      "bytes": 5216,
+      "sha256": "ba53f33b4e68ac148609a160b7c3d0fc61fa81a698c11e036388aca86a83f592"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_counterfactual_policy_replay_session.py": {
+      "type": "file",
+      "bytes": 8492,
+      "sha256": "8c8c3445387ec1931f56628a876fd4e7ec5ac7a26762148b9fdf77288c53a7d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_counterfactual_replay_dataset.py": {
+      "type": "file",
+      "bytes": 3043,
+      "sha256": "f7c00dc8f595b9c622faaba88258a24e93f6de13c606ecd28cd430c34c637105"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_mirrored_selfplay_log.py": {
+      "type": "file",
+      "bytes": 5677,
+      "sha256": "cf56d719ac4d0d46f1e1a6a3c8d75ee6be64b153fecf71772c8c2945c6f9cd85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_paired_seat_average_session.py": {
+      "type": "file",
+      "bytes": 3758,
+      "sha256": "cdea3d0b91196c12cbcfe7071acf47f32fc28fdbe61bb16c046c24b09b0f6f3e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_hand_evidence.py": {
+      "type": "file",
+      "bytes": 11383,
+      "sha256": "38aa472cc4034c4b26c371afd385ce31dcdff6bb8db2c1368919085d1f87f4e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_session_independence.py": {
+      "type": "file",
+      "bytes": 9936,
+      "sha256": "60ca9fee6ee8428354b9601ff6e69104bfff4ccf447d5ced890184cac75546e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py": {
+      "type": "file",
+      "bytes": 17069,
+      "sha256": "70c84a63cf8bc3c6b96161b9ed6cb7dd8520f093f5bd66b36102a9d97689eb1b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_dynamic_pool_session.py": {
+      "type": "file",
+      "bytes": 10042,
+      "sha256": "4c4cbfe1b593eba0711820903e343ff8694d31ade8b77d95a624a719d0103dfe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_elo_session.py": {
+      "type": "file",
+      "bytes": 15098,
+      "sha256": "01c525da223927da011cde61fb104a4033811566ea21a68b32ecc5ce8e052ac9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py": {
+      "type": "file",
+      "bytes": 14926,
+      "sha256": "05ec950ec4760747d5ab8d39fef90583e8ae4173efe5194031c1de4cb05b4b6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_replay_session.py": {
+      "type": "file",
+      "bytes": 8186,
+      "sha256": "e24dbdee59ee6c734a2c717d8c68bdcc42d8f032d97beaa9d4ad49dd09e2553f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\combine_slumbot_logs.py": {
+      "type": "file",
+      "bytes": 3856,
+      "sha256": "ad2d61219e911e5948efd59f6143ddbcaf7a8e1d497b89d6f1f4a31100296c4c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\counterfactual_q_replay.py": {
+      "type": "file",
+      "bytes": 31450,
+      "sha256": "6148e45cae4bbc39fb7be01ed0f3fb4ccf88c93e7d3f4363abd060b54f4b56cf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\distill_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 40164,
+      "sha256": "6cbf21ae4ee83b22a9d6bbd401420eeae9ca4fb160c542b60529a5253553015f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\environment.py": {
+      "type": "file",
+      "bytes": 14242,
+      "sha256": "764c838ff060881705b91477d8bf3a5df6949f94a6e503fcb816c6f1b4c57f9b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\environment_v55.py": {
+      "type": "file",
+      "bytes": 19558,
+      "sha256": "39ac67a5939035497da4bfb07da63e00a8418262e75f5552185718ffe1eba6ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\environment_v6.py": {
+      "type": "file",
+      "bytes": 5168,
+      "sha256": "e97c05c59d28e23594ea2ee1b860411f514dc27b82c6a02b82933cf45c96c221"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\evaluate.py": {
+      "type": "file",
+      "bytes": 8315,
+      "sha256": "adddb47ddec6dc1ed0d5fe82cc10ae1d7c42633dc2cc63ec7b86dbd95b32de12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\evaluate_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 3053,
+      "sha256": "909a0b0b7ac54df5a5825107dda0a5ea5f449adafa788ded2779e189447fbb8e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\execution_v6.py": {
+      "type": "file",
+      "bytes": 3473,
+      "sha256": "28c13c4ae6c8ccbde821c322d951f7a8e61f41e4e6dffd345f1c6bf5d1aefa25"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\network.py": {
+      "type": "file",
+      "bytes": 24761,
+      "sha256": "64667d2b379775de17ceef916c32f7c2b7ac9a01e821a5677f6997c196b7325e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\network_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 40887,
+      "sha256": "95fe31834a3c55bb0ad7a13da7188d74bfb9513da9c10396acad94a7c563b406"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py": {
+      "type": "file",
+      "bytes": 4985,
+      "sha256": "73ff5c2d43bfeccc2998abebc16f369903590a0b27ec3808fa32a2cd4e4dd955"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py": {
+      "type": "file",
+      "bytes": 110759,
+      "sha256": "2465373a2dcb7d84adf9618e9cb8953156623ad5b38bef32395339b9e7db5d01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6.py": {
+      "type": "file",
+      "bytes": 4231,
+      "sha256": "5694199b675d9fab3e33ea73d25e3c720dbb6d3440465d68e2ff970e2a5fab75"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py": {
+      "type": "file",
+      "bytes": 12210,
+      "sha256": "0cd7f92cf8e88aac06d3cec92935b33b30d9aef1c46661fdf0c5902c5b641be8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\policy_contract_v6.py": {
+      "type": "file",
+      "bytes": 7593,
+      "sha256": "abc4a0b5b305bd3e0aef7d234441db7af12caccca6091d0de332777723a0ec86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 8114,
+      "sha256": "be1117bc9740ccf916c0d9ccda0c3f58182872578e436a2eded3ff3594557d5c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\rules_v6.py": {
+      "type": "file",
+      "bytes": 6916,
+      "sha256": "f2e4b5acb76d2d18897ae75babc5a2e4b932dc9ef351f1220d6df5e7908f7ef1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_ci_from_hands.py": {
+      "type": "file",
+      "bytes": 8477,
+      "sha256": "9537f97bc38a7dc87da0ee3e4940978de729e120c005110e95d48755135eb547"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_journal_v6.py": {
+      "type": "file",
+      "bytes": 3028,
+      "sha256": "7ec409e78891be84698acb9ba14fcd02a9c0456041950c58f1652754b23dc69e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_terminal_v6.py": {
+      "type": "file",
+      "bytes": 6552,
+      "sha256": "83324c9213a7ed8453a83f1db338f7477e1528de39b6cdd1b41acc64008f5f44"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\slumbot_transport.py": {
+      "type": "file",
+      "bytes": 2383,
+      "sha256": "b6ecaf23a18dde031cbe6369deacec863273b68104590f8a9a80fa1f806a9554"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\teacher_live_coverage_audit.py": {
+      "type": "file",
+      "bytes": 14089,
+      "sha256": "726e8b3b16b68ba96099d2e3f2351d4d12f4dcb55ee3357daf6da84da69d8a0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_counterfactual_policy_only.py": {
+      "type": "file",
+      "bytes": 2372,
+      "sha256": "5f6880542a4f95e8764742cca5398b57afd8d319cab0bc9181d9251926a5aaa2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_distill_cfr_v55_compact.py": {
+      "type": "file",
+      "bytes": 4928,
+      "sha256": "6ac71f060cffcaf050ae3aff759ee9c88fc201a56eaa9f204a39eb85744c140f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_environment_hand_accounting.py": {
+      "type": "file",
+      "bytes": 3966,
+      "sha256": "71f1b05164b8d1ec6030dfd97e8f033e1ac82d5a8417877a914f33ca03a78e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_paired_seat_actor_returns.py": {
+      "type": "file",
+      "bytes": 3684,
+      "sha256": "a08f2b10f376dbd68c8d8c59e395644ebe04d815c02b3f03323ce4b0543984bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_ppo_gradient_diagnostics.py": {
+      "type": "file",
+      "bytes": 2945,
+      "sha256": "88e0b249923068bcf583c9891c32b6eab407d945360e776f813318d6e088436b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_ppo_gradient_update_equivalence.py": {
+      "type": "file",
+      "bytes": 2571,
+      "sha256": "6070708475fbef3344a7acec06beaa5e3d1fd57da4da2cce1bc904fa2867e4e1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_ppo_hand_gradient_noise.py": {
+      "type": "file",
+      "bytes": 10004,
+      "sha256": "435f63652a3855c3b91fefb6e167cd12bb4daa3c2877f29f88729d880d826863"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_sampled_mirror_eval.py": {
+      "type": "file",
+      "bytes": 3863,
+      "sha256": "b2a1b9d4ba54e5397657301bacb32c41e9cb6fc9a14ee3ca28a8693a490dfe5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_slumbot_ci_from_hands.py": {
+      "type": "file",
+      "bytes": 1615,
+      "sha256": "d140f220817e79b86e927534884fbb7b26919cc2a512f4886d35923760173fc9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_slumbot_execution_telemetry.py": {
+      "type": "file",
+      "bytes": 3639,
+      "sha256": "ddcf66ec7802072c6ca88b7da2fcb14fd6deb0420ae25c2dfd79eead97894ca9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_slumbot_transport.py": {
+      "type": "file",
+      "bytes": 12026,
+      "sha256": "0a06b76e8582feb406d58565893651b546680347afcc7ed4a45e4692b790ff6e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_stochastic_slumbot_evidence.py": {
+      "type": "file",
+      "bytes": 10831,
+      "sha256": "c23c312da94450fddd34095b941b156a1e359c92a4d1e9d9f87f7b3262c77368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_teacher_live_coverage_audit.py": {
+      "type": "file",
+      "bytes": 2483,
+      "sha256": "f0af152b048bcc3aa80af12b6f925a789a866cdb07742ba038a9ddf629bc5df1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_allin_ev.py": {
+      "type": "file",
+      "bytes": 2768,
+      "sha256": "aca40d49f7a3634bd77f18ef3c50d6f432e18b0abc6aee9b1d6c8b2df09510b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_dynamic_pool.py": {
+      "type": "file",
+      "bytes": 5927,
+      "sha256": "42e5f51eb7b72d0dc79c3fcf8e07f88ce214030f3e09f70aecbf395b81989e06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_elo_pool.py": {
+      "type": "file",
+      "bytes": 4988,
+      "sha256": "7ee054d1d4ce328b6e4ebc61e59b15b5f1a5a96ae718a3f962a7a73326fd2650"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_mirror_deals.py": {
+      "type": "file",
+      "bytes": 2171,
+      "sha256": "463b25964d4aebf9ecab78a8beab8bd6b920151e1cfd24f1956f1fcc0f2c5d43"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\test_train_v5_replay.py": {
+      "type": "file",
+      "bytes": 6055,
+      "sha256": "104ba5dec35cfcc8be87f826ee6b8dc84034a492823af67f822aff7fadac26e4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 118638,
+      "sha256": "0861a047125ded21d6f5f2fdc8dbce13890b98b6a9cf4f75f88aa2570cc3d623"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\train_v5.py": {
+      "type": "file",
+      "bytes": 423760,
+      "sha256": "c6eea5105b99c1c9a4cd35ce6a01330760081f25e8608d3bb802dae6f2c442bf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_exp_w1_value_warmup.py": {
+      "type": "file",
+      "bytes": 12578,
+      "sha256": "247c5348047e571cf7b9bf46bf1ca07040017a6fb6129959d4be55d40d3c3f36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_hybrid_h1_critic.py": {
+      "type": "file",
+      "bytes": 5141,
+      "sha256": "9e48442314f1c218bf2e3f1f224ace5936266e3e1a62d2a81f02048e9205705a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_hybrid_h2_targets.py": {
+      "type": "file",
+      "bytes": 15264,
+      "sha256": "2a99fc3ebc90afcdcb4501d7c6c067c2c112a34c0e023204bd75274a88b70d50"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py": {
+      "type": "file",
+      "bytes": 40120,
+      "sha256": "adc5c9665194f58a8180cb6c5750ce5dfb0e997c29fd2ee5b05335906d794ed2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_slumbot_loss_report.py": {
+      "type": "file",
+      "bytes": 17129,
+      "sha256": "bf8100469a55f7273b61501d4f05e44e5f59103112be1dc833632eeb8bc0cfdb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_slumbot_promotion_gate.py": {
+      "type": "file",
+      "bytes": 27123,
+      "sha256": "9b29c8335956c40be37bed4e6f20d66b295804175300764b9bfad23b287ef325"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v5_training_curve_eval.py": {
+      "type": "file",
+      "bytes": 21202,
+      "sha256": "347030530a9df098e4ab4ee522a0773f7e28018e18ff603371ebb40612a8a897"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py": {
+      "type": "file",
+      "bytes": 4034,
+      "sha256": "09c00c4718d6d1c67affd8a23d79fe2258db00c2816a41642150c124817154c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\validate_compact_v55_bridge.py": {
+      "type": "file",
+      "bytes": 11130,
+      "sha256": "a0d3032cdb9fdd7992916ff0139f9e9615ac7a8979fa1be963d93c0c1e57c24d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\validate_train_v5_replay_resume.py": {
+      "type": "file",
+      "bytes": 7298,
+      "sha256": "772d51bf617e7322d388ced3fe1fbe6c6990cc0f403ae3ede6935fecc415397d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\alpha_holdem\\__init__.py": {
+      "type": "file",
+      "bytes": 65,
+      "sha256": "af49b349165d50fb0d550e72061231455cb4919abd08aaa17bc94aeb103cf6e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\deep_cfr\\game_state.py": {
+      "type": "file",
+      "bytes": 27001,
+      "sha256": "1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\deep_cfr\\hand_eval.py": {
+      "type": "file",
+      "bytes": 2187,
+      "sha256": "fc30df48b0ae0091311f2ff40f8e320278bc47abba606c0c1f71fcce498f490d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-low-lr-tail-20260901\\recovery_code\\source_files\\scripts\\deep_cfr\\__init__.py": {
+      "type": "file",
+      "bytes": 78,
+      "sha256": "ec74f39495a984d95143410b9278467ffac668e497af0b8c115b2be1fd4d5fca"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 1744,
+      "sha256": "b25e3baaaa1e452a3ba7ce3bebaa42c13ede6a208246e82588e280c34380a968"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 761,
+      "sha256": "07b0aafc6b93749baf7761f8f3eadbcd2fb9f3c7fde2571d5cb428bcaab1b76d"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/review_tests.xml": {
+      "type": "file",
+      "bytes": 353,
+      "sha256": "8a47f6e671eb3c9e245765fbf8dabd6ac9b8de4154451aa9d1f55533ded39357"
+    },
+    "research/experiments/v6-actor-low-lr-tail-20260901/frozen/tail_raw.pt": {
+      "type": "file",
+      "bytes": 199404580,
+      "sha256": "6f3bf54433d72fdc4ebb9de33c52947c6da4fd0af2259d8b9561f7956821db5b"
+    }
+  }
+}

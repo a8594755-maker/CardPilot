@@ -1,0 +1,474 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-public-control-legacy-bridge-greedy-fresh5k-20260901",
+  "title": "Matched-control legacy-bridge greedy fresh5k Slumbot gate",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T16:47:03+00:00",
+  "updated_at": "2026-09-01T16:52:35+00:00",
+  "started_at": "2026-09-01T16:47:03+00:00",
+  "ended_at": "2026-09-01T16:52:35+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The shallow two-update Standard10-initialized matched control may transfer positively to fresh Slumbot under the same audited physical-v6 legacy-v4 greedy execution contract that gave Standard10 its strongest external result.",
+  "material_change": "Use the already proven legacy-v4 observation-bridge session and replay-audit contract. Freeze the identical matched-control checkpoint and run exactly eight new independent 625-hand sessions, with no retries, replacements, training, or action overrides.",
+  "baseline": "Historical Standard10 legacy-bridge greedy fresh20k -11.4275 bb/100 CI [-28.7124,5.8574]. Two predecessor packaging attempts produced zero raw hands and no poker evidence.",
+  "source": "research/experiments/v6-public-opponent-matched-hero-smoke-20260901/control/latest.pt",
+  "parent_id": "v6-public-control-greedy-fresh5k-slumbot-recovery-20260901",
+  "command": "python research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:47:03+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137201 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s01 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:25+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137202 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s02 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:25+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137203 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s03 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:25+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137204 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s04 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:26+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137205 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s05 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:26+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137206 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s06 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:26+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137207 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s07 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:27+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --hands 625 --seed 2026137208 --session-id v6_public_control_legacy_bridge_greedy_fresh5k_20260901_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s08 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:48:27+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\audit_bridge_cli.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:50:48+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:52:24+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5677019fd57797aafbdba3ead25b3be0e79c9962a20734a7f471905b5dca989d",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T16:47:03+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/source_manifest.json",
+    "source_manifest_sha256": "2582cce2cf3ca9cad4240127d6ac8313298a096dc21fab559e3d5a88d8d71d97",
+    "source_files": 116
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 5000,
+    "wall_time_seconds": 332.0,
+    "planned_evaluation_hands": 5000,
+    "planned_slumbot_hands": 5000,
+    "slumbot_hands": 5000,
+    "sessions": 8,
+    "qualification_hands": 0
+  },
+  "metrics": {
+    "bb_per_100": -64.2932,
+    "raw_ci95_low": -106.30072992771957,
+    "raw_ci95_high": -22.285670072280425,
+    "session_t7_ci95_low": -101.26882549778594,
+    "session_t7_ci95_high": -27.317574502214065,
+    "positive_sessions": 1,
+    "point_delta_vs_standard10_historical": -52.8657,
+    "wall_time_seconds": 192.8279999999795
+  },
+  "artifacts": [
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/code.patch",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\session_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\completed_analysis.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/execution.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/combined_audit.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/completed_analysis.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/reviewed_analysis.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/result_summary.md",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/runtime_origin.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/session_commands.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/tests.xml",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/frozen/final.pt",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s01/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s01/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s01/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s01_stdout.log",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s02/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s02/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s02/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s02_stdout.log",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s03/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s03/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s03/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s03_stdout.log",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s04/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s04/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s04/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s04_stdout.log",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s05/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s05/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s05/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s05_stdout.log",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s06/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s06/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s06/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s06_stdout.log",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s07/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s07/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s07/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s07_stdout.log",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s08/hands.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s08/journal.jsonl",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s08/summary.json",
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s08_stdout.log"
+  ],
+  "notes": [
+    "Promotion gate unchanged: bb/100 > 0 and at least 4/8 positive session means. Raw and equal-session CIs are diagnostic. Offline preflight loaded SHA 6cdc7c... under hunl_v6_physical_legacy_v4_observation_bridge_v1. Fixed fresh seeds 2026137201-2026137208.",
+    "All 5,000 hands and combined audit completed before the runner's terminal artifact-registration call hit Windows WinError 206. Artifacts were subsequently registered in short sequential batches; no session was rerun or replaced."
+  ],
+  "result": {
+    "summary": "The frozen shallow matched-control checkpoint completed eight independent 625-hand legacy-bridge greedy Slumbot sessions. All 5,000 raw hands, journals, learned-logit argmax actions, model SHA, terminal states, and disjoint token chains passed combined audit and independent review.",
+    "conclusion": "Fresh5k performance was -64.2932 bb/100 with raw-hand 95% CI [-106.3007,-22.2857] and equal-session t7 CI [-101.2688,-27.3176]. Only 1/8 session means was positive. Internal +7.13 bb/100 versus Standard10 did not transfer; the point estimate was 52.8657 bb/100 below historical Standard10.",
+    "decision": "FRESH5K_TRANSFER_GATE_NOT_PASSED",
+    "next_step": "Reject the shallow matched control and do not spend a fresh20k cohort. Treat internal learned-anchor gains as insufficient promotion evidence. Select a research direction that addresses Slumbot-state decision quality or execution-preserving learning rather than another generic short PPO variant."
+  },
+  "tags": [
+    "fresh5k",
+    "greedy",
+    "learned-policy",
+    "legacy-bridge",
+    "slumbot"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 21574,
+      "sha256": "2582cce2cf3ca9cad4240127d6ac8313298a096dc21fab559e3d5a88d8d71d97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1405,
+      "sha256": "8800357382ed05491006577a78372512778b52d2a6e8fc4ffee93c3744287679"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2359,
+      "sha256": "db29168c2c851135b64a10aea0e0998e94c74de32e4208acf735d5fcc1321f8d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 6412,
+      "sha256": "0544c61aba7d2faeb3b06cbab6559e212f89a011d19f39eed919d351c9dd8417"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 133307956,
+      "sha256": "6cdc7c46738f9330037bbc8f5f8c9cfbed5ec10599969ef29d2a54f36aa8d20a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 576,
+      "sha256": "d26c9ed72d1badba2ec0fc557b3774c6fcea71c2ccc523a4d61af68344a84437"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\session_commands.json": {
+      "type": "file",
+      "bytes": 7195,
+      "sha256": "b63e0afd35c752bb47e3683e6305086dad818b01de3d3b5c4ceeac22781b07d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8493,
+      "sha256": "6e4a5bbea1d369fba2ebae8ea61bef07a8a7407fa05ac79083570f76a7fa64e7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-public-control-legacy-bridge-greedy-fresh5k-20260901\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 1039,
+      "sha256": "852b778e2ad1f82b4cbabfd9e71e5976a9a2557709e4d80a6f8b4b7da6a86aba"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/execution.json": {
+      "type": "file",
+      "bytes": 8586,
+      "sha256": "7ba4e1aaa3ecb7b0043a4b011d0ae772d2c3bcea6352b03a560c9f393216467d"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/combined_audit.json": {
+      "type": "file",
+      "bytes": 8493,
+      "sha256": "6e4a5bbea1d369fba2ebae8ea61bef07a8a7407fa05ac79083570f76a7fa64e7"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/completed_analysis.json": {
+      "type": "file",
+      "bytes": 1039,
+      "sha256": "852b778e2ad1f82b4cbabfd9e71e5976a9a2557709e4d80a6f8b4b7da6a86aba"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 994,
+      "sha256": "a696f1c841fcf271e133d2a792aa530d32882091b84168ff7609ab00445064e8"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 345,
+      "sha256": "50b587747a88df0d09303f3edfe943a5622c80fd11348d862fd3968180f66b1e"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/runtime_origin.json": {
+      "type": "file",
+      "bytes": 6412,
+      "sha256": "0544c61aba7d2faeb3b06cbab6559e212f89a011d19f39eed919d351c9dd8417"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/session_commands.json": {
+      "type": "file",
+      "bytes": 7195,
+      "sha256": "b63e0afd35c752bb47e3683e6305086dad818b01de3d3b5c4ceeac22781b07d7"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 576,
+      "sha256": "d26c9ed72d1badba2ec0fc557b3774c6fcea71c2ccc523a4d61af68344a84437"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/frozen/final.pt": {
+      "type": "file",
+      "bytes": 133307956,
+      "sha256": "6cdc7c46738f9330037bbc8f5f8c9cfbed5ec10599969ef29d2a54f36aa8d20a"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s01/hands.jsonl": {
+      "type": "file",
+      "bytes": 3217137,
+      "sha256": "bccc840856c0ab47a0ca9504beac8d17c24478f0022ab3dd654c811f500d0e40"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s01/journal.jsonl": {
+      "type": "file",
+      "bytes": 5515736,
+      "sha256": "245e17c0e3e2afffc9bb5f5c50cb98fac9ea159f8745c66dcceb99cde8c70779"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s01/summary.json": {
+      "type": "file",
+      "bytes": 6115,
+      "sha256": "8ac9241e878e312920cd4d1aaff4722a1ab921329263256f496a42a2d0dee78e"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s01_stdout.log": {
+      "type": "file",
+      "bytes": 6239,
+      "sha256": "ca8ae088a2dee37f7fde15a745b5295d0e887d52520ebd5ff9cabfe75add8fe0"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s02/hands.jsonl": {
+      "type": "file",
+      "bytes": 3328060,
+      "sha256": "ac2cdcfdf8d7af7256d2d41d76451f2d1652c142f9fa41522cd8d11e59d5699c"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s02/journal.jsonl": {
+      "type": "file",
+      "bytes": 5726798,
+      "sha256": "2afec45933477149ed82908edd883ea886500ba32b366cdc1a1b1f2db75a4a15"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s02/summary.json": {
+      "type": "file",
+      "bytes": 6118,
+      "sha256": "c4d56c627b8f5513fef07e08b411d85f6306dffde389b5fd1d3ed8415b479719"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s02_stdout.log": {
+      "type": "file",
+      "bytes": 6242,
+      "sha256": "215859c28aae38a53973f81e8055e1adfe7f47191280faf61ad7ba1fc8bfc588"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s03/hands.jsonl": {
+      "type": "file",
+      "bytes": 3233927,
+      "sha256": "6cbaab91f4737199c55680d75e35e5628cfdd272e45fc26499ef6e5bfedfba98"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s03/journal.jsonl": {
+      "type": "file",
+      "bytes": 5545202,
+      "sha256": "c228d400cf27a48162a56b4e2a25711b8a483b3b519d19774e9bc7094dfbdb79"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s03/summary.json": {
+      "type": "file",
+      "bytes": 6116,
+      "sha256": "7824cf4e33cfe58d02496f8677decce3188f175691f6f66a436d0a14a0e9a624"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s03_stdout.log": {
+      "type": "file",
+      "bytes": 6240,
+      "sha256": "342f9064f4aa91a3c77a18992550680131d6d7a4f57a873fbdb7f006503e05fa"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s04/hands.jsonl": {
+      "type": "file",
+      "bytes": 3173170,
+      "sha256": "2d6844809102b81ac7e64cf1175238ac566ac50d05b0bb5f09f37c452e7b0d0d"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s04/journal.jsonl": {
+      "type": "file",
+      "bytes": 5426627,
+      "sha256": "7db7dc2957878bad57ecb24c0d31d764e39539e48072e823237fb54a0b92a2dd"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s04/summary.json": {
+      "type": "file",
+      "bytes": 6116,
+      "sha256": "59c7a459ba4543cdfad19c2f670ba6614fdf1dd913f3dbd13ef5518d04e12572"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s04_stdout.log": {
+      "type": "file",
+      "bytes": 6240,
+      "sha256": "d91f2a6dca2972598676d0781ae5df5134496e489f74346405339db8dedd005c"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s05/hands.jsonl": {
+      "type": "file",
+      "bytes": 3291669,
+      "sha256": "503129396cb8038dfeb29803c90da5295be9788b557f9bf220f052bd07739022"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s05/journal.jsonl": {
+      "type": "file",
+      "bytes": 5656581,
+      "sha256": "fe15f777eccf1e25518dbd6ff7c13e532871cf7a9654cb35b0b9b2676042300b"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s05/summary.json": {
+      "type": "file",
+      "bytes": 6117,
+      "sha256": "0918b54ce35573e2c6f19bb810c11972d3103f35ef2d3066b1c14889361db574"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s05_stdout.log": {
+      "type": "file",
+      "bytes": 6241,
+      "sha256": "ab1364f9c8f01a4cb1d4733059ad1083d9fdd5d2c0b766db176db8f138103e16"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s06/hands.jsonl": {
+      "type": "file",
+      "bytes": 3135902,
+      "sha256": "bd1c0138405b727281bedbb7822ca0dfa1777e0f68d9fcc56de99b72c309d8c0"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s06/journal.jsonl": {
+      "type": "file",
+      "bytes": 5354583,
+      "sha256": "3fb5c4f831d13cd5d219bb1a741b419213364ac9446d8602a5ae7537d0c4d42f"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s06/summary.json": {
+      "type": "file",
+      "bytes": 6117,
+      "sha256": "d508f9931176a1429eb2cecf9c287a28a1c7cc2c676f34e98a8a6bb1f594f709"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s06_stdout.log": {
+      "type": "file",
+      "bytes": 6241,
+      "sha256": "ced3757995e8eea6b6adc4c5f99483aa5934d98b6870d6f25a4a59a2358d1cc8"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s07/hands.jsonl": {
+      "type": "file",
+      "bytes": 3190865,
+      "sha256": "8cb173086b4117010aed251f0ebefbfc43a580bd9d3fe543f207ad3d385975bc"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s07/journal.jsonl": {
+      "type": "file",
+      "bytes": 5461495,
+      "sha256": "ba8617f72d7b902eb603332774b2d65e6a075d9dc246090f8a5fec094aa28413"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s07/summary.json": {
+      "type": "file",
+      "bytes": 6115,
+      "sha256": "acff067f708b7c87b2807fda77ac83b3f2ca96632d0bf1b3013cc2f1f0f5cf3a"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s07_stdout.log": {
+      "type": "file",
+      "bytes": 6239,
+      "sha256": "74d8b4c69f43ffc2a64db4057c01ba2e7d916ad821b558e699c67166c3a3cdc1"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s08/hands.jsonl": {
+      "type": "file",
+      "bytes": 3184074,
+      "sha256": "27a5052422009d6c2c26c8cb86479213874385125171076fee53122fafeb70ea"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s08/journal.jsonl": {
+      "type": "file",
+      "bytes": 5446891,
+      "sha256": "5d6941e25d194b530fa98fa99e98497335bb41feb7bfdb697202809b2a05fb0e"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/sessions/s08/summary.json": {
+      "type": "file",
+      "bytes": 6118,
+      "sha256": "ee935398c8f0ce06fef52fadeb24dfc0f6256422669df0245aefed4bf2b770f1"
+    },
+    "research/experiments/v6-public-control-legacy-bridge-greedy-fresh5k-20260901/s08_stdout.log": {
+      "type": "file",
+      "bytes": 6242,
+      "sha256": "842c17bb8d2f99a3b72af43826c70c9010212fb1754823bd6ea6e34215200e22"
+    }
+  }
+}

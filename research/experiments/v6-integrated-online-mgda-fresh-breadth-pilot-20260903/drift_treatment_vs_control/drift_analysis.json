@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.0054,
+      "greedy_disagreements": 27,
+      "max_tv": 0.031645581126213074,
+      "mean_tv": 0.006809276625067807,
+      "p95_tv": 0.015190970851108432,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.0058,
+      "greedy_disagreements": 29,
+      "max_tv": 0.02918008528649807,
+      "mean_tv": 0.0061240008223085165,
+      "p95_tv": 0.01592380264773965,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.009,
+      "greedy_disagreements": 45,
+      "max_tv": 0.027699172496795654,
+      "mean_tv": 0.007111635725511405,
+      "p95_tv": 0.016717384848743678,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.0088,
+      "greedy_disagreements": 44,
+      "max_tv": 0.030997678637504578,
+      "mean_tv": 0.007809296390959935,
+      "p95_tv": 0.01890052454546094,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt",
+    "--parent-sha256",
+    "43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251",
+    "--treatment",
+    "research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt",
+    "--out-dir",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control",
+    "--states",
+    "20000",
+    "--seed",
+    "20262053",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "0.03",
+    "--greedy-disagreement-max",
+    "0.05"
+  ],
+  "created_at": "2026-09-03T06:12:41.352362+00:00",
+  "design": {
+    "greedy_disagreement_max": 0.05,
+    "outcome_blind": true,
+    "seed": 20262053,
+    "source_tv_max": 0.03,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 1079151,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.00725,
+    "greedy_disagreements": 145,
+    "max_tv": 0.031645581126213074,
+    "mean_tv": 0.006963552390961917,
+    "p95_tv": 0.016518976911902426,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-mgda-matched-smoke-20260903\\control\\latest.pt",
+    "sha256": "43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-mgda-fresh-breadth-pilot-20260903\\drift_treatment_vs_control\\drift_raw.jsonl.gz",
+  "raw_sha256": "564eac39d1697fb8e3564a4e73c5a93df59cd38f925c6ddd18177eb16b789959",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 930959,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-mgda-matched-smoke-20260903\\treatment\\latest.pt",
+    "sha256": "2dc0e9e84d2a0e7ab91bc6a8ca7170caa4403d9b9f1d73e8784fa6d6d97744a2"
+  },
+  "wall_time_seconds": 5.412853717803955
+}

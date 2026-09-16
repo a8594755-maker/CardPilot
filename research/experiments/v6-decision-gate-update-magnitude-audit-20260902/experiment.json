@@ -1,0 +1,118 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-decision-gate-update-magnitude-audit-20260902",
+  "title": "Decision-gate exact update magnitude audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T11:51:07+00:00",
+  "updated_at": "2026-09-02T11:53:44+00:00",
+  "started_at": "2026-09-02T11:51:07+00:00",
+  "ended_at": "2026-09-02T11:53:44+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The rejected decision-gate smoke was optimization-underdosed: despite finite gradients, each endpoint remains within one percentage point of the exact 5% initial gate over zero and signed-basis feature probes.",
+  "material_change": "Reconstruct each gate initialization exactly from its saved seed and architecture, compare every initial/final parameter tensor, and evaluate zero plus signed unit-basis synthetic probes. No policy model, game state, environment hand, or outcome is queried.",
+  "baseline": "Exact seed-matched initialized ExpertGate before any optimizer step.",
+  "source": "v6-decision-expert-gate-three-seed-smoke-20260902",
+  "parent_id": "v6-decision-expert-gate-three-seed-smoke-20260902",
+  "command": "python scripts/alpha_holdem/v6_decision_gate_update_audit.py --run-dir research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2 --out research/experiments/v6-decision-gate-update-magnitude-audit-20260902/analysis.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_decision_gate_update_audit.py --run-dir research/experiments/v6-decision-expert-gate-three-seed-smoke-20260902/recovery2 --out research/experiments/v6-decision-gate-update-magnitude-audit-20260902/analysis.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T11:51:07+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "543321e72f67115e8df4ce5b07ab68a8415d092487c2e469642905d2902df494",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_decision_expert_gate_smoke.py"
+    ],
+    "captured_at": "2026-09-02T11:51:07+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "0dfb604ff2829fff37fda0407692b3b4596108532a07954181b9c34ce4d0570d",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 4941,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 157.0,
+    "failed_attempts": 1
+  },
+  "metrics": {
+    "seed0_parameter_delta_l2": 0.1041145917345853,
+    "seed1_parameter_delta_l2": 0.09216621401401219,
+    "seed2_parameter_delta_l2": 0.08293948410158765,
+    "seed0_probe_max_output_delta": 0.00016885250806808472,
+    "seed1_probe_max_output_delta": 7.433071732521057e-05,
+    "seed2_probe_max_output_delta": 1.9282102584838867e-05
+  },
+  "artifacts": [
+    "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/code.patch",
+    "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/source_manifest.json",
+    "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/analysis.json",
+    "scripts/alpha_holdem/v6_decision_gate_update_audit.py",
+    "scripts/alpha_holdem/test_v6_decision_gate_update_audit.py"
+  ],
+  "notes": [
+    "Preregistered interpretation: if all endpoints are exact nonzero updates but every maximum absolute gate-probability change on zero/signed-basis probes is below 0.01, classify the smoke as optimizer-underdosed and admit one higher-dose calibration only. If any seed exceeds 0.01, the prior negative breadth evidence reflects a materially changed router and closes this expert pair instead.",
+    "Initial zero-hand audit attempt produced no analysis artifact: direct-script import path omitted scripts/ and a float32 unit test used exact equality. Added the standard scripts sys.path bootstrap and a 1e-6 assertion tolerance; source checkpoints were untouched."
+  ],
+  "result": {
+    "summary": "Exact seed-matched reconstruction verified nonzero parameter updates in all three gates, but zero and signed-basis probe output changes were microscopic: maximum 0.0001689, 0.0000743, and 0.0000193 absolute probability. All initial outputs were exactly 5%.",
+    "conclusion": "The prior decision-gate smoke was optimization-underdosed: finite gradients and nonzero parameter movement did not produce a materially learned routing function. Its negative holdout point estimates characterize an almost fixed 5% mixture, not a trained decision-level router. This is parameter/synthetic sensitivity evidence only, with zero policy or environment queries.",
+    "decision": "ADMIT_ONE_HIGHER_DOSE_CALIBRATION",
+    "next_step": "Run exactly one preregistered higher-dose three-seed calibration using the same frozen experts, opponents, seeds, hand budgets, and gates; increase only gate optimizer dose and preserve transition/update evidence. Require material output movement plus the original breadth gates. If it fails, close this expert-pair router route."
+  },
+  "tags": [
+    "mixture-of-experts",
+    "optimization-audit",
+    "zero-hand"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 299,
+      "sha256": "0dfb604ff2829fff37fda0407692b3b4596108532a07954181b9c34ce4d0570d"
+    },
+    "research/experiments/v6-decision-gate-update-magnitude-audit-20260902/analysis.json": {
+      "type": "file",
+      "bytes": 4821,
+      "sha256": "05d1e1b87fd7b449029af27fbeb48de6b032d7707c4d9be2e0f87078368cbaa3"
+    },
+    "scripts/alpha_holdem/v6_decision_gate_update_audit.py": {
+      "type": "file",
+      "bytes": 4292,
+      "sha256": "7693405559a991280a12cd74d45665ce85da54961f82361b2cba20e82ec55858"
+    },
+    "scripts/alpha_holdem/test_v6_decision_gate_update_audit.py": {
+      "type": "file",
+      "bytes": 831,
+      "sha256": "ea34400e6bf9f47e3f0e517eb9a4c7041c58d576b800ff78e0f3dbc134e48166"
+    }
+  }
+}

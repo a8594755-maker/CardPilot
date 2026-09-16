@@ -1,0 +1,146 @@
+{
+  "by_stratum": {
+    "seat0_street0": {
+      "agreement": 0.5,
+      "confirm_delta_bb": -2.35375,
+      "confirm_delta_ci95_bb": 6.03136793957225,
+      "new_allins": 5,
+      "rows": 8
+    },
+    "seat0_street1": {
+      "agreement": 0.125,
+      "confirm_delta_bb": -2.9262499999999996,
+      "confirm_delta_ci95_bb": 6.308570036268123,
+      "new_allins": 1,
+      "rows": 8
+    },
+    "seat0_street2": {
+      "agreement": 0.125,
+      "confirm_delta_bb": 0.08312500000000006,
+      "confirm_delta_ci95_bb": 0.46764640020532605,
+      "new_allins": 1,
+      "rows": 8
+    },
+    "seat0_street3": {
+      "agreement": 0.25,
+      "confirm_delta_bb": 0.28125,
+      "confirm_delta_ci95_bb": 8.377443020546304,
+      "new_allins": 2,
+      "rows": 8
+    },
+    "seat1_street0": {
+      "agreement": 0.625,
+      "confirm_delta_bb": 60.713750000000005,
+      "confirm_delta_ci95_bb": 32.06482419026339,
+      "new_allins": 6,
+      "rows": 8
+    },
+    "seat1_street1": {
+      "agreement": 0.125,
+      "confirm_delta_bb": -1.4464062499999994,
+      "confirm_delta_ci95_bb": 2.413480661961902,
+      "new_allins": 2,
+      "rows": 8
+    },
+    "seat1_street2": {
+      "agreement": 0.0,
+      "confirm_delta_bb": -7.248125,
+      "confirm_delta_ci95_bb": 4.871578752891612,
+      "new_allins": 4,
+      "rows": 8
+    },
+    "seat1_street3": {
+      "agreement": 0.375,
+      "confirm_delta_bb": -4.266249999999999,
+      "confirm_delta_ci95_bb": 11.928455941256606,
+      "new_allins": 5,
+      "rows": 8
+    }
+  },
+  "candidate": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+  "candidate_sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_posterior_counterfactual_reliability.py",
+    "--posterior-rows",
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data/posterior_rows.jsonl",
+    "--posterior-rows-sha256",
+    "1ccf2568114055640e2115322f174fb5ab3d6bf0476baaaa3a91cf0e40f1708b",
+    "--candidate",
+    "models/baseline/standard10/latest.pt",
+    "--candidate-observation-style",
+    "legacy_v4",
+    "--opponent",
+    "standard10=models/baseline/standard10/latest.pt",
+    "--opponent",
+    "freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt",
+    "--opponent",
+    "raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt",
+    "--opponent",
+    "procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt",
+    "--opponent-style",
+    "standard10=legacy_v4",
+    "--opponent-style",
+    "freshzero=legacy_v4",
+    "--opponent-style",
+    "raw_actor=v6",
+    "--opponent-style",
+    "procedural_soup=v6",
+    "--dev-samples",
+    "8",
+    "--confirm-samples",
+    "8",
+    "--sample-seed",
+    "2026134001",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-posterior-counterfactual-target-reliability-smoke-20260901/data"
+  ],
+  "completed_at": "2026-09-01T14:38:48.525228+00:00",
+  "confirm_samples": 8,
+  "continuation_decisions": 17399,
+  "continuation_rollouts": 7776,
+  "dev_samples": 8,
+  "gate_components": {
+    "confirm_delta_lcb_positive": false,
+    "every_stratum_agreement_at_least_0_70": false,
+    "new_allin_fraction_at_most_0_05": false,
+    "no_stratum_confirm_delta_negative": false,
+    "overall_agreement_at_least_0_80": false
+  },
+  "new_allins": 26,
+  "opponents": {
+    "freshzero": {
+      "observation_style": "legacy_v4",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-fresh-zero-elo-smoke-20260901\\frozen\\final.pt",
+      "sha256": "00c6441cb9fc584a4ec76f97bdf1bcae1e03cdfb7e2d32432c9984a5bf9b4d67"
+    },
+    "procedural_soup": {
+      "observation_style": "v6",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901\\frozen\\final.pt",
+      "sha256": "66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c"
+    },
+    "raw_actor": {
+      "observation_style": "v6",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh20k-slumbot-20260901\\frozen\\final.pt",
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "standard10": {
+      "observation_style": "legacy_v4",
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    }
+  },
+  "overall_confirm_delta_ci95_bb": 6.761214668368604,
+  "overall_confirm_selected_minus_source_bb": 5.35466796875,
+  "overall_dev_confirm_agreement": 0.265625,
+  "posterior_rows": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-history-consistent-hole-posterior-smoke-20260901\\data\\posterior_rows.jsonl",
+  "posterior_rows_sha256": "1ccf2568114055640e2115322f174fb5ab3d6bf0476baaaa3a91cf0e40f1708b",
+  "rows": 64,
+  "rows_sha256": "c472191db1f35e4f65beef468b1b02538423b9a657bd0480da1322740a143840",
+  "sample_seed": 2026134001,
+  "schema": "cardpilot.v6_posterior_counterfactual_reliability.v1",
+  "status": "COMPLETED",
+  "training_admitted": false
+}

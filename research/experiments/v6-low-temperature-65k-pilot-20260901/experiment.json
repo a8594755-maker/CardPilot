@@ -1,0 +1,206 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-low-temperature-65k-pilot-20260901",
+  "title": "Matched 65k low-temperature on-policy learning-curve pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T06:08:58+00:00",
+  "updated_at": "2026-09-01T06:56:32+00:00",
+  "started_at": "2026-09-01T06:08:58+00:00",
+  "ended_at": "2026-09-01T06:56:32+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The positive2/3-anchor T0.5 smoke direction will persist over a longer matched horizon, with a stronger cross-anchor point estimate than T1 while maintaining source-KL and optimizer health.",
+  "material_change": "Fresh untouched Standard10 starts for matched T1 and T0.5 arms; identical corrected-v6 adaptive three-policy league, source KL0.1, seeds, fixed deal stream, sampled hero, optimizer, single-rollout topology, and65,536 physical-hand target. Only hero behavior/PPO temperature differs. Archive every4 updates; after both finish, evaluate frozen archives/endpoints on a new untouched common-deck seed. No Slumbot during this pilot.",
+  "baseline": "T0.5 bounded smoke: pooled +3.5179 bb/100, CI[-17.2532,24.2890],2/3 positive anchors over3,072 common-deck pairs; T1 control and two argmax-local alternatives were nonpositive.",
+  "source": "Untouched Standard10 SHA91b0... for both fresh arms; current default-off temperature implementation and corrected-v6 trainer.",
+  "parent_id": "v6-low-temperature-onpolicy-smoke-20260901",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:08:58+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-low-temperature-65k-pilot-20260901/prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:09:28+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --hero-policy-temperature 1 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-low-temperature-65k-pilot-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_low_temperature_65k_control_20260901 --run-dir research/experiments/v6-low-temperature-65k-pilot-20260901/control --out research/experiments/v6-low-temperature-65k-pilot-20260901/control/latest.pt --seed 20261116 --max-runtime-seconds 1800 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:09:32+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --hero-policy-temperature .5 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-low-temperature-65k-pilot-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_low_temperature_65k_treatment_20260901 --run-dir research/experiments/v6-low-temperature-65k-pilot-20260901/treatment --out research/experiments/v6-low-temperature-65k-pilot-20260901/treatment/latest.pt --seed 20261116 --max-runtime-seconds 1800 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:20:39+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 70000 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --hero-policy-temperature 1 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-low-temperature-65k-pilot-20260901/control/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_low_temperature_65k_control_20260901 --run-dir research/experiments/v6-low-temperature-65k-pilot-20260901/control --out research/experiments/v6-low-temperature-65k-pilot-20260901/control/latest.pt --seed 20261116 --max-runtime-seconds 300 --resume research/experiments/v6-low-temperature-65k-pilot-20260901/control/latest.pt --allow-resume --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:33:06+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 70000 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --hero-policy-temperature 1 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-low-temperature-65k-pilot-20260901/control/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_low_temperature_65k_control_20260901 --run-dir research/experiments/v6-low-temperature-65k-pilot-20260901/control --out research/experiments/v6-low-temperature-65k-pilot-20260901/control/latest.pt --seed 20261116 --max-runtime-seconds 300 --resume research/experiments/v6-low-temperature-65k-pilot-20260901/control/latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:34:28+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-low-temperature-65k-pilot-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:37:48+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 70000 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --hero-policy-temperature 1 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-low-temperature-65k-pilot-20260901/control/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111600 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_low_temperature_65k_control_20260901 --run-dir research/experiments/v6-low-temperature-65k-pilot-20260901/control --out research/experiments/v6-low-temperature-65k-pilot-20260901/control/latest.pt --seed 20261116 --max-runtime-seconds 300 --resume research/experiments/v6-low-temperature-65k-pilot-20260901/control/latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:56:32+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-low-temperature-65k-pilot-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:56:32+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "708d4bce3da19837ba2fc981fdff1f32267792905e6e880e236c07504b38d015",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py"
+    ],
+    "captured_at": "2026-09-01T06:08:58+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-low-temperature-65k-pilot-20260901/code.patch",
+    "patch_sha256": "1d2bbf098367e8414a554d76d79e96c36d069d8cde6c6e0d37e7ab07d585a2cf",
+    "source_manifest": "research/experiments/v6-low-temperature-65k-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "962184dfe8c188bb0fa25bb8550da99554557dc4bfc4eed392ecf9873f088ca4",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 49152,
+    "wall_time_seconds": 2854.0,
+    "environment_training_hands": 142592,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "pooled_delta_bb100": -0.4226481119791667,
+    "pooled_ci95_lower": -19.30154062491932,
+    "pooled_ci95_upper": 18.456244400960983,
+    "positive_anchors": 2
+  },
+  "artifacts": [
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/code.patch",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/control/session_audit.json",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/treatment/session_audit.json",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/frozen/control_iter15.pt",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/frozen/treatment_iter15.pt",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/eval",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/analysis.json",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/reviewed_analysis.json",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/result_summary.md",
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/execution_code"
+  ],
+  "notes": [
+    "Scale gate is internal only. The stronger Standard10 greedy contract motivates T0.5, but historical T1 sampled weakness is not assumed monotonic. Fresh arms avoid resume/ephemeral-state ambiguity.",
+    "17 pre-run tests passed. Starting fresh T1 control first; target65536 physical hands, archive every4 updates.",
+    "T1 control completed14 updates at65657 physical hands, final ref KL0.0037, no KL stop; iter4/8/12 archives retained. Starting fresh matched T0.5 treatment.",
+    "Treatment crossed target at iter15/71239 physical while control crossed at iter14/65657. Boundary-match recovery: resume control same run/optimizer/counters/adaptive provenance/deal stream for exactly one additional PPO boundary to target70000; frozen pre-recovery control iter14 and treatment iter15 copies retained.",
+    "First boundary-recovery launch was interrupted before any PPO update because stdout exposed default reset_optimizer=true. Latest checkpoint remained byte-identical iter14 SHA15d9...,14 metrics unchanged; assignment row15 is a pending provenance record. Relaunching with optimizer preservation and pending-assignment reuse.",
+    "Both fixed-pool session audits PASS at matched iteration-15 endpoints: control 71,353 physical/61,850 transition hands; treatment 71,239 physical/61,854 transition hands. Control recovery preserved optimizer and reused pending assignment after an interrupted pre-update attempt.",
+    "Endpoint gate failed without Slumbot: pooled T0.5-minus-T1 -0.422648 bb/100, paired 95% CI [-19.301541,18.456244], despite 2/3 positive anchors. Standard10 delta -27.073975 CI [-52.689087,-1.458862]."
+  ],
+  "result": {
+    "summary": "Matched iteration-15 T1 and T0.5 arms completed 142,592 physical environment hands and 49,152 untouched multi-anchor evaluation hands with fully audited raw paired evidence.",
+    "conclusion": "T0.5 did not retain its smoke advantage at 65k scale: pooled treatment-control was -0.422648 bb/100 with paired 95% CI [-19.301541,18.456244]. The Standard10 anchor was significantly worse (-27.073975, CI [-52.689087,-1.458862]), while the other two anchors were positive but individually inconclusive.",
+    "decision": "DO_NOT_SCALE_LOW_TEMPERATURE",
+    "next_step": "Return to the evidence-ranked learned-policy program. Treat execution temperature alone as exhausted; prioritize a training objective or league curriculum that explicitly preserves Standard10 greedy competence while improving broader anchors, and require a matched internal gate before any Slumbot spend."
+  },
+  "tags": [
+    "deployment-alignment",
+    "learning-curve",
+    "temperature",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 9,
+    "command_count": 9
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 328628,
+      "sha256": "1d2bbf098367e8414a554d76d79e96c36d069d8cde6c6e0d37e7ab07d585a2cf"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "962184dfe8c188bb0fa25bb8550da99554557dc4bfc4eed392ecf9873f088ca4"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/control/session_audit.json": {
+      "type": "file",
+      "bytes": 5624,
+      "sha256": "f777478ca60f72bd5aefabe72c898e77e246e196d84604f26a517d78b727f437"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 5665,
+      "sha256": "2d932d46381d311ebd86f70277b7446725c7c000dfd01bd751aab92321c78440"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/frozen/control_iter15.pt": {
+      "type": "file",
+      "bytes": 133307252,
+      "sha256": "0bcd70539d6117425ea88b6c1aeb22ee177d945cb17042ae97707e8c1ca7d9e7"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/frozen/treatment_iter15.pt": {
+      "type": "file",
+      "bytes": 133306932,
+      "sha256": "3fcc7391255ed71f54f3807717571f3748250cb387759cdc83fc6a2c7e80a95d"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/eval": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1597,
+      "sha256": "81c6ba77a3d5ed0807d211db0217c2ffdd7d56e5a5872f8df6bd1c81f42f44f7"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1592,
+      "sha256": "0f852fecc5645e2abe58d19e50fe5806a8913a7ebbac4a394ca39440a370c293"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 315,
+      "sha256": "4d43342d9d601984022d4d0840c596f626c215c7911e4f40a2cc21d9f38ec8cf"
+    },
+    "research/experiments/v6-low-temperature-65k-pilot-20260901/execution_code": {
+      "type": "directory",
+      "sha256": null
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-league-domain-feasibility-20260901",
+  "title": "Broad train/holdout opponent-domain feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T19:41:41+00:00",
+  "updated_at": "2026-09-01T19:46:08+00:00",
+  "started_at": "2026-09-01T19:41:41+00:00",
+  "ended_at": "2026-09-01T19:46:08+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A frozen set of six training opponents and three gradient-untouched holdout opponents drawn from distinct learned lineages can be loaded under explicit physical-v6 observation contracts and exhibits enough reachable-state action disagreement to support a broader multi-seed geometric MGDA curve.",
+  "material_change": "Freeze a preregistered nine-policy identity manifest; generate 4,096 outcome-blind legal physical-v6 states; auto-resolve each checkpoint observation contract; query every policy without changing weights; measure physical-action signatures, pairwise greedy disagreement, probability divergence, contract breadth, and strict train/holdout SHA disjointness. No training or external evaluation hands.",
+  "baseline": "Current MGDA used only Standard10, Slumbot-free, and CFR96 as both gradient groups and evaluation anchors; its seed1 20k external confirmation was -47.525 bb/100 CI[-67.1694,-27.8806].",
+  "source": "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec.json",
+  "parent_id": "v6-cross-experiment-proxy-alignment-meta-audit-20260901",
+  "command": "python scripts/alpha_holdem/v6_broad_league_domain_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec.json --out-dir research/experiments/v6-broad-league-domain-feasibility-20260901/run --device cpu",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_league_domain_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec.json --out-dir research/experiments/v6-broad-league-domain-feasibility-20260901/run --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:41:41+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_league_domain_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --out-dir research/experiments/v6-broad-league-domain-feasibility-20260901/run --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:45:12+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:46:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "9fee7e95f4ab1402a52d0d252513c12e5868550e21c34a263a81ca4e564a8b15",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T19:41:42+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-league-domain-feasibility-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-broad-league-domain-feasibility-20260901/source_manifest.json",
+    "source_manifest_sha256": "820230dcfe6f9dfdcc9dbedb0099eb3460697292fd65eb1a75a585dcdb120545",
+    "source_files": 148
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 36864,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 267.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "training_policies": 6,
+    "holdout_policies": 3,
+    "reachable_states": 4096,
+    "state_queries": 36864,
+    "unique_checkpoint_sha256": 9,
+    "unique_behavior_signatures": 9,
+    "minimum_train_pairwise_greedy_disagreement": 0.02587890625,
+    "minimum_holdout_nearest_train_greedy_disagreement": 0.34765625,
+    "full_suite_tests_passed": 246
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/code.patch",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/source_manifest.json",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec.json",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/attempt01/summary.json",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/attempt01/state_evidence.jsonl.gz",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/run/summary.json",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/run/state_evidence.jsonl.gz",
+    "scripts/alpha_holdem/v6_broad_league_domain_feasibility.py",
+    "scripts/alpha_holdem/test_v6_broad_league_domain_feasibility.py"
+  ],
+  "notes": [
+    "Admission requires all nine frozen identities unique and loadable, no train/holdout overlap, 4,096 valid state queries per policy, minimum train-pair disagreement 2%, and each holdout at least 1% greedy-disagreement from its nearest training identity. Passing only authorizes trainer redesign and a 3x65,536 first curve; it does not claim poker-strength improvement.",
+    "Preregistered first set failed only the unchanged 2% train-pair diversity gate: physical_1m was 0.8301% different from Standard10. Recovery removes physical_1m, promotes the already-preregistered diverse_league5 identity to training, and replaces that holdout with frozen fictitious_response_phase2. Thresholds, state corpus seed/count, all other identities, and train/holdout separation requirements remain unchanged; attempt01 is preserved."
+  ],
+  "result": {
+    "summary": "A strict recovery set established six frozen training policies and three SHA-disjoint holdouts across legacy-v4 and native-v6 contracts. All nine SHA256 identities and 4,096-state greedy signatures were unique; 36,864 physical-action queries were valid. Minimum train-pair disagreement was 2.5879% and minimum holdout-to-nearest-train disagreement was 34.7656%. The first set's failed 0.8301% redundant physical1m/Standard10 pair remains preserved in attempt01; 246 tests passed.",
+    "conclusion": "A materially broader and gradient-untouched opponent protocol is feasible with existing frozen learned policies. Replacing a demonstrably redundant Standard10-like training identity, without relaxing gates, produced a domain set suitable for a multi-seed geometric training curve. This establishes experimental design feasibility only, not improved poker strength.",
+    "decision": "ADMIT_BROAD_MGDA_3SEED_65K",
+    "next_step": "Generalize the MGDA fresh-curve trainer from three legacy-only opponents to six mixed-contract training policies plus three evaluation-only holdouts, add restart-safe per-seed checkpoint/accounting, and run a 3-seed 65,536-hand first dose with source-preservation and untouched holdout evaluation."
+  },
+  "tags": [
+    "feasibility",
+    "holdout",
+    "opponent-domain"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 27780,
+      "sha256": "820230dcfe6f9dfdcc9dbedb0099eb3460697292fd65eb1a75a585dcdb120545"
+    },
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec.json": {
+      "type": "file",
+      "bytes": 1833,
+      "sha256": "ee240c89bab8711b263f626d5cb3f65b9005d453f15bc8cdc6d42a1e997aec5e"
+    },
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json": {
+      "type": "file",
+      "bytes": 1844,
+      "sha256": "aebc61731e50ec1256f9263de2680977a2cdd5723e78f5bd29a321f0310e207c"
+    },
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/attempt01/summary.json": {
+      "type": "file",
+      "bytes": 13866,
+      "sha256": "32681fd6123c3fbead21c30544b7fb54e8d3b83084803238959fee0f6a84d262"
+    },
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/attempt01/state_evidence.jsonl.gz": {
+      "type": "file",
+      "bytes": 78714,
+      "sha256": "10012bc9f38105a8bbaa892b92adc0a7dddd73cef235c1084623780088a37ce2"
+    },
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 13984,
+      "sha256": "69b691e9096326d41152fbcef865da39cac182eca396400dbfbf2d24d06e063d"
+    },
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/run/state_evidence.jsonl.gz": {
+      "type": "file",
+      "bytes": 78714,
+      "sha256": "e283af0d392cc7d021b17f9990fe5e99b7c2df77aff93eb0df30f65ddb4c4923"
+    },
+    "scripts/alpha_holdem/v6_broad_league_domain_feasibility.py": {
+      "type": "file",
+      "bytes": 13875,
+      "sha256": "f6c9a99a0e255090cd137cc215303766a2f69832d4bf9bc4c43503c91000ae84"
+    },
+    "scripts/alpha_holdem/test_v6_broad_league_domain_feasibility.py": {
+      "type": "file",
+      "bytes": 787,
+      "sha256": "91e73ed9934366b799d932660c464635a61e548c98f347d2a7c6aa129eed0cab"
+    }
+  }
+}

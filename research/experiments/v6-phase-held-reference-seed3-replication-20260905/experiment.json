@@ -1,0 +1,1253 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-phase-held-reference-seed3-replication-20260905",
+  "title": "Unaffected Seed3 same-dose static versus phase-held reference replication",
+  "status": "COMPLETED",
+  "created_at": "2026-09-05T08:43:04+00:00",
+  "updated_at": "2026-09-05T13:47:38+00:00",
+  "started_at": "2026-09-05T08:43:04+00:00",
+  "ended_at": "2026-09-05T13:46:48+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The uncertain Seed1 phase-held reference geometric signal may reproduce on the predesignated incident-unaffected Seed3 lineage;test both methods at the same dose before any16M scale or final qualification.",
+  "material_change": "Preserve original Seed3 physical4194908 iteration880 optimizer/replay and lineage seeds;matched static/moving256 continuations to6292060 and8389212, same frozen recipe and131072 internal evaluation hands, no Slumbot in this record.",
+  "baseline": "Same original Seed3 4M parent and static Standard10-reference comparator;completed Seed1 internal/external contrasts remain uncertain.",
+  "source": "",
+  "parent_id": "v6-phase-reference-greedy-paired-fresh80k-20260905",
+  "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/qualify.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T08:43:04+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\test_controller_evidence.py C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\test_command_contract.py C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\test_seed3_bindings.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\controller_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T08:43:07+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -File research/experiments/v6-phase-held-reference-seed3-replication-20260905/launch.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T08:44:41+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\run_control.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T08:44:44+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 6292060 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed3\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T08:44:47+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/audit_interruption.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T09:16:54+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/qualify_io.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T09:28:12+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/qualify_io_v2.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T09:30:10+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/prepare_recovery.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T09:38:33+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -File research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/launch.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T09:40:15+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\resume_control.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T09:40:19+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\train_with_checkpoint_io_v2.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 6292060 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\retained_parent\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T09:40:24+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\train_with_checkpoint_io_v2.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 6292060 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed3\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 256",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T10:03:58+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/inspect_file_locks.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T10:47:11+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/audit_pending_checkpoint.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T10:50:18+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/qualify_io_grace.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T10:53:48+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/prepare_second_recovery.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:02:18+00:00"
+    },
+    {
+      "command": "powershell -NoProfile -File research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/launch.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:04:38+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\test_io_publication_grace.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\io_grace_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:04:38+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --help",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:04:38+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\test_second_recovery.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\second_recovery_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:04:38+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\resume_control_second.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:04:45+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 6292060 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\retained_parent\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 256",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:04:54+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263511 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\eval_static_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:18:07+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_static_stage1 --states 20000 --seed 20263521 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:27:03+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263511 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\eval_moving256_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:27:24+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage1 --states 20000 --seed 20263521 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:36:06+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8389212 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 256",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T11:36:37+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\train_with_checkpoint_io_45s.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8389212 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T12:26:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263512 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\eval_static_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:16:34+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_static_stage2 --states 20000 --seed 20263522 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:25:18+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed3\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --pairs-per-anchor 2048 --seed 20263512 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\eval_moving256_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:25:44+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_legacy_bridge_drift_audit.py --parent C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage2 --states 20000 --seed 20263522 --device cuda --batch-size 1024 --source-tv-max 1 --greedy-disagreement-max 1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:34:17+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/analyze_twice_recovered.py --check-ready",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:36:59+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/analyze_twice_recovered.py --out research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_terminal_report.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:36:59+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\test_geometric_summary.py C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\test_cross_seed_summary.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:04+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\summarize_geometric_control.py --check-ready",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:04+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\test_recovered_seed3.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:08+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\analyze_recovered_seed3.py --check-ready",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:08+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\test_twice_recovered.py --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:11+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\analyze_twice_recovered.py --check-ready",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:11+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/post_analysis/qualify_recovered_analysis.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:15+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/qualify_final_analysis.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:46:15+00:00"
+    },
+    {
+      "command": "python -B research/experiment_log.py audit --since 2026-09-05T08:43:00+00:00 --out-json research/experiments/v6-phase-held-reference-seed3-replication-20260905/post_finish_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-05T13:47:38+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-phase-held-reference-seed3-replication-20260905",
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-09-05T08:43:04+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-phase-held-reference-seed3-replication-20260905/code.patch",
+    "patch_sha256": "2eba69e5fd5e5c7ec4c121ae4a8992792276bd83d6cc67a46d65e94f2740b212",
+    "source_manifest": "research/experiments/v6-phase-held-reference-seed3-replication-20260905/source_manifest.json",
+    "source_manifest_sha256": "6dde1458f72bc2e5320631679541768dcf2f69472f246dd866d9c0d876fc50dc",
+    "source_files": 10
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 8397834,
+    "lineage_training_hands": 8392377,
+    "offline_samples": 80000,
+    "evaluation_hands": 131072,
+    "wall_time_seconds": 18224.0,
+    "slumbot_hands": 0,
+    "planned_new_training_hands": 8388608,
+    "planned_internal_evaluation_hands": 131072,
+    "planned_offline_drift_states": 80000,
+    "new_transition_hands": 7358267,
+    "retained_training_hands": 8393542,
+    "observed_uncheckpointed_training_hands": 4292,
+    "unknown_additional_worker_tail_hands": null,
+    "retained_transition_hands": 7354144,
+    "recovered_unpublished_physical_hands_already_in_retained": 5256,
+    "known_retained_local_lineage_union_hands": 12588450,
+    "retained_no_decision_hands": 1037871,
+    "retained_worker_tail_hands": 1527,
+    "new_replay_rows_not_new_hands": 12917918,
+    "observed_uncheckpointed_transition_hands": 4123,
+    "all_training_attempt_wall_seconds": 11956.091191899963
+  },
+  "metrics": {
+    "seed3_parent_and_controller_qualified": true,
+    "qualification_new_hands": 0,
+    "controller_tests": 33,
+    "controller_implemented": true,
+    "training_started": true,
+    "controller_phase": "EVIDENCE_READY_FOR_RESEARCH_ANALYSIS",
+    "execution_phase": "COMPLETED_WITH_PRESERVED_INTERRUPTION_EVIDENCE",
+    "io_recovery_qualified": true,
+    "recovery_preflight_passed": true,
+    "second_recovery_candidate_adopted": true,
+    "independent_terminal_review_passed": true,
+    "final_report_sha256": "820862d4e74af6999260b14e0c05a6ba213edffc9d907060cf60d140f802a6d5",
+    "retained_physical_hands_per_training_wall_second": 702.0306106134816,
+    "seed3_static_final_parent_gain_bb100": -0.128173828125,
+    "seed3_moving_final_parent_gain_bb100": 1.0772705078125,
+    "equal_seed_final_method_difference_bb100": 8.07623291015625,
+    "method_superiority_established": false,
+    "goal_achieved": false
+  },
+  "artifacts": [
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/protocol.md",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/qualify.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/run_control.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/control_evidence.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/test_controller_evidence.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/test_command_contract.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/test_seed3_bindings.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/launch.ps1",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/code.patch",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\seed3_parent_preflight.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\controller_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\qualification_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\run_control.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\control_evidence.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage1\\initial_resumed_state.pt",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/audit_interruption.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/interruption_audit.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/static_stage1/termination.json",
+    "research/experiments/v6-windows-checkpoint-replace-recovery-20260905/protocol.md",
+    "research/experiments/v6-windows-checkpoint-replace-recovery-20260905/checkpoint_io_candidate.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/recovery_amendment.md",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/checkpoint_io_candidate.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/train_with_checkpoint_io.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/test_checkpoint_io_recovery.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/qualify_io.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/io_qualification.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/io_tests.xml",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/train_with_checkpoint_io_v2.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/qualify_io_v2.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/io_qualification_v2.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/resume_control.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/prepare_recovery.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/test_recovery_control.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/launch.ps1",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/recovery_preflight.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/recovery_tests.xml",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/derivation.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/latest.pt",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/h1_training_metrics.jsonl",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\initial_resume_gate.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/recovery_amendment.md",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/inspect_file_locks.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/current_file_users.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/audit_pending_checkpoint.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/pending_checkpoint_audit.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/train_with_checkpoint_io_45s.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/test_io_publication_grace.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/qualify_io_grace.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/io_grace_qualification.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/io_grace_tests.xml",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/resume_control_second.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/test_second_recovery.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/prepare_second_recovery.py",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/launch.ps1",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/recovery_preflight.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/second_recovery_tests.xml",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/latest.pt",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/derivation.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/h1_training_metrics.jsonl",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/opponent_assignments.jsonl",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/moving256_stage1/.latest.pt.c836605996e94811862c30e5da30ad98.pending",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\second_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_static_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_static_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_moving256_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\stage1_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\second_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\initial_resumed_state.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\second_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\termination.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_static_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_static_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_moving256_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\stage2_analysis.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/qualification.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/post_analysis/qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\cross_seed_summary.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\qualify_post_analysis.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\summarize_geometric_control.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\test_cross_seed_summary.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\test_geometric_summary.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\tests.xml",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/post_analysis/qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\analyze_recovered_seed3.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\qualify_recovered_analysis.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\test_recovered_seed3.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\analyze_twice_recovered.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\qualify_final_analysis.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\test_twice_recovered.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\tests.xml",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/result_summary.md",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_terminal_report.json",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/post_analysis/deferred_attachment.md",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/deferred_attachment.md",
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/post_finish_audit.json"
+  ],
+  "notes": [
+    "Registered before workers. Original Seed3 SHAba4ed0a5 is incident-unaffected,not a blanket older-boundary freshness certificate. First managed attempt requires declared legacy main-RNG bootstrap;preserve optimizer/replay/assignment evidence and use unique namespaces. Subsequent saved main RNG must restore exactly. No new algorithm sweep,automatic16M or final100k.",
+    "Parent/seed3 binding qualification passed with33 offline tests and zero new hands. Experiment-scoped controller/evidence/tests derive from the completed Seed1 control;original sources unchanged. Binding changes are Seed3 parent/SHA,seed20263003,worker base2026300300,deal start39300000,run_id,activation880 and fresh evaluation/drift seeds20263511/12/21/22. Launching one sole-writer controller;no concurrent logger mutation while live.",
+    "One owner now owns this record and frozen sources. No retries or overwrites; statistical managed continuation, not bitwise worker replay. Initial rebasing is part of treatment.",
+    "static_stage1: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "Verified actual trainer exit1 from Windows os.replace WinError5. Retained checkpoint iteration1117 physical5314037 SHA d5e9ca2e96f3cba6bcda6c64a58b6759b9d6f38872d52ec30de01cbb75482f59; metric/manifest1118 are ahead by4292 observed physical hands and4123 transition hands, not retained learned state. Pending serialized file was removed by old finally block. All original owners and13 observed descendants are terminal; optimizer/replay/main RNG and full1118 assignment rows verified. No restart yet; retain all originals and review scoped I/O recovery.",
+    "Recovery-scope correction: a separate infrastructure experiment start was twice rejected by the execution tool and has not been created. Checkpoint I/O repair is a normal recovery substep of this already RUNNING Seed3 experiment, not a new algorithm branch. Keep the independent-record draft as a provenance artifact only; any qualification and recovery will be recorded here with exact commands, hashes and explicit amendment. No policy or permission settings changed. Original static_stage1 remains terminal and preserved; no training restarted.",
+    "Prospective same-record zero-hand I/O qualification:19 expected tests including actual Windows transient/persistent no-delete sharing handles, durable candidate retention, one serialization, retry bounds and unchanged original3 regressions; then real unchanged trainer --help via hash-bound runtime I/O wrapper. No production files, original evidence, seeds or learned update recipe are modified.",
+    "I/O qualification v1 preserved: all19 tests passed with zero skips, including actual Windows transient/permanent sharing conflicts. Only production --help failed because runpy lacked the normal trainer script directory on sys.path. New wrapper_v2 adds original script/root import paths; original wrapper and failed result remain unchanged. Reuse19 passed tests via raw XML and source hash checks; qualify the corrected startup only. No poker hands.",
+    "I/O repair qualified with19 passed tests and corrected real trainer startup. Prospective recovery qualification adds consumed-prefix, unchanged argv/seed/targets, first-failure no-next-job, live-owner, exact initial state and executed-versus-retained accounting gates; independently audit all237 retained updates and pool/reference archive windows. No resumed hands before this preflight passes.",
+    "Qualified recovery:14 tests passed; all237 retained updates and118 pool candidates reconstructed across6 windows, reference fixed, original hashes intact. Byte-exact derived metric prefix1..1117; original metric1118 retained, full1118 assignment rows copied unchanged. Authorize exactly one hidden recovery controller launch of remaining978023 retained stage1 hands, then the unchanged original stages and evaluation contract. No new separate experiment was created.",
+    "Qualified same-record recovery owns writes. Retained1117/5314037 parent, full pending1118 assignment chain and explicit consumed metric view; fresh namespace and bounded I/O override. Original failed attempt remains immutable. No algorithm/seed/target/evaluation change.",
+    "static_stage1_remainder: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "static_stage1_remainder: actual captured initial state passed full optimizer/replay/pool/RNG/counter verification.",
+    "static_stage1_remainder completed target with preserved optimizer/replay and audited reference/pool history.",
+    "moving256_stage1: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "moving256_stage1: actual captured initial state passed full optimizer/replay/pool/RNG/counter verification.",
+    "Second infrastructure interruption: moving256_stage1 exit1 after bounded same-payload replacement WinError5; recovery controller57556 and trainer49820 plus all observed descendants verified terminal. Static stage1 completed6294171 remains preserved. Original moving latest and durable pending candidate both preserved for read-only audit; no restart, counter reset, evidence rewrite or strength conclusion. Cause beyond file replacement access denial remains unproven. Same record recovery continues; logger ownership returned to researcher.",
+    "Same-record second recovery amendment: inspect exact checkpoint file users without shutdown, restart or permission changes; validate durable candidate before restoring any state.",
+    "Current Restart Manager inspection found no listed users of the two exact checkpoint files; this does not identify or exclude a failure-time holder. Next, audit the fully serialized unpublished update against original raw metrics, optimizer/replay, assignment RNG and actual moving-reference boundary checkpoints. No model inference or training launch.",
+    "Durable candidate1215/5776996 passes335-update pool/reference/assignment audit, preserving5256 physical hands of the unpublished update; pending SHA2a8e795e. Remaining stage1=515064. Qualify45s/256-attempt grace using identical prior I/O implementation, real Windows lock held5.5s and bounded permanent-failure test; neither actual lock holder nor future freedom from recurrence is claimed.",
+    "45s bounded I/O grace qualified:3 new tests including actual5.5s Windows sharing conflict and full synthetic45s deadline,19 prior I/O tests hash-verified/reused, unchanged trainer CLI passed. Qualifying second recovery reuses completed static1, preserves moving335-update reference state and only continues515064 remaining stage1 hands. Final same-dose evaluation/collapse/order unchanged.",
+    "Second recovery preflight passed12 tests. Adopted byte-identical SHA2a8e795e candidate1215/5776996 with full raw1215-row metrics and assignment chain, round1/completed335 reference, optimizer/replay/main RNG preserved. Known5256 unpublished hands are already retained, not added twice. First4292 unretained executions and both unknown extra worker tails remain explicit. Launch exactly once; completed static1 is reused and only515064 moving stage1 remainder precedes unchanged evaluations and stage2 plan.",
+    "Second qualified recovery owns writes. Validated candidate1215/5776996, unchanged optimizer/replay/main RNG/reference round1 and full1215-row assignment chain; new namespace. Static stage1 reused without rerun. Original sources/errors/candidates remain immutable. I/O grace45s only; algorithm/seeds/targets/evaluation unchanged.",
+    "moving256_stage1_remainder: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "moving256_stage1_remainder: actual captured initial state passed full optimizer/replay/pool/RNG/counter verification.",
+    "moving256_stage1_remainder completed target with preserved optimizer/replay and audited reference/pool history.",
+    "Stage1 completed fixed common-deck comparisons, repeated-parent join and prior-corpus check. Broad-collapse gate=False; no final-benchmark claim.",
+    "moving256_stage2: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "moving256_stage2: actual captured initial state passed full optimizer/replay/pool/RNG/counter verification.",
+    "moving256_stage2 completed target with preserved optimizer/replay and audited reference/pool history.",
+    "static_stage2: actual initial completed checkpoint captured and checked; no counter/optimizer/replay reset.",
+    "static_stage2: actual captured initial state passed full optimizer/replay/pool/RNG/counter verification.",
+    "static_stage2 completed target with preserved optimizer/replay and audited reference/pool history.",
+    "Stage2 completed fixed common-deck comparisons, repeated-parent join and prior-corpus check. Broad-collapse gate=False; no final-benchmark claim.",
+    "Exact second recovery controller and all tracked jobs are terminal. Four completed stage attempts and both original failed attempts are preserved; final independent twice-recovered raw evidence and actual-state audit is now starting, not yet passed. Qualified analysis source hashes verified; resume, replay, hand accounting, equal-seed synthesis and conditional-CI limitations remain in scope. Historical failure phases remain in event history; current execution_phase is post-terminal review.",
+    "Deferred completed qualification attached after all owners became terminal: research/experiments/v6-phase-held-reference-seed3-replication-20260905/post_analysis/qualification.json. Preserved tests and actual nested commands were hash-verified, not rerun; earlier full-report entry points remain superseded for the twice-interrupted run.",
+    "Deferred completed qualification attached after all owners became terminal: research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/post_analysis/qualification.json. Preserved tests and actual nested commands were hash-verified, not rerun; earlier full-report entry points remain superseded for the twice-interrupted run.",
+    "Deferred completed qualification attached after all owners became terminal: research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/qualification.json. Preserved tests and actual nested commands were hash-verified, not rerun; earlier full-report entry points remain superseded for the twice-interrupted run.",
+    "Independent twice-recovered audit exited0 and passed506 input hashes, actual initial-state preservation, raw evidence reaggregation, all14 job receipts and cross-seed deck disjointness. Original17-test qualification retained interpreter/script but not interpreter flags; only its recorded exact nested argv are claimed here. First32-test outer -B command is preserved in its deferred note; second28-test outer flags are retained through sys.orig_argv. These qualifications were not rerun.",
+    "lineage_training_hands denotes the largest single local endpoint dose8392377, not the sum of branches or unknown Standard10 pretraining. known_retained_local_lineage_union_hands counts the shared4M parent once. All training-attempt wall times include failures; experiment wall time also includes preparation, evaluations and review.",
+    "Post-finish logger audit passed with zero warnings. This metadata audit supplements, not replaces, the completed independent actual-state/raw-evidence hash audit. ended_at remains the actual finish timestamp."
+  ],
+  "result": {
+    "summary": "Both Seed3 endpoints completed at8.392377M static and8.390981M moving;8393542 retained new physical hands,131072 internal hands and80000 drift samples. Independent506-input actual-state/raw-evidence audit passed with both interruptions preserved.",
+    "conclusion": "Seed3 final static-minus-parent -0.1282 CI[-4.9947,4.7384], moving+1.0773 CI[-12.4143,14.5689]. Equal-seed final moving-minus-static+8.0762 conditionalCI[-4.0531,20.2056]. Both seeds have negative later-slope points in both arms; no clear growing late edge or method winner, and Seed1 external transfer remains unconfirmed. Not proof of universal failure or insufficient-scale impossibility.",
+    "decision": "Complete valid same-dose replication. Preserve both endpoints and all failed evidence; no automatic16M training or formal100k qualification. Distinguish retained hands from4292 known unretained executions and unknown additional worker tails; recovered5256 already retained. Only two seeds and conditional nominal intervals, not general stability.",
+    "next_step": "Preregister and qualify a fixed-budget matched Seed3 external development calibration of BOTH exact final endpoints using fresh80k total,40k per arm, balanced waves and no interim selection/replacements/extensions. Reuse qualified Seed1 protocol, not its sessions or outcomes; use external replication to inform the next larger training allocation."
+  },
+  "tags": [
+    "matched-control",
+    "replication",
+    "training"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 44,
+    "command_count": 44
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/protocol.md": {
+      "type": "file",
+      "bytes": 7516,
+      "sha256": "c6007f09802697ecdbc3a842d4b01819c6bbff3cd94371ff10579d35a9e309cb"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/qualify.py": {
+      "type": "file",
+      "bytes": 5515,
+      "sha256": "0a249dcf5cdd517fed1fb8174234a872d0b19670f00b55e9b905de3ea0d1f114"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/run_control.py": {
+      "type": "file",
+      "bytes": 30102,
+      "sha256": "0f7bb25ae39c10c952be0dcdeddf7945ff396e75eaf282a13ecbe196e4c93032"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/control_evidence.py": {
+      "type": "file",
+      "bytes": 12374,
+      "sha256": "b15ffb8172491831e53a267a6e4fd8f9a52b1cab2b49146764d68dbacc985151"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/test_controller_evidence.py": {
+      "type": "file",
+      "bytes": 10449,
+      "sha256": "92ec7d9e92348c74fd7b7c4ef97f610ac658b6baa5a7d88a77a435347ae3d23b"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/test_command_contract.py": {
+      "type": "file",
+      "bytes": 2131,
+      "sha256": "44f73da2dbc14e1ca99948248315e1fe9a1035d89362dd55446d3fc77a28667c"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/test_seed3_bindings.py": {
+      "type": "file",
+      "bytes": 954,
+      "sha256": "3a9e77445aae7a3ebee80c1c9d0d5d9798c70a029544f8df3c173dc2b529deb5"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/launch.ps1": {
+      "type": "file",
+      "bytes": 977,
+      "sha256": "84aa3fcbbdbe2b9b74133a25279ef4dddb233e61d30bf9e86ad250e1a2ed3ef8"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/code.patch": {
+      "type": "file",
+      "bytes": 303883,
+      "sha256": "2eba69e5fd5e5c7ec4c121ae4a8992792276bd83d6cc67a46d65e94f2740b212"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/source_manifest.json": {
+      "type": "file",
+      "bytes": 2292,
+      "sha256": "6dde1458f72bc2e5320631679541768dcf2f69472f246dd866d9c0d876fc50dc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\seed3_parent_preflight.json": {
+      "type": "file",
+      "bytes": 2274,
+      "sha256": "ea3b9ece6cb5f7bb46f7bd0eca829d89ee54305320d78866c913164daf3716dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\controller_tests.xml": {
+      "type": "file",
+      "bytes": 6603,
+      "sha256": "6373dfa310540ddd0106afa20392211047f408ab64533829741ee539fc0ddf47"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\qualification_result.json": {
+      "type": "file",
+      "bytes": 2111,
+      "sha256": "d399d3d4c108812ae8dceafc6f768e3eb5f9e084c3c489021cbcadbbe02b75d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\input_contract.json": {
+      "type": "file",
+      "bytes": 66647,
+      "sha256": "c34b18c824619a149d3b1490d0b311fa7f2006e9b15fcb7a0824f4901d30fcb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\ownership.json": {
+      "type": "file",
+      "bytes": 343,
+      "sha256": "4aaad5e8d9d6a5cfc2dfa12d2b0ceec0cb845e71002389cd1631be83258cf183"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\run_control.py": {
+      "type": "file",
+      "bytes": 30102,
+      "sha256": "0f7bb25ae39c10c952be0dcdeddf7945ff396e75eaf282a13ecbe196e4c93032"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\control_evidence.py": {
+      "type": "file",
+      "bytes": 12374,
+      "sha256": "b15ffb8172491831e53a267a6e4fd8f9a52b1cab2b49146764d68dbacc985151"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3463,
+      "sha256": "c542a3516fc6a93d1b3520586d366fcdbf4121c59801fc8f192da80a7b1b8578"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 309787866,
+      "sha256": "d07fd17a66c2b418c32adaaf5a334105ce5a8564fdc2f5ac461b0a99a47fd115"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/audit_interruption.py": {
+      "type": "file",
+      "bytes": 6822,
+      "sha256": "337dcb4c95d0bf27cefe162a7c1e2a38096fc258093d73768b3745582d87a021"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/interruption_audit.json": {
+      "type": "file",
+      "bytes": 59676,
+      "sha256": "de9c4c42626501f5592c61d331fe39688e6d3609161ce55017afc35d6cf037c5"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/static_stage1/termination.json": {
+      "type": "file",
+      "bytes": 648,
+      "sha256": "41ca5b4d970af342d5ca917a590eb588a8d4a9ad82ca14edae90484683c08ee3"
+    },
+    "research/experiments/v6-windows-checkpoint-replace-recovery-20260905/protocol.md": {
+      "type": "file",
+      "bytes": 2961,
+      "sha256": "efaa18375fa7d5087843a1cefa8610ee2e8e3b175aafffa6101e72e5ba7e1256"
+    },
+    "research/experiments/v6-windows-checkpoint-replace-recovery-20260905/checkpoint_io_candidate.py": {
+      "type": "file",
+      "bytes": 2606,
+      "sha256": "e5b196f021ca3e6be045b6e8980ecff05a051c623472f91072d933330d2188a1"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/recovery_amendment.md": {
+      "type": "file",
+      "bytes": 2957,
+      "sha256": "be1bd389467226c1c07eae8697b3f401b6bbc7d8ef75cd47888488740fe041dd"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/checkpoint_io_candidate.py": {
+      "type": "file",
+      "bytes": 2606,
+      "sha256": "e5b196f021ca3e6be045b6e8980ecff05a051c623472f91072d933330d2188a1"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/train_with_checkpoint_io.py": {
+      "type": "file",
+      "bytes": 1863,
+      "sha256": "015624d5abcdb5b38a0bb646c40731595dab5371b4dd23f97de6f0694a45f8ae"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/test_checkpoint_io_recovery.py": {
+      "type": "file",
+      "bytes": 7251,
+      "sha256": "fce4752e9e76ced4ee8aef4604b89786611609d099ea813614bd17de90316227"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/qualify_io.py": {
+      "type": "file",
+      "bytes": 3454,
+      "sha256": "6cc1036b913022a3da1381cf3de082faa69dd1242eddcedb47edbcd7698da279"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/io_qualification.json": {
+      "type": "file",
+      "bytes": 6744,
+      "sha256": "f2f05809587686ded484459c1827cb1a7f6816de9e734181489e6ae029809f8a"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/io_tests.xml": {
+      "type": "file",
+      "bytes": 3935,
+      "sha256": "0ddcb03d4ec98534cfc2dc32364db6deeca8613fdfe54c3bd7037d5bcdf506c1"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/train_with_checkpoint_io_v2.py": {
+      "type": "file",
+      "bytes": 2023,
+      "sha256": "1ff7029b60e1779fc31919e0d37996ffede2f889d6865c239d33e784163aa555"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/qualify_io_v2.py": {
+      "type": "file",
+      "bytes": 3476,
+      "sha256": "352c68bc5a01242ed41801670dff25d76f53a98c629c19474fa65942b577d464"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/io_qualification_v2.json": {
+      "type": "file",
+      "bytes": 63126,
+      "sha256": "57254c0918a7559e269933ea4a3aa343abfa119e21a8e9ec23ed0d2f0925d71d"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/resume_control.py": {
+      "type": "file",
+      "bytes": 10309,
+      "sha256": "8d1b8132573cb7e91ec104cbab7e82618df3ff6c6d025f11c3d36f93439ae215"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/prepare_recovery.py": {
+      "type": "file",
+      "bytes": 6939,
+      "sha256": "00583aeea8f37b59943dd22de147fe53f17939eacea81587a09f53729574d560"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/test_recovery_control.py": {
+      "type": "file",
+      "bytes": 4265,
+      "sha256": "afecf9e15d0af6fc71108dd978168c3711a3251eeea9fcf1bf78f4981da24b66"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/launch.ps1": {
+      "type": "file",
+      "bytes": 1082,
+      "sha256": "8673482ba1a269f68973c63e2859fa14ca964c93591ba1685b092fa60182c7a6"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/recovery_preflight.json": {
+      "type": "file",
+      "bytes": 60561,
+      "sha256": "d6aeb4373e9b48a814afb94eee19e891a4808a655b539c789a935905993833f4"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/recovery_tests.xml": {
+      "type": "file",
+      "bytes": 3800,
+      "sha256": "773cb46b80309b9ed4655be1061b093cafb895df96fa011177f748e6384b763c"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/derivation.json": {
+      "type": "file",
+      "bytes": 702,
+      "sha256": "d7c93341b34bf489caeabcc2d927d2c3ffcfc6c992a6d95b08f2d9231670b5b5"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/latest.pt": {
+      "type": "file",
+      "bytes": 316789978,
+      "sha256": "d5e9ca2e96f3cba6bcda6c64a58b6759b9d6f38872d52ec30de01cbb75482f59"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 33653551,
+      "sha256": "c790b12ad662688dc768d6387edaaad48f37f78b98c6a31cb9708602c9f1af8e"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/retained_parent/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 3141594,
+      "sha256": "a3aa983eb0faefb2ff37000cbeea41ab2461da3710460da58789fc9f479c1145"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\ownership.json": {
+      "type": "file",
+      "bytes": 376,
+      "sha256": "bdcfb97cab679fb49b3353324a937dc10e3c0e17873b05a7dbb2a2b6a23cd2b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\input_contract.json": {
+      "type": "file",
+      "bytes": 74573,
+      "sha256": "d83cf45622a8a6abe4cb6b00676786c453c7d1b199b58d1a2bc3261f2acd19de"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\command.json": {
+      "type": "file",
+      "bytes": 3681,
+      "sha256": "a9f2d1454e2eb1c5e5d6772d2869031ce7780c821016c95ad9ddd65e81708572"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 316688154,
+      "sha256": "1875323550a2f6434c8f8288268a0bca0bad0207e94d72766f5d7e4b68259359"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 658,
+      "sha256": "669d88e663fa433942608c819de2ef8e4295128265793e9fe5d825c22bcc06dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\verification.json": {
+      "type": "file",
+      "bytes": 4377,
+      "sha256": "a58e3f641836eb5f8e312fcf42acc1029f3bcb5be2e57cb5123225ad986d7039"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\termination.json": {
+      "type": "file",
+      "bytes": 648,
+      "sha256": "1f1e7eaf304ff669f8b08a81894361b7628d038d283fa4a76558d66fc6d4fe7e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\latest.pt": {
+      "type": "file",
+      "bytes": 315755354,
+      "sha256": "cb84c0b4e43a7c427f2d2945e7e417e2a6da1b5600d5c74767fe64bf0f41768a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 40010958,
+      "sha256": "cef9817d1d14e3a2c243c1bba86520580fc92587920fae19e49117f9a042a9bf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\static_stage1_remainder\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 3731781,
+      "sha256": "95f588b8ec8c2d92565b16e285dd6198dea721ea0724edb233e80ed9db0e4c72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3446,
+      "sha256": "b7bbfe823ffe5420738a311cbe98d15dbe0d5cae9efcfecb11e9761d74692aea"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 342840042,
+      "sha256": "3ed3f02a269c8a8450bda1d1493ffa10d4eb729d5b71df7d8b878c4a7efe2ce6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 664,
+      "sha256": "f7ed397bbabaaaa3ca7939f4deaf4694bef8d9e93c1a918d400974f8168de569"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/recovery_amendment.md": {
+      "type": "file",
+      "bytes": 1944,
+      "sha256": "bb76f26dec26e6de6bf4bb6dc1daedab316059d675a5e52d136950f25a5dd139"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/inspect_file_locks.py": {
+      "type": "file",
+      "bytes": 4319,
+      "sha256": "d53bd1d863b4c123d72af8f56ec6623ed2a475f8d634befb685da370225dace8"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/current_file_users.json": {
+      "type": "file",
+      "bytes": 1287,
+      "sha256": "e0bfb8cafcc54757b08d123aa1506329566acf573b1f7433da8912720ab10013"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/audit_pending_checkpoint.py": {
+      "type": "file",
+      "bytes": 10468,
+      "sha256": "954ce30139e5fec0d33f9fdc3662ba74abaed290ecaa17ea5cc6b967cb7c5904"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/pending_checkpoint_audit.json": {
+      "type": "file",
+      "bytes": 78246,
+      "sha256": "977eaafe123139ba4e40f0c7044f8a369b63ff60b741c8d6a946b3d292e5246e"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/train_with_checkpoint_io_45s.py": {
+      "type": "file",
+      "bytes": 2251,
+      "sha256": "457b8d8d9472b88bbad72fd81301edf40cffab094fb7c493b6a9b36d37be1c46"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/test_io_publication_grace.py": {
+      "type": "file",
+      "bytes": 4259,
+      "sha256": "e2faea9f62d0874d9274089b1a8ca0731cecc9541d579b1d1c82405e427ec5e4"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/qualify_io_grace.py": {
+      "type": "file",
+      "bytes": 3994,
+      "sha256": "0e226ce028e12c746f2e451cd82b9d668290b4de6da34ff9c933815b494a7fbe"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/io_grace_qualification.json": {
+      "type": "file",
+      "bytes": 65891,
+      "sha256": "4e75d7dd00d11848cf2b98d4b8a3bcdc502c4c2e6d3d6533f5e4cfe1423108c9"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/io_grace_tests.xml": {
+      "type": "file",
+      "bytes": 873,
+      "sha256": "d12be98818c921dedca329450ceb9e34a10f018a8ba84df2e15efcf6f2cbe696"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/resume_control_second.py": {
+      "type": "file",
+      "bytes": 10710,
+      "sha256": "2fbb48e59efcc7306e3be707ce9808d1b9acb76a826336619c5086d753a09143"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/test_second_recovery.py": {
+      "type": "file",
+      "bytes": 5770,
+      "sha256": "3566129b769490ff2b35cc06c4fb1e7694cd98497288dc40617a8d8266f2d2d6"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/prepare_second_recovery.py": {
+      "type": "file",
+      "bytes": 4343,
+      "sha256": "d5229002b25cc6f342d8261e1cde2bd275fb6d20dd249b4a078922f2809b72b3"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/launch.ps1": {
+      "type": "file",
+      "bytes": 1089,
+      "sha256": "43c51848bc3c0f8c52f744de9b8866e1e579969049a20e3772394feb6a137327"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/recovery_preflight.json": {
+      "type": "file",
+      "bytes": 71500,
+      "sha256": "f916c47d27c9533707342865860f1a503d1b5ea4cefd561a6af774b292a977e3"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/second_recovery_tests.xml": {
+      "type": "file",
+      "bytes": 2813,
+      "sha256": "91a94a3b016dd711019e91144608bfb2a44fd1481212c8d8ba953a576bd95242"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/latest.pt": {
+      "type": "file",
+      "bytes": 339015466,
+      "sha256": "2a8e795e84c18321e2b940e805b2d5d1fd699407bc6ea38a3cf223036d3e7185"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/derivation.json": {
+      "type": "file",
+      "bytes": 800,
+      "sha256": "0aedd15973e3c39e398d9e8a7d2ce3dad6ff9962ed216e778a0f6d23911f6ca6"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 36642789,
+      "sha256": "a5c21558ba8bf270b6d89fd9720c6bea6fb3eb3c1f7db94860978579966959d4"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/retained_parent/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 3414678,
+      "sha256": "2b735dfde85c376af39f9ebb2d3bbfccb2c2b9b35b40888602005e4e830b8d1f"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/moving256_stage1/.latest.pt.c836605996e94811862c30e5da30ad98.pending": {
+      "type": "file",
+      "bytes": 339015466,
+      "sha256": "2a8e795e84c18321e2b940e805b2d5d1fd699407bc6ea38a3cf223036d3e7185"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\ownership.json": {
+      "type": "file",
+      "bytes": 384,
+      "sha256": "beb36b79ceafbc8fffe42f6de32abdae171cde5ad58e0bba1a9fa3042ef90f84"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\input_contract.json": {
+      "type": "file",
+      "bytes": 86275,
+      "sha256": "9b45dbc4a7338aed2679079b85bcff418bfa20cf680c7fda8224cc2e3b7fb934"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\command.json": {
+      "type": "file",
+      "bytes": 3580,
+      "sha256": "99a2699fe97ae71722916652420a54f60ee3d4a7f5a3b9e350d0e2a17bfb499a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 338871274,
+      "sha256": "b4d6b04063a12e31ad883f503040636642ee772207f26ffdd0945b93ba6cf1ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\second_resume_gate.json": {
+      "type": "file",
+      "bytes": 339,
+      "sha256": "a9be4b46ed19bedb2e77cbba2ae97031681508560d0879a62278dc6fb3afbd69"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 658,
+      "sha256": "7590909b7a2a50464d6a1723c89288bd61ceebe9675b41ca0bf83952ac7262ad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\verification.json": {
+      "type": "file",
+      "bytes": 4145,
+      "sha256": "8647c493abc9ebabbd55946b3fe659277906f6665388dda765b05e591dd0946a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\termination.json": {
+      "type": "file",
+      "bytes": 646,
+      "sha256": "a78811e202fe32910d024eaf3190b8c26be74a4b736293b87266e92174631246"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\latest.pt": {
+      "type": "file",
+      "bytes": 341029738,
+      "sha256": "46cdcab01bb63fe68b49ec5bb2fc9067768b8564e04ae4391f743f0f0989e99a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 40010250,
+      "sha256": "4fbde603a1dcda7c6880d24f86fad321b37c78fa5ab2cad2e14276820de19e10"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\moving256_stage1_remainder\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 3727794,
+      "sha256": "33f0d8afd25f4b47f3ba648e95b0f92835980aa81e2ba39251b5af354b023ecc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_static_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1294,
+      "sha256": "53499826787a75ac6447d8f8e8ae037a4342d82023585923ae432f046f6fdc83"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_static_stage1\\command.json": {
+      "type": "file",
+      "bytes": 876,
+      "sha256": "5fe8786107a0477abe68b0396e441c7d3f59815df40a0f0fdd9316c7ce387bae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_moving256_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1301,
+      "sha256": "49d6c6e7b47f5d695dfdf3d7807a2ea8f4389f1620e58e4413b396cf39940d99"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage1\\command.json": {
+      "type": "file",
+      "bytes": 883,
+      "sha256": "60eaa762931bb858dd6ffeb85766a3caa56ec5d73b7ebb48fc2d4cf6c0e66499"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\stage1_analysis.json": {
+      "type": "file",
+      "bytes": 15137,
+      "sha256": "61629c009c6c6bc4da346059a3f953518ec35e3d59c70607ab0b013d55cb5a27"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3501,
+      "sha256": "6dae7a875de2182bef6cdcfffbe51b189b529b23dd0e206c6c22e6d5c5bae40a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 340981226,
+      "sha256": "683c67ce76b87ce192affca2410355fa544f79345d57b6c58aa65c7579c5d8b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\second_resume_gate.json": {
+      "type": "file",
+      "bytes": 339,
+      "sha256": "05566371385e936d3d3120549f44e3c62160c7c6d7ee6453bde23cde210817d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 658,
+      "sha256": "ab3e376bd658e111b2328640e1cd24ffc76432e3a8aabb689f22a6f44396f795"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 5982,
+      "sha256": "3fd54d9482dcd5552c76d44431a06fd075c4bce329490f732936de19a63e46c5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 652,
+      "sha256": "9fd5244e5e6c2f9ef0ca37e3155415658c356a3d53e0d7886825ca1794b761aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt": {
+      "type": "file",
+      "bytes": 341012650,
+      "sha256": "da6d49c60eb73ceddb6a27ff8ff10de06b3306360f61dd49e49b82cd857f4b8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 53482573,
+      "sha256": "c07533061a39cf220ed2e60010401b033184f7e9b7eda736aa4f21e36475f6d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4976614,
+      "sha256": "5faa51eb692e469bbd60b3e8d2e5ba55ddfa2108eeb1c9823d2feae08ee60b97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3604,
+      "sha256": "327adb8e30fb22cb78e3f66fd8db4f066bd91f1413b5422147e142d01d797d55"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\initial_resumed_state.pt": {
+      "type": "file",
+      "bytes": 315664474,
+      "sha256": "6b8eab2c70023aadcdc877f4908a761d4637582bea77edc18d140e2cac2c9e34"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\second_resume_gate.json": {
+      "type": "file",
+      "bytes": 339,
+      "sha256": "d8313f2959275616672255d776367804afce46d154591d52eec97b691abb42ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 658,
+      "sha256": "28a4934547c444ac0f474eec23d5989ae77442e8a7c9896e037751237248504c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 5271,
+      "sha256": "cd33af6ee3c82f60750852b632c9ff83687590c948c5e95d2f4ddb8ced79adf2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\termination.json": {
+      "type": "file",
+      "bytes": 646,
+      "sha256": "8e524e1734facb9e85fc824ba97bbf63e90d1ad19eec43d9ab9b4b9875134240"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\latest.pt": {
+      "type": "file",
+      "bytes": 306832410,
+      "sha256": "36aa1d935179570e76499a0a0c1c81ccd75384b0411b9c7d9cca56c9a2c14b69"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 53534806,
+      "sha256": "29708906862b0b8c3f9bda8470d2371b99fab2ec16f9ff3e417f82411775dd68"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\static_stage2\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4990509,
+      "sha256": "06e08289cede65e05e12b3c212dfa974b3c42f78aecdbeda05bc8e3e63bc7e56"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_static_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1265,
+      "sha256": "535a7533d5c9b7717342e3ce08b61c53c5a2f7d4314eaeb94b332ca64fc628bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_static_stage2\\command.json": {
+      "type": "file",
+      "bytes": 847,
+      "sha256": "5214ad76db66eee0b099047d725a9ad74693bc43e4c3da5a4a33f6f4890d175d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\job_eval_moving256_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1271,
+      "sha256": "7c2a382fa9707ff9d141304d090e5c9795425c2afd68af30fe7f64ec6b9f2123"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\drift_moving256_stage2\\command.json": {
+      "type": "file",
+      "bytes": 853,
+      "sha256": "e1f33f6ad31578b62810ba57ce845def9893ee3a99f93aebb73caf05c99fdc87"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\stage2_analysis.json": {
+      "type": "file",
+      "bytes": 15145,
+      "sha256": "8d79d0f7b157bedfb44dc9f2d86146962d3f27ce33d995e6cd68d0a5c665ff2d"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/qualification.json": {
+      "type": "file",
+      "bytes": 6009,
+      "sha256": "3e03f8522ef27ca03edfe2f8c04897365e4b596bf7d42d32813a18c409d839fa"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/post_analysis/qualification.json": {
+      "type": "file",
+      "bytes": 4703,
+      "sha256": "f0afa9e4209d0d563ae7def89d5cc470b50f3ef2c0496c65af182206357f7d33"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\cross_seed_summary.py": {
+      "type": "file",
+      "bytes": 8365,
+      "sha256": "f43def0382c0c70fa39748d80dfc48601de7fb437f54c1cc206850f8e904c41b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\qualify_post_analysis.py": {
+      "type": "file",
+      "bytes": 2499,
+      "sha256": "43d7e47a05908ea096c3db2b0016d14e47a0477d4ff054b3d0fd027c8ce1c2f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\summarize_geometric_control.py": {
+      "type": "file",
+      "bytes": 12811,
+      "sha256": "e64727323f2097d3ee6b3c13880b122ed0107d8018fa21a35f3d2bbc8c1e414d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\test_cross_seed_summary.py": {
+      "type": "file",
+      "bytes": 4313,
+      "sha256": "d9312f242cd64278c2c5e8512a842d0adf4bb519bf789343b562585a08dc3f01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\test_geometric_summary.py": {
+      "type": "file",
+      "bytes": 3529,
+      "sha256": "434ce3825a69b57694909f8a7ac9c630ce1d3405af4c2c9723921da76efa1cf3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\post_analysis\\tests.xml": {
+      "type": "file",
+      "bytes": 3634,
+      "sha256": "dd3e371fe3dc687d3c097b49e884c0ae9a3ab3ef71ba9772a5bb3951095c48be"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/post_analysis/qualification.json": {
+      "type": "file",
+      "bytes": 4810,
+      "sha256": "d9ff5e4158bd562729d42e9eae54020a17c8be3dd3a96079bcfe3fbe69622730"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\analyze_recovered_seed3.py": {
+      "type": "file",
+      "bytes": 18870,
+      "sha256": "9c777b614fac055cf0dfd8f251005d2c3fff2610ece92bc3e250fd36768724c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\qualify_recovered_analysis.py": {
+      "type": "file",
+      "bytes": 3377,
+      "sha256": "06377418dcf1cb0c4a3b173a98b397fdcaa0a021859258c99123e6ecbbc758ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\test_recovered_seed3.py": {
+      "type": "file",
+      "bytes": 9110,
+      "sha256": "da0ad907615cfdba0ca7c76f8a0589d092b36c9ff20707859b5de50cb2618b35"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\tests.xml": {
+      "type": "file",
+      "bytes": 7694,
+      "sha256": "20557c64e00e8aceccfe93d8b9b3f8085ba1f82d35fe84bf21d0f1aad50d7dc2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905\\post_analysis\\qualification.json": {
+      "type": "file",
+      "bytes": 4810,
+      "sha256": "d9ff5e4158bd562729d42e9eae54020a17c8be3dd3a96079bcfe3fbe69622730"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\analyze_twice_recovered.py": {
+      "type": "file",
+      "bytes": 21216,
+      "sha256": "1bcc5e2e25445d39104b404ad4b1c7ef12dfa6bc1d7b011266d061c75220065e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\qualify_final_analysis.py": {
+      "type": "file",
+      "bytes": 3546,
+      "sha256": "80da532b051bbf1b451c30c7fe0c50440d45998d84bf362bb1e6e9c7a622efd4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\test_twice_recovered.py": {
+      "type": "file",
+      "bytes": 7606,
+      "sha256": "5f6a15ede568a0bbe4d3aab075c31c005a2e1e9128ade29ff59e718a18aa3cfb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\recovery_20260905b\\post_analysis\\tests.xml": {
+      "type": "file",
+      "bytes": 6690,
+      "sha256": "28f1a9be8d35a01b31c86743aec1617fb79ed90fb37a8d810a311ddddf2b5c45"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/result_summary.md": {
+      "type": "file",
+      "bytes": 7259,
+      "sha256": "1f84386860286836574ffa4b0a6ffe28d69747b176660f1280cd9a99ea19d2e7"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_terminal_report.json": {
+      "type": "file",
+      "bytes": 291478,
+      "sha256": "820862d4e74af6999260b14e0c05a6ba213edffc9d907060cf60d140f802a6d5"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905/post_analysis/deferred_attachment.md": {
+      "type": "file",
+      "bytes": 2591,
+      "sha256": "d6ef7393d8ac3fa9aa999794e1bc49cc13c9146e9e80949e62cc5ac7faba7cea"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/recovery_20260905b/post_analysis/deferred_attachment.md": {
+      "type": "file",
+      "bytes": 2813,
+      "sha256": "20932d6c332474c94bda50ac6ae3688fe49ff5840d30d30ca269ae41214fd998"
+    },
+    "research/experiments/v6-phase-held-reference-seed3-replication-20260905/post_finish_audit.json": {
+      "type": "file",
+      "bytes": 234,
+      "sha256": "e45144fc61cbed5a19659f7af9d99f782bcaa415e779ef14bc5d1c342738bd47"
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-river-belief-cfr-stability-curve-audit-20260902",
+  "title": "River belief-CFR cross-seed stability curve audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T13:31:34+00:00",
+  "updated_at": "2026-09-02T13:33:06+00:00",
+  "started_at": "2026-09-02T13:31:34+00:00",
+  "ended_at": "2026-09-02T13:33:06+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Across the immutable 128, 512, and 2,048 iteration snapshots, cross-seed root-strategy TV will decrease and greedy agreement will increase monotonically, distinguishing underconvergence from irreducible seed instability and justifying one deeper solver-dose control.",
+  "material_change": "Hash-verify and reaggregate the completed solver JSONL at every geometric checkpoint; generate no new trajectories, traversals, or policy updates.",
+  "baseline": "Final-only pooled TV 0.3976 and greedy agreement 0.3970 at 2,048 iterations, with regret proxy ratio 0.2263 versus 128.",
+  "source": "research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run/solver_snapshots.jsonl",
+  "parent_id": "v6-river-public-belief-cfr-feasibility-20260902",
+  "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_curve_audit.py --run-dir research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run --output research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/curve_audit.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_river_public_belief_cfr_curve_audit.py --run-dir research/experiments/v6-river-public-belief-cfr-feasibility-20260902/run --output research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/curve_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T13:31:34+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "2e7fdd6052d23f54e2e1ca8fe68a6323d0044bfb30bf8d20220e8993126b4340",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T13:31:34+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "2a850d614bf913018b7d68a1bf3b2becec4da4915bb26dfc9f23e2fbf4a16d9d",
+    "source_files": 212
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 92.0
+  },
+  "metrics": {
+    "tv_at_128": 0.4668880287120091,
+    "tv_at_512": 0.4600884203313222,
+    "tv_at_2048": 0.3975966412912641,
+    "greedy_agreement_at_128": 0.2751322751322751,
+    "greedy_agreement_at_512": 0.34953703703703703,
+    "greedy_agreement_at_2048": 0.39699074074074076,
+    "tv_log_log_slope_512_to_2048": -0.10530278844609098
+  },
+  "artifacts": [
+    "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/curve_audit.json",
+    "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/code.patch",
+    "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/source_manifest.json"
+  ],
+  "notes": [
+    "Scale gate: regret and pooled TV must improve monotonically at both geometric steps; pooled greedy agreement must be nondecreasing at both steps; no policy distillation from this audit."
+  ],
+  "result": {
+    "summary": "Hash-verified reaggregation of all 54 saved snapshots showed monotone pooled convergence: regret 116.69 to 61.02 to 26.41, cross-seed TV 0.4669 to 0.4601 to 0.3976, and greedy agreement 0.275 to 0.350 to 0.397 at 128/512/2,048 iterations. The matched-coverage 512-to-2,048 TV log-log slope was only -0.105, projecting TV about0.344 at8,192; two individual states did not yet improve locally.",
+    "conclusion": "The solver is directionally converging but slowly and heterogeneously. Evidence justifies one full-breadth 8,192-iteration control, not target distillation or a direct jump to 32,768.",
+    "decision": "ADMIT_FULL_BREADTH_RIVER_CFR_8192_CONTROL",
+    "next_step": "Reconstruct the immutable six public states and 48-hand ranges from hash-bound artifacts; rerun the same three solver seeds with exact 2,048 replication and extend to8,192 in independently durable per-cell outputs. Require exact 2,048 metric replay, aggregate TV/agreement improvement, and no state-level catastrophic reversal before any 32,768 scale."
+  },
+  "tags": [
+    "audit",
+    "solver",
+    "zero-new-samples"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/curve_audit.json": {
+      "type": "file",
+      "bytes": 6204,
+      "sha256": "cf6bb61d9acd34f738fceafcb24ddf17b12e2501cc0b56c6a0bca7a4929eab7b"
+    },
+    "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-river-belief-cfr-stability-curve-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 40187,
+      "sha256": "2a850d614bf913018b7d68a1bf3b2becec4da4915bb26dfc9f23e2fbf4a16d9d"
+    }
+  }
+}

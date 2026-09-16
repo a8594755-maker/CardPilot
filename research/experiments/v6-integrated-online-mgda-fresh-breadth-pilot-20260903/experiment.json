@@ -1,0 +1,224 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-online-mgda-fresh-breadth-pilot-20260903",
+  "title": "Fresh breadth pilot for online opponent-seat MGDA",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T05:52:25+00:00",
+  "updated_at": "2026-09-03T06:14:32+00:00",
+  "started_at": "2026-09-03T05:52:25+00:00",
+  "ended_at": "2026-09-03T06:14:32+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The two-update online-MGDA treatment avoids catastrophic Standard10 capability drift and has nonnegative or directionally favorable pooled fresh common-deck performance versus its matched ordinary control across four distinct anchors and both seats.",
+  "material_change": "Freeze the matched iteration226 control and MGDA checkpoints; run a 20,000-state Standard10 preservation audit and an untouched 2,048-pair-per-anchor, both-seat common-deck treatment-minus-control panel against Standard10, CFR4, legacy iteration16, and legacy mixed65k.",
+  "baseline": "Matched online-MGDA mechanism smoke: 8/8 treatment minibatches strict common descent at matched actor-gradient norm; ordinary control probes harmed 2-4 objectives. Both arms passed exact continuation gates after about 10.1k new environment hands.",
+  "source": "Control SHA256 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 and treatment SHA256 2dc0e9e84d2a0e7ab91bc6a8ca7170caa4403d9b9f1d73e8784fa6d6d97744a2 from v6-integrated-online-mgda-matched-smoke-20260903.",
+  "parent_id": "v6-integrated-online-mgda-matched-smoke-20260903",
+  "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --out-dir research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift --states 20000 --seed 20262051 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --out-dir research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift --states 20000 --seed 20262051 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:52:25+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262052 --device cuda --out-dir research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/eval",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:52:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_online_mgda_breadth.py --eval-summary research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/eval/summary.json --drift-summary research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift/drift_analysis.json --out research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:12:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --out-dir research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_control --states 20000 --seed 20262051 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:12:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --parent-sha256 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --out-dir research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control --states 20000 --seed 20262053 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:12:16+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/analyze_v6_online_mgda_step.py --parent research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1/latest.pt --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --control-drift research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_control/drift_analysis.json --treatment-drift research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift/drift_analysis.json --direct-drift research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control/drift_analysis.json --breadth-audit research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/audit.json --out research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/step_analysis.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:14:32+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:14:32+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e1aa9a258d0abf42a87561b23cd3e6f922e2de1eaae41f37c7c6864c8ddf4dcd",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T05:52:25+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/code.patch",
+    "patch_sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea",
+    "source_manifest": "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/source_manifest.json",
+    "source_manifest_sha256": "41675d02fd137136176bdf910e2b1f83f3201caf799bdebb905de7e1f22340a6",
+    "source_files": 237
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 1079151,
+    "offline_samples": 60000,
+    "evaluation_hands": 32768,
+    "wall_time_seconds": 1327.0,
+    "inherited_environment_training_hands": 1079151,
+    "planned_new_environment_training_hands": 0,
+    "target_cumulative_environment_training_hands": 1079151,
+    "planned_evaluation_hands": 32768,
+    "environment_training_hands": 0,
+    "lineage_environment_training_hands": 1079151
+  },
+  "metrics": {
+    "pooled_delta_bb100": -5.8441162109375,
+    "pooled_delta_ci95_half_bb100": 4.698685780105293,
+    "pooled_delta_ci95_upper_bb100": -1.1454304308322074,
+    "positive_anchor_count": 0,
+    "seat0_delta_bb100": -6.787109375,
+    "seat1_delta_bb100": -4.901123046875,
+    "standard10_delta_bb100": -0.54931640625,
+    "standard10_drift_mean_tv": 0.011559990955871121,
+    "standard10_greedy_disagreement": 0.0121,
+    "treatment_vs_control_mean_tv": 0.006963552390961917,
+    "treatment_vs_control_greedy_disagreement": 0.00725,
+    "treatment_to_control_parameter_step_ratio": 1.252477717242966,
+    "treatment_control_parameter_step_cosine": 0.5439185709630953
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/code.patch",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift/drift_analysis.json",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/eval/summary.json",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/eval/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/audit.json",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_control/drift_analysis.json",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_control/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control/drift_analysis.json",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/step_analysis.json",
+    "scripts/alpha_holdem/audit_v6_online_mgda_breadth.py",
+    "scripts/alpha_holdem/analyze_v6_online_mgda_step.py"
+  ],
+  "notes": [
+    "This is a frozen catastrophe/direction pilot after only two MGDA iterations. Failure of preservation or broad strongly negative movement rejects this dose/implementation; a noisy near-zero panel does not reject long-horizon online MGDA and should instead inform a geometric training replication.",
+    "Standard10 preservation passed on 20,000 balanced outcome-blind states: mean TV 0.011560 and greedy disagreement 0.0121, with exact checkpoint metadata/tensor-scope gates.",
+    "Frozen 32,768-hand panel completed: pooled MGDA-minus-control -5.8441 bb/100 with CI95 half-width 4.6987 (upper -1.1454); 0/4 anchors and both seats negative. Independent raw audit is scheduled before decision, followed by output-step localization.",
+    "Independent raw audit passed all 14 gates: 8,192 unique complete pairs, full 52-card permutations, exact pair indices, row arithmetic, summary recomputation, raw/checkpoint/drift hashes, and both seats. Pooled delta -5.8441 +/-4.6987 bb/100 has upper CI -1.1454; all four anchors and both seats are negative.",
+    "Realized-step audit found control-parent actor L2 0.012424, treatment-parent 0.015560 (ratio 1.25248), treatment-control cosine 0.54392, mean output TV 0.006964 and greedy disagreement 0.725%. Gradient norm matching therefore did not match the realized stateful-Adam parameter step."
+  ],
+  "result": {
+    "summary": "The frozen two-update online-MGDA treatment preserved Standard10 capability but lost significantly to matched ordinary control over 32,768 untouched multi-anchor hands: -5.8441 bb/100 with CI95 [-10.5428,-1.1454], 0/4 anchors and both seats negative. Raw evidence passed independent audit. Stateful Adam amplified the treatment parameter step to 1.2525x control despite per-minibatch gradient-norm matching.",
+    "conclusion": "This is explicit short-horizon causal evidence against the current alpha=1 unit-normalized online-MGDA dose/optimizer realization, not merely failure to beat Slumbot at small scale. Local PPO/KL common descent did not translate to greedy payoff, and existing Adam moments broke the intended dose match. Do not scale this implementation. The general long-horizon learned-policy family remains open because ordinary 262k-to-1M evidence was weakly positive and source capability stayed intact.",
+    "decision": "REJECT_UNIT_NORMALIZED_ONLINE_MGDA_DOSE",
+    "next_step": "Localize an optimizer-aware realized-step dose boundary before any more environment training: construct frozen actor interpolations from control toward MGDA treatment at geometric fractions and measure greedy-boundary/output drift plus paired payoff on bounded common decks. If all nonzero doses remain directionally negative, close this direction; if a low dose avoids reversal, implement explicit parameter-step trust region and replicate before scaling."
+  },
+  "tags": [
+    "alpha-holdem",
+    "breadth",
+    "frozen-evaluation",
+    "mgda"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 7,
+    "command_count": 7
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12837937,
+      "sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 45134,
+      "sha256": "41675d02fd137136176bdf910e2b1f83f3201caf799bdebb905de7e1f22340a6"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4385,
+      "sha256": "707ff232d1448342ed13818a06778309ef874ce02bb98db23e646e5243d5d82c"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319360,
+      "sha256": "59ee908bc3ea1be8c62db982faea99e1de9110c8896e5cd13afc5f36c036a18a"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/eval/summary.json": {
+      "type": "file",
+      "bytes": 11329,
+      "sha256": "8aa09e76e6e404a7b6161a7caa023008fd63ae1c2aee8925a2af607fd0aab3cb"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/eval/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 531781,
+      "sha256": "43319ca18e7de1c413338d3754eed233b186da353463c0c791469a377448008e"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/audit.json": {
+      "type": "file",
+      "bytes": 2882,
+      "sha256": "e41b56a38b399be16a447dfd1316a5d1435c7fdf1783e1601bba8b928009d68d"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_control/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4394,
+      "sha256": "966179da910e83d59e353c987909770c32127231f1f19fb9bc49fa35a2f1a0f9"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_control/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 320401,
+      "sha256": "d6b7ec832791a97fcfe2c8cfe8328b0229ced6e1ff880c7a554a8c0a70408c10"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4534,
+      "sha256": "6cbc34d75af3d6a0fc161312f533824d35283f523c18b9e462ddc6aa33c524de"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/drift_treatment_vs_control/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 318840,
+      "sha256": "564eac39d1697fb8e3564a4e73c5a93df59cd38f925c6ddd18177eb16b789959"
+    },
+    "research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/step_analysis.json": {
+      "type": "file",
+      "bytes": 3113,
+      "sha256": "00752bb6bc351e305ae59013b00c556be32bf65c5facf02ba9fcbe0bc5a0e141"
+    },
+    "scripts/alpha_holdem/audit_v6_online_mgda_breadth.py": {
+      "type": "file",
+      "bytes": 6900,
+      "sha256": "55dfbce6e0abaa9ddcb46290d855df06a929614e36857c6deb87ecdd299e2e12"
+    },
+    "scripts/alpha_holdem/analyze_v6_online_mgda_step.py": {
+      "type": "file",
+      "bytes": 5146,
+      "sha256": "82a83ea3e32aef7515ddba96d5baa12dea10d6073be6413dcaf128cdff52a155"
+    }
+  }
+}

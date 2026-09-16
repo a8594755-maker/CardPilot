@@ -1,0 +1,264 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-greedy-advantage-margin-smoke-20260901",
+  "title": "Greedy-deployment advantage-margin objective smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T05:29:47+00:00",
+  "updated_at": "2026-09-01T05:46:13+00:00",
+  "started_at": "2026-09-01T05:29:47+00:00",
+  "ended_at": "2026-09-01T05:46:13+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Adding a small advantage-weighted hinge that promotes sampled positive-advantage actions over the current legal greedy action will align learned updates with greedy deployment better than unchanged PPO, without violating sampled-policy behavior accounting or source-KL preservation.",
+  "material_change": "Add a default-off greedy advantage-margin term to trinal_clip_ppo_update and train_v5. Only positive normalized-advantage rows whose sampled action differs from current legal argmax are eligible. The hinge pushes sampled-action logit above detached current-greedy logit by a fixed margin, weighted by detached positive advantage. Preserve ordinary PPO, entropy, critic, optimizer, sampled rollout, source KL, and all default behavior. Unit-test zero-coef compatibility, eligibility, gradients, legal argmax, metrics, and validation; then run a bounded matched v6 Standard10-rebind smoke before any pilot scale.",
+  "baseline": "Raw actor, low-LR/parent-KL tails, Standard10 soup, and procedural-domain candidates all failed independent Slumbot confirmation. Sampled PPO league reward and internal greedy anchors have been poorly correlated with external greedy deployment. Prior offline counterfactual soft-policy replay was neutral/negative and is not reused.",
+  "source": "Standard10 learned checkpoint plus current corrected-v6 sampled PPO trainer",
+  "parent_id": "v6-actor-raw-greedy-fresh20k-slumbot-20260901",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_greedy_advantage_margin.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_greedy_advantage_margin.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:29:47+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/test_greedy_advantage_margin.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:32:55+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_greedy_advantage_margin.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:32:55+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111400 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_greedy_margin_control_20260901 --run-dir research/experiments/v6-greedy-advantage-margin-smoke-20260901/control --out research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/latest.pt --seed 20261114 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:32:55+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --greedy-advantage-margin-coef .05 --greedy-advantage-margin .1 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111400 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_greedy_margin_treatment_20260901 --run-dir research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment --out research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/latest.pt --seed 20261114 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:35:14+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-greedy-advantage-margin-smoke-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:39:26+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-greedy-advantage-margin-smoke-20260901/control --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:43:47+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:43:50+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_greedy_advantage_margin.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-greedy-advantage-margin-smoke-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:43:53+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-greedy-advantage-margin-smoke-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T05:45:50+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4ad931ecf1aa8910b836aadb2bf7b7a22b95a4b0d0ebc588c047d695ea200b1a",
+    "code_paths": [
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-09-01T05:29:47+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-greedy-advantage-margin-smoke-20260901/code.patch",
+    "patch_sha256": "a1539a5d258b44b1117e257b46651b5678989286daef4c135f7eea4e3f82977d",
+    "source_manifest": "research/experiments/v6-greedy-advantage-margin-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "e2fd421ff1f1c0220b99bd33cb38e9eadda0ef49576d936e1183171a6bbe3668",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 986.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 21494
+  },
+  "metrics": {
+    "pooled_treatment_minus_control_bb100": -0.2659505208333333,
+    "pooled_paired_ci95_lower_bb100": -45.251780746532575,
+    "pooled_paired_ci95_upper_bb100": 44.7198797048659,
+    "positive_anchors": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/code.patch",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/source_manifest.json",
+    "scripts/alpha_holdem/test_greedy_advantage_margin.py",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/latest.pt",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/run_manifest.json",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/h1_training_metrics.jsonl",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/opponent_assignments.jsonl",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/session_audit.json",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/latest.pt",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/run_manifest.json",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/h1_training_metrics.jsonl",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/opponent_assignments.jsonl",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/session_audit.json",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/eval",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/tests.xml",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/run_eval.py",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/audit_review.py",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/analysis.json",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/reviewed_analysis.json",
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/result_summary.md"
+  ],
+  "notes": [
+    "This is a general learned objective, not a Slumbot-specific rule. No benchmark hands or opponent labels enter training. Default coefficient0 must be numerically identical to the existing PPO path.",
+    "Six objective and real-update tests passed. Starting matched control first; both arms use identical Standard10 source, v6 rebind, seeds/deals, opponent pool, adaptive assignment RNG, optimizer, and8192 physical-hand target.",
+    "Control completed2 updates at10748 physical hands, final reference KL0.0002, no KL stop or collapse. Starting treatment from untouched Standard10.",
+    "Matched smoke completed: control10748 and treatment10746 physical hands. Treatment auxiliary active in both updates; final margin loss1.60745, eligible rows3198, eligible fraction0.17932, ref KL0.002111; control margin metrics exactly zero. Starting preregistered-scale technical endpoint gate:1024 common-deck greedy mirrored pairs versus each of three frozen v6-rebound anchors; no Slumbot."
+  ],
+  "result": {
+    "summary": "Matched default PPO and greedy-advantage-margin arms completed 21,494 physical training hands total; independent audits and 18 tests passed. The auxiliary was active and stable, but 3,072 common-deck greedy mirrored pairs across Standard10, Slumbot-free, and corrected-CFR96 gave pooled treatment-control -0.266 bb/100 with 95% CI [-45.252,44.720] and only1/3 positive anchors.",
+    "conclusion": "A small advantage-weighted hinge can alter greedy-deployed learned logits without breaking PPO accounting, but this smoke provides no positive cross-anchor efficacy evidence. The two most deployment-relevant learned anchors moved negatively, so scale-up or Slumbot allocation is not justified.",
+    "decision": "DO_NOT_SCALE_GREEDY_ADVANTAGE_MARGIN",
+    "next_step": "Retain the default-off implementation and use the external Standard10 greedy-versus-sampled execution gap plus accumulated negative confirmation evidence to choose a higher-information learned-weight direction; do not revive single-teacher imitation or this margin objective without new evidence."
+  },
+  "tags": [
+    "greedy-deployment",
+    "objective",
+    "ppo",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 10,
+    "command_count": 10
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 303594,
+      "sha256": "a1539a5d258b44b1117e257b46651b5678989286daef4c135f7eea4e3f82977d"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "e2fd421ff1f1c0220b99bd33cb38e9eadda0ef49576d936e1183171a6bbe3668"
+    },
+    "scripts/alpha_holdem/test_greedy_advantage_margin.py": {
+      "type": "file",
+      "bytes": 4634,
+      "sha256": "73a7dc5d1b38537d67b7b17dfe4e2bb8da99343012ed28742514f697c9e6d1be"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/latest.pt": {
+      "type": "file",
+      "bytes": 133306804,
+      "sha256": "d806394bc8f8068f8b72e19153d6f96c14f09e8c41c1418091e8441a977c8e29"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/run_manifest.json": {
+      "type": "file",
+      "bytes": 59972,
+      "sha256": "e9535af4625bfc6167aeaaf59c9bca53721a0656788bedf27fd7fe2cd87309e7"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 55456,
+      "sha256": "49ad03402e8e398876d9f7993a964bba6f7a1738737a59ab329fb89558ce04ab"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5120,
+      "sha256": "2d858997837c97d5a01c68ddaff7c34d9ac6e516410425b38d64796803482e8e"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/control/session_audit.json": {
+      "type": "file",
+      "bytes": 5254,
+      "sha256": "c874028abce04cd70bc65ab1c94b0c034f7888dca97216336a59b562cf59c2cd"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/latest.pt": {
+      "type": "file",
+      "bytes": 133306804,
+      "sha256": "412ec6b79463421e30ea51d93d1aa994a336c772102ed534739d6d8e8fb534f0"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/run_manifest.json": {
+      "type": "file",
+      "bytes": 60271,
+      "sha256": "0f1e87142b58ae03a97fe5b13718cbb568b33f0b3ffc66818cf46f4e4927e346"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 55953,
+      "sha256": "ad399b2c3b39a05d7ffdc36f579f4230fe94f7bbffe9f545761efc9aecfcc7fb"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5125,
+      "sha256": "fa7cdddb688fa6c01cffa2d43f5e4cf60f22ae04bd7eaea7dd82e9819f700061"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 5278,
+      "sha256": "6264891ef30213e701d3d24142936716bf0fa0bbe226d2e1d507c354d6ed9837"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/eval": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 3052,
+      "sha256": "f70c1c8c197ae093abe2450276c0893c982cbcc4ce2ab1c9144b34ec5dcfdd15"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/run_eval.py": {
+      "type": "file",
+      "bytes": 5295,
+      "sha256": "d421ec034f00499b7475f9d52ae59beef7457b4e24beba514a3211adbaa284f8"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/audit_review.py": {
+      "type": "file",
+      "bytes": 9751,
+      "sha256": "3c73efb4da393f1a666e7ab40071bb5c6e1cce654370096dbfcf6ddfa563ad48"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 2820,
+      "sha256": "097dd664dfb1217fbfac73258badef8bf87aafddfbce0bd36825d7851ccd828e"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 2651,
+      "sha256": "7fe9d967aa909eb7c31542115f67759998154b2c1a1c9cf2d11b0bd06cfc79f6"
+    },
+    "research/experiments/v6-greedy-advantage-margin-smoke-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 447,
+      "sha256": "3cad81518ee11df44f6653a0a237383773cf628c4d0ad43bba4f97c581d593ef"
+    }
+  }
+}

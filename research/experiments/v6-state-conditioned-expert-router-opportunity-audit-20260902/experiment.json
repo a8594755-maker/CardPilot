@@ -1,0 +1,121 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-state-conditioned-expert-router-opportunity-audit-20260902",
+  "title": "State-conditioned frozen expert router opportunity audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T11:12:14+00:00",
+  "updated_at": "2026-09-02T11:16:40+00:00",
+  "started_at": "2026-09-02T11:12:14+00:00",
+  "ended_at": "2026-09-02T11:16:40+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A router trained only on legal hand-start private-card and seat features can exploit complementary Standard10 and diverse_league5 strengths across four training opponents, retain both experts, and improve over Standard10 on three SHA-disjoint holdout opponents and independent deck seeds.",
+  "material_change": "Reuse the completed three-seed PSRO raw hand evidence without generating hands. Fit two fixed ridge outcome models with leave-one-training-opponent-out alpha selection, freeze the resulting whole-hand expert gate, and evaluate it only on holdout opponents 6-8 using an unbiased independent-stream policy-value estimator and bootstrap confidence intervals.",
+  "baseline": "Frozen Standard10 whole-hand policy on identical holdout opponent cohorts; diverse_league5 is the alternate expert, not a new checkpoint.",
+  "source": "v6-psro-meta-game-feasibility-20260902",
+  "parent_id": "v6-psro-meta-game-feasibility-20260902",
+  "command": "python scripts/alpha_holdem/v6_state_conditioned_expert_router_audit.py --summary research/experiments/v6-psro-meta-game-feasibility-20260902/run/summary.json --out research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/analysis.json --bootstrap 2000 --seed 20265001",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_state_conditioned_expert_router_audit.py --summary research/experiments/v6-psro-meta-game-feasibility-20260902/run/summary.json --out research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/analysis.json --bootstrap 2000 --seed 20265001",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T11:12:14+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1624d0e7cfc5146be7fb871d8b1055f227be7f6e9e5a50af82fe0e2479b50348",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_psro_meta_game_feasibility.py"
+    ],
+    "captured_at": "2026-09-02T11:12:15+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "636607d9734b7686b03232752774cfadee0d8fff7bc5cb0862c1ed948d4b5bcf",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 21504,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 266.0,
+    "reused_source_paired_rows": 27648,
+    "offline_expert_hand_observations": 21504
+  },
+  "metrics": {
+    "selected_ridge_alpha": 1000,
+    "pooled_delta_vs_standard10_bb100": 51.538411458333265,
+    "pooled_delta_ci95_lower": -121.64386393229168,
+    "pooled_delta_ci95_upper": 227.90185004340262,
+    "alternate_selection_fraction": 0.7740885416666667,
+    "worst_training_cv_delta_bb100": -33.239583333333314,
+    "holdout_opponent8_delta_bb100": -43.043619791666664,
+    "seed1_delta_bb100": -108.7942708333333
+  },
+  "artifacts": [
+    "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/code.patch",
+    "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/source_manifest.json",
+    "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/analysis.json",
+    "scripts/alpha_holdem/v6_state_conditioned_expert_router_audit.py",
+    "scripts/alpha_holdem/test_v6_state_conditioned_expert_router_audit.py"
+  ],
+  "notes": [
+    "Preregistered gates: exact source hashes and coverage; selected expert fraction between 5% and 95%; pooled holdout router-minus-Standard10 >5 bb/100 with 95% bootstrap lower bound >0; positive point delta on all three holdout opponents, both seats, and at least two of three deck seeds. Claim scope is offline whole-hand router feasibility only, not per-decision optimality, Slumbot strength, or newly generated environment hands.",
+    "All source gzip hashes and 3x9216 paired-row coverage were verified. Three targeted tests and the full 299-test AlphaHoldem suite passed. No new policy query or environment hand was generated."
+  ],
+  "result": {
+    "summary": "Reused the complete three-seed PSRO evidence to fit a legal-information whole-hand router between Standard10 and diverse_league5. The router retained both experts and had a pooled +51.54 bb/100 point estimate, but its independent-stream 95% bootstrap CI was [-121.64,+227.90], every training-CV alpha had a negative worst-opponent fold, holdout opponent8 was -43.04, and seed1 was -108.79 bb/100.",
+    "conclusion": "Hand-start private cards and seat do not provide stable cross-opponent expert-routing signal at this evidence scale. The positive pooled point is statistically unresolved and contradicted by one holdout opponent and one deck seed. This rejects the whole-hand router opportunity, not decision-level mixture-of-experts or long-horizon learning; zero new training/evaluation hands were generated.",
+    "decision": "REJECT_WHOLE_HAND_STATE_ROUTER_OPPORTUNITY",
+    "next_step": "Do not train or externally test this router and do not increase the same unpaired matrix merely to rescue its point estimate. Choose a decision-level learned credit mechanism with broad on-policy state coverage, Standard10 preservation, multi-seed geometric checkpoints, and an early proxy/external alignment control before large-scale allocation."
+  },
+  "tags": [
+    "mixture-of-experts",
+    "offline-audit",
+    "state-conditioned"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 299,
+      "sha256": "636607d9734b7686b03232752774cfadee0d8fff7bc5cb0862c1ed948d4b5bcf"
+    },
+    "research/experiments/v6-state-conditioned-expert-router-opportunity-audit-20260902/analysis.json": {
+      "type": "file",
+      "bytes": 15753,
+      "sha256": "9470622f4de40b6d73d67013ad2b35280f53e5f70f6a83e59496a87e6071ce4b"
+    },
+    "scripts/alpha_holdem/v6_state_conditioned_expert_router_audit.py": {
+      "type": "file",
+      "bytes": 12013,
+      "sha256": "28f1343095a2da10727d64eeefb716c8a5e256444e756d20d518f479cbb17214"
+    },
+    "scripts/alpha_holdem/test_v6_state_conditioned_expert_router_audit.py": {
+      "type": "file",
+      "bytes": 1557,
+      "sha256": "eaf9b111709426f3583632e3a1d81a9ab471309b6a79ccc9631d4723ae601be5"
+    }
+  }
+}

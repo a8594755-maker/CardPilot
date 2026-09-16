@@ -1,0 +1,164 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-common-state-retention-diagnostic-20260831",
+  "title": "Frozen common-state source retention diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T10:18:13+00:00",
+  "updated_at": "2026-08-31T10:25:13+00:00",
+  "started_at": "2026-08-31T10:18:13+00:00",
+  "ended_at": "2026-08-31T10:22:55+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "KL0.1 retains source probabilities more closely than KL0.01 on identical exogenous states,independent of the models own trajectory distributions.",
+  "material_change": "Query3already frozen policies on512fixed model-independent synthetic trajectories;measure hand-weighted TV/KL/JS without reading ongoing evaluation scores.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-source-kl-retention-pilot-20260831",
+  "command": "python research/experiments/v6-common-state-retention-diagnostic-20260831/run_diagnostic.py --attempt attempt01",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-common-state-retention-diagnostic-20260831/run_diagnostic.py --attempt attempt01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:18:13+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-common-state-retention-diagnostic-20260831/run_diagnostic.py --attempt attempt01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:21:03+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-common-state-retention-diagnostic-20260831/preregistration.md"
+    ],
+    "captured_at": "2026-08-31T10:18:13+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-common-state-retention-diagnostic-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-common-state-retention-diagnostic-20260831/source_manifest.json",
+    "source_manifest_sha256": "fc2e2b9dc8ded31a82850227c3b8520682c9e463caef9edb6d057b0c60a9e3c4",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 282.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "planned_diagnostic_hands": 512,
+    "attempt01_diagnostic_hands": 512,
+    "attempt01_diagnostic_states": 4202,
+    "metric_tests_passed": 5,
+    "diagnostic_hands": 512,
+    "diagnostic_states": 4202,
+    "model_inference_queries": 12606,
+    "hand_weighted_tv_control": 0.1641385542108585,
+    "hand_weighted_tv_treatment": 0.14606145440017737,
+    "hand_weighted_tv_delta": -0.01807709981068112,
+    "preflop_bb_tv_delta": 0.13292310795657716,
+    "independently_verified_raw_hashes": 3
+  },
+  "artifacts": [
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/preregistration.md",
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/code.patch",
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\states.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\tests.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\trajectories.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\execution_code\\source_manifest.json",
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/result_summary.md"
+  ],
+  "notes": [
+    "Outcome-blind mechanism diagnostic only,no policy promotion or gate change. Model outputs never select generated behavior actions;no GPU or poker API.",
+    "attempt01started;fixed512model-independent hands,no partial strength results consumed.",
+    "attempt01endedPASS;descriptive common-state mechanism evidence only,no strength gate or checkpoint selection change.",
+    "Common-state TV is lower overall and in7of8street/seat strata,with BBpreflop the exception. Read-only source/config inspection confirms KL(reference||current) covers all rows when policy_postflop_only=false;no preflop exclusion was found. This does not establish causality or strength and does not change the ongoing fixed gate."
+  ],
+  "result": {
+    "summary": "Common-state retention diagnostic measured3frozen policies on512synthetic hands/4202states;hand-weighted TV delta-0.018077.",
+    "conclusion": "This outcome-blind exogenous-state diagnostic isolates common-input policy drift,not general playing strength or causal multi-seed learning effects.",
+    "decision": "COMMON_STATE_RETENTION_MEASURED",
+    "next_step": "Await the unchanged fixed strength comparison and its required independent confirmation;use common-state drift only to interpret learning mechanisms."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 3115,
+      "sha256": "80662b5e31e064017805dff7a145bcc9c54ae02a4254471aba69c16e6d70f057"
+    },
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 330,
+      "sha256": "fc2e2b9dc8ded31a82850227c3b8520682c9e463caef9edb6d057b0c60a9e3c4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\analysis.json": {
+      "type": "file",
+      "bytes": 32341,
+      "sha256": "23564045b6876f848a6fb3e92b5d32a231dbec556803bdf1cb3cbc180b70557f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\states.jsonl": {
+      "type": "file",
+      "bytes": 13564080,
+      "sha256": "da6225edf2bdb16f10005ff7f0a839bdbe6a752f6c032daf67eab0f8fa43570d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\tests.log": {
+      "type": "file",
+      "bytes": 600,
+      "sha256": "1a6c4aeefe612b1a41211c100e0d77dcdea1d826269c5611921da48a71c9a7a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\trajectories.jsonl": {
+      "type": "file",
+      "bytes": 183623,
+      "sha256": "9f130066b723a42a2745acdf277d1c4a6bae43e0f4a66ccf33ad78c92f46a6d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 24877,
+      "sha256": "a2fdf09bb2b54026c5720f48cda49884d73461225e7e6fb0dfd91110fa44d458"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-common-state-retention-diagnostic-20260831\\attempt01\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13849,
+      "sha256": "e8c2d4e3e17f4dfd66500383404a28d3c424f9ace1cad3ba56b5c56b002c6a1f"
+    },
+    "research/experiments/v6-common-state-retention-diagnostic-20260831/result_summary.md": {
+      "type": "file",
+      "bytes": 3049,
+      "sha256": "316a91f27b94100079d4283796e3a0819913516b7043b83e6547b6b63fc4a366"
+    }
+  }
+}

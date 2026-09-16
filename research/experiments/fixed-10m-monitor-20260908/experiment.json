@@ -1,0 +1,91 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "fixed-10m-monitor-20260908",
+  "title": "Read-only local training progress dashboard",
+  "status": "COMPLETED",
+  "created_at": "2026-09-09T03:39:00+00:00",
+  "updated_at": "2026-09-09T03:39:45+00:00",
+  "started_at": "2026-09-09T03:39:00+00:00",
+  "ended_at": "2026-09-09T03:39:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Expose physical counts and measured wall-clock ETA without modifying training.",
+  "material_change": "Localhost read-only monitor; process identity, stale logs, completed boundary, disk and checkpoint timestamps.",
+  "baseline": "",
+  "source": "",
+  "parent_id": null,
+  "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u scripts/alpha_holdem/training_monitor.py --run-dir research/experiments/v6-fromzero-10m-20260908 --port 8766",
+  "commands": [
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u scripts/alpha_holdem/training_monitor.py --run-dir research/experiments/v6-fromzero-10m-20260908 --port 8766",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-09T03:39:00+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "2b59da88422e90c117f6ee5f9a3964c6e3ccccea4f4b39bc8e98e969902ab928",
+    "code_paths": [
+      "scripts/alpha_holdem/training_monitor.py",
+      "scripts/alpha_holdem/test_training_monitor.py"
+    ],
+    "captured_at": "2026-09-09T03:39:00+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/fixed-10m-monitor-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/fixed-10m-monitor-20260908/source_manifest.json",
+    "source_manifest_sha256": "cac6445e45fe5e77f3277a16515ac1dd72ba45402b8e42616164dda710777436",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 0.0
+  },
+  "metrics": {
+    "tests_passed": 2,
+    "wall_time_seconds": 120
+  },
+  "artifacts": [
+    "research/experiments/fixed-10m-monitor-20260908/code.patch",
+    "research/experiments/fixed-10m-monitor-20260908/source_manifest.json"
+  ],
+  "notes": [
+    "wall_time_seconds=120 is approximate implementation time, not an instrumented duration. Live /status HTTP checked; in-app browser opening queued, browser automation preview timed out. Training remains independent."
+  ],
+  "result": {
+    "summary": "Two monitor unit tests passed; live localhost status returns physical progress; dashboard service running separately from training.",
+    "conclusion": "ETA is an early rolling wall-clock projection, not a strength claim.",
+    "decision": "Leave read-only dashboard available; no automatic evaluation or continuation.",
+    "next_step": "User follows up after training."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/fixed-10m-monitor-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/fixed-10m-monitor-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 465,
+      "sha256": "cac6445e45fe5e77f3277a16515ac1dd72ba45402b8e42616164dda710777436"
+    }
+  }
+}

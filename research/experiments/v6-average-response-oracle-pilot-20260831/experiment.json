@@ -1,0 +1,973 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-average-response-oracle-pilot-20260831",
+  "title": "Frozen-average PPO response oracle pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T17:06:45+00:00",
+  "updated_at": "2026-08-31T17:57:17+00:00",
+  "started_at": "2026-08-31T17:18:48+00:00",
+  "ended_at": "2026-08-31T17:56:45+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A full-network PPO response to a frozen learned average can improve its primary fixed-opponent paired return, qualifying the response-learning component of a later phased fictitious-self-play loop.",
+  "material_change": "New PPO weights-initialization from frozen historical-average epoch12; sole immutable average opponent; zero selfplay and source-KL; qualified multi8 actual1m curve followed by24untouched internal cells.",
+  "baseline": "Frozen historical-average epoch12 cd7ce2b27cf3a86e96141432c92c6f92a3eb923dce519d1f1128af5acbb2364b",
+  "source": "v6-historical-average-distillation-20260831",
+  "parent_id": "v6-historical-average-fresh20k-slumbot-20260831",
+  "command": "python research/experiments/v6-average-response-oracle-pilot-20260831/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-average-response-oracle-pilot-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:06:45+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-average-response-oracle-pilot-20260831/test_pilot.py -q --junitxml=research/experiments/v6-average-response-oracle-pilot-20260831/preparation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:17:57+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-average-response-oracle-pilot-20260831/run_pilot.py research/experiments/v6-average-response-oracle-pilot-20260831/review_finish.py research/experiments/v6-average-response-oracle-pilot-20260831/oracle_stats.py research/experiments/v6-average-response-oracle-pilot-20260831/test_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:17:57+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-average-response-oracle-pilot-20260831/test_pilot.py -q --junitxml=research/experiments/v6-average-response-oracle-pilot-20260831/admission_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:18:37+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:18:53+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1048576 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef 0 --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --hero-policy-mode sample --self-play-fraction 0 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\opponent_assignments.jsonl --rollout-mode multi --worker-seed-base 2026101300 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_average_response_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\latest.pt --seed 20261013 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --allow-resume --reset-hand-counter --reset-optimizer --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:18:58+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-average-response-oracle-pilot-20260831/check_startup.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:20:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production --expected-target-hands 99999999 --expected-target-environment-hands 1048576 --expected-final-iteration 250 --expected-pool-size 1 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:03+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:29+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:30+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:31+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:32+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:34+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:35+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:36+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:37+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:38+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:39+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:40+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:41+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:46+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_average",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:47+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:48+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:49+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261014 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:36:52+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-average-response-oracle-pilot-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T17:56:44+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-average-response-oracle-pilot-20260831"
+    ],
+    "captured_at": "2026-08-31T17:06:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-average-response-oracle-pilot-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-average-response-oracle-pilot-20260831/source_manifest.json",
+    "source_manifest_sha256": "26b80c5a0cac4284ce2a8314a2adbea0fad986e6aaac7fa63bf8f8c727253a29",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 1051045,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 196608,
+    "wall_time_seconds": 2277.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "active_iteration": 250
+  },
+  "artifacts": [
+    "research/experiments/v6-average-response-oracle-pilot-20260831/preregistration.md",
+    "research/experiments/v6-average-response-oracle-pilot-20260831/code.patch",
+    "research/experiments/v6-average-response-oracle-pilot-20260831/source_manifest.json",
+    "research/experiments/v6-average-response-oracle-pilot-20260831/preparation_tests.xml",
+    "research/experiments/v6-average-response-oracle-pilot-20260831/admission_tests.xml",
+    "research/experiments/v6-average-response-oracle-pilot-20260831/prelaunch_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initialization_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\check_startup.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\startup_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\checkpoints\\checkpoint_iter000004_hands000000016496.pt",
+    "research/experiments/v6-average-response-oracle-pilot-20260831/startup_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\training_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\training_health.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\checkpoints\\checkpoint_iter000064_hands000000264605.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\checkpoints\\checkpoint_iter000128_hands000000529187.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\archive_selection.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_average\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_average\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_average_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\result_summary.md",
+    "research/experiments/v6-average-response-oracle-pilot-20260831/post_finish_audit.json"
+  ],
+  "notes": [
+    "Explicit new PPO trial, not supervised-checkpoint resume. Preserve old80-state optimizer/reservoir/counters. No100k and no benchmark-specific rules; exact response/convergence not claimed.",
+    "17offline preparation tests pass, including exact86-tensor weight identity with preserved80-state SL optimizer and explicit new empty86-parameter PPO Adam; no new environment hands or network requests. Actual archive selection uses production/checkpoints and validates metric-counter bounds.",
+    "Final admission additionally verifies every current poker script against the qualified GPU source/copy hashes and independently checks all archive counter metadata. No shared trainer source modifications.",
+    "Both17-test preparation and final admission suites pass; launch the original fixed-budget PPO response trial. Sole frozen average opponent, no source-KL, no selfplay, no external requests. All original Slumbot and SL evidence preserved.",
+    "Read-only first-archive startup audit PASS: original PIDs, all86learner tensors changed, fresh86-state Adam distinct from preserved80-state SL optimizer, all86fixed-opponent tensors exactly unchanged, source/copy hashes intact. Diagnostic added after capture; no active captured source modified.",
+    "Startup record audit0warnings; original fixed-budget training continues. No policy/evaluation change based on online training reward and no Slumbot qualification admitted.",
+    "Training/session audit complete. All4actual-counter-selected checkpoints frozen before24fixed internal cells. No external allocation.",
+    "Primary fixed-average response curve rises descriptively547.14 to719.65 to850.01bb/100; final primary95CI[719.00,981.03] passes. This is not general strength: final-minus-initial anchor1=-570.83 and anchor2=-557.61, both family18intervals below zero; anchors3/4 inconclusive. Use the validated final only as a response component in the preregistered half/half average update, not an external candidate. No newSlumbot or100k admission."
+  ],
+  "result": {
+    "summary": "Frozen-average response completed1051045actual PPO hands and196608internal hands;ADMIT_SEPARATE_AVERAGE_UPDATE.",
+    "conclusion": "One learned response oracle tested against an immutable average; no exact best-response, equilibrium, Slumbot transfer or100k claim.",
+    "decision": "ADMIT_SEPARATE_AVERAGE_UPDATE",
+    "next_step": "Preregister a separate reach-weighted average update / next response phase."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 33,
+    "command_count": 33
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-average-response-oracle-pilot-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4799,
+      "sha256": "bb20a8508eac328aa559d64754da0662e48eb3c7b16c7dc83f131d903a0d9361"
+    },
+    "research/experiments/v6-average-response-oracle-pilot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-average-response-oracle-pilot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 531,
+      "sha256": "26b80c5a0cac4284ce2a8314a2adbea0fad986e6aaac7fa63bf8f8c727253a29"
+    },
+    "research/experiments/v6-average-response-oracle-pilot-20260831/preparation_tests.xml": {
+      "type": "file",
+      "bytes": 2977,
+      "sha256": "d5e3b67cc33f2d4fe8e5de4155b1258f9bb48b2412d8e5057da75d52d35c7739"
+    },
+    "research/experiments/v6-average-response-oracle-pilot-20260831/admission_tests.xml": {
+      "type": "file",
+      "bytes": 2977,
+      "sha256": "299841a7f1aaedf3cfb2bd9a549a129ae5e4591f489d229b839e93eef9113046"
+    },
+    "research/experiments/v6-average-response-oracle-pilot-20260831/prelaunch_audit.json": {
+      "type": "file",
+      "bytes": 225,
+      "sha256": "715d35529c622098399c6cfd05a0542feba824b7484e6179f22f37df142bd5b1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14046,
+      "sha256": "0f0cc0ea4bec3cecc213a4d1fbfc161c988eb0a3a81d9e51c0c595fdc1df3b63"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23789,
+      "sha256": "cadf930ed34dfcb4b897fcc121981ec22dcecf4f1902a2a5e529f3b3cd1d2c13"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 2251,
+      "sha256": "21ac2f3214c0fc0261046ff840a7c4223a8a7ab8962c0723fb4a7f4d937b88a2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initialization_audit.json": {
+      "type": "file",
+      "bytes": 380,
+      "sha256": "dd570074d37e23b22ea1a2e57457b92a17ebfc5beba3257e6d3410823f3ab094"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\average.pt": {
+      "type": "file",
+      "bytes": 98356678,
+      "sha256": "cd7ce2b27cf3a86e96141432c92c6f92a3eb923dce519d1f1128af5acbb2364b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2977,
+      "sha256": "0f86ea296cfbaf118ec82d1ea48ed18f8398a8ab3c469e31fc5afad9e3dec17f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\check_startup.py": {
+      "type": "file",
+      "bytes": 4631,
+      "sha256": "1de89076b8dd9f699796f5683a35c07c24fe4e1f204f9b7f7c00c73357fb672c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\startup_analysis.json": {
+      "type": "file",
+      "bytes": 931,
+      "sha256": "deabc8196fcfc408925ccca018744c874354d3e98468b5135d2a993e7d9bd4ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\checkpoints\\checkpoint_iter000004_hands000000016496.pt": {
+      "type": "file",
+      "bytes": 132219158,
+      "sha256": "d3b18f993ead06930182c613a82903b65ac0b780e6d5b49c31a06de4169e522b"
+    },
+    "research/experiments/v6-average-response-oracle-pilot-20260831/startup_record_audit.json": {
+      "type": "file",
+      "bytes": 225,
+      "sha256": "f69d23577bd8aec10b6a443b4fd17cd0b0d34d301d54755d23e18231ccfbe4d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\training_stdout.log": {
+      "type": "file",
+      "bytes": 156477,
+      "sha256": "827160e2f8daacf048ee3e89c2cc1af782f034acba3816193758b4101e57e654"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\latest.pt": {
+      "type": "file",
+      "bytes": 132199012,
+      "sha256": "58ef62e875ce8ad1ecf518a1a65c8f54ba711b3bc1ea1a3ab3a00ed1e1a3540d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\run_manifest.json": {
+      "type": "file",
+      "bytes": 55687,
+      "sha256": "246ed99a520146372d08cab79d91706eea38347749fc9528379bf0a1f8e51e7e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 6582620,
+      "sha256": "cd08d0f6027f7578abce3f5b7aa3e345a07109be426329d011e449209aa81f9d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 638057,
+      "sha256": "2ed06324033232e822a5e91dd4d6ef7ba93a5567b6f34c256a78c12cfd184f36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\latest_train.log": {
+      "type": "file",
+      "bytes": 110661,
+      "sha256": "5f190ad0cf61020c978aa2c69fe27bd3afa4d1301c6fe56a8ddc303255e71149"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\session_audit.json": {
+      "type": "file",
+      "bytes": 26147,
+      "sha256": "162aaa71d30f0a7368f4161ab47501f7ffef5ba912ff564723935d3fc60f14b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 26147,
+      "sha256": "162aaa71d30f0a7368f4161ab47501f7ffef5ba912ff564723935d3fc60f14b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\training_health.json": {
+      "type": "file",
+      "bytes": 562,
+      "sha256": "94a488c43e2dddeacd6d995b2c4e6a1d4527d6aab19c079064c40371cb41c5cb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\quarter.pt": {
+      "type": "file",
+      "bytes": 132219158,
+      "sha256": "9889ea97184e14f5d6e2a8b3d242127951200c27ac4ea083a6f35cda29a67b45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\checkpoints\\checkpoint_iter000064_hands000000264605.pt": {
+      "type": "file",
+      "bytes": 132219158,
+      "sha256": "9889ea97184e14f5d6e2a8b3d242127951200c27ac4ea083a6f35cda29a67b45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\half.pt": {
+      "type": "file",
+      "bytes": 132219158,
+      "sha256": "dacfc1d21ff794c98d4a1fd8549b65eb1333f276b6947ae72d433549e36e3b16"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\production\\checkpoints\\checkpoint_iter000128_hands000000529187.pt": {
+      "type": "file",
+      "bytes": 132219158,
+      "sha256": "dacfc1d21ff794c98d4a1fd8549b65eb1333f276b6947ae72d433549e36e3b16"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 132199012,
+      "sha256": "58ef62e875ce8ad1ecf518a1a65c8f54ba711b3bc1ea1a3ab3a00ed1e1a3540d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\archive_selection.json": {
+      "type": "file",
+      "bytes": 21447,
+      "sha256": "f76c7d26a615e69b8b7c342e51e4a865380bc34a754ab4ba493530ec64c34809"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 1600,
+      "sha256": "ed591462606eeb07549244df1963ab64fe97ae0a3794c22393ee500cbc9904b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation_commands.json": {
+      "type": "file",
+      "bytes": 22107,
+      "sha256": "3d40b1108917ccb794ee7143fdd9913a767e19c89e20ec711eab0f966e75d46a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1144848,
+      "sha256": "e20f881e57d58131aef63c9452e9a364e3d5df0fe244cd7e6fcea10d531e6127"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_average\\summary.json": {
+      "type": "file",
+      "bytes": 1633,
+      "sha256": "a71dfe46cb66f036df4999891a2fa56ed2773c1fe36888bb42592f6856cc2c9c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145721,
+      "sha256": "58fbe4dc284a3a86dfe7c3e8111bd789df3e377ca601f703cfc96c985f79de40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "03a0d988aff6d721cfc89c055d0832f13a5fa7bf5a29c4a656405fd82aefe186"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1138902,
+      "sha256": "7c3af066136e030f142aa7c72f01968b979938f119b006fa2f38f3cb198d8313"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1677,
+      "sha256": "730f5f912b66bb08ce7355bc59f38cbc73f4bb5beb2ff88d22c3c532acf605b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145095,
+      "sha256": "d65e7e306146339ef4bb6bc7d0d168b19c457a2388332f436a3dde06f8f67a6a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1671,
+      "sha256": "01a36fa00d086cf89b8ceed4e08a1ecc703a41e76f546b3408ddd8e0e484941b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147522,
+      "sha256": "6446ce58153592c9acb12c563ad20cec5c26a039e13417a65741a3d337594164"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "20cb0e60f1f6a93e9842f9facee1d191928e3f02c90df47266b779c5cb92d50d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147644,
+      "sha256": "c7f120d22204174d35ff950a75e306d9335cef4a8fa6ec30f48d67486eaa83a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\initial_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1676,
+      "sha256": "9e88ac36f0db5d97c65378c505f385182eae73094248535c9ab4cb129d59dc76"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146640,
+      "sha256": "2600c1cbeada1f243ad84ba0bbafb2111157569b189fd9b2a5bb083246f3ec1c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_average\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "8a4ceafffd590340fe983a8521c7117889532a22de9fcb01ac6b7d1665fd168d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146219,
+      "sha256": "7c448243653b0d1a61f29c104dfb469a2225bf6f180e2e5fee1ccd8e8cd5980c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1674,
+      "sha256": "e67543ab9643aac7034282c6bad37a9242168e8939975b5aa44db6cb76a2af5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139961,
+      "sha256": "5c5775268c309948f5445e12474d6da60c3088f43f0163d4c242d64065920af5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1677,
+      "sha256": "ee310de0faea43c467b8a45181f444fb02f39857b4e9b7cf10d477fa0c4674b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147333,
+      "sha256": "85dc174039a179ae3c15ae624870e9306ab9f278fc73dd45c9dc97941286ccf5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1675,
+      "sha256": "c03e79e009156ea199b4155beca99efabfc3379562dad7cfb5164631f231a373"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148209,
+      "sha256": "5fe4fa365caa93b98a45f730e3880f92fa7d4030c3758fdab793f4681c269880"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1675,
+      "sha256": "736d370404d51f895d023538d694abad809d11174f54cd598f73052bb86d2ee5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149562,
+      "sha256": "94b37399a85a73439b9b3f47e20ad22d54eeb8f18493d5ac90d9d5011fa32b5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\quarter_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1675,
+      "sha256": "beeb992be2db3fd2953cc95c788e7980c83e48800cbdc3dac48e4eb201c1935a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147804,
+      "sha256": "bd2e57943e98e352ec20264809daf594b2fa9870408f8abac52b0e80521e84e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_average\\summary.json": {
+      "type": "file",
+      "bytes": 1669,
+      "sha256": "6afb1a602ae203e3aac6a2e42a2e803724493ba65ddb9740c2e7c4373d60d9f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147396,
+      "sha256": "4db877614b2739bfd4dbef08224d91b621166047c90a577dd94cb69072f5e5fe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1667,
+      "sha256": "f1f793254dda32a40a282dfbabf1b384eb447a01e0120586051246a6090ee12f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1140097,
+      "sha256": "fe5f17356917dd294c80fb4a6d480df034b9fe0658876c613ff97806f7b66476"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1672,
+      "sha256": "6d33eb94788df824dbf3b904ae634812e92f43965b0272485b03ccb187a6ff79"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148281,
+      "sha256": "8d4fa54e73bb8c394822ad8104be7b6b425ba67b6190ddf97b985bf8736d83db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1669,
+      "sha256": "276e7c714d97649e94259a9a315bb0b017adc87f6d435e744d697832511fff21"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149533,
+      "sha256": "064690352841fb69224da5965b6a3e9c5eca6350e149a386b53b4f75b62ed9d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1669,
+      "sha256": "774979a12aa0874d633e864afa179a241ce0a9183ec9d232124a8373e43f40f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150632,
+      "sha256": "63be631520f69420a8780e85393e249b70a310f877675f356fcc8498bd5ea313"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\half_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1670,
+      "sha256": "bf9ab1e893e09c80e1035d245e7b39e0c355c7a9a0c235c511bb6708480301c2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_average\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147632,
+      "sha256": "653f00057e0772d18e1553c83f70c170d5c43fe16c67dc1a08c8621e5537913d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_average\\summary.json": {
+      "type": "file",
+      "bytes": 1669,
+      "sha256": "c61b73e2f8bb56ba22a51f077fc1a1957075ad6512fbb710d6afed0cb0283e92"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147940,
+      "sha256": "48c2e6b5dc076ab4f749005ca5bb57896730dead5f0be5262929e06ef8eeac36"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1671,
+      "sha256": "a1f829c8ded29cd7f4971d5c686d00feeb797c127af2012506417a32eb1df265"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139683,
+      "sha256": "3057bf1c6b09849db7054f89f377979f9172dfe0a4899b5be7d8499d7572a230"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1673,
+      "sha256": "710c01e5c2c1db2087143326cc7ce8d0181191a731fa0a96446932bfba37543b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148058,
+      "sha256": "9c3b8199f6e50833b3f65e8df11c8caf4951fe8668bc189bf531589f0913c79b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1669,
+      "sha256": "70500986c473a184dbda1059c700ad455ccce4b3555c883c845310d655a189b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149942,
+      "sha256": "82ab3caf314e58f3e6d90ef1597604599f32f52484fedc9321fa8115703fd4d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1667,
+      "sha256": "9c476d4b0c07ccde6478c9513b82d445c2539a61d3b6157b971bb2af8e049f30"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150054,
+      "sha256": "c36fbefcc94ca238ad4e5a26de96d9406a9d216c8c3df808d36dcea2b0245139"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\evaluation\\final_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1670,
+      "sha256": "cd8e68dfde9fdd990be0c57841a40aeb49798bb9dece810bb285012211981ba9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 10061,
+      "sha256": "da7e28c886e9de57984cbf49a5b822af9ba760525a305be9183f1d7ca2b87312"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_average_stdout.log": {
+      "type": "file",
+      "bytes": 1676,
+      "sha256": "f0f36775501558afbddd2b5c36eec619a37d787ca54becb3199a416932963cb4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "7df4f55900da9592a01c4d87a3c0bdac1218769601243d4c4b4f7b0b3d995b17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1720,
+      "sha256": "6264351f2a901e63bd49c09feda5fa09cc4fb349835bd2b5081ec1dd7e45781c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1714,
+      "sha256": "3755fc6745d6da92c28fa4d1ed05452018cebb0092f0d5fa39dc7aad5464648e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "5ca6442368ed8699e2789cebba328d5698f92570b5659c797d270dead722e313"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\initial_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1719,
+      "sha256": "902678fd075c3d12fdb92e0d4fda393e43af690fda62ae84ead8253e59fe0dcd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_average_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "f1b3a0670dff0e2905cd3b8ad018c552f2b0546e9e3a492312e4c295069069a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1717,
+      "sha256": "f6aabb2acac6548c8efa9ec1262f8a939986bd1e424eda13a94e6cfee54a11b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1720,
+      "sha256": "38e231cd0c34e066b2e290698af0e16203c0b9126bb87fd4d53e533f72a90e9f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1718,
+      "sha256": "5f7a2fe5f54ad0d8777cf0db8bdac11ac5f43300f8da111f0d6374f6e71a1b53"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1718,
+      "sha256": "259e3f4e7ddccfa3c1b88c1b4d47aabb86059e1929bc6f76084ea2e915114b06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\quarter_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1718,
+      "sha256": "9326bbdf3bb48cefc5a091ea1040a76e5fd460a7af7fca251cba5f4f8a354183"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_average_stdout.log": {
+      "type": "file",
+      "bytes": 1712,
+      "sha256": "efac5bb7abd8dec1d0561edcadc990e1ed01b2076032dc003af42d81ca3f2566"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1710,
+      "sha256": "a6af592caa743d9266b739b0a2d56a58dc282536a99afed08992396de295c7e9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1715,
+      "sha256": "7cf00ef401ff12381d2d860f370f642ee438539b67737426820cd4a14a7f7727"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1712,
+      "sha256": "c108a642a6291c96f948e9d578f9ccebc1af50ff7bad7db29c9f335fcfc308f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1712,
+      "sha256": "d9250cd40c48fe70208afdd0f1c53e36d141cb6f6e26c7f0627134f601039baa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\half_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1713,
+      "sha256": "499b01fbe2277efe3baf93c0feb587951309c13f5acdb3224d62b4960cecd7c2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_average_stdout.log": {
+      "type": "file",
+      "bytes": 1712,
+      "sha256": "b5c2dc98ee0beb860255425b904979b0b7ba01c7186fe1598fe2075dc491c46c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1714,
+      "sha256": "7bb00084fd562edeb5472c3f5c206086a06da84ed0b57a69d395bf9237431b5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1716,
+      "sha256": "5eca5bca512b1311d94abf572bf0ff7171ac51f40fd91011fbeebe26ed67248e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1712,
+      "sha256": "2b65fd71ff5e68b0b38313f7c73882381f2f13ea07a289f7282d6168e8c7dcdb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1710,
+      "sha256": "52821d11c1640c9104c99a43bc6824853f87b42d2dbdd670a9b479efa49aa412"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\final_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1713,
+      "sha256": "d5e328bdd9c7f9f77f9b2efe563609a74e86361ccfd8ea90a642d2d7980af266"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 28145,
+      "sha256": "650ae0010094019f5ede4be5ffc6b86cdf43e475addcbeda55eb29077ba93764"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 10958,
+      "sha256": "ff2f49d0240d95f17f93441d39d57b2a02c23f770020a71b6b83260d7b9db2d0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-average-response-oracle-pilot-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 2801,
+      "sha256": "ec4b0f56fa9016468ccab7facb8474d3c0e408c1b1e1e531793047401c2c1c3f"
+    },
+    "research/experiments/v6-average-response-oracle-pilot-20260831/post_finish_audit.json": {
+      "type": "file",
+      "bytes": 312,
+      "sha256": "1e0921f174588f8260f0fdfc5abae77920ab37fc9d30eeaba674c8afd6492fdb"
+    }
+  }
+}

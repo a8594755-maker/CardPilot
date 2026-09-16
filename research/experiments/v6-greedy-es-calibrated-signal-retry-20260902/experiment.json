@@ -1,0 +1,136 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-greedy-es-calibrated-signal-retry-20260902",
+  "title": "Calibrated direct-greedy ES minimal signal retry",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T04:58:16+00:00",
+  "updated_at": "2026-09-02T05:09:28+00:00",
+  "started_at": "2026-09-02T04:58:16+00:00",
+  "ended_at": "2026-09-02T05:09:28+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Outcome-blind calibrated sigma 0.8 will activate a reproducible mirrored direct-greedy fitness signal on a wholly new seed: at least one nonzero antithetic difference, positive split-half direction correlation, a nonzero bounded center update, and positive gen0-to-gen1 untouched broad-holdout slope without material Standard10 drift.",
+  "material_change": "Repeat only one generation of the state-conditioned ES mechanism on new seed 20262010 using sigma 0.8 selected without rewards. Keep eight directions, six training opponents, both seats, 32 common-deck pairs per opponent, robust fitness, three untouched holdouts, output-only learned weights, residual cap 0.25, and center step L2 0.05. Stop after the minimal 6,144-hand signal gate.",
+  "baseline": "Sigma 0.005 produced zero changes over 12,288 hands. Outcome-blind calibration selected sigma 0.8 with 0.83%-1.88% direction-wise greedy disagreement and cap-safe residual logits. No strength evidence exists yet for activated ES.",
+  "source": "research/experiments/v6-greedy-es-sigma-calibration-20260902/calibration.json",
+  "parent_id": "v6-greedy-es-sigma-calibration-20260902",
+  "command": "python scripts/alpha_holdem/v6_greedy_es_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20262010 --generations 1 --directions 8 --pairs-per-training-opponent 32 --pairs-per-holdout 128 --sigma 0.8 --step-l2 0.05 --max-center-l2 0.15 --dispersion-weight 0.25 --device cuda --out-dir research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_greedy_es_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20262010 --generations 1 --directions 8 --pairs-per-training-opponent 32 --pairs-per-holdout 128 --sigma 0.8 --step-l2 0.05 --max-center-l2 0.15 --dispersion-weight 0.25 --device cuda --out-dir research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:58:16+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:09:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4886efae5741bcece8551a3cc86e8f276c8bab02da42a799263372d7d33442a5",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T04:58:16+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/source_manifest.json",
+    "source_manifest_sha256": "533de8f4ae5d0fd5d103d6492792dcdadc0433fb11b619a8f6d7cdbe66743e71",
+    "source_files": 165
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 6144,
+    "lineage_training_hands": 18432,
+    "offline_samples": 0,
+    "evaluation_hands": 3072,
+    "wall_time_seconds": 672.0,
+    "planned_training_hands": 6144,
+    "planned_evaluation_hands": 3072,
+    "planned_slumbot_hands": 0,
+    "slumbot_hands": 0,
+    "qualification_hands": 0
+  },
+  "metrics": {
+    "sigma": 0.8,
+    "nonzero_fitness_directions": 8,
+    "positive_fitness_directions": 3,
+    "split_half_direction_correlation": -0.6312586349910374,
+    "center_l2": 0.05,
+    "validation_slope_bb100": -21.354166666666664,
+    "validation_ci95_half_bb100": 41.85416666666666,
+    "source_agreement": 0.99853515625,
+    "minimum_source_partition_agreement": 0.9956331877729258,
+    "admitted": false,
+    "tests_passed": 264
+  },
+  "artifacts": [
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/code.patch",
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/source_manifest.json",
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/run",
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_greedy_es_smoke.py",
+    "scripts/alpha_holdem/test_v6_greedy_es_smoke.py"
+  ],
+  "notes": [],
+  "result": {
+    "summary": "Calibrated sigma 0.8 activated all eight mirrored direct-greedy fitness differences on a wholly new 6,144-hand cohort and produced a nonzero L2=0.05 learned center update. However, independent half-deck direction rankings correlated -0.6313. Untouched broad validation moved -21.3542 bb/100 with CI half-width 41.8542, driven by one holdout and seat1; source agreement remained 99.8535%. All 264 tests passed.",
+    "conclusion": "The perturbation mechanism is now active, but 32 pairs per opponent do not provide a reproducible ES direction: the strongest preregistered signal check is sharply negative and the noisy untouched validation points the same way. This rejects taking a second optimization generation at the current direction-sampling budget. It does not yet reject direct-greedy ES as undertrained, because the causal failure is estimator variance and the validation interval is broad.",
+    "decision": "HOLD_GREEDY_ES_CURRENT_BUDGET_NO_SECOND_GENERATION",
+    "next_step": "Run one fixed-center, no-update direction-SNR scale control at four times the common-deck pairs per opponent. Compare direction rankings across disjoint halves/quarters and against the saved 32-pair cohort. Continue ES only if correlation becomes positive and direction signs stabilize; otherwise close the route as sample-inefficient on current hardware."
+  },
+  "tags": [
+    "calibrated-dose",
+    "direct-greedy",
+    "evolution-strategy",
+    "signal-gate"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 30995,
+      "sha256": "533de8f4ae5d0fd5d103d6492792dcdadc0433fb11b619a8f6d7cdbe66743e71"
+    },
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-greedy-es-calibrated-signal-retry-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 39864,
+      "sha256": "105bda64334899d3342463d68b78e829a41500593fda110573f085ab56ae6fbe"
+    },
+    "scripts/alpha_holdem/v6_greedy_es_smoke.py": {
+      "type": "file",
+      "bytes": 19443,
+      "sha256": "eef83098ebc295574addd169bf46fa26e272be03027ca9aeb1347bee09dc13e9"
+    },
+    "scripts/alpha_holdem/test_v6_greedy_es_smoke.py": {
+      "type": "file",
+      "bytes": 1450,
+      "sha256": "601fcf172faf7d146e965789a6e1fbff3ee94a4670df0ec46d5d06b8becbc397"
+    }
+  }
+}

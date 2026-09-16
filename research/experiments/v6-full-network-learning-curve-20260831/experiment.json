@@ -1,0 +1,1027 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-full-network-learning-curve-20260831",
+  "title": "Corrected-v6 full-network physical learning curve",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T07:48:00+00:00",
+  "updated_at": "2026-08-31T09:06:44+00:00",
+  "started_at": "2026-08-31T07:48:00+00:00",
+  "ended_at": "2026-08-31T09:03:25+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Full-network PPO can learn broader strength under independently validated game and execution contracts, beyond its three training anchors.",
+  "material_change": "Fixed262144actual-hand new v6 full-network run, counter-only65k/131k/final freezes, untouched81920hand five-anchor matrix with two held-out anchors and preregistered five-contrast final gate.",
+  "baseline": "v6-physical-training-smoke-20260831",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-physical-training-smoke-20260831",
+  "command": "python research/experiments/v6-full-network-learning-curve-20260831/run_curve.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/run_curve.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:48:00+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\test_curve.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:48:03+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 262144 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --separate-preflop-head --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor2.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026091800 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_full_curve_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\latest.pt --seed 20260918 --max-runtime-seconds 6000 --resume C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:48:07+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-full-network-learning-curve-20260831/test_review.py -q --junitxml=research/experiments/v6-full-network-learning-curve-20260831/review_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:52:57+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/capture_review_code.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:52:57+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/inspect_archive.py --iteration 4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T07:52:57+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-full-network-learning-curve-20260831/test_prefix_throughput.py -q --junitxml=research/experiments/v6-full-network-learning-curve-20260831/prefix_throughput_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:00:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/summarize_prefix_throughput.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:00:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/capture_prefix_code.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:00:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/inspect_archive.py --iteration 16",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:02:08+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/inspect_archive.py --iteration 28",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:11:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production --expected-target-hands 99999999 --expected-target-environment-hands 262144 --expected-final-iteration 51 --expected-pool-size 3 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:46+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:47+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:48+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:49+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:49+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid65.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:50+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid65.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:51+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid65.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid65.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:53+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid65.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid131.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:55+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid131.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid131.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:57+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid131.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:58+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid131.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:28:59+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:29:00+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:29:01+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:29:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:29:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\final.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20260919 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:29:04+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/inspect_training_handoff.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:29:19+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-full-network-learning-curve-20260831/inspect_training_handoff.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T08:29:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/review_completed_curve.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T09:03:24+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-full-network-learning-curve-20260831/analyze_curve_specificity.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T09:06:44+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "56f8b3e0591abdb29d3e6ceeb2bfe342a1046ff42b19824ebd34ad2c850562f7",
+    "code_paths": [
+      "research/experiments/v6-full-network-learning-curve-20260831"
+    ],
+    "captured_at": "2026-08-31T07:48:00+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-full-network-learning-curve-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-full-network-learning-curve-20260831/source_manifest.json",
+    "source_manifest_sha256": "719c5481d6ce9754f91387c8f523aec7325af168015204ec540d040f221aa5d2",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 265430,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 81920,
+    "wall_time_seconds": 4525.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "trainer_pid": 49120,
+    "latest_iteration": 51,
+    "mid131_archive_physical_hands": 141631,
+    "mid131_archive_iteration": 28,
+    "trainer_exit_code": 0,
+    "handoff_helper_pycompile_exit_code": 0,
+    "completed_source_self_control_pairs": 2048
+  },
+  "artifacts": [
+    "research/experiments/v6-full-network-learning-curve-20260831/preregistration.md",
+    "research/experiments/v6-full-network-learning-curve-20260831/code.patch",
+    "research/experiments/v6-full-network-learning-curve-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\anchor_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor4.pt",
+    "research/experiments/v6-full-network-learning-curve-20260831/review_tests.xml",
+    "research/experiments/v6-full-network-learning-curve-20260831/review_code/source_manifest.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/review_code/code.patch",
+    "research/experiments/v6-full-network-learning-curve-20260831/review_code/copy_manifest.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/archive_iter000004_review.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix12_throughput.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix12_train_log.txt",
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix12_metrics.jsonl",
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_throughput_tests.xml",
+    "research/experiments/v6-full-network-learning-curve-20260831/throughput_context.md",
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_code/source_manifest.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_code/code.patch",
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_code/copy_manifest.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/archive_iter000016_review.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/archive_iter000028_review.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/production/checkpoints/checkpoint_iter000028_hands000000115250.pt",
+    "research/experiments/v6-external-evidence-protocol-audit-20260831/analysis.json",
+    "research/experiments/v6-external-evidence-protocol-audit-20260831/result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\trainer_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\checkpoint_selection.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid65.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid131.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\training_handoff_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\handoff_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\handoff_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\handoff_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\inspect_training_handoff.py",
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor1/summary.json",
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor1/pairs.jsonl",
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor0/pairs.jsonl",
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor0/summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\review_completed_curve.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\curve_specificity_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\curve_specificity.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\specificity_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\specificity_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\specificity_code\\copy_manifest.json"
+  ],
+  "notes": [
+    "NEW explicit v6 weight rebinding,fresh optimizer/counters and new seeds; not a resume of smoke or historical experiments. Two holdouts are excluded from this run but not unseen strategy families. No Slumbot or100k admission here.",
+    "Added outcome-blind independent final-review and immutable-prefix health helpers AFTER launch with their own full source copies/hashes/patch; production snapshot untouched. Seven reviewer tests passed. Iter4 archive health review adds zero training or evaluation hands and does not change configuration or selection.",
+    "Outcome-blind first12update timing analysis adds zero hands.60740physical versus49387markers; rounded collect545s/PPO16.2s,median inference batch3.55,108.23physical hands per logged collect+PPO second. A naive2.7B extrapolation is288.73days before other overhead,not a future guarantee. Official AlphaHoldem paper confirms8TitanV/64CPU and8x128environment rollout setup. No current-run changes; separate collection/batching profiling is needed before paper-scale expansion if learning is effective.",
+    "Scheduled iter16 checkpoint is the first4-update archive crossing65536physical hands:81634actual hands (not65853legacy markers). Read-only health review passed86changed finite tensors and86finiteAdam states; no training/evaluation hands added and no midpoint performance inspected. Current run remains unchanged and live.",
+    "Outcome-blind health review of the first scheduled archive above 131072 actual hands passed: iteration28,141631 physical hands vs115250 legacy markers,complete known prefix and worker totals,86 finite changed tensors and86 finite Adam states at step696. Frozen archive SHA476e5ce2acf0a6c13121709c2deecc0323b29f82f6659af8d025f8c6d3ce3f92. No additional hands,configuration changes,restarts or early performance evaluation; original wrapper/trainer remain live.",
+    "Separate outcome-independent offline protocol audit completed10fixed synthetic cases with0network/0performance hands and unchanged runtime sources. It found missing interrupted-request journals,terminal bound/state validation,and token-transition evidence. These do not change current training or internal gates; external evidence hardening must be independently registered and validated after this run releases source ownership, before any live v6 external qualification.",
+    "Outcome-blind static scaling preflight only: worker_process_v5_multi has real v6 constructor/step plumbing,per-slot fixed-deck indices and whole-hand transition emission,but current validation only reached worker constructor wiring. All slots initialize from the same configured fixed_training_deal_start_index and shared physical counters are per worker. Before any scale-up or multi-slot continuation, require actual multi-slot rollout/whole-hand/accounting tests and explicitly validate per-slot deal-resume semantics; static inspection is not a parity or throughput result. Current single-rollout run and source snapshot remain unchanged.",
+    "All curve checkpoints frozen by counters before any performance cell. Beginning fixed81920hand matrix; no selection or budget changes permitted.",
+    "Outcome-blind training handoff independently verified: terminal trainer,first physical-budget crossing and shutdown tail,finite86changed tensors/Adam states,counter-only midpoints,frozen/source identities. No performance cells consumed,extra hands,or admission claim.",
+    "First terminal evaluation cell source_anchor1 exited0 with4096hands/2048ordered raw pairs,seed20260919,and verified raw SHA. This is an integrity-only early check; no primary gate or checkpoint selection from partial cells. Original wrapper and two CPU evaluation children remain live. Running file reads require shared-read/write on Windows; an initial observer-only sharing error was corrected without touching raw evidence or restarting processes.",
+    "Completed source_anchor0 integrity control independently checked:2048ordered unique-deck pairs/4096physical hands,same candidate/anchor SHA,raw hash matches,and every mirrored pair reward cancels exactly to zero. This validates the control cell only; no primary final gate or strength claim before the fixed matrix completes.",
+    "Fixed training and matrix completed; primary final gate calculated. Independent review required before finish or confirmation.",
+    "Independent raw-pair arithmetic,source/checkpoint/counter and process review passed; only the preregistered final breadth gate controls confirmation.",
+    "Post-hoc paired late-versus-early curve specificity diagnosis added with0new hands; common-deal units preserve cross-anchor covariance. Descriptive only; original final gate failure and no-midpoint-rescue decision unchanged."
+  ],
+  "result": {
+    "summary": "Correctedv6 full-network curve completed265430physical training hands and81920internal hands with valid evidence;FINAL_BREADTH_GATE_NOT_PASSED.",
+    "conclusion": "The fixed corrected-contract curve and final breadth test completed; internal evidence alone does not establish external or Nash strength.",
+    "decision": "FINAL_BREADTH_GATE_NOT_PASSED",
+    "next_step": "Analyze fixed curve and optimizer health to choose a separate learning mechanism; do not promote a midpoint or extend this failed final gate."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 36,
+    "command_count": 36
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-full-network-learning-curve-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 5294,
+      "sha256": "eda208cc7bf138afcbce2104e7d98c8c50653a9fb5271a46f0f2fc99491eda3b"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 945,
+      "sha256": "719c5481d6ce9754f91387c8f523aec7325af168015204ec540d040f221aa5d2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13093,
+      "sha256": "02ec880b246022321d06139719c42ba4a2a09e413b571cbe54967539e6cfaef9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22367,
+      "sha256": "9d3bea60570acbfc9d580b047610cf21097957a25e9aaf26cdca7d5c1b3c71b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 978,
+      "sha256": "8867558903edbef201a2a620c067886065deac5439b2f44167d61c57240c313e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\anchor_manifest.json": {
+      "type": "file",
+      "bytes": 2414,
+      "sha256": "ca25c0463e9b52a8e7aafa23c999b50b735927304418b0532310bb8855e73368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/review_tests.xml": {
+      "type": "file",
+      "bytes": 1344,
+      "sha256": "7de36e9992525ec63d28a95ef440ea0162d47919ec0c3dd6a8c9ae3b6d49601b"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/review_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 974,
+      "sha256": "0c4884537ede0e3b19ce2eec1996b1ac45a461c0da880e4842361c1418517ea8"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/review_code/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/review_code/copy_manifest.json": {
+      "type": "file",
+      "bytes": 1519,
+      "sha256": "74ec6c2c892ebec4cd4a6a3b30c8c86af90ffa1ef4ac082c0536d0209b458f9c"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/archive_iter000004_review.json": {
+      "type": "file",
+      "bytes": 631,
+      "sha256": "84cfe2d54374c9c50c5cd20ec7d9d8213f4aa99daa3698f6bf0c3c6223f285b6"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix12_throughput.json": {
+      "type": "file",
+      "bytes": 3512,
+      "sha256": "784da32bf406407911f0ca693c94eed9563e1bfb4c45a6bfd9dc55ea4a9114e2"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix12_train_log.txt": {
+      "type": "file",
+      "bytes": 5252,
+      "sha256": "dc2e8535bc5bcabe40857c2adb8f9997c61b6b5e48235529a8e6523678b5ac25"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix12_metrics.jsonl": {
+      "type": "file",
+      "bytes": 311844,
+      "sha256": "f563bd37ed5364cbe5d1429165b1d0f77da39763e5dc00ed7fe14090056ce98d"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_throughput_tests.xml": {
+      "type": "file",
+      "bytes": 704,
+      "sha256": "7b7b5561c4b78ac2cc6fad32dcb92803c7b2e99e28efd231900d03f9ef1ab328"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/throughput_context.md": {
+      "type": "file",
+      "bytes": 1505,
+      "sha256": "c9ebefb978330dea3d47d512f3ad837af8bf37883f690b589ad4ab0bc86615dd"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 992,
+      "sha256": "46eb37781efa51de53cb3c7d4e655e13c236781fd7391675fca83f8890d1fa98"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_code/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/prefix_code/copy_manifest.json": {
+      "type": "file",
+      "bytes": 1557,
+      "sha256": "eae383e10e1b9a68e0ff4f389cf05ade8aaa1910a25c65aaa3fb7197dd520f5d"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/archive_iter000016_review.json": {
+      "type": "file",
+      "bytes": 631,
+      "sha256": "fb1f47dcda1cacbfeab4e0a157c607ddb0ebf557288d844bb2e0ee334cc93b47"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/archive_iter000028_review.json": {
+      "type": "file",
+      "bytes": 633,
+      "sha256": "c239dc656ff2cb7a6bea6b905db69f8d8291e192228e96cd580a54c96bf9da71"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/production/checkpoints/checkpoint_iter000028_hands000000115250.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "476e5ce2acf0a6c13121709c2deecc0323b29f82f6659af8d025f8c6d3ce3f92"
+    },
+    "research/experiments/v6-external-evidence-protocol-audit-20260831/analysis.json": {
+      "type": "file",
+      "bytes": 8247,
+      "sha256": "9e6b7d75da8e7b6656a1b930223ff66810515014949d143e120dd9f4e19c29a0"
+    },
+    "research/experiments/v6-external-evidence-protocol-audit-20260831/result_summary.md": {
+      "type": "file",
+      "bytes": 1466,
+      "sha256": "9d3d738248a19b70809541db5ec652f3be59aa4c30d5db48c74fcccedf241a78"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\trainer_stdout.log": {
+      "type": "file",
+      "bytes": 33326,
+      "sha256": "9145044a0732e2e610ef59d800db96556aa9f4774704be3d08f385fa6a49d689"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\checkpoint_selection.json": {
+      "type": "file",
+      "bytes": 1106,
+      "sha256": "512916534e966dc7f6b950adb2c767e5256efa18d44232bbb9d80e1b552f5b77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\session_audit.json": {
+      "type": "file",
+      "bytes": 8897,
+      "sha256": "e896727da948eb3d7b83652a8446352e8b8be64fce0f2544b74b1bee908c9c2b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid65.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "d8417fc44ecdd6edc6914942534d87d96e7a4f30d6f4c9004274e1f6b7e8844c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\mid131.pt": {
+      "type": "file",
+      "bytes": 198593710,
+      "sha256": "476e5ce2acf0a6c13121709c2deecc0323b29f82f6659af8d025f8c6d3ce3f92"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "0d2f660b3225664c5ed2bc85467649d3f3d17930cba8ab86c70b3d2082ee8606"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\latest.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "0d2f660b3225664c5ed2bc85467649d3f3d17930cba8ab86c70b3d2082ee8606"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\run_manifest.json": {
+      "type": "file",
+      "bytes": 56760,
+      "sha256": "6b89de4c31da70db062f406683edb3bda5291f9c1ac5b7452da7954d240d7e03"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1310878,
+      "sha256": "1bc2a621a69472b959b057f3cdd8f660d8e7b30022d0f5fc66133c632ea819c9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\production\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 127040,
+      "sha256": "d42dee80915f01648fd60d32cb8987f1a874a26a517fe7b3f7a8848262bb40a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\training_handoff_review.json": {
+      "type": "file",
+      "bytes": 1740,
+      "sha256": "1dc728709f369c7bf6061ad56db868b0071d62b54a615f92a259040a77b79128"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\handoff_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 333,
+      "sha256": "e38faaaf96848d0f410eea1231995f95f294557ae4ec60abec05b6ee0edb7ee5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\handoff_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\handoff_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 399,
+      "sha256": "db83034e0a8f817e1e5eb02e9a0fb01dbb65eba6259fbbc8e22b03249c14db2e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\inspect_training_handoff.py": {
+      "type": "file",
+      "bytes": 6604,
+      "sha256": "c8a88378b2af26512337a7cac0745e6e567a8072f9c390c8d38c3ff95a68c2ad"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor1/summary.json": {
+      "type": "file",
+      "bytes": 1536,
+      "sha256": "d1d3cc79164b35e638dc8a874f25c516223a5a6886a84ee3cbffe5e36c3adfc6"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor1/pairs.jsonl": {
+      "type": "file",
+      "bytes": 569152,
+      "sha256": "e7f98ed84d2c572a626f9185f800bcdf8c3fc1fee7ffcc0802ff6d3856940501"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor0/pairs.jsonl": {
+      "type": "file",
+      "bytes": 573647,
+      "sha256": "e7d329dcebb49f179f02017383992ace9062319d2e50cab5852c2eb9e9e9ba15"
+    },
+    "research/experiments/v6-full-network-learning-curve-20260831/matrix/source_anchor0/summary.json": {
+      "type": "file",
+      "bytes": 1494,
+      "sha256": "3812e088b2bc26d884db5f06b950ba3609e6c87bc672933d82a3b86a8701101d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1494,
+      "sha256": "3812e088b2bc26d884db5f06b950ba3609e6c87bc672933d82a3b86a8701101d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573647,
+      "sha256": "e7d329dcebb49f179f02017383992ace9062319d2e50cab5852c2eb9e9e9ba15"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1439,
+      "sha256": "81528f38486582dd1fc0304e0051bd5fa930898ced82c40407033450f1109fe0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1536,
+      "sha256": "d1d3cc79164b35e638dc8a874f25c516223a5a6886a84ee3cbffe5e36c3adfc6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 569152,
+      "sha256": "e7f98ed84d2c572a626f9185f800bcdf8c3fc1fee7ffcc0802ff6d3856940501"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1481,
+      "sha256": "cddd8ec1fc6d315053bc96bfb75bfb95dcd982dba0f35c1a475081ccb8f41989"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "d78f7d9a5d406dc5aa97577ec8846dd637f70c4ba179e3c34585e4bd2f992800"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572755,
+      "sha256": "cc8b2b7b77849b885f13c791aeacc033b816f13b42545a9ebdad098edec0cf83"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1478,
+      "sha256": "8f8542366dfb8db0167af7a8b908b8e073c890113dce6734231c426c88de7720"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1535,
+      "sha256": "2f9b8c0a236c17415dc7fc503264276adafb3e6a7c8147539a19721ae03cc9e8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574538,
+      "sha256": "53801dc2af858bacb724567717a2fff8a5da560d86873937a7d7195009433a96"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1480,
+      "sha256": "a6a30edd80390e2ebd62cba9a321c12c0fed5da565a87d2ccdf3e86167e015ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1538,
+      "sha256": "c822bb558960957012547e5a70e255a04f1a873c7371780dd4a3b6ec9fa5ae37"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574823,
+      "sha256": "462eea02f98dc369f938def3725691cd9c22fc4b5a5a302212923e422ed24cbc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1483,
+      "sha256": "90d3b70fa4aa5a541a1cc23fd5db5cfe6037c2e788d54359379eb99da7e86b3b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "fc4388c4a91cbc2f540e1d96b407009d1d3902ff3e1b4f84d98329bd9cd060d2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573650,
+      "sha256": "b8441b04d578e81bfd6d33938d5e0950ae1cd6845c400bd2f64558bb8e90aec8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1478,
+      "sha256": "2cffd4832a6b68cf0f48dbc5b06c3f5916117855c2d1fa3046b8fa82d1b74318"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1532,
+      "sha256": "35e8375d92d804d2a570a259e902afb00d3942523d34b6fe2c3d3b59c0d05a30"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 569144,
+      "sha256": "1b9a5db3e4ec16555fb2b1d9222bb135f5057eb50c208c47a597225181227587"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1477,
+      "sha256": "4fa39b69b2b56e0b18a59e5f3f0cf5d8cc40da0fcdbfd36d2913b5a5c470102c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "85e59894611781111f5317526102d1ffff54486db6eaa0cc60316abde0ddb29d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572614,
+      "sha256": "f8e0fbdac68d2ce121d8aa6b075e17aabd592c85680f3a781b16c674d7d81c04"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1478,
+      "sha256": "fcc09ed7bbc01a3ebc02b7bff436abf5194a7d670341ce42a65f02458ed2fb61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "3f2365cf22ac6ddffa85146b6f4e83a4c9f037af23a18f000c475b6072e4ec35"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574508,
+      "sha256": "3117a392482b6437347ef49d9f7211e9d3b3254710c2a8ead148494265a74a63"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1478,
+      "sha256": "fefd20de3611bde4af03aba8bde451f577a0a8b4c536b2e1d7ea05e976a15a40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1530,
+      "sha256": "fcaee5d7467b9fa291b6bd1c125c7531623db8bacbde6fdbb2a3ca27dcd3f295"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid65_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574501,
+      "sha256": "0128e0e4f7471e7595afde977b9bc4b5a9da1e4336755c0a7ca2ad8cd89eac26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid65_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1475,
+      "sha256": "a1813e3243f87edb59ae977a75e6ea8edbe4fb7afacc7a9febf8cf348ff78ea3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1537,
+      "sha256": "4c454185de6dd732e8f55e3946d4ebf5f770316322436ec10d0577e2fdfb0e39"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573677,
+      "sha256": "86876f056ddf3750a14074c8359650f76420a96c0976ccd0361005cdddeb7921"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1482,
+      "sha256": "9859454643c1658edc05d9dbe735f45897a429ab7247c27abc7cd1267d9b726d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1536,
+      "sha256": "f232fdeb2dbe43c160078a1ee0d7ad54e5ca85c2a937ab80c16f70dc9f1ef759"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 569256,
+      "sha256": "2a2d70aee250e7e064012da1f22ea5123c7134363594d81c0be1ed4f9c6e0871"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1481,
+      "sha256": "8bb959ec6d63c2ffed4596c8baad8f30a8a816c5bd39ab81742076b7c7770099"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1536,
+      "sha256": "f955f58a2927f2c747b42b21a04979e474c4844ec4e35793030499436556d5a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572651,
+      "sha256": "25a54a0e0c6ff2efb8d5a6993829674191bcd42eefe688a70f2fb1913792045b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1481,
+      "sha256": "a3f6e1d4c3d7358eb5b20e836ddaa20034a356fe2d52208b90de4c8b3093d433"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1536,
+      "sha256": "2961009f178888a14fb446e9b044dd41fda37774226ff0361b8c39ff8a3c3bbe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574782,
+      "sha256": "bc6314638b8add80a2f83a3f8f02a877769799192306e69e192e64cfb8f7984a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1481,
+      "sha256": "e25260de04dab62ecec05bb51d908d66e1614f4e7d651065a5a587e97edc4cb2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1532,
+      "sha256": "b166ac1a82070080a29f0bf18ffea6877cfb6d9a72f43413c000154fb539cf6d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\mid131_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574739,
+      "sha256": "af83ec28c5476d7d46ea1e069fbbd388c0b385a618fad71112792822d4e6dd16"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\mid131_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1477,
+      "sha256": "c33f89078e3921d29df515f4bd0255bb4ecec7ade95640f74c2390add2e5bd1b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1534,
+      "sha256": "3dffa5003de9cc3e1aab467a67390e515d948bbc5501c85ba804cf4b3be02dcc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573326,
+      "sha256": "a1e038a56b906404a206c89f2395918d483d9d3caaed8d705c298792f6fb70b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1479,
+      "sha256": "cd2ca4bd9002831c846770314546374a3aa3028bfc233ff4c081e3b2f14ce928"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1534,
+      "sha256": "4a0cd4e7cf754cc6eb1522d3ae6f721be4150212b52dc9d93bd17cdcf947a897"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 569323,
+      "sha256": "7b2c4077aca775f15496698f164f0dc14dab7c95abc4cbf4bc056950965c11df"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1479,
+      "sha256": "8b45ea4bbb0d8cc567364851705de56d2c29497346888724478ba00894209bcf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1530,
+      "sha256": "16a107d3be01f32700ac37b23fc1d943263dc9f2850060f60d06c81828f15c0b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572309,
+      "sha256": "0a9ae99ceba83c4b6ddd7a8efe9142aa7c412e427ba96636c67688ae74386f4a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1475,
+      "sha256": "e1d2c4c8bca992ea705f9b20faaca4b900c211dc4ef1affc66cf1b5f243ec848"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "5e0661d6a727caafd1beb03f531732fe5f8f6098059fbcb10738999cf585509e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574439,
+      "sha256": "7c6e57b21711512c9af4de8c0035f2f193f8eae4f01c7624607e739b7c720c94"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1478,
+      "sha256": "88b576b4b0a21e92794125a0d1bef483d114ac2994de7843d91b929972fb363c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1533,
+      "sha256": "7e72bc7293e29d570ea891aeec5dd8a872b41aa90d1dbff6987ab070aabffc1c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\matrix\\final_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574518,
+      "sha256": "431cceae1de52f9babbb87067cf034b12a112f602d65cd76703c63d2c736badf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\final_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1478,
+      "sha256": "dbe87b5213512ab31e6e96cce753f9c1d1694a01c029decafdcdcee7ad597c21"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 2647,
+      "sha256": "e1d7f6741f6fbc77fbde4a26ad5ab88cd1ef1860ac80da629bbd55b8755846c3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 19898,
+      "sha256": "47e842579af7d536b09571db45e8bd02620d52afe614d0bdbdca13ee2640b41c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\review_completed_curve.py": {
+      "type": "file",
+      "bytes": 12382,
+      "sha256": "79855576dbd8b491de99ebc8a3ab48bd4cc37a578ae5c040614a982d01772eae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 11782,
+      "sha256": "0b72799622668061cefbe7aa850007b1d78da2711393857c87e8779e450868ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1020,
+      "sha256": "32a06415e5de51d32041eac2ea3b717c746f1c934af7af79859869a656444d32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\curve_specificity_analysis.json": {
+      "type": "file",
+      "bytes": 2315,
+      "sha256": "f1d051b35f12b5b3a4883af5d7df24587265c5614c747ed3ac9ffef01a028de5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\curve_specificity.md": {
+      "type": "file",
+      "bytes": 841,
+      "sha256": "7dac6b831353cd1e2b1fcfa0be0e157301c3fccbf75d9fc481da8c30e8f84387"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\specificity_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 556,
+      "sha256": "e0ad905c64948e4be71a524108c11fa7f03ca06c5674e1de277b5090f2fb5d01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\specificity_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-network-learning-curve-20260831\\specificity_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 799,
+      "sha256": "2cb7df077251d5438e31d6b2f3e26806a01f2959e6c1a2eee6f5ecb0fed4a3b3"
+    }
+  }
+}

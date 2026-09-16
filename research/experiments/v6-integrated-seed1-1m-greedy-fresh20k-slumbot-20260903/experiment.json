@@ -1,0 +1,340 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903",
+  "title": "Integrated Seed1 1M correct-contract greedy fresh20k Slumbot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T12:48:20+00:00",
+  "updated_at": "2026-09-03T13:06:01+00:00",
+  "started_at": "2026-09-03T12:48:20+00:00",
+  "ended_at": "2026-09-03T13:06:01+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact Seed1 1M integrated policy that scored -2.88 bb/100 on the admission-only fresh5k cohort will remain near break-even or positive on an entirely new 20k cohort under the same correct legacy-v4 greedy execution contract, providing external direction consistent with its positive multi-anchor learning curve.",
+  "material_change": "Freeze the same SHA256 6fbbe021 and evaluate exactly 20000 new Slumbot hands as eight independent 2500-hand sessions using physical-v6 terminal semantics, legacy-v4 observation bridge, and generic greedy action selection. Do not pool or reuse the 5000 pilot hands and never retry, resume, overwrite, or replace failed hands.",
+  "baseline": "Same-SHA independent fresh5k: -2.88 bb/100, raw CI [-44.8349,39.0749], 4/8 positive sessions. Historical Standard10 legacy-contract greedy fresh20k: -11.4275, CI [-28.7124,5.8574].",
+  "source": "Frozen checkpoint copied from v6-integrated-seed1-1m-greedy-fresh5k-slumbot-20260903/frozen/final.pt, SHA256 6fbbe021b140b91e448917ae3e2cbb9bcdca444865433074ac944cae79fa844a; 1,049,269 lineage environment hands.",
+  "parent_id": "v6-integrated-seed1-1m-greedy-fresh5k-slumbot-20260903",
+  "command": "python research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:48:20+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:40+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263101 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s01 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263102 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s02 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263103 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s03 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263104 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s04 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263105 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s05 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263106 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s06 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263107 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s07 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:44+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --hands 2500 --seed 2026263108 --session-id v6_integrated_seed1_1m_greedy_fresh20k_20260903_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s08 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:49:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\audit_bridge_cli.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T12:58:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/slumbot_ci_from_hands.py research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s01/hands.jsonl research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s02/hands.jsonl research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s03/hands.jsonl research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s04/hands.jsonl research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s05/hands.jsonl research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s06/hands.jsonl research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s07/hands.jsonl research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s08/hands.jsonl --baseline-bb100 -11.4275 --baseline-hands-min 20000 --out-json research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/raw_ci.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T13:05:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_journaled_slumbot_independence.py --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s01 --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s02 --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s03 --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s04 --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s05 --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s06 --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s07 --session-dir research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions/s08 --out-json research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/independence_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T13:05:35+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4b3917a17427cb2ddc00954650579457979701702a2fdd40c3ec16bace949a83",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T12:48:20+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/code.patch",
+    "patch_sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea",
+    "source_manifest": "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/source_manifest.json",
+    "source_manifest_sha256": "cc37fece3c277c94c673f822553c5f9d26725a5d4fbdae52145711508f247ff4",
+    "source_files": 242
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 1049269,
+    "offline_samples": 0,
+    "evaluation_hands": 20000,
+    "wall_time_seconds": 1061.0,
+    "planned_evaluation_hands": 20000,
+    "slumbot_hands": 20000
+  },
+  "metrics": {
+    "admission_tests_passed": 3,
+    "canonical_tests_passed": 325,
+    "bb_per_100": -21.7592,
+    "raw_ci95_lower": -44.24792613396221,
+    "raw_ci95_upper": 0.7295261339622066,
+    "session_t7_ci95_lower": -67.56956047787241,
+    "session_t7_ci95_upper": 24.051160477872415,
+    "positive_sessions": 2,
+    "delta_vs_historical_standard10_bb100": -10.3317,
+    "delta_vs_admission_fresh5k_bb100": -18.8792
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/code.patch",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\session_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\completed_analysis.json",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/raw_ci.json",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/independence_audit.json",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/run_pilot.py",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/pilot_stats.py",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/test_pilot.py",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/audit_bridge_cli.py",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/execution.json",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/prepared_runtime",
+    "research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/run_pilot.py",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s01_stdout.log",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s02_stdout.log",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s03_stdout.log",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s04_stdout.log",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s05_stdout.log",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s06_stdout.log",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s07_stdout.log",
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s08_stdout.log"
+  ],
+  "notes": [
+    "Preregistered next-stage rule: admit a separate same-SHA fresh100k qualification only if the fresh20k point estimate is above 0 bb/100, its raw-hand CI upper bound is above 0, at least four sessions are positive, all evidence gates pass, and no execution-contract drift is found. If the point is between the Standard10 reference and zero with an interval spanning zero, retain the method as under-resolved but adjudicate checkpoint/scale before 100k.",
+    "Wrapper completion returned WinError 206 only while constructing one oversized final artifact-registration command. All eight child processes exited 0, execution.json is COMPLETED_PENDING_REVIEW, combined replay passed, and raw evidence was preserved; no hand or session was rerun."
+  ],
+  "result": {
+    "summary": "The exact frozen Seed1 1M integrated policy completed eight independent fresh2500 legacy-observation-bridge generic-greedy Slumbot sessions. All 20000 raw hands passed model/runtime/terminal/token-chain replay and session-independence checks. The independent cohort scored -21.7592 bb/100, raw 95% CI [-44.2479,0.7295], session-t7 CI [-67.5696,24.0512], with 2/8 positive sessions.",
+    "conclusion": "The same-SHA external point did not reproduce the encouraging fresh5k value and was 10.3317 bb/100 below the historical Standard10 point, though the raw CI still narrowly includes zero. The preregistered 100k gate failed. This is credible checkpoint-level external negative evidence and shows internal multi-anchor gains did not translate reliably to Slumbot at 1M; it is not a mechanism-level rejection of conflict-aware learned self-play, nor proof that the approximately 1M training scale is sufficient.",
+    "decision": "DO_NOT_SCALE_SEED1_1M_SHA_TO_FRESH100K",
+    "next_step": "Use the already-frozen same-lineage approximately2.1M checkpoint for one correct-contract fresh5k external slope adjudication, because the turning-point audit rejected monotone internal degradation and the 1M checkpoint external result is under-resolved. Scale that exact 2M SHA to fresh20k only under the same conservative admission gate; otherwise redirect training objectives rather than spend 100k on either frozen endpoint."
+  },
+  "tags": [
+    "external-adjudication",
+    "fresh20k",
+    "greedy",
+    "integrated-v6",
+    "legacy-observation-bridge",
+    "slumbot"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 13,
+    "command_count": 13
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12837937,
+      "sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 46095,
+      "sha256": "cc37fece3c277c94c673f822553c5f9d26725a5d4fbdae52145711508f247ff4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1177,
+      "sha256": "663b0f9ac6bc5fea140e534d4ba5ef5fba0acbdcf66ce0c507efefed6b2dd9ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1942,
+      "sha256": "884447f4aeaeb784b097f654656734025bab97e9f545acebaf0419b5ea1d1cf6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 7192,
+      "sha256": "9431646ee96d832b07d89a1aeff9919a19d94320543c2362b7d822353de73a96"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 305379120,
+      "sha256": "6fbbe021b140b91e448917ae3e2cbb9bcdca444865433074ac944cae79fa844a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\tests.xml": {
+      "type": "file",
+      "bytes": 765,
+      "sha256": "ca870fc50e73e9a82f6f50f6289ec8b62b1d00fe3d4c4f1a7d1d887c4c477795"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\session_commands.json": {
+      "type": "file",
+      "bytes": 7139,
+      "sha256": "0809e68f536d2c3326f7eb588086095110b145077b6853a349c717a19971f0ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8705,
+      "sha256": "fa70a2781a81a2d81bf0be4c95a950cc5e1f7efe3a7b7425d4c69d56e0edd8ba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 1146,
+      "sha256": "fa6b7c65665791743b52e4b259ec6cda2ef5d82d48591f8bd456b136b1329a53"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/raw_ci.json": {
+      "type": "file",
+      "bytes": 2028,
+      "sha256": "759350e9e77a720bcdf2168b6ad6d2d9ed408df4973b42e48a6e379cbeef3228"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/independence_audit.json": {
+      "type": "file",
+      "bytes": 12398,
+      "sha256": "f495bd39103b6b954b4d0659f27a9dbad5855e24d6396ae2f3ff630495536667"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/run_pilot.py": {
+      "type": "file",
+      "bytes": 3536,
+      "sha256": "e8a67a222883e04f26b3d0a6bdf56e11d89ad62f176347df23633a9f26ddb34e"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/pilot_stats.py": {
+      "type": "file",
+      "bytes": 2038,
+      "sha256": "bcd324a8024f833d74e981d16218a5251f8ac2c47d9d8eb892f9bbaec102f9d9"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/test_pilot.py": {
+      "type": "file",
+      "bytes": 1425,
+      "sha256": "91a58275c2bdec40e9da2e816150c04c84660e94a7c26e71efc3c6305fa6ddcf"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/audit_bridge_cli.py": {
+      "type": "file",
+      "bytes": 497,
+      "sha256": "4a6bc4db452d7e729cf9e278d063608d5157e6fa75bfc9be9531bdbfc7b5f424"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/execution.json": {
+      "type": "file",
+      "bytes": 8532,
+      "sha256": "383f981112c42c3d32d339e901e54653037e709d191c1ab15be46e0a8e2e2a16"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/sessions": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/prepared_runtime": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/run_pilot.py": {
+      "type": "file",
+      "bytes": 11930,
+      "sha256": "81612065ee3d38299c66095a20fee2aefb647ef852df38214f3c4b808105c1a7"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s01_stdout.log": {
+      "type": "file",
+      "bytes": 6262,
+      "sha256": "83c94f0aebebc8d48e60defae2ea49ca9198425222ab7f150d9f7f8294d65d84"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s02_stdout.log": {
+      "type": "file",
+      "bytes": 6260,
+      "sha256": "b7817ed6501d8e290ad6db7c660978b2ed6be9b7af4c6bbe3ebb062e1b962a5b"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s03_stdout.log": {
+      "type": "file",
+      "bytes": 6259,
+      "sha256": "6b4299d7d0fc419703d5e2fa0b8b17118fe0215a3967ea4b8871a69bda62a9fd"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s04_stdout.log": {
+      "type": "file",
+      "bytes": 6261,
+      "sha256": "e00a9a108bf7711749cb32cd00b604b6eb7beb023a427987e2bfcd62389c8d19"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s05_stdout.log": {
+      "type": "file",
+      "bytes": 6259,
+      "sha256": "03ccb96ebaed9e9e6787f0164ba8c9f6940752357593a53ef37455bbc6630207"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s06_stdout.log": {
+      "type": "file",
+      "bytes": 6259,
+      "sha256": "fcd63a5af1ef88e7d759bc69afb441953434a24caf44f164b4b3ade87be1cff9"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s07_stdout.log": {
+      "type": "file",
+      "bytes": 6259,
+      "sha256": "e9d413f11b8bdc07e02013aa3f524345857a64fc51ef0862dbc96588e53a1700"
+    },
+    "research/experiments/v6-integrated-seed1-1m-greedy-fresh20k-slumbot-20260903/s08_stdout.log": {
+      "type": "file",
+      "bytes": 6260,
+      "sha256": "8b68e7b4fd9ecacb0a6eb0823c7c7d2480c942530cc6840ec9c725ef8b0b5f59"
+    }
+  }
+}

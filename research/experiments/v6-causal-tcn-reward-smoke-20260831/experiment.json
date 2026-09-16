@@ -1,0 +1,361 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-causal-tcn-reward-smoke-20260831",
+  "title": "Causal temporal-convolution reward smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T23:20:15+00:00",
+  "updated_at": "2026-08-31T23:32:17+00:00",
+  "started_at": "2026-08-31T23:24:31+00:00",
+  "ended_at": "2026-08-31T23:32:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An ordered causal dilated-convolution action encoder can generalize PPO updates across opponents more safely than flat sequence capacity while retaining deterministic production inference.",
+  "material_change": "Production causal-TCN integration,32768 physical-hand adapter-only PPO smoke, and8192-hand source evaluation.",
+  "baseline": "Flat-sequence matched gate failed with2/5 positive treatment-control anchors despite strong aggregate source gain.",
+  "source": "research/experiments/v6-causal-tcn-reward-smoke-20260831/preregistration.md",
+  "parent_id": "v6-flat-sequence-matched-reward-pilot-20260831",
+  "command": "python research/experiments/v6-causal-tcn-reward-smoke-20260831/run_smoke.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-causal-tcn-reward-smoke-20260831/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:20:15+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\test_smoke.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:27:52+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 32768 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\source_legacy.pt --separate-preflop-head --causal-sequence-policy-adapter-hidden 128 --causal-sequence-adapter-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026103500 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_causal_tcn_reward_smoke_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\latest.pt --seed 20261035 --max-runtime-seconds 900 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:27:58+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production --expected-target-hands 99999999 --expected-target-environment-hands 32768 --expected-final-iteration 7 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:28:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261036 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\evaluation",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:29:00+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-causal-tcn-reward-smoke-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T23:32:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-causal-tcn-reward-smoke-20260831",
+      "scripts/alpha_holdem/network_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/execution_v6.py"
+    ],
+    "captured_at": "2026-08-31T23:20:15+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-causal-tcn-reward-smoke-20260831/code.patch",
+    "patch_sha256": "cc471f4a1b2bee58a6e900ac408221fa1d7c94a7adbb0e122f99ee1220d7d5a8",
+    "source_manifest": "research/experiments/v6-causal-tcn-reward-smoke-20260831/source_manifest.json",
+    "source_manifest_sha256": "974f631174b63750c7981beca16645f4a0c96837eb38c77fed42ee1a7eb06978",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 35294,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 8192,
+    "wall_time_seconds": 466.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 251.93699999997625,
+    "review_wall_time_seconds": 1.5
+  },
+  "artifacts": [
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/preregistration.md",
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/code.patch",
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/source_manifest.json",
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/test_smoke.py",
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/run_smoke.py",
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\source_legacy.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\treatment.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\evaluation_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\run_smoke.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\test_smoke.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\training_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\evaluation\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\evaluation\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\__pycache__\\run_smoke.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\__pycache__\\test_smoke.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\checkpoints\\checkpoint_iter000004_hands000000016479.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Final bounded sequence-residual variant. Fixed architecture/budget/gate before implementation; no reuse of failed flat or attention endpoint weights.",
+    "Implementation resumed from the preregistered planned record; causal network/trainer/loader integration is under admission testing before any environment hands.",
+    "Admission plus relevant trainer regression suite passed:35 tests. No environment hands had been started before this point."
+  ],
+  "result": {
+    "summary": "Causal-TCN reward smoke completed: ADMIT_MATCHED_CAUSAL_TCN_REWARD_PILOT.",
+    "conclusion": "This fixed known-anchor internal smoke is only an architecture admission gate; it is neither external strength evidence nor a training-seed replication.",
+    "decision": "ADMIT_MATCHED_CAUSAL_TCN_REWARD_PILOT",
+    "next_step": "Run the preregistered matched causal-TCN versus all-policy-heads control pilot with a fixed multi-anchor evaluation."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2066,
+      "sha256": "8bc9a539ef46a280a0104e63bccaa775b1b81ef9bb3938f1378fa67d48e377e5"
+    },
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/code.patch": {
+      "type": "file",
+      "bytes": 244596,
+      "sha256": "cc471f4a1b2bee58a6e900ac408221fa1d7c94a7adbb0e122f99ee1220d7d5a8"
+    },
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1215,
+      "sha256": "974f631174b63750c7981beca16645f4a0c96837eb38c77fed42ee1a7eb06978"
+    },
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/test_smoke.py": {
+      "type": "file",
+      "bytes": 3992,
+      "sha256": "e84a39eba2939e1fa9ce1ceae78a91950dc0430778906b3a3130cf8af2ea512c"
+    },
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/run_smoke.py": {
+      "type": "file",
+      "bytes": 16048,
+      "sha256": "3b1209e44c587607c9accb82fb8f4e68c63e85b59fcd25d58ebb16add1273887"
+    },
+    "research/experiments/v6-causal-tcn-reward-smoke-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 4646,
+      "sha256": "e6a68a2a7b7e1d5a58a4758274e7d2135329b724ca621f1fa412ca89516a3014"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13808,
+      "sha256": "61d4793f492e594e73428349d4fccf866da1f14e5ed87e4c2bd2c70b131154e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 391412,
+      "sha256": "d02487669acd76e30c82c0d650308f1356d7ce394eed0a6281da2836e8f2a181"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22918,
+      "sha256": "7d274ba3714042755b115e753db2dde3c9c7638c8a28d66e257a63e901c6148e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 866,
+      "sha256": "96f5a7e0f910376d36bb9147e8cb9a8a9bff26a9cfdadb611eb76686605fa024"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 25947,
+      "sha256": "653ca5cf75926e35d8470073c399ee65213abd4bd30c3d8e7de4896de59ece85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\source_legacy.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\frozen\\treatment.pt": {
+      "type": "file",
+      "bytes": 202394556,
+      "sha256": "edb6e585dd807548538a349300b2a4fc14af7813ac038f221fa3f251dc12a21a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 675,
+      "sha256": "c732944edffb1f28cba780e29876df120c61be6c0fa3f691f1d02cf72e18e390"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\evaluation_stdout.log": {
+      "type": "file",
+      "bytes": 1680,
+      "sha256": "2d2e564d1f6d932d50d8e4dab449508ed70e764a5d69b430426c9a8ec59152e3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 4221,
+      "sha256": "5426fb0aad0445899a4dd995b23823dd829f8b66869afa66f67f877b625b48f1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 2066,
+      "sha256": "8bc9a539ef46a280a0104e63bccaa775b1b81ef9bb3938f1378fa67d48e377e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 4646,
+      "sha256": "e6a68a2a7b7e1d5a58a4758274e7d2135329b724ca621f1fa412ca89516a3014"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\run_smoke.py": {
+      "type": "file",
+      "bytes": 16048,
+      "sha256": "3b1209e44c587607c9accb82fb8f4e68c63e85b59fcd25d58ebb16add1273887"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\test_smoke.py": {
+      "type": "file",
+      "bytes": 3992,
+      "sha256": "e84a39eba2939e1fa9ce1ceae78a91950dc0430778906b3a3130cf8af2ea512c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\training_stdout.log": {
+      "type": "file",
+      "bytes": 6828,
+      "sha256": "e04307b18b46aa0dd1cd3da2a11fb5559e80b1c8071b6fafd9162285befee43f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\evaluation\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148286,
+      "sha256": "b977a3f1eb4f340d615089678579d8d497cc24e3df90c43b6efce55677561b38"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\evaluation\\summary.json": {
+      "type": "file",
+      "bytes": 1637,
+      "sha256": "8472923366690bc16541d465e16a3a713066bfb97f33e134708dd2be34d8d713"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 5540,
+      "sha256": "16bf9fafc7e0ca04a6f3311d6cd9855415393a3d5506de49c59bfd9bfc440fd9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 183963,
+      "sha256": "824d50720d2969e6a3799123cf51ccf255d74420586153c4a26b97a7042189a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\latest.pt": {
+      "type": "file",
+      "bytes": 202394556,
+      "sha256": "edb6e585dd807548538a349300b2a4fc14af7813ac038f221fa3f251dc12a21a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\latest_train.log": {
+      "type": "file",
+      "bytes": 3079,
+      "sha256": "21581628b1857cb626e69deeb5f27fffb25b37c4114b9a20554298e443a82688"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 18789,
+      "sha256": "4d806c8936687a99a5795ccd98aca7a41fbbea0f4fd18f66a2395e93eef7ac99"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59884,
+      "sha256": "aeec38c95dcae887b58bf08b28f77b9a7d2f079bf349b0729efeffb82d99601d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\session_audit.json": {
+      "type": "file",
+      "bytes": 5540,
+      "sha256": "16bf9fafc7e0ca04a6f3311d6cd9855415393a3d5506de49c59bfd9bfc440fd9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 7635,
+      "sha256": "8afc9e48ba4baa1d417e2b148de51f83514cb636e32be54f4e62c39d3d6a1c83"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\__pycache__\\run_smoke.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 26583,
+      "sha256": "51681d5bfc328e51c47505cf1094ae119bde2c4062f58f770777c9af1e2e8501"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\__pycache__\\test_smoke.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 14611,
+      "sha256": "0b7253a5598176100bc2e6f4f27e78ebd9e46b4df871897bee05406de3700379"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\production\\checkpoints\\checkpoint_iter000004_hands000000016479.pt": {
+      "type": "file",
+      "bytes": 202422118,
+      "sha256": "076bf64e8bd6235a3ef478a1e89ca27126678c16bc2043f8c6fcbbd573e3ac9d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 758,
+      "sha256": "bbe591f96c61a300c9c85555d9fa2298e0feaec55866e410a2b7d184d6e28b30"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-causal-tcn-reward-smoke-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 206,
+      "sha256": "a019e00b62070f4847160c593c89ecfa0f932a512c5da79fba7625c38ac455df"
+    }
+  }
+}

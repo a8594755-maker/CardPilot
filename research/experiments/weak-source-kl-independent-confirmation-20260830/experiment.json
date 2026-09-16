@@ -1,0 +1,396 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "weak-source-kl-independent-confirmation-20260830",
+  "title": "Frozen weak-source-KL independent confirmation",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T01:06:10+00:00",
+  "updated_at": "2026-08-31T01:30:44+00:00",
+  "started_at": "2026-08-31T01:06:10+00:00",
+  "ended_at": "2026-08-31T01:30:44+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact weak-KL final checkpoint replicates its discovery advantage over the matched control on new deal/action randomness with multiplicity-adjusted evidence.",
+  "material_change": "No weight changes: fixed seed20260909 and8192mirrored pairs per anchor for source,control,weak;147456new internal hands,zero training or Slumbot.",
+  "baseline": "Exact parent frozen source-KL1 control and original Standard10",
+  "source": "research/experiments/weak-source-kl-pilot-20260830/frozen/weak.pt",
+  "parent_id": "weak-source-kl-pilot-20260830",
+  "command": "python -m pytest research/experiments/weak-source-kl-independent-confirmation-20260830/test_confirmation.py -q --tb=short --junitxml=research/experiments/weak-source-kl-independent-confirmation-20260830/prerun_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/weak-source-kl-independent-confirmation-20260830/test_confirmation.py -q --tb=short --junitxml=research/experiments/weak-source-kl-independent-confirmation-20260830/prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:06:10+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/weak-source-kl-independent-confirmation-20260830/run_confirmation.py research/experiments/weak-source-kl-independent-confirmation-20260830/finish_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:06:59+00:00"
+    },
+    {
+      "command": "python research\\experiments\\weak-source-kl-independent-confirmation-20260830\\run_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:07:01+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --candidate-label weak_kl_confirmation_source --policy-mode sampled_both_sides --pairs 8192 --starting-stack 200 --seed 20260909 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:07:02+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\control.pt --candidate-label weak_kl_confirmation_control --policy-mode sampled_both_sides --pairs 8192 --starting-stack 200 --seed 20260909 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:14:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt --candidate-label weak_kl_confirmation_weak --policy-mode sampled_both_sides --pairs 8192 --starting-stack 200 --seed 20260909 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:22:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_vs_control.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:30:26+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:30:27+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_vs_source.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:30:28+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-source-kl-independent-confirmation-20260830/finish_confirmation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:30:43+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-source-kl-independent-confirmation-20260830/merge_deployment_updates.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:30:44+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-source-kl-independent-confirmation-20260830/validate_deployment_dry_run.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:30:44+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/weak-source-kl-independent-confirmation-20260830/validate_deployment_dry_run.py research/experiments/weak-source-kl-independent-confirmation-20260830/merge_deployment_updates.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:30:44+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "b4a1f91840acaec8bfc295aa8ea67caa3b3f15b04c1474b55727b7820e88e756",
+    "code_paths": [
+      "research/experiments/weak-source-kl-independent-confirmation-20260830/run_confirmation.py",
+      "research/experiments/weak-source-kl-independent-confirmation-20260830/finish_confirmation.py",
+      "research/experiments/weak-source-kl-independent-confirmation-20260830/test_confirmation.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py"
+    ],
+    "captured_at": "2026-08-31T01:06:10+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/weak-source-kl-independent-confirmation-20260830/code.patch",
+    "patch_sha256": "d70296d88ea9b55b7fa69802a0d8f02a59f77228c51f9989b8fec3b28525212a",
+    "source_manifest": "research/experiments/weak-source-kl-independent-confirmation-20260830/source_manifest.json",
+    "source_manifest_sha256": "e136f030938cc32c3cde0dd00bd29d77624e0b5ede1c6c2c62045857a28144ca",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 147456,
+    "wall_time_seconds": 1474.0
+  },
+  "metrics": {
+    "prerun_tests_passed": 13,
+    "replication_complete": 1,
+    "replication_passed": 1,
+    "post_exit_review_pass": 1,
+    "deployment_provenance_merged": 1,
+    "weak_checkpoint_zero_hand_loader_pass": 1,
+    "deployment_readiness_network_calls": 0,
+    "deployment_readiness_additional_poker_hands": 0
+  },
+  "artifacts": [
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/preregistration.md",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/code.patch",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/source_manifest.json",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/prerun_tests.xml",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/run_confirmation.py",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/finish_confirmation.py",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/test_confirmation.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\control.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_vs_control.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_vs_source.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\replication_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\result_summary.md",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/validate_deployment_dry_run.py",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/zero_hand_result.json",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/loader_stdout.log",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/readiness_analysis.json",
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/interpretation.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\deferred_deployment_updates.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\merge_deployment_updates.py"
+  ],
+  "notes": [
+    "Parent independent review passed; exactly same source/control/weak hashes. Discovery73728hands excluded. Passing admits only separately preregistered fixed20k strict sampled Slumbot pilot. No optional extension, reselection or automatic recovery.",
+    "Thirteen synthetic tests passed,including discovery-seed rejection, raw evidence corruption, adjusted-only gate, source non-regression and fixed checkpoint identity. Verified admitted-parent analysis SHA and all candidate/anchor hashes; no training or evaluation writer live before launch. No synthetic fixtures counted as poker hands.",
+    "Fixed independent matrix completed. Raw pair/seat and OOD statistics, independent paired-CI recomputation and frozen source/model hashes passed. Await post-exit review before finish; no Slumbot success claim.",
+    "During unchanged independent confirmation, loaded the exact weak checkpoint with the captured Slumbot client on CPU, hands0, native sample/temp1,strict execution. Network entry points were patched to reject calls only inside the separate readiness process. The real dry-run completed with0network attempts and0poker hands. Model/client/script/result hashes preserved.",
+    "Readiness establishes checkpoint loading and selector metadata only, not real action quality or external admission. It neither launches a Slumbot session nor changes the confirmation gate. No captured training/evaluation sources were edited. Merge this supplemental provenance only after the original confirmation wrapper exits, so no concurrent record writers are introduced.",
+    "Recorded baseline interpretation before any confirmation result: the strict native-sampled Standard10 source20k is-48.9778bb/100, distinct from historical greedy-11.4275. Do not confuse their baseline_deltas or pool their hands; absolute positive raw100k result with positive95%CI lower bound remains required. No global baseline setting changed.",
+    "Prepared but did not register or execute a conditional external-pilot draft at research/experiments/weak-kl-strict-sampled-slumbot20k-20260830 while this confirmation was live. It preserves the tested strict8x2500 client/raw-audit/independent-CI workflow and adds completed-confirmation/raw-hash/checkpoint gates. Its tests and external requests are deferred until this confirmation is COMPLETED and admitted. No captured confirmation source changed."
+  ],
+  "result": {
+    "summary": "Independent frozen weak-KL confirmation completed147456internal hands with intact evidence; WEAK_KL_REPLICATION_PASSED.",
+    "conclusion": "standard10:+3.6799 adjustedCI[-14.2435,+21.6033]; slumbot_free:+6.5710 adjustedCI[-14.0975,+27.2396]; corrected_cfr96:+64.8487 adjustedCI[+24.3273,+105.3701]. No discovery pooling or Slumbot success claim.",
+    "decision": "WEAK_KL_REPLICATION_PASSED",
+    "next_step": "Preregister fixed20k strict sampled Slumbot pilot of this exact weak checkpoint."
+  },
+  "tags": [
+    "independent-confirmation",
+    "native-sampled"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 13,
+    "command_count": 13
+  },
+  "artifact_integrity": {
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 3335,
+      "sha256": "a69f3e4beb8460728de69419defb3a04e0f503e669744404d2440177cdf6b938"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/code.patch": {
+      "type": "file",
+      "bytes": 14843,
+      "sha256": "d70296d88ea9b55b7fa69802a0d8f02a59f77228c51f9989b8fec3b28525212a"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 961,
+      "sha256": "e136f030938cc32c3cde0dd00bd29d77624e0b5ede1c6c2c62045857a28144ca"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2450,
+      "sha256": "01b9b0c526d5f2c62daa94d656490fbf31c75c58c4b76092456b202565dae718"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/run_confirmation.py": {
+      "type": "file",
+      "bytes": 10487,
+      "sha256": "94aeb9bfaeb3ce0a998481896664992dbd3d69634d2450692d441ab3f62c8797"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/finish_confirmation.py": {
+      "type": "file",
+      "bytes": 5181,
+      "sha256": "5ef0c18949a048cf3167914a7aecbe5a68fde32b928a53d2f59e2c6811b10f08"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/test_confirmation.py": {
+      "type": "file",
+      "bytes": 3283,
+      "sha256": "c6d37fe87a758edb142d67a3a8740b1ba9cb031781257dc5df220347aa76366b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23145,
+      "sha256": "a958ae075d91e3933416c251d6d7ea850bfa94a94f4fb274dd70d49846df793b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13144,
+      "sha256": "80c8a0e2301a5da65c19dcf09e413b560e55cd9280549c7d8245393654f4a608"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 365811,
+      "sha256": "dcf1fcedcc541e02df426691edb19e21c6a18d4c264cfaaf0d2326eaae63b57d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.json": {
+      "type": "file",
+      "bytes": 1297772,
+      "sha256": "d815486bbd1ed2dbad85e8aa9da7c5bac3b4702a37be0c73134f43f52aa2569f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source.md": {
+      "type": "file",
+      "bytes": 1527,
+      "sha256": "e04340924a627f5cc27f2434bbcb36367c4ec3cc1806d4f70fd733d50612bbfd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source_execution.json": {
+      "type": "file",
+      "bytes": 2154,
+      "sha256": "730f7bbf4e6845a757ffa0165946ca19b9daa607def0f2f2e75f953135f36b0a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\source_stdout.log": {
+      "type": "file",
+      "bytes": 1297772,
+      "sha256": "d815486bbd1ed2dbad85e8aa9da7c5bac3b4702a37be0c73134f43f52aa2569f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.json": {
+      "type": "file",
+      "bytes": 1299255,
+      "sha256": "78e55c678b3ffb8fac75d23c92e596ce1899b3c1bb9f13e3e56da6d3f89948e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control.md": {
+      "type": "file",
+      "bytes": 1560,
+      "sha256": "74850c1f296c1ae88762a146b254cb5e69bc36d637d1504ec180db866a39692e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_execution.json": {
+      "type": "file",
+      "bytes": 2191,
+      "sha256": "dbb029179c460b19f19a965f6e9de499d529bc0fcd315f0d7a4f8b014595b2c0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_stdout.log": {
+      "type": "file",
+      "bytes": 1299255,
+      "sha256": "78e55c678b3ffb8fac75d23c92e596ce1899b3c1bb9f13e3e56da6d3f89948e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\control.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "9bffa0a8628725371d06d1c115de21cdd7e0bc2e45dcf92db140e4796a3fcbeb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.json": {
+      "type": "file",
+      "bytes": 1316096,
+      "sha256": "8628fb5bbd23a5f7d4405b6c3dfb87349496c56df0d5697789401d470b3db839"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak.md": {
+      "type": "file",
+      "bytes": 1561,
+      "sha256": "d94cff4472f6436e3eda45d4a4e855e788f68f0e46d99decd22d81b56a89abaa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_execution.json": {
+      "type": "file",
+      "bytes": 2174,
+      "sha256": "90033429845cbeeb36a749993688a0f9cb2a88081e4493935e9c925c8feb70a1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_stdout.log": {
+      "type": "file",
+      "bytes": 1316096,
+      "sha256": "8628fb5bbd23a5f7d4405b6c3dfb87349496c56df0d5697789401d470b3db839"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-pilot-20260830\\frozen\\weak.pt": {
+      "type": "file",
+      "bytes": 133305012,
+      "sha256": "a68ac47aad7fa943f0e784e1c14be3d742fac7390a2cd853ba6cb971b429019b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_vs_control.json": {
+      "type": "file",
+      "bytes": 5027,
+      "sha256": "c9914ecf1e05e681d032a65f86a921c28e3bc3c5588e411e9eea71c0087323cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\weak_vs_source.json": {
+      "type": "file",
+      "bytes": 5006,
+      "sha256": "532e510d63afc2c2e95578afe6f0ff8ce7634de496b7d6ea0bc3e3c2cd9d2dec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\matrix\\control_vs_source.json": {
+      "type": "file",
+      "bytes": 5016,
+      "sha256": "91eb7da18ecdda9a100ed51251b6143a9a762cafebef918853c49c92779870db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\replication_analysis.json": {
+      "type": "file",
+      "bytes": 4584,
+      "sha256": "eb07fc12fb59b78d57115b46cab5d6b77dd4001beab1d560b62097ab5358c7a2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 4778,
+      "sha256": "52b748917c9e3c63dc4045cd37fcdeff5db37c714b4d73e21b8549f9cab418d1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 1147,
+      "sha256": "8428af5b08040f04d82b9a18f0ae253ff14d4c178ed2ecb4a3616959f60db949"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/validate_deployment_dry_run.py": {
+      "type": "file",
+      "bytes": 3209,
+      "sha256": "658fcd4c3499b4865ea147231f1233a1247b529a92e3073d5b37c684383becdb"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/zero_hand_result.json": {
+      "type": "file",
+      "bytes": 1088,
+      "sha256": "f7c7f76278b87a0296d1df35dfb53260f8c58913d6aac300cd153809096b2c74"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/loader_stdout.log": {
+      "type": "file",
+      "bytes": 554,
+      "sha256": "516f1fb623bf2fa3af6d3a58dc06b4144e76fff64ddb2857847c8e10bae866cd"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/readiness_analysis.json": {
+      "type": "file",
+      "bytes": 1446,
+      "sha256": "fbc5c5e1d6c66c44355436ff4b73cb96fdf25179a01e2468f88e56f3d50a027d"
+    },
+    "research/experiments/weak-source-kl-independent-confirmation-20260830/deployment_readiness/interpretation.md": {
+      "type": "file",
+      "bytes": 1886,
+      "sha256": "9fede0b3356c54f77979d8b939fdb6a17e33b0debf0b81042cd85cb3a9863ed6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\deferred_deployment_updates.json": {
+      "type": "file",
+      "bytes": 2788,
+      "sha256": "147a8687ea877b69169e7946819249833c97b947e94efb1eb252329be270a19e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-source-kl-independent-confirmation-20260830\\merge_deployment_updates.py": {
+      "type": "file",
+      "bytes": 1973,
+      "sha256": "545e1ebe98bf16001399b9d4ddbb42243a0fa224a04b4ab74b0e7f07b174f534"
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-public-opponent-external-alignment-audit-20260902",
+  "title": "Public-opponent external-ranking alignment audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T16:23:24+00:00",
+  "updated_at": "2026-09-02T16:42:54+00:00",
+  "started_at": "2026-09-02T16:23:24+00:00",
+  "ended_at": "2026-09-02T16:42:54+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Across six exact frozen greedy policies with independent fresh20k Slumbot evidence, score versus the frozen public-state Slumbot model will preserve external ranking: Spearman at least 0.6, Kendall tau at least 0.5, positive rank direction in both seats, positive paired-bootstrap lower tail, and at least 0.75 joint probability of positive rank correlation after external measurement uncertainty.",
+  "material_change": "Add an evaluation-only polymorphic frozen-policy runner for audited legacy-v4, native-v6, and dual-contract adapters. Play every policy on 4,096 common decks in both seats versus the same frozen sampled public-opponent model; retain raw pair outcomes and jointly bootstrap local deal variance plus fresh20k external score uncertainty.",
+  "baseline": "Internal opponent panels have repeatedly reversed on fresh Slumbot. The public model improved session-disjoint action NLL by 34.03%, but its hero-training treatment failed; whether it is useful as an evaluation-only external-alignment proxy is unknown.",
+  "source": "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt",
+  "parent_id": "v6-river-belief-cfr-multisample-variance-control-20260902",
+  "command": "python scripts/alpha_holdem/v6_public_opponent_external_alignment.py --manifest research/public_opponent_external_alignment_manifest.json --pairs 4096 --seed 60925 --bootstrap-samples 5000 --device cpu --output-dir research/experiments/v6-public-opponent-external-alignment-audit-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_external_alignment.py --manifest research/public_opponent_external_alignment_manifest.json --pairs 4096 --seed 60925 --bootstrap-samples 5000 --device cpu --output-dir research/experiments/v6-public-opponent-external-alignment-audit-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T16:23:24+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_external_alignment.py --manifest research/public_opponent_external_alignment_manifest.json --pairs 4096 --seed 60925 --bootstrap-samples 5000 --device cpu --output-dir research/experiments/v6-public-opponent-external-alignment-audit-20260902/run --recover-raw research/experiments/v6-public-opponent-external-alignment-audit-20260902/run/common_deck_outcomes.jsonl.gz",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T16:41:00+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "90e2fe512402fd4d6b1e73b9fc1fb46cb96f04a05ec25e08d8d431015a9b9bd7",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T16:23:24+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-public-opponent-external-alignment-audit-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-public-opponent-external-alignment-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "b3b87e71a92e35785780cb9d38c74c3f9c3d9c5bef5de89f4e029840513609cb",
+    "source_files": 218
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 49152,
+    "wall_time_seconds": 1170.0,
+    "planned_evaluation_hands": 49152,
+    "external_source_hands": 120000
+  },
+  "metrics": {
+    "spearman": -0.5428571428571429,
+    "pearson": -0.5933055825113942,
+    "kendall_tau": -0.3333333333333333,
+    "seat0_spearman": -0.5428571428571429,
+    "seat1_spearman": -0.3142857142857143,
+    "fixed_bootstrap_positive_probability": 0,
+    "joint_measurement_positive_probability": 0.158,
+    "decisive_pair_accuracy": 0.1111111111111111,
+    "audit_pass": 1
+  },
+  "artifacts": [
+    "research/public_opponent_external_alignment_manifest.json",
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/code.patch",
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/source_manifest.json",
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/run/common_deck_outcomes.jsonl.gz",
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/run/summary.json",
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/audit.json"
+  ],
+  "notes": [
+    "This is a zero-training-hand calibration audit, not a hero-strength experiment. All six external points use untouched 20k fresh greedy evaluations, while contract-specific observation adapters remain exact. No new Slumbot calls.",
+    "All 49,152 evaluation hands completed and the gzip writer closed. The initial command then failed only while serializing a numpy.bool_ gate into summary JSON; raw outcomes, decks, checkpoint hashes, seeds, and hand counts are intact. Recovery is read-only and will not replay poker hands; decision-count telemetry was not present in raw rows and will be explicitly null."
+  ],
+  "result": {
+    "summary": "Six exact frozen greedy policies completed 49,152 common-deck, both-seat evaluation hands versus the frozen public Slumbot action model. External fresh20k rank alignment was strongly negative: Spearman -0.543, Pearson -0.593, Kendall tau -0.333; both seats were negative, paired bootstrap never produced positive Spearman, joint external-uncertainty probability positive was 15.8%, and only 1/9 externally decisive policy pairs was ordered correctly. Initial summary serialization failed after all raw hands, then a disclosed read-only recovery recomputed the complete result; independent audit passed all 13 evidence gates.",
+    "conclusion": "The public model is a useful behavior-prediction artifact but an anti-aligned hero-strength proxy under policy-induced state shift. This is a matched evaluation mechanism rejection, not an undertraining result. It also explains why positive local exploitation scores cannot justify scaling public-opponent hero training.",
+    "decision": "REJECT_PUBLIC_OPPONENT_AS_EXTERNAL_ALIGNMENT_PROXY",
+    "next_step": "Do not use this model for checkpoint selection, learning-curve admission, or resource scaling. Preserve it only for opponent-behavior analysis. Select the next learned-weight direction using evidence that does not rely on this proxy, prioritizing robust geometric curves, Standard10 preservation, multi-seed breadth, and sparse fresh Slumbot calibration."
+  },
+  "tags": [
+    "external-alignment",
+    "proxy",
+    "public-opponent"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/public_opponent_external_alignment_manifest.json": {
+      "type": "file",
+      "bytes": 3754,
+      "sha256": "69c06bdb4e452d7f5def539631c8f8e55b3abbc8d5a115faf77220ea4cf1f51e"
+    },
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 41391,
+      "sha256": "b3b87e71a92e35785780cb9d38c74c3f9c3d9c5bef5de89f4e029840513609cb"
+    },
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/run/common_deck_outcomes.jsonl.gz": {
+      "type": "file",
+      "bytes": 1459209,
+      "sha256": "0ab52ba5c66aa0f608fe0e81122ecb52b3e7d5fed1b2e79edaee11a9d39a7a3a"
+    },
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/run/summary.json": {
+      "type": "file",
+      "bytes": 10241,
+      "sha256": "09f3f2bd6f8c6c26df5ccc98cd1414adbd5223171bb99ced20720f3e6872f3d3"
+    },
+    "research/experiments/v6-public-opponent-external-alignment-audit-20260902/audit.json": {
+      "type": "file",
+      "bytes": 2088,
+      "sha256": "827d60d4eb532cd6281f53b70c1156c616b5593ceb6458517e79b0ee56571500"
+    }
+  }
+}

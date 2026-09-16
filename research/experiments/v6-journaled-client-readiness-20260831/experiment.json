@@ -1,0 +1,159 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-journaled-client-readiness-20260831",
+  "title": "Journaled v6 client offline evidence readiness",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T09:57:42+00:00",
+  "updated_at": "2026-08-31T10:13:05+00:00",
+  "started_at": "2026-08-31T09:57:42+00:00",
+  "ended_at": "2026-08-31T10:10:35+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Durable intent-response evidence and semantic session auditing preserve ambiguous failures while keeping shared sampled inference unchanged.",
+  "material_change": "Add a journaled client and independent auditor; integrate already validated terminal checks; preserve all71active pilot source paths.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-terminal-evidence-validation-20260831",
+  "command": "python research/experiments/v6-journaled-client-readiness-20260831/run_readiness.py --attempt attempt01",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-journaled-client-readiness-20260831/run_readiness.py --attempt attempt01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T09:57:42+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-journaled-client-readiness-20260831/run_readiness.py --attempt attempt01",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:09:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_v6_session.py --session-dir research/experiments/v6-journaled-client-readiness-20260831/attempt01/cases/test_real_frozen_policy_shared_inference_replay/real_source_execution_fixture/client --model research/experiments/v6-source-kl-retention-pilot-20260831/frozen/anchor0.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T10:13:05+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "eae4277cc873f8d5bf2475f84aaf7f13771a6b67a4d5c8bbd4e5e813be303082",
+    "code_paths": [
+      "research/experiments/v6-journaled-client-readiness-20260831/preregistration.md"
+    ],
+    "captured_at": "2026-08-31T09:57:42+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-journaled-client-readiness-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-journaled-client-readiness-20260831/source_manifest.json",
+    "source_manifest_sha256": "53c288772c442b78974f34c69f260298cb43dacd83d84fa4a1bd45b3bac03dd2",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 773.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "directed_tests_passed": 17,
+    "preserved_fixture_cases": 43,
+    "synthetic_terminal_trajectories": 48,
+    "fixture_requests": 248,
+    "independently_verified_evidence_files": 258,
+    "independent_cli_decision_replays": 8,
+    "source_pairs_verified": 76
+  },
+  "artifacts": [
+    "research/experiments/v6-journaled-client-readiness-20260831/preregistration.md",
+    "research/experiments/v6-journaled-client-readiness-20260831/code.patch",
+    "research/experiments/v6-journaled-client-readiness-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\tests.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\evidence_manifest.json",
+    "research/experiments/v6-journaled-client-readiness-20260831/result_summary.md"
+  ],
+  "notes": [
+    "Offline only,no poker API or GPU. Failed/partial evidence preserved,no retries or replacements. Readiness does not admit external qualification.",
+    "attempt01started;offline only,preserve all failures and all live pilot source files.",
+    "attempt01endedPASS;all fixture evidence retained. No poker API or GPU use; no live qualification admission.",
+    "Independent post-run checks verified258evidence hashes/sizes,76source pairs and71unchanged live pilot source pairs. Actual auditor CLI passed on the real frozen source fixture:8decision replays,2previously executed fixture hands,10requests,17runtime source files. No new trajectories/API calls; repeated synthetic decks and token disjointness do not prove server RNG independence."
+  ],
+  "result": {
+    "summary": "Journaled client passed17offline tests with durable failure and session evidence;0training/evaluation/Slumbot hands.",
+    "conclusion": "Offline protocol and shared-inference checks passed; only a separately registered frozen live run can establish current API compatibility and strength.",
+    "decision": "OFFLINE_CLIENT_EVIDENCE_READINESS",
+    "next_step": "Finish the ongoing learned-policy evaluation and require independent confirmation before preregistering any live frozen-policy test using the audited journaled client."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-journaled-client-readiness-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 3514,
+      "sha256": "f35f48f8f0f086ec30138006c2ec1accb8889bade512fb7b269164c223b9184b"
+    },
+    "research/experiments/v6-journaled-client-readiness-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-journaled-client-readiness-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 323,
+      "sha256": "53c288772c442b78974f34c69f260298cb43dacd83d84fa4a1bd45b3bac03dd2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\analysis.json": {
+      "type": "file",
+      "bytes": 1492,
+      "sha256": "8d905b413e6417543e727df7edd24846839127caad2ed296a9bbe24791eb29b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\tests.log": {
+      "type": "file",
+      "bytes": 2199,
+      "sha256": "7c049618dde0654d1eb6df14e534cc6a70e1519080182c34c43fb604e3d9448e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 24699,
+      "sha256": "15c5b6eec08d04875928499d987ac9380fdc1fa81b96da1b9968b7b0a100aea1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14042,
+      "sha256": "5bffa4bf2e30e8ac1d90c8c23d51489b3be49204fa2fde9f9bc7100b791fcc8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-journaled-client-readiness-20260831\\attempt01\\evidence_manifest.json": {
+      "type": "file",
+      "bytes": 71502,
+      "sha256": "784bcdba139c9f9e1e292707c12722a6f8728a91efc24beb89d5edecf0d8ce21"
+    },
+    "research/experiments/v6-journaled-client-readiness-20260831/result_summary.md": {
+      "type": "file",
+      "bytes": 2748,
+      "sha256": "f7892f75bd7d5a3e1c62f66564d48f38f4201b94d0f1b472836a89f5de2aa7a1"
+    }
+  }
+}

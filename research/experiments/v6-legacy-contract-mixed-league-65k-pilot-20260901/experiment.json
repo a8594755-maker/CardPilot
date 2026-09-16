@@ -1,0 +1,239 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-contract-mixed-league-65k-pilot-20260901",
+  "title": "Legacy-contract mixed self-play league 65k pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T11:13:40+00:00",
+  "updated_at": "2026-09-01T11:30:16+00:00",
+  "started_at": "2026-09-01T11:13:40+00:00",
+  "ended_at": "2026-09-01T11:30:16+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A 65k-hand Standard10-seeded FIFO league under the repaired legacy-v4 observation/action contract, mixing 25% current-policy self-play with replayable procedural and learned opponents, can generate stable learned-weight improvement while keeping 50k source-state mean TV below 0.10 and greedy disagreement below 0.15. A frozen archive must improve over the untouched parent on a fresh common-randomness multi-anchor internal panel before any Slumbot spend.",
+  "material_change": "Scale the passed 9k mechanism smoke to 65,536 physical hands; replace the immutable fixed pool with one Standard10-seeded latest/FIFO pool that inserts a frozen learned snapshot every four updates; set self-play to 0.25 and procedural replacement to 0.50 among external-opponent hands; preserve low-LR all-policy-head PPO, source KL 0.1, exact legacy bridge execution, fixed deal stream, and checkpoint/session evidence.",
+  "baseline": "Untouched exact Standard10 legacy bridge: fresh20k -24.5683 bb/100 CI[-42.8407,-6.2959]. The 9,013-hand mechanism smoke passed at mean TV 0.006001 and greedy disagreement 0.0061 but supplied no strength evidence. Historical imitation-only teacher fresh20k was about -18.5025 and is not treated as a validated route.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "research/experiments/v6-legacy-contract-ppo-smoke-20260901/drift_analysis.json",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --k-best 4 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112800 --fixed-training-deal-stream --fixed-training-deal-start-index 9000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 4 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_legacy_contract_mixed_league_65k_20260901 --run-dir research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training --out research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --seed 20261128 --max-runtime-seconds 1200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --k-best 4 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112800 --fixed-training-deal-stream --fixed-training-deal-start-index 9000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 4 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_legacy_contract_mixed_league_65k_20260901 --run-dir research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training --out research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --seed 20261128 --max-runtime-seconds 1200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:13:40+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_legacy_observation_bridge_v6.py scripts/alpha_holdem/test_environment_v6_legacy_observation.py scripts/alpha_holdem/test_policy_contract_v6.py scripts/alpha_holdem/test_train_v5_fixed_pool.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:14:01+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training --expected-target-hands 99999999 --expected-target-environment-hands 65536 --expected-final-iteration 16 --expected-pool-size 4 --expected-archive-every 4 --expected-normalization global --workspace . --out research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:23:34+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_legacy_observation_bridge_v6.py scripts/alpha_holdem/test_environment_v6_legacy_observation.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_procedural_opponent.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:28:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/audit_session.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:28:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evaluate_curve_drift.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:28:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evaluate_panel.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:28:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/audit_evidence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:30:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8d2c324af911558f2475eaede281f252d61f9df50b25e0ef083da10aac14ff2b",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T11:13:40+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/code.patch",
+    "patch_sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2",
+    "source_manifest": "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "3d670ba730ad82143def5788cb271eaf98d562f36b93a6b51c3eaf32cd6c8a23",
+    "source_files": 77
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 69288,
+    "lineage_training_hands": 69288,
+    "offline_samples": 200000,
+    "evaluation_hands": 40960,
+    "wall_time_seconds": 996.0,
+    "target_environment_hands": 65536,
+    "environment_training_hands": 69288,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "source_tv_mean_max": 0.1,
+    "source_greedy_disagreement_max": 0.15,
+    "final_source_tv_mean": 0.023901126632116715,
+    "final_source_greedy_disagreement": 0.03008,
+    "max_reference_policy_kl": 0.00307694748044014,
+    "iter08_pooled_delta_bb100": 26.815673828125,
+    "iter08_pooled_bonferroni_lower": -0.014538220584785932,
+    "iter16_pooled_delta_bb100": 30.21826171875,
+    "iter16_pooled_bonferroni_lower": -0.2124632960429942,
+    "session_audit_pass": 1,
+    "evidence_audit_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/code.patch",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/run_manifest.json",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/h1_training_metrics.jsonl",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/session_audit.json",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/audit_session.py",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evaluate_curve_drift.py",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/curve_drift_analysis.json",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/curve_drift_raw.jsonl.gz",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evaluate_panel.py",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/panel",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/panel_analysis.json",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/audit_evidence.py",
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evidence_audit.json"
+  ],
+  "notes": [
+    "No Slumbot is authorized by training completion alone. Freeze endpoint and iter4/8/12 archives, audit the session and tensor scope, then use an untouched common-randomness internal panel. External fresh-only testing requires a positive internal signal with no broad collapse.",
+    "The route is PPO/self-play/opponent-league learned-weight training, not imitation; Standard10 is initialization, execution anchor, and KL reference only.",
+    "Preflight collection error before trainer launch: two referenced test filenames did not exist. Zero environment hands and no training artifacts. Corrected focused suite uses the actual bridge/environment/dynamic-pool/procedural tests.",
+    "The fixed-pool auditor rejected the valid learned FIFO membership before writing an audit; zero evidence was modified. A record-local dynamic FIFO audit checks physical counters, assignment replay, source identity, membership cadence, optimizer state, metadata, and archives.",
+    "Before panel outcomes: fixed 5 candidates x 4 untouched anchors x 1,024 mirrored greedy pairs (40,960 physical evaluation hands). Promotion requires >=3/4 positive paired anchor points and pooled four-comparison Bonferroni 98.75% CI lower >0; select highest pooled point among passing archives. Otherwise no Slumbot.",
+    "Independent evidence audit recomputed all 50k drift rows and 20x1024 mirrored-pair cells, verified common decks and hashes, and explicitly added the omitted per-seat pooled-delta check. No archive passes the complete promotion rule, matching the original no-selection outcome."
+  ],
+  "result": {
+    "summary": "The Standard10-seeded legacy-contract mixed league completed 69,288 new physical hands with audited FIFO self-play/procedural training and low source drift. All four curve archives improved over parent on 3/4 internal anchors, but none cleared the preregistered multiplicity-adjusted lower-bound gate; no Slumbot hands were spent.",
+    "conclusion": "This route is stable and shows a coherent positive internal signal, strongest at iter16 (+30.2183 bb/100 pooled) and iter08 (+26.8157), but both Bonferroni 98.75% lower bounds remained marginally below zero (-0.2125 and -0.0145). Because historical internal proxy ranking has not reliably predicted Slumbot, near misses are not promoted. The exact frozen iter08 and iter16 checkpoints merit one fresh-seed confirmatory replication, not optional continuation of this panel.",
+    "decision": "NO_EXTERNAL_PROMOTION_ADMIT_FRESH_INTERNAL_REPLICATION_ITER08_ITER16",
+    "next_step": "Preregister one independent fresh-deal replication of exact frozen iter08 and iter16 versus the same four untouched anchors, with two-candidate multiplicity correction and no reuse of discovery hands. Promote at most one checkpoint to fresh5k Slumbot only if the replication lower bound is positive, at least 3/4 anchors are positive, both seat points are nonnegative, and raw evidence audit passes."
+  },
+  "tags": [
+    "learned-weights",
+    "opponent-league",
+    "ppo",
+    "selfplay",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 8,
+    "command_count": 8
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795616,
+      "sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 14230,
+      "sha256": "3d670ba730ad82143def5788cb271eaf98d562f36b93a6b51c3eaf32cd6c8a23"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt": {
+      "type": "file",
+      "bytes": 166112394,
+      "sha256": "defe2b5904386ffb97c737d36ffe29e2ba013f92584515dacfb53c9f54eb11bb"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/run_manifest.json": {
+      "type": "file",
+      "bytes": 183028,
+      "sha256": "5ce0420623c2e393f7036e17c856e3e5998772aa1d55a9b29b4c6f0df8cd4de2"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 438497,
+      "sha256": "c7aed7e0e8344d261d571c8ac3c3be2970b5054f07667d0954e44bc4ec635b4f"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 39540,
+      "sha256": "a0f496567027e1b94dc409d4648f765b4cadcd2fb96373b29f3e92a529dc7fab"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/session_audit.json": {
+      "type": "file",
+      "bytes": 3769,
+      "sha256": "0522478a2f6a1f102755c7ca251fec53d0a24efa7fd632f9b306dcb1c9e8dcf6"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/audit_session.py": {
+      "type": "file",
+      "bytes": 8590,
+      "sha256": "e009f4daae96dc17b10d1278cfcbe44edb24549a0a5282c280184df0f879b4e2"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evaluate_curve_drift.py": {
+      "type": "file",
+      "bytes": 8591,
+      "sha256": "0287e0d3c0ea246e38ad1d378b0dfd93d82778959cff80e93bb0dd02d9a6fad5"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/curve_drift_analysis.json": {
+      "type": "file",
+      "bytes": 10594,
+      "sha256": "0a7a896b9b9a2c770eb288d0072bb6d69cf7d491a022e5c20de3da9e40343f1d"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/curve_drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 2530130,
+      "sha256": "cd1b6fb6274d223b22175a9944d0ebf24ceb1b1cbbc465e09df523200dfa747b"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evaluate_panel.py": {
+      "type": "file",
+      "bytes": 11592,
+      "sha256": "22f4525e66bfaf2a668d3b6cdae17e7ca8df010264a1564759773db875ee4950"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/panel": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/panel_analysis.json": {
+      "type": "file",
+      "bytes": 6712,
+      "sha256": "6906070f77e65ccd94c2272efc4de4d00a0618196f668e0b0e809024c340c010"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/audit_evidence.py": {
+      "type": "file",
+      "bytes": 6920,
+      "sha256": "c14b037e831d2462797428708e64082e77cd4eab84172edabfc1bcc8e9705e92"
+    },
+    "research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/evidence_audit.json": {
+      "type": "file",
+      "bytes": 13003,
+      "sha256": "37f761fa2964df5da62f514a199342c8f90853b9b700cf7eacf0fb3403f57751"
+    }
+  }
+}

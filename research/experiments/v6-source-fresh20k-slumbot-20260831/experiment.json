@@ -1,0 +1,471 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-source-fresh20k-slumbot-20260831",
+  "title": "Fixed fresh20k corrected-v6 source Slumbot baseline",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T11:56:48+00:00",
+  "updated_at": "2026-08-31T12:23:04+00:00",
+  "started_at": "2026-08-31T11:56:48+00:00",
+  "ended_at": "2026-08-31T12:23:04+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A fixed external baseline under the corrected v6 execution contract will calibrate source strength independently of old-contract results and internal proxy gates.",
+  "material_change": "Eight fresh2500hand sessions,one frozen v6 source,strict journaled runtime;raw hand and session-t7 CIs;exclude16readiness probe hands;no automatic extension.",
+  "baseline": "Corrected-v6 source; old greedy/sampled contracts are context only.",
+  "source": "v6-source-live-readiness-20260831",
+  "parent_id": "v6-source-live-readiness-20260831",
+  "command": "python research/experiments/v6-source-fresh20k-slumbot-20260831/run_baseline.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-source-fresh20k-slumbot-20260831/run_baseline.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T11:56:48+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-source-fresh20k-slumbot-20260831/run_baseline.py research/experiments/v6-source-fresh20k-slumbot-20260831/baseline_stats.py research/experiments/v6-source-fresh20k-slumbot-20260831/test_baseline.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:12+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\test_baseline.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092901 --session-id v6_source_fresh20k_20260831_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092902 --session-id v6_source_fresh20k_20260831_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092903 --session-id v6_source_fresh20k_20260831_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092904 --session-id v6_source_fresh20k_20260831_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092905 --session-id v6_source_fresh20k_20260831_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:18+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092906 --session-id v6_source_fresh20k_20260831_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:19+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092907 --session-id v6_source_fresh20k_20260831_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:19+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --hands 2500 --seed 2026092908 --session-id v6_source_fresh20k_20260831_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:00:19+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-source-fresh20k-slumbot-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:03:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_v6_session.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:10:17+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-source-fresh20k-slumbot-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T12:23:03+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-source-fresh20k-slumbot-20260831/preregistration.md",
+      "research/experiments/v6-source-fresh20k-slumbot-20260831/baseline_stats.py",
+      "research/experiments/v6-source-fresh20k-slumbot-20260831/test_baseline.py"
+    ],
+    "captured_at": "2026-08-31T11:56:48+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-source-fresh20k-slumbot-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-source-fresh20k-slumbot-20260831/source_manifest.json",
+    "source_manifest_sha256": "ceaa71ff92cd79fcab6b4ca77d5be8d7564540d71e581d8425dc7fd989d23945",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 20000,
+    "wall_time_seconds": 1576.0,
+    "slumbot_hands": 20000
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-source-fresh20k-slumbot-20260831/code.patch",
+    "research/experiments/v6-source-fresh20k-slumbot-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s08_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\review_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\review_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\review_code\\copy_manifest.json"
+  ],
+  "notes": [
+    "Reuse the exact immutable runtime snapshot that passed the16hand live probe; freeze a new identical source copy and new session IDs/seeds. Existing internal matrix unchanged.",
+    "Added separate post-exit raw arithmetic/evidence reviewer, including disjointness from excluded probe token chains. No active client/runtime/helper snapshot edited.",
+    "Outcome-blind numerical check: SciPy t.ppf(.975,7) and50-digit incomplete-beta inversion agree on2.36462425159278534168. Preregistered2.3646242510102993 differs by5.825e-10. Active frozen statistics/runtime unchanged; independent reviewer will report the high-precision sensitivity and require zero-boundary decision agreement.",
+    "All eight fixed sessions complete; combined full model/terminal/session evidence audit passed. Raw20k statistics computed; independent final review required. No automatic extension or policy change."
+  ],
+  "result": {
+    "summary": "Exactly20k fresh corrected-v6 source hands: -82.8164bb/100; raw95%CI[-114.56751461831712, -51.06528538168289]; complete evidence PASS.",
+    "conclusion": "Independent raw and session-cluster analysis of one immutable v6 source; no probe/old-contract pooling or100k completion.",
+    "decision": "SOURCE_BASELINE_NOT_POSITIVE_CONFIDENTLY",
+    "next_step": "Use this corrected-v6 external baseline to interpret the ongoing fixed league matrix,then select the next evidence-driven learned-weight experiment."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 14,
+    "command_count": 14
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-source-fresh20k-slumbot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-source-fresh20k-slumbot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 737,
+      "sha256": "ceaa71ff92cd79fcab6b4ca77d5be8d7564540d71e581d8425dc7fd989d23945"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1310,
+      "sha256": "9b31434ab79fc8a370fa52d478bfa2b64e0ec08eaf6bea6d88a29464a265603a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2075,
+      "sha256": "a0cf61fb0e528708a34c2fcb279e6d4f965ec65de5c5a1206ab138fea975223c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 1122,
+      "sha256": "66b0b99875519ca961802e2f7a015005824b66c8740b4026740346e2cdb1e4fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 887,
+      "sha256": "d2a3f75b626fd09c3b08aabc66686dd568e78d603f3d8273115f4020e3f73f61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13594,
+      "sha256": "241f3e3121747507252f447d92bb4ae429b4b9815c735e3a4dd320bb2f4f57c6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22773,
+      "sha256": "3d376ce165baf16b6370f4a29b9cb08e167c805b339fc9a4fc22fe123bc7f024"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\frozen\\source.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 1913,
+      "sha256": "4480b1ca26c6544c005265a1626017bebe7a69ce9a3f2014a5c55d59ba6fbd15"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8149,
+      "sha256": "5c273063582b8d7ab95b13e1cd0aecfb42d414dbde2a375a2225e3f817ecbf3e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 1028,
+      "sha256": "3b8a24e398613f0be08ab3f307ec44bb909ff9de1870c945bbc16f9c830ea33d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 8462,
+      "sha256": "5b2de537c3ab57b26e8d1ad3fb645db1f8b5eba685d5d7bd912fd45c78e78766"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s01_stdout.log": {
+      "type": "file",
+      "bytes": 5557,
+      "sha256": "64e08161fd3eeed3d373f3a4c7952f9f0f49c710c354d883c89515ce9e3f3b00"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18161859,
+      "sha256": "e05c410f6943886b29315c0b52e264df2cd5d296108a81745027de6e53a76943"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9025733,
+      "sha256": "2c7df1f919196ecfbd3352b1c481c2158e51592c38f6e9bcb7996c83968ebac4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s01\\summary.json": {
+      "type": "file",
+      "bytes": 5443,
+      "sha256": "c4d57d93b85cf20faeb0a3355f8e2ac0680dc7b82b150d3de64f8915d93755fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s02_stdout.log": {
+      "type": "file",
+      "bytes": 5556,
+      "sha256": "b08500a5cc233548b53cacdb852d72d5c0893ff91c1707230e171d2c429ffe21"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18058085,
+      "sha256": "15234d5bbf69081c84a9e83eee426f981b56053cd6f9491a3249f7982d0791fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8983050,
+      "sha256": "fac30511089648c3b83ee94de64f11ca8e8d082256b2ee1d6b5008f7832d19ab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s02\\summary.json": {
+      "type": "file",
+      "bytes": 5442,
+      "sha256": "e8098ff21156863e4501ed020acd5a553cd3a11e0bddc276383320b417b49289"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s03_stdout.log": {
+      "type": "file",
+      "bytes": 5557,
+      "sha256": "5a2f0e8a361e1debe0f3f1a4f8af7b9567b404aa82122f8e0225388a6a1c1190"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18141158,
+      "sha256": "10c1d6e4ebd8f59167415c32a3fd5b79ced48788565aea7808a82f7ee2599319"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9017052,
+      "sha256": "c95a8712ad4796c29aad3897e519e928b9857d93c18cf7972543681bdd7f2774"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s03\\summary.json": {
+      "type": "file",
+      "bytes": 5443,
+      "sha256": "7acb04ab28386a5354b8c5c8a48e42c8ea3aadbec49156c98733ab7c1507d5b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s04_stdout.log": {
+      "type": "file",
+      "bytes": 5555,
+      "sha256": "496e1aabad0baa226479d41f00380c418f9586a4aa7473a161c2c2cce3d292dc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17859760,
+      "sha256": "3c740c3c1d4b05b854759147eaa60e33e9b3f82456a959a80cd1cfa975cbbf00"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8907276,
+      "sha256": "9501c0dab7dc02996c8a099b13a3971e658780ff4c21bdaff0c0edc27c6f6781"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s04\\summary.json": {
+      "type": "file",
+      "bytes": 5441,
+      "sha256": "ba50fd38d7418c41bd55a2bcd899dd5305e6206173613198d65a3ed3cf3aae66"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s05_stdout.log": {
+      "type": "file",
+      "bytes": 5556,
+      "sha256": "c516d5e565654994e252749beab4b267e6987969a5217d77cab1cd940547aee3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18101816,
+      "sha256": "79a050c1ca90d8bebb07b8778b325ee6064552ea21d4e39df45f8b96facb1186"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9001005,
+      "sha256": "fbe85b82e1a02a69434e88efa402a0003003722be808561ba4adfb75ec4c7944"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s05\\summary.json": {
+      "type": "file",
+      "bytes": 5442,
+      "sha256": "5ed8287803732dc40fd9ef124fbb28b3327eda91ed6bcd49a4b67e61af1cb84a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s06_stdout.log": {
+      "type": "file",
+      "bytes": 5555,
+      "sha256": "9898246fa870bbae84648706c60fe402061afe7108c2370529e333cd1ad98c85"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06\\journal.jsonl": {
+      "type": "file",
+      "bytes": 17940015,
+      "sha256": "7382ef54e0dac8d8f06cc26ae1fea8952f3bac86ef6e0b519be27a7cdf81e013"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8936262,
+      "sha256": "db691ea5cec27d59bf2eb1c29305dcbc8a3e1423cb0ad56a22c425e32b15026c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s06\\summary.json": {
+      "type": "file",
+      "bytes": 5441,
+      "sha256": "4edbaae0c33413e827f44af8181b0ffc27ab857790abb2c4305cc9ed278641ca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s07_stdout.log": {
+      "type": "file",
+      "bytes": 5556,
+      "sha256": "5d1e9d31f1da4dee1065009e73975920506edad2e8be0fcc4d6f532f3d687607"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18340077,
+      "sha256": "986efe868d8959c7f57b1e83dd7427f9370b9e1af473fd5ff9b07dc5e3fd8b00"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07\\hands.jsonl": {
+      "type": "file",
+      "bytes": 9092183,
+      "sha256": "809aeaac46380e4c449202e202b68d24ff81ee919c9f228182926884225a06c2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s07\\summary.json": {
+      "type": "file",
+      "bytes": 5442,
+      "sha256": "2fc09b2d299a5dd7376d2ad6ebf735fd61557659c5237d5eff88edaaea0587c5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\s08_stdout.log": {
+      "type": "file",
+      "bytes": 5556,
+      "sha256": "0350b699d689a8c3c6c9dc2539de10e0d5b7300110bd413dc92a0dcc76fa72f6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08\\journal.jsonl": {
+      "type": "file",
+      "bytes": 18052794,
+      "sha256": "7d874baff8c58d945e4b42bdecc2ec2cdb7d2706ac726b13af5061984e30be79"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08\\hands.jsonl": {
+      "type": "file",
+      "bytes": 8979427,
+      "sha256": "61d9cb329db83e84e38154570026cb1772eee15f5c32dd56031d1c8e9f4d96e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\sessions\\s08\\summary.json": {
+      "type": "file",
+      "bytes": 5442,
+      "sha256": "ff216cd0efdab2819cac307f069efa6c87d5f4c9bf17a482681b7077377cd022"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 4026,
+      "sha256": "fd94d113dddb6ce2f0d425980b93eba9234078283e34aedcf2b63c72b52a5147"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 922,
+      "sha256": "57f70967ded30020fb5b42a17c8c09972bb8bd141e5e0dab27d7d7f40d2095e7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\review_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 318,
+      "sha256": "02ee1f0edeec7b6729a83ef6231d3250dfb8f49b13114173dd92b8bee6700b80"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\review_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-fresh20k-slumbot-20260831\\review_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 364,
+      "sha256": "9128d9a1bab50eb5b354f7fcd1f9d080f0967a93f505e6b17eb81d7d2e716469"
+    }
+  }
+}

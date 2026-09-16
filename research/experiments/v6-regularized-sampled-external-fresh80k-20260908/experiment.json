@@ -1,0 +1,241 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-regularized-sampled-external-fresh80k-20260908",
+  "title": "Fixed two-seed sampled regularized versus parent external calibration",
+  "status": "RUNNING",
+  "created_at": "2026-09-08T16:55:26+00:00",
+  "updated_at": "2026-09-08T18:05:04+00:00",
+  "started_at": "2026-09-08T16:55:26+00:00",
+  "ended_at": null,
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Complete-trajectory regularized learning may transfer to sampled external play; independent internal confirmation is inconclusive.",
+  "material_change": "Freeze both retained-seed candidate and parent deployment exports for 32 fixed 2500-hand sessions; no training or final acceptance claims.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-regularized-return-two-seed-pilot-20260908",
+  "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_protocol.py --junitxml=research/experiments/v6-regularized-sampled-external-fresh80k-20260908/protocol_tests.xml",
+  "commands": [
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_protocol.py --junitxml=research/experiments/v6-regularized-sampled-external-fresh80k-20260908/protocol_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:55:26+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_sampled_replay.py --junitxml=research/experiments/v6-regularized-sampled-external-fresh80k-20260908/replay_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:57:44+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-regularized-sampled-external-fresh80k-20260908/qualify_session.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T17:03:01+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_controller.py --junitxml=research/experiments/v6-regularized-sampled-external-fresh80k-20260908/controller_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T17:03:01+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-regularized-sampled-external-fresh80k-20260908\\run_external.py run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T17:03:08+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B research/experiments/v6-regularized-sampled-external-fresh80k-20260908/review_external.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T18:05:04+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -m pytest -q -p no:cacheprovider research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_review_external.py --junitxml=research/experiments/v6-regularized-sampled-external-fresh80k-20260908/review_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T18:05:04+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-regularized-sampled-external-fresh80k-20260908"
+    ],
+    "captured_at": "2026-09-08T16:55:26+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/source_manifest.json",
+    "source_manifest_sha256": "9fd9b5780dc19e351656336fba87db2e753acf8d8231392148fb5369f5556873",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 80000,
+    "wall_time_seconds": 4178.0
+  },
+  "metrics": {
+    "protocol_tests_passed": 11,
+    "sampled_replay_tests_passed": 8,
+    "network_requests": 0,
+    "live_external_sessions": 0,
+    "offline_fixture_hands": 80,
+    "successful_full_session_fixture_hands": 64,
+    "full_session_decision_replays": 237,
+    "controller_tests_passed": 8,
+    "external_hands": 80000,
+    "external_execution_complete": true,
+    "external_execution_wall_seconds": 3651.437999999849
+  },
+  "artifacts": [
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/preregistration.md",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/code.patch",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/source_manifest.json",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/protocol.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_protocol.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/audit_sampled.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_sampled_replay.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/protocol_tests.xml",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/replay_tests.xml",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/session_qualification.json",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/qualify_session.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/run_external.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_controller.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/controller_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-regularized-sampled-external-fresh80k-20260908\\frozen_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-regularized-sampled-external-fresh80k-20260908\\execution\\terminal.json",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/review_external.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_review_external.py",
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/review_tests.xml"
+  ],
+  "notes": [
+    "Preparation stage only. Zero server requests; runtime freeze and full replay compatibility must pass before launch.",
+    "Preparation progress: fixed 32-session/80k sampled protocol and exact model hashes; 11 protocol tests and 8 real-export replay tests passed. Added isolated exact legacy-slot sampled model replay rather than applying native physical-slot CDF ordering. Tests cover root states and mutations, not full journal integration. Original production code unchanged. No server requests or completed hands. Next: freeze runtime and controller, qualify complete sampled session journal and launch only after full offline preflight.",
+    "Offline integration first attempt retained 16 completed fixture hands but audit rejected missing command metadata. Original offline_sessions retained. Corrected offline_sessions_v2 uses distinct deck namespace and 64 additional fixture hands, all four complete journals PASS with 237 exact model decision replays. No training or network. New exclusive controller prepared with 8 targeted guard tests; not a broad fault-injection qualification.",
+    "All fixed sessions terminal; full audits and record finish remain pending.",
+    "Original controller exited 0 after all 32 fixed sessions and 80000 external hands. Post-terminal full model replay launched; no new hands or policy selection. Reviewer adds no logger writes. Review guard tests passed 8; previously created while live without editing frozen dependencies."
+  ],
+  "result": {
+    "summary": "",
+    "conclusion": "",
+    "decision": "",
+    "next_step": ""
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 7,
+    "command_count": 7
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/preregistration.md": {
+      "type": "file",
+      "bytes": 2853,
+      "sha256": "18dc8088178d2583e864b56def71b90fcf974b2149ac9c35d5175f3beb9082b6"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 986,
+      "sha256": "9fd9b5780dc19e351656336fba87db2e753acf8d8231392148fb5369f5556873"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/protocol.py": {
+      "type": "file",
+      "bytes": 4676,
+      "sha256": "eeba6eb71ed03aebca6f2ac1bc6a728468200a5bf09cb45db1d66f09cf842856"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_protocol.py": {
+      "type": "file",
+      "bytes": 2260,
+      "sha256": "133f4930e5be922cbd063f250fabe17df00f734cf8a174efd2402777a3e8050e"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/audit_sampled.py": {
+      "type": "file",
+      "bytes": 2774,
+      "sha256": "ccd344da6d0e79b6bc1582903442c2501b3aef592add7c3c50521d1f5757a1dc"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_sampled_replay.py": {
+      "type": "file",
+      "bytes": 1838,
+      "sha256": "23f155eb1793632459664aba1307ec991e02d2685fa8a24584169763fee99a8b"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/protocol_tests.xml": {
+      "type": "file",
+      "bytes": 2078,
+      "sha256": "f3fbd4225f0442179468464347bedaa87fc13c046d8030a20ab338d1d8c022e7"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/replay_tests.xml": {
+      "type": "file",
+      "bytes": 1648,
+      "sha256": "bdf30ab45024e581926c7267dfc260cecd296fcd06137f274ac85a47dc031db3"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/session_qualification.json": {
+      "type": "file",
+      "bytes": 15112,
+      "sha256": "773bfa7e35ab9374c4739b014b7cbe7e3e2eada4b3be37cc21ec5d27573fcb99"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/qualify_session.py": {
+      "type": "file",
+      "bytes": 4672,
+      "sha256": "2bafd2183c1adf877033da80a4caf9018b90095f51a497010f6fc66bd33a8332"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/run_external.py": {
+      "type": "file",
+      "bytes": 10311,
+      "sha256": "e00ef5a44f74995ccb5aa1d28e8801bceb6a1c163f7be45590d9c0d4b2e126a9"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_controller.py": {
+      "type": "file",
+      "bytes": 1539,
+      "sha256": "90e0804d9198372b44bdeaba382dba7c7fc0d17895ed39d8fbad7f228be2ed07"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/controller_tests.xml": {
+      "type": "file",
+      "bytes": 1523,
+      "sha256": "e71a30afa8ac080f5a2305adda66d7a1bb1b07b9361f7d7450a10a5054accdcc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-regularized-sampled-external-fresh80k-20260908\\frozen_manifest.json": {
+      "type": "file",
+      "bytes": 262173,
+      "sha256": "52ea49d2301abef55f70f5c43376edf723e3bb1d986c675fc1dabaa507dc6433"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-regularized-sampled-external-fresh80k-20260908\\execution\\terminal.json": {
+      "type": "file",
+      "bytes": 119,
+      "sha256": "9ffb04b497843a77634f8496c4ef0414c16b23a4ddf1d8a6b2ccd5b2c4db4762"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/review_external.py": {
+      "type": "file",
+      "bytes": 7793,
+      "sha256": "19a25ddea8f0580f995bc21fb63b041d2d19d80fe57cb9bfddc1151c50cdf178"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/test_review_external.py": {
+      "type": "file",
+      "bytes": 1944,
+      "sha256": "80a10eda3faefa13b1b2987345b9f652ba241d10305922269fd60cf31a6f882e"
+    },
+    "research/experiments/v6-regularized-sampled-external-fresh80k-20260908/review_tests.xml": {
+      "type": "file",
+      "bytes": 1613,
+      "sha256": "f1020b81d0eb3eb231fdc1990b3d95357dd170833806985de0a1cbe970141d53"
+    }
+  }
+}

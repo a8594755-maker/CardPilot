@@ -1,0 +1,364 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "ppo-gradient-budget-diagnostic-20260830",
+  "title": "PPO component-gradient budget diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T19:47:38+00:00",
+  "updated_at": "2026-08-30T19:57:02+00:00",
+  "started_at": "2026-08-30T19:47:38+00:00",
+  "ended_at": "2026-08-30T19:57:02+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Small source KL and near-zero clipping may reflect either source/entropy opposition or insufficient effective actor signal; measure component norms and directions on fresh rollout batches before choosing an update-strength treatment.",
+  "material_change": "Opt-in non-mutating autograd diagnostics on first four minibatches per epoch; two 16384 physical-hand cohorts from Standard10 and preserved all-heads iter64, same fresh deal seed, no benchmark-specific rules.",
+  "baseline": "models/baseline/standard10/latest.pt",
+  "source": "research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt",
+  "parent_id": "adaptive-league-all-heads-pilot-20260830",
+  "command": "python -m pytest scripts/alpha_holdem/test_ppo_gradient_diagnostics.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_ppo_gradient_diagnostics.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:47:38+00:00"
+    },
+    {
+      "command": "python research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:50:22+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 999999 --total-environment-hands 16384 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --gradient-diagnostic-minibatches 4 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\source\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id ppo_gradient_source_20260830 --run-dir research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\source --out research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\source\\latest.pt --seed 20260890 --max-runtime-seconds 1200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:50:23+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\source --expected-target-hands 999999 --expected-target-environment-hands 16384 --expected-final-iteration 4 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\source_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:52:11+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:52:34+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/ppo-gradient-budget-diagnostic-20260830/source --expected-target-hands 999999 --expected-target-environment-hands 16384 --expected-final-iteration 4 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research/experiments/ppo-gradient-budget-diagnostic-20260830/source_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:53:28+00:00"
+    },
+    {
+      "command": "python research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py --mature-only",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:53:28+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 999999 --total-environment-hands 16384 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --gradient-diagnostic-minibatches 4 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089000 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id ppo_gradient_mature_20260830 --run-dir research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature --out research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\latest.pt --seed 20260890 --max-runtime-seconds 1200 --resume research/experiments/adaptive-league-all-heads-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263602.pt --allow-resume --reset-hand-counter --no-reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:53:29+00:00"
+    },
+    {
+      "command": "python research/experiments/ppo-gradient-budget-diagnostic-20260830/analyze.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:54:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature --expected-target-hands 999999 --expected-target-environment-hands 16384 --expected-final-iteration 4 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:55:10+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/ppo-gradient-budget-diagnostic-20260830/source --expected-target-hands 999999 --expected-target-environment-hands 16385 --expected-final-iteration 4 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research/experiments/ppo-gradient-budget-diagnostic-20260830/rejected_mismatched_target.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:55:35+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "81e1e93fb6d9d66a83c8cbe79f3fc0667acb17df7005f9916a405d4de9fca1e3",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py"
+    ],
+    "captured_at": "2026-08-30T19:47:38+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/ppo-gradient-budget-diagnostic-20260830/code.patch",
+    "patch_sha256": "3669a983ecd9dd8f2e39a88a5ef0c683db672aaea7fb4f03971d97548682fd27",
+    "source_manifest": "research/experiments/ppo-gradient-budget-diagnostic-20260830/source_manifest.json",
+    "source_manifest_sha256": "831f279aa45bf007a80f05a23127c3c43397c4be14ef342bfbb20b86be96f504",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 39950,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 564.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "planned_physical_hands_per_cohort": 16384,
+    "regression_tests_passed": 23,
+    "first_probe_ppo_gradient_norm_mean": 0.2669747,
+    "first_probe_critic_gradient_norm_mean": 0.5593351,
+    "first_probe_ppo_actor_cosine_mean": 0.9609936,
+    "real_ppo_update_equivalence_pass": 1,
+    "source_physical_hands": 20636,
+    "mature_physical_hands": 19314,
+    "mismatched_physical_target_rejected": 1,
+    "mature_input_optimizer_step": 1796,
+    "mature_final_optimizer_step": 1914,
+    "gradient_probe_count": 64,
+    "mature_mean_actor_ppo_norm_ratio": 1.012808,
+    "mature_mean_global_clip_scale": 0.976765
+  },
+  "artifacts": [
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/code.patch",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source_manifest.json",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/code.patch",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_manifest.json",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/train_v5.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/test_ppo_gradient_diagnostics.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py",
+    "scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/latest.pt",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/run_manifest.json",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/h1_training_metrics.jsonl",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/opponent_assignments.jsonl",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source_audit.json",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/latest_train.log",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/code.patch",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_manifest.json",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/train_v5.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/test_ppo_gradient_diagnostics.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/analyze.py",
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\latest.pt",
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\run_manifest.json",
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\h1_training_metrics.jsonl",
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\opponent_assignments.jsonl",
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\latest_train.log",
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature_audit.json",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/gradient_analysis.json",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/result_summary.md",
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_audit.json"
+  ],
+  "notes": [
+    "Diagnostic only, not a strength-selection experiment. Preserve both frozen source artifacts. New local physical counter with reset-hand-counter; mature cohort keeps its optimizer state but is a new experiment, not a continuation of the completed historical record. Exact source reference remains Standard10. No frozen evaluation required to interpret component gradients, and no Slumbot requested. Any following treatment must be separately preregistered.",
+    "Two cohorts share fresh seed20260890 / worker-seed2026089000. Source starts fresh Adam; mature retains saved Adam. Both use original Standard10 KL reference and physical target16384 with boundary overshoot. Probe first4 minibatches/epoch. Raw gradients are not Adam step sizes. Study local restriction only, not general strength.",
+    "Pre-execution source snapshot includes full bytes of tracked and untracked code. No run will overwrite an existing cohort directory.",
+    "First source update: actor gradient remains closely aligned with PPO, while critic norm is larger and shares global clipping. These are preliminary pre-Adam gradient measurements, not causal evidence that critic clipping limits effective updates.",
+    "Additional fixed-data integration test proves bitwise-equal PPO model/Adam state and RNG with diagnostics enabled or disabled; implementation under execution has not changed.",
+    "Source cohort completed normally at iteration4, 20636 physical hands and16439 markers. Wrapper stopped during post-run audit because audit still unconditionally requires obsolete legacy target999999 despite physical target16384 being satisfied; mature cohort has not launched. Preserve all completed source evidence; repair audit target precedence, then launch only mature cohort. No training failure or replay of source cohort.",
+    "Audit now obeys physical target precedence and verifies checkpoint physical target against preregistration. Source audit PASS. Added wrapper mature-only recovery mode; source output will not be touched. Trainer unchanged from initial execution snapshot. Corrected auditor and wrapper captured in a separate pre-mature snapshot.",
+    "Pre-execution source snapshot includes full bytes of tracked and untracked code. No run will overwrite an existing cohort directory.",
+    "Intentional negative audit probe with target16385 correctly raises configured physical target differs from preregistration and creates no output. This verifies physical-target precedence does not silently bypass configured target checks."
+  ],
+  "result": {
+    "summary": "Two diagnostic cohorts completed39950 measured physical hands with64 component-gradient probes and passing session audits. Mature actor/PPO norm ratio1.013 and clip scale0.977 do not show persistent gradient suppression.",
+    "conclusion": "Source KL sometimes opposes PPO but does not broadly cancel actor gradients. Shared clipping is usually inactive and is not established as the main learning bottleneck. Pre-Adam diagnostic only; no strength claim.",
+    "decision": "NO_PERSISTENT_GRADIENT_SUPPRESSION_IDENTIFIED",
+    "next_step": "Test a bounded1048576 physical-hand uninterrupted all-heads PPO learning curve with unchanged regularization, new seeds, frozen early/mid/final archives and independent multi-anchor evaluation; no paper-scale expansion without reproducible gain."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 11,
+    "command_count": 11
+  },
+  "artifact_integrity": {
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/code.patch": {
+      "type": "file",
+      "bytes": 242115,
+      "sha256": "3669a983ecd9dd8f2e39a88a5ef0c683db672aaea7fb4f03971d97548682fd27"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "831f279aa45bf007a80f05a23127c3c43397c4be14ef342bfbb20b86be96f504"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py": {
+      "type": "file",
+      "bytes": 6466,
+      "sha256": "85cd44b015e2424d55ea85bd22d7bd1c28e25572514a5e7bf33d424c59b5bd53"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/code.patch": {
+      "type": "file",
+      "bytes": 246975,
+      "sha256": "3ac09339e92d2bd0044036dd2d03a51552f3a51148b79a9d2a34cfffe3d85224"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 1050,
+      "sha256": "ffdca81f3aca109d29f74090c6fd3d5dfbfd752df1a45d96bf521a53ab49eb85"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/train_v5.py": {
+      "type": "file",
+      "bytes": 399875,
+      "sha256": "4d23a005b1f73291519000f45fb86a13523c7728398e6081bde063c2d445d779"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/train_mp3_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 113618,
+      "sha256": "181e6ddef7099b22b57fe979f018e1b19e16700c8979f56f9705d58fe115bf85"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/test_ppo_gradient_diagnostics.py": {
+      "type": "file",
+      "bytes": 2945,
+      "sha256": "88e0b249923068bcf583c9891c32b6eab407d945360e776f813318d6e088436b"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py": {
+      "type": "file",
+      "bytes": 14669,
+      "sha256": "cfa9ba55eb4b2c206f86baaa375e57d6c7a81a5a869aef89faec9d58c17cd265"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/execution_code/source_files/research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py": {
+      "type": "file",
+      "bytes": 5983,
+      "sha256": "42e5b3852cac254057353f889097728c0aa2fc2521b3183c32f4411cc9d4332b"
+    },
+    "scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py": {
+      "type": "file",
+      "bytes": 2571,
+      "sha256": "6070708475fbef3344a7acec06beaa5e3d1fd57da4da2cce1bc904fa2867e4e1"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/latest.pt": {
+      "type": "file",
+      "bytes": 133304884,
+      "sha256": "c1c932203a95e81125f1234138b0253e100f727acb7e33ef0b973d0f9a4aca74"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/run_manifest.json": {
+      "type": "file",
+      "bytes": 80016,
+      "sha256": "f9d133f227780363a8f2a9741bdaac17f751ea28993eed79d78ad2a828806068"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 159917,
+      "sha256": "22656b1dec820e84c8789fe3093148915266c9cdc230fbcbbce1643a22588583"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 10222,
+      "sha256": "5cf531c1015a318858c4d86d631f5172a42312ce72c0a99c7efe357a33a9a29b"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source_audit.json": {
+      "type": "file",
+      "bytes": 5971,
+      "sha256": "0672d497ac2340b59b16b1e907487ff3d9355ed10f14a72d07ed3c194102932b"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/source/latest_train.log": {
+      "type": "file",
+      "bytes": 1748,
+      "sha256": "7499ebbf102ad10532c8e37537a8ed85552901935bc57d0d05d5d3d3c7c9ca0d"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/code.patch": {
+      "type": "file",
+      "bytes": 246975,
+      "sha256": "3ac09339e92d2bd0044036dd2d03a51552f3a51148b79a9d2a34cfffe3d85224"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 1050,
+      "sha256": "593e9bcb6cfbe1b3c349330dc748c6c829cb196180050d5ee7d30235b412edff"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/train_v5.py": {
+      "type": "file",
+      "bytes": 399875,
+      "sha256": "4d23a005b1f73291519000f45fb86a13523c7728398e6081bde063c2d445d779"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/train_mp3_hybrid_h1.py": {
+      "type": "file",
+      "bytes": 113618,
+      "sha256": "181e6ddef7099b22b57fe979f018e1b19e16700c8979f56f9705d58fe115bf85"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/test_ppo_gradient_diagnostics.py": {
+      "type": "file",
+      "bytes": 2945,
+      "sha256": "88e0b249923068bcf583c9891c32b6eab407d945360e776f813318d6e088436b"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py": {
+      "type": "file",
+      "bytes": 14926,
+      "sha256": "05ec950ec4760747d5ab8d39fef90583e8ae4173efe5194031c1de4cb05b4b6e"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_execution_code/source_files/research/experiments/ppo-gradient-budget-diagnostic-20260830/run_cohorts.py": {
+      "type": "file",
+      "bytes": 6466,
+      "sha256": "85cd44b015e2424d55ea85bd22d7bd1c28e25572514a5e7bf33d424c59b5bd53"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/analyze.py": {
+      "type": "file",
+      "bytes": 4434,
+      "sha256": "81558e4678949e3c3af1d47c3ad0edd471dbc8bf8d1d5715f9022c542deaa3c2"
+    },
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\latest.pt": {
+      "type": "file",
+      "bytes": 133305076,
+      "sha256": "af8365f9de32c132d67d70b40cd75df5b05c8f18b210d65b3e2e468a48929935"
+    },
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\run_manifest.json": {
+      "type": "file",
+      "bytes": 80100,
+      "sha256": "f01ca11cdec14fb34479bd6d1d25b31683814804048f849377ce0be6382cc837"
+    },
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 159610,
+      "sha256": "aac8baf6bcd55a3389724258ed2a3cdc53190c872c2c55cb2622696be80a9d13"
+    },
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 10223,
+      "sha256": "ff50a31fd551a8ab83727661c7a18e182a77d6fefb2d4db8be6d568020275ff0"
+    },
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature\\latest_train.log": {
+      "type": "file",
+      "bytes": 1749,
+      "sha256": "4a225c177f688e98d624efac94f967a18dc0ced220d2b4abe880a142ceba0a71"
+    },
+    "research\\experiments\\ppo-gradient-budget-diagnostic-20260830\\mature_audit.json": {
+      "type": "file",
+      "bytes": 5951,
+      "sha256": "a252e023258d04849237aa519474a416f1d6eb451b69c0d9d3189ae92a33fe5b"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/gradient_analysis.json": {
+      "type": "file",
+      "bytes": 25739,
+      "sha256": "cb1e10df155ae5d769ea3d826ff41ff60f57412879c07049416e7c46d6b523a0"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 3280,
+      "sha256": "f71df65ec44802c21ac6d3c7ef2870ab88b1bba0915b4f98998e5199ee461a33"
+    },
+    "research/experiments/ppo-gradient-budget-diagnostic-20260830/mature_audit.json": {
+      "type": "file",
+      "bytes": 5951,
+      "sha256": "a252e023258d04849237aa519474a416f1d6eb451b69c0d9d3189ae92a33fe5b"
+    }
+  }
+}

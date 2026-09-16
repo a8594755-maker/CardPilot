@@ -1,0 +1,149 @@
+{
+  "by_stratum": {
+    "seat0_street0": {
+      "agreement": 0.75,
+      "confirm_delta_bb": 7.37453125,
+      "confirm_delta_ci95_bb": 7.155127600763977,
+      "new_allins": 16,
+      "rows": 32
+    },
+    "seat0_street1": {
+      "agreement": 0.6875,
+      "confirm_delta_bb": 27.09375,
+      "confirm_delta_ci95_bb": 17.434009742905552,
+      "new_allins": 10,
+      "rows": 32
+    },
+    "seat0_street2": {
+      "agreement": 0.84375,
+      "confirm_delta_bb": 15.546875,
+      "confirm_delta_ci95_bb": 13.826307056552611,
+      "new_allins": 3,
+      "rows": 32
+    },
+    "seat0_street3": {
+      "agreement": 1.0,
+      "confirm_delta_bb": 30.41875,
+      "confirm_delta_ci95_bb": 22.077091206889975,
+      "new_allins": 12,
+      "rows": 32
+    },
+    "seat1_street0": {
+      "agreement": 0.46875,
+      "confirm_delta_bb": 12.95671875,
+      "confirm_delta_ci95_bb": 20.0792636571332,
+      "new_allins": 9,
+      "rows": 32
+    },
+    "seat1_street1": {
+      "agreement": 0.8125,
+      "confirm_delta_bb": 28.34515625,
+      "confirm_delta_ci95_bb": 23.33195461211281,
+      "new_allins": 5,
+      "rows": 32
+    },
+    "seat1_street2": {
+      "agreement": 0.75,
+      "confirm_delta_bb": 14.25484375,
+      "confirm_delta_ci95_bb": 9.109554014812637,
+      "new_allins": 8,
+      "rows": 32
+    },
+    "seat1_street3": {
+      "agreement": 1.0,
+      "confirm_delta_bb": 36.43375,
+      "confirm_delta_ci95_bb": 26.090708878324246,
+      "new_allins": 5,
+      "rows": 32
+    }
+  },
+  "candidate": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+  "candidate_observation_style": "legacy_v4",
+  "candidate_sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_counterfactual_target_reliability.py",
+    "--candidate",
+    "models/baseline/standard10/latest.pt",
+    "--candidate-observation-style",
+    "legacy_v4",
+    "--opponent",
+    "standard10=models/baseline/standard10/latest.pt",
+    "--opponent",
+    "freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt",
+    "--opponent",
+    "raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt",
+    "--opponent",
+    "procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt",
+    "--opponent-style",
+    "standard10=legacy_v4",
+    "--opponent-style",
+    "freshzero=legacy_v4",
+    "--opponent-style",
+    "raw_actor=v6",
+    "--opponent-style",
+    "procedural_soup=v6",
+    "--quota-per-stratum",
+    "32",
+    "--dev-runouts",
+    "8",
+    "--confirm-runouts",
+    "8",
+    "--trajectory-seed",
+    "2026132001",
+    "--branch-seed",
+    "2026132002",
+    "--max-trajectory-hands",
+    "5000",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data_recovery"
+  ],
+  "completed_at": "2026-09-01T14:24:31.717470+00:00",
+  "confirm_runouts": 8,
+  "continuation_decisions": 69930,
+  "continuation_rollouts": 30112,
+  "dev_runouts": 8,
+  "gate_components": {
+    "confirm_delta_lcb_positive": true,
+    "every_stratum_agreement_at_least_0_70": false,
+    "new_allin_fraction_at_most_0_05": false,
+    "no_stratum_confirm_delta_negative": true,
+    "overall_agreement_at_least_0_80": false
+  },
+  "new_allins": 68,
+  "opponents": {
+    "freshzero": {
+      "observation_style": "legacy_v4",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-fresh-zero-elo-smoke-20260901\\frozen\\final.pt",
+      "sha256": "00c6441cb9fc584a4ec76f97bdf1bcae1e03cdfb7e2d32432c9984a5bf9b4d67"
+    },
+    "procedural_soup": {
+      "observation_style": "v6",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901\\frozen\\final.pt",
+      "sha256": "66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c"
+    },
+    "raw_actor": {
+      "observation_style": "v6",
+      "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh20k-slumbot-20260901\\frozen\\final.pt",
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "standard10": {
+      "observation_style": "legacy_v4",
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    }
+  },
+  "overall_confirm_delta_ci95_bb": 6.565702872849725,
+  "overall_confirm_selected_minus_source_bb": 21.553046875,
+  "overall_dev_confirm_agreement": 0.7890625,
+  "quota_per_stratum": 32,
+  "rows": 256,
+  "rows_sha256": "874ed12d0f843c175034927e6c67c9151494edcd959a92085ba254c295d92af8",
+  "schema": "cardpilot.v6_counterfactual_target_reliability.v1",
+  "status": "COMPLETED",
+  "training_admitted": false,
+  "trajectory_decisions": 3265,
+  "trajectory_hands": 576
+}

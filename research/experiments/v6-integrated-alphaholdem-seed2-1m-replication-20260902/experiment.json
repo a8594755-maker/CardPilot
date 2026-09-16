@@ -1,0 +1,323 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-alphaholdem-seed2-1m-replication-20260902",
+  "title": "Integrated AlphaHoldem Seed2 one-million-hand replication",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T00:09:22+00:00",
+  "updated_at": "2026-09-03T04:14:19+00:00",
+  "started_at": "2026-09-03T00:09:22+00:00",
+  "ended_at": "2026-09-03T04:14:19+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An untouched second lineage continued from 263,905 to at least 1,048,576 actual environment hands with the identical integrated AlphaHoldem recipe will reproduce the positive broad late-stage slope seen in Seed1, with a positive pooled 263k-to-1M matched slope, at least three of four nonnegative anchor slopes, both seats nonnegative, and preserved Standard10 capability.",
+  "material_change": "Continue Seed2 only with identical Trinal-Clip PPO delta1=3, two-iteration replay ratio 0.5, dynamic loss-K-best K5, Standard10 KL1, adaptive league, optimizer and assignment-RNG state; use a nonoverlapping fixed-deal window starting at 17,100,000 and perform no Slumbot evaluation during training.",
+  "baseline": "Seed1 263k-to-1M deep control: +2.7245 bb/100 pooled over 65,536 matched hands, 3/4 anchors and both seats positive, preservation PASS, but CI includes zero. Seed2 at 263,905 had +2.2705 bb/100 versus its 70k parent but only 1/4 anchors positive and seat1 negative.",
+  "source": "Immutable Seed2 checkpoint SHA256 64b34d990f3819302465647cc639960942babefcbd9dadec3544497fe8085ba8 with iteration55, 226,670 transitions, 263,905 actual environment hands, replay cumulative386,717, two replay entries, pool ids[0,1,2,10,25], and complete serialized continuation evidence.",
+  "parent_id": "v6-integrated-alphaholdem-seed1-1m-deep-control-20260902",
+  "command": "python scripts/alpha_holdem/stage_v6_integrated_scale_resume.py --source seed2=research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2 --deal-start seed2=17100000 --out-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902 --manifest-name resume_stage_manifest.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/stage_v6_integrated_scale_resume.py --source seed2=research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2 --deal-start seed2=17100000 --out-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902 --manifest-name resume_stage_manifest.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T00:09:22+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1048576 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 5 --pool-strategy loss-kbest --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026171100 --fixed-training-deal-stream --fixed-training-deal-start-index 17100000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 32 --run-id v6_integrated_alphaholdem_geo_seed2_20260902 --run-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2 --out research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --seed 20261711 --max-runtime-seconds 14400 --resume research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2/latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T00:10:48+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_integrated_alphaholdem_geometric.py --run seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2 --base models/baseline/standard10/latest.pt --min-environment-hands 1048576 --expected-archive-iterations 64,96,128,160,192 --expected-run-count 1 --require-continuation --out research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/training_audit_v2.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T03:33:24+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --out-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/drift_seed2 --states 20000 --seed 20262131 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T03:33:54+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-alphaholdem-262k-scale-20260902/seed2/latest.pt --treatment research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 4096 --seed 20262120 --device cuda --out-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/eval_seed2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T03:34:55+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_deep_control.py --experiment-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902 --training-audit research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/training_audit_v2.json --eval-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/eval_seed2 --drift-dir research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/drift_seed2 --promote-decision SCALE_INTEGRATED_RECIPE_AFTER_TWO_SEED_BREADTH_REPLICATION --reject-decision HOLD_UNCHANGED_SCALE_AFTER_SEED2_BREADTH_NONREPLICATION --out research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/aggregate_seed2.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:14:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_two_seed.py --seed seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/aggregate.json --seed seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/aggregate_seed2.json --promote-decision SCALE_UNCHANGED_INTEGRATED_RECIPE --reject-decision HOLD_UNCHANGED_SCALE_AND_DIAGNOSE_BREADTH --out research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/cross_seed_aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:14:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_deep_control.py --experiment-dir research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902 --training-audit research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/training_audit_v2.json --eval-dir research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/eval_seed1 --drift-dir research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/drift_seed1 --promote-decision REPLICATE_INTEGRATED_RECIPE_TO_1M_SECOND_SEED --reject-decision CHANGE_INTEGRATED_RECIPE_AFTER_1M_BREADTH_FAILURE --out research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed1_reaggregate_explicit_paths.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:14:19+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:14:19+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "9ea113855b1aeac4d7deeeb6b8e45e5a5c2f1ec1cc8d80cc9f98b180998ed582",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T00:09:22+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/code.patch",
+    "patch_sha256": "8e10a8dfd065c085b3e1de5b223d789fb242ed6b3a7a482e8eee0b482d5c245a",
+    "source_manifest": "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/source_manifest.json",
+    "source_manifest_sha256": "1537dc2e70faca1fbf7c1efefc5cc4f3d0fb329466af3f2371e31938079632f8",
+    "source_files": 227
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 784890,
+    "lineage_training_hands": 1048795,
+    "offline_samples": 20000,
+    "evaluation_hands": 65536,
+    "wall_time_seconds": 14697.0,
+    "inherited_environment_training_hands": 263905,
+    "target_cumulative_environment_training_hands": 1048576,
+    "planned_new_environment_training_hands": 784671,
+    "planned_evaluation_hands": 65536,
+    "environment_training_hands": 784890,
+    "lineage_environment_training_hands": 1048795
+  },
+  "metrics": {
+    "current_iteration": 211,
+    "current_transition_hands": 869485,
+    "current_environment_hands": 1007392,
+    "final_iteration": 220,
+    "final_transition_hands": 906568,
+    "final_environment_hands": 1048795,
+    "new_environment_hands": 784890,
+    "max_approx_kl": 0.0008543094154447317,
+    "max_reference_policy_kl": 0.0014059178065508604,
+    "max_importance_ratio": 1.39,
+    "standard10_drift_mean_tv": 0.00980155791079215,
+    "standard10_greedy_disagreement": 0.00925,
+    "pooled_slope_bb100": 2.252899169921875,
+    "pooled_slope_ci95_half_bb100": 4.483388217358638,
+    "nonnegative_anchor_count": 2,
+    "seat0_slope_bb100": 6.33544921875,
+    "seat1_slope_bb100": -1.82965087890625,
+    "standard10_anchor_slope_bb100": -3.47900390625,
+    "cfr4_anchor_slope_bb100": 10.6961669921875,
+    "legacy_iter16_anchor_slope_bb100": -0.2685546875,
+    "legacy_mixed65k_anchor_slope_bb100": 2.06298828125,
+    "cross_seed_mean_slope_bb100": 2.4887237548828125,
+    "cross_seed_t95_low_bb100": -0.5077117035149845,
+    "cross_seed_t95_high_bb100": 5.4851592132806095,
+    "cross_seed_standard10_mean_bb100": -2.8472900390625,
+    "cross_seed_seat1_mean_bb100": -0.312103271484375
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/aggregate.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/code.patch",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/source_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/resume_stage_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000064_hands000000263705.pt",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000096_hands000000395505.pt",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000128_hands000000527335.pt",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000160_hands000000659492.pt",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000192_hands000000791187.pt",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/run_manifest.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/h1_training_metrics.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/opponent_assignments.jsonl",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/training_audit_v2.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/drift_seed2/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/drift_seed2/drift_analysis.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/eval_seed2/summary.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/eval_seed2/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/aggregate_seed2.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/cross_seed_aggregate.json",
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed1_reaggregate_explicit_paths.json",
+    "scripts/alpha_holdem/aggregate_v6_integrated_deep_control.py",
+    "scripts/alpha_holdem/aggregate_v6_integrated_two_seed.py"
+  ],
+  "notes": [
+    "Preregistered replication gate is identical to Seed1: exact continuation/accounting, no replay recovery or KL/ratio collapse, Standard10 drift PASS, and a fresh 4096-pair-per-anchor four-anchor final-vs-263k panel with pooled slope >0, at least three nonnegative anchor slopes, and both pooled seats nonnegative. Passing two lineages motivates cross-seed aggregation and possibly a larger geometric scale; failing changes or diagnoses the recipe without rejecting all long-horizon learned methods.",
+    "Resume staging passed all nine gates. Parent actual=263,905, transitions=226,670, iteration=55; replay cumulative=386,717 with two entries, pool ids[0,1,2,10,25], assignment chain rows55 and tail SHA 8f22e05a4633d24e6a028b7e918e708e4e939415113a5e06d8bdf1ea705a3084. New fixed-deal start17,100,000 exceeds prior first-unused upper bound14,117,784.",
+    "Startup confirmed exact resume before iteration56: optimizer state loaded with LR preserved at 1e-4; replay entries2/cumulative386,717 restored; pool[0,1,2,10,25], adaptive league, and assignment RNG records55/tail55/pendingFalse restored. No counters reset and no recovery path used.",
+    "Progress at iteration62: cumulative actual297,216, new33,311, transitions255,484. No replay recovery, KL stop, ratio breach, or accounting discontinuity; ref-KL0.0008 and rmax1.17. Shared GPU utilization reached100% from a user foreground workload, reducing collect throughput to13 hands/s. This affects wall time only; run remains active under the existing four-hour safe runtime cap and must not be restarted or duplicated.",
+    "Iteration64 archive boundary completed: cumulative actual307,217, new43,312, transitions263,705. Archive SHA256 f3a79133935fa5c3cf94b31aaa8bc2bc521f2049b62e61ac8f8a151d1ad31ff0. No recovery, KL stop, ratio breach, or discontinuity; ref-KL0.0010, rmax1.18. Shared GPU contention increased collect wall time to366.9s but the exact training state remains healthy.",
+    "Progress at iteration80: cumulative actual384,947, new121,042, transitions329,573. No replay recovery, KL stop, importance-ratio breach, restart, or accounting discontinuity; rolling reward+0.241, ref-KL0.0008, rmax1.08. GPU contention fluctuated, but all completed boundaries were checkpointed under the unchanged preregistered recipe.",
+    "Iteration96 archive boundary completed: cumulative actual461,835, new197,930, transitions395,505. Archive SHA256 ff1a477faee08c7dbb672e26fd11da1ee4adb8b59aa518a422eb8613129f7307. No recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.187, ref-KL0.0007, rmax1.10.",
+    "Progress at iteration125: cumulative actual600,411, new336,506, transitions515,011. Original process/session remains live; no replay recovery, KL stop, importance-ratio breach, restart, or accounting discontinuity. Replay sources are iterations123-124 with cumulative replay rows892,392; rolling reward+0.179, reference KL0.0008, rmax1.12. Disk run_manifest and metrics agree exactly.",
+    "Iteration128 archive boundary completed: cumulative actual613,667, new349,762, transitions527,335. Archive SHA256 e0c72a38ee423dae314bffd4edf71ef72303b7fce076e70453450b88df9801f4. No recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.174, ref-KL0.0007, rmax1.14.",
+    "Progress at iteration139: cumulative actual663,574, new399,669, transitions572,783. At iteration138 loss-K-best selected snapshot67 and evicted snapshot53, yielding active IDs[0,1,2,67,29] while all three fixed anchors remained. No recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.156, ref-KL0.0006, rmax1.11.",
+    "Progress at iteration144: cumulative actual687,675, new423,770, transitions593,443. Loss-K-best selected snapshot68 at iteration140, producing active IDs[0,1,2,68,67]; fixed anchors remain intact. No recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.154, ref-KL0.0010, rmax1.13.",
+    "Progress at iteration153: cumulative actual729,998, new466,093, transitions630,583. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.143, ref-KL0.0009, rmax1.17. Active loss-K-best IDs remain[0,1,2,68,67].",
+    "Iteration160 archive boundary completed: cumulative actual764,961, new501,056, transitions659,492. Archive SHA256 14e0b6858757986663f89a1048f9548d5f3c012801a96dc69311ec294d9cb48c. No recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.145, ref-KL0.0007, rmax1.17.",
+    "Progress at iteration165: cumulative actual788,809, new524,904, transitions680,070. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.151, ref-KL0.0010, rmax1.16. Active loss-K-best IDs remain[0,1,2,68,67].",
+    "Progress at iteration173: cumulative actual826,479, new562,574, transitions712,956. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.143, ref-KL0.0012, rmax1.16. Active loss-K-best IDs remain[0,1,2,68,67].",
+    "Progress at iteration186: cumulative actual887,877, new623,972, transitions766,457. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.168, ref-KL0.0011, rmax1.13. Active loss-K-best IDs remain[0,1,2,68,67].",
+    "Iteration192 archive boundary completed: cumulative actual915,404, new651,499, transitions791,187. Archive SHA256 9ac48b81274283c867c3cb59b6fe8b38c8f95798ba7a33bdab41851aaf6416a9. No recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.159, ref-KL0.0007, rmax1.10.",
+    "Progress at iteration196: cumulative actual936,125, new672,220, transitions807,624. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.156, ref-KL0.0009, rmax1.12. Active loss-K-best IDs remain[0,1,2,68,67].",
+    "Progress at iteration200: cumulative actual956,341, new692,436, transitions824,164. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.149, ref-KL0.0010, rmax1.15. Active loss-K-best IDs remain[0,1,2,68,67].",
+    "Progress at iteration206: cumulative actual984,642, new720,737, transitions848,874. Loss-K-best selected snapshot100 at iteration204, producing active IDs[0,1,2,100,68] while fixed anchors remained intact. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.152, ref-KL0.0008, rmax1.16.",
+    "Progress at iteration211: cumulative actual1,007,392, new743,487, transitions869,485. No replay recovery, KL stop, ratio breach, restart, or accounting discontinuity; rolling reward+0.135, ref-KL0.0007, rmax1.10. Active loss-K-best IDs remain[0,1,2,100,68].",
+    "Original uninterrupted training session naturally exited 0 at iteration220 with cumulative actual1,048,795, new784,890, transitions906,568, replay cumulative1,580,648, and final pool[0,1,2,100,68]. Training audit v2 passed all22 gates, verified220 contiguous assignment records with exact RNG replay, five geometric archives, exact optimizer/replay/accounting continuation, no recovery or KL stops, and frozen checkpoint SHA256 b5602618ec0501698aa22231b6c0e945da75ee3daf2c408e3eac2bb802702558.",
+    "Standard10 preservation audit PASS on20,000 untouched stratified states: mean TV0.0098016 below0.03 and greedy disagreement0.00925 below0.05. Frozen treatment SHA matches b5602618ec0501698aa22231b6c0e945da75ee3daf2c408e3eac2bb802702558; raw evidence SHA bef7d0df140b379fd1df51e10d7c39cd77cdd05b25ad52864f125c5095cfcc338.",
+    "Launched preregistered untouched final-vs-263k matched evaluation after freezing checkpoint and completing training/preservation audits: four anchors,4096 complete deal-seat pairs per anchor,65,536 total hands, independent seed20262120, no Slumbot calls.",
+    "All16,384 Seed2 pair rows and20,000 drift rows passed independent SHA/count/uniqueness/deck/recomputation gates. The generalized per-seed aggregator reproduced the original Seed1 aggregate byte-for-byte. Cross-seed verifier independently recomputed32,768 raw pairs and confirmed distinct treatment checkpoints and evaluation seeds. Full AlphaHoldem suite passed319 tests."
+  ],
+  "result": {
+    "summary": "Seed2 exact-state continuation completed uninterrupted at1,048,795 actual environment hands. All22 training-integrity gates and Standard10 preservation passed. The fresh65,536-hand matched panel had pooled slope+2.2529 bb/100 but only2/4 nonnegative anchors and negative seat1, so the preregistered replication gate failed. Across Seed1 and Seed2 both pooled slopes were positive with mean+2.4887, but the two-seed t95 interval[-0.5077,+5.4852], Standard10 mean-2.8473, and seat1 mean-0.3121 do not support unchanged scaling.",
+    "conclusion": "One-million-hand training is not a mechanistic failure: both independent lineages improved their pooled four-anchor result and preserved Standard10 logits closely. However breadth did not reproduce, and both lineages degraded relative performance against the strongest Standard10 anchor while Seed2 also regressed in seat1. The evidence supports continuing the long-horizon learned-policy family, but not simply allocating more hands to the unchanged objective.",
+    "decision": "HOLD_UNCHANGED_SCALE_AND_DIAGNOSE_BREADTH",
+    "next_step": "Use frozen assignments, metrics, archives, and raw matched rows to localize Standard10 exposure and seat-specific objective conflict; then preregister the smallest Standard10/seat-balance intervention with geometric multi-seed gates before any larger scale or Slumbot spend."
+  },
+  "tags": [
+    "alpha-holdem",
+    "one-million-hands",
+    "replication",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 9,
+    "command_count": 9
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/aggregate.json": {
+      "type": "file",
+      "bytes": 3713,
+      "sha256": "8b4e09306edfa2aca9ff22f6339de045dcf071a0521364a5bccff37b0ff52512"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816679,
+      "sha256": "8e10a8dfd065c085b3e1de5b223d789fb242ed6b3a7a482e8eee0b482d5c245a"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 43154,
+      "sha256": "1537dc2e70faca1fbf7c1efefc5cc4f3d0fb329466af3f2371e31938079632f8"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/resume_stage_manifest.json": {
+      "type": "file",
+      "bytes": 2765,
+      "sha256": "8203405e2499f098e5e42c914ff797e069dc9af259e6ba0e09a8239e6c1afb41"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000064_hands000000263705.pt": {
+      "type": "file",
+      "bytes": 305891806,
+      "sha256": "f3a79133935fa5c3cf94b31aaa8bc2bc521f2049b62e61ac8f8a151d1ad31ff0"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000096_hands000000395505.pt": {
+      "type": "file",
+      "bytes": 308188254,
+      "sha256": "ff1a477faee08c7dbb672e26fd11da1ee4adb8b59aa518a422eb8613129f7307"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000128_hands000000527335.pt": {
+      "type": "file",
+      "bytes": 313936734,
+      "sha256": "e0c72a38ee423dae314bffd4edf71ef72303b7fce076e70453450b88df9801f4"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000160_hands000000659492.pt": {
+      "type": "file",
+      "bytes": 305197598,
+      "sha256": "14e0b6858757986663f89a1048f9548d5f3c012801a96dc69311ec294d9cb48c"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/checkpoints/checkpoint_iter000192_hands000000791187.pt": {
+      "type": "file",
+      "bytes": 314906846,
+      "sha256": "9ac48b81274283c867c3cb59b6fe8b38c8f95798ba7a33bdab41851aaf6416a9"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt": {
+      "type": "file",
+      "bytes": 314677296,
+      "sha256": "b5602618ec0501698aa22231b6c0e945da75ee3daf2c408e3eac2bb802702558"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/run_manifest.json": {
+      "type": "file",
+      "bytes": 148416,
+      "sha256": "05e6dac4c003f755df09c33a399124c5d702a3837170fb4e15240be80e94c4f4"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 6562143,
+      "sha256": "281aabb51ce77cf832b550763a28a8209291156ace983eff18ceb8ec874a138f"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 617961,
+      "sha256": "3f278f939d9fff8ca5e673b15a182f33ad9149769529fb0c6293de24c736e35f"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/training_audit_v2.json": {
+      "type": "file",
+      "bytes": 7504,
+      "sha256": "b3d8b415f141297705afe69f91b3c5167b7da010a581ec75915aeeda5173acb8"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/drift_seed2/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 318809,
+      "sha256": "bef7d0df140b379fd1df51e10d7c39cd77cdd05b25ad52864f125c5095cfcc38"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/drift_seed2/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4400,
+      "sha256": "392be05a1316c62d9f893dc98d868c89ead5a3e1c4b0a8b2312a041e96c04ccc"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/eval_seed2/summary.json": {
+      "type": "file",
+      "bytes": 11334,
+      "sha256": "27327b7cc0f18dc22c5735ae3a22f05b37ab8394b4f8636f67e111c99787e1cf"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/eval_seed2/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 1062559,
+      "sha256": "3a0649b276f8a6cdc6bf933e00bae0558c676a710502795b7afc6103db9a52f4"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/aggregate_seed2.json": {
+      "type": "file",
+      "bytes": 3722,
+      "sha256": "0d837f8fd2d8e6d7804534f860abcebb723351c762c345c4e61d2cf00e5cc9ea"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/cross_seed_aggregate.json": {
+      "type": "file",
+      "bytes": 6849,
+      "sha256": "b390ee189e4a70b6227c9c1c687fff9776b7eb75a659fd1bb65999eb8ac3d810"
+    },
+    "research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed1_reaggregate_explicit_paths.json": {
+      "type": "file",
+      "bytes": 3713,
+      "sha256": "8b4e09306edfa2aca9ff22f6339de045dcf071a0521364a5bccff37b0ff52512"
+    },
+    "scripts/alpha_holdem/aggregate_v6_integrated_deep_control.py": {
+      "type": "file",
+      "bytes": 9693,
+      "sha256": "fc2b2eb2659ef34b89a6e553ac41a06ca2300660edd095cafbea142ae2e6a064"
+    },
+    "scripts/alpha_holdem/aggregate_v6_integrated_two_seed.py": {
+      "type": "file",
+      "bytes": 11053,
+      "sha256": "c710fab2f563a4260910f9d83d8b85bdf37d09257eb2c5d4ef29830eae46f5a0"
+    }
+  }
+}

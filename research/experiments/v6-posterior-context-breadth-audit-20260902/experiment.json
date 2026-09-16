@@ -1,0 +1,137 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-posterior-context-breadth-audit-20260902",
+  "title": "Posterior-context raw paired-deck breadth audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T06:29:45+00:00",
+  "updated_at": "2026-09-02T06:31:34+00:00",
+  "started_at": "2026-09-02T06:29:45+00:00",
+  "ended_at": "2026-09-02T06:31:34+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The two positive pooled seeds should remain directionally consistent after independent paired-deck reconstruction across seats and should not be concentrated in seen domains: both seats, the holdout split, at least two of three holdout opponents, and correct-versus-wrong deltas in both splits should be nonnegative before geometric training expansion.",
+  "material_change": "Hash-verify both raw evaluation JSONL artifacts, discard warmup rows, reconstruct 1,152 independent common-deck units by averaging the two hero seats, and recompute CIs by seed, training/holdout split, opponent, and seat for correct-minus-base and correct-minus-wrong. Generate no hands and update no weights.",
+  "baseline": "Both recovery seeds passed pooled gates (+6.574/+2.235 versus base), but their separate holdout deltas were -0.651/-1.953 bb/100 and therefore require breadth analysis before scaling.",
+  "source": "research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run",
+  "parent_id": "v6-posterior-centered-contextual-mgda-recovery-20260902",
+  "command": "python scripts/alpha_holdem/v6_contextual_breadth_audit.py --evidence research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed0_evaluation_hands.jsonl.gz --evidence research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed1_evaluation_hands.jsonl.gz --expected-sha256 287cadda704eb8cc6dba79c16f0c1b40cedd70dc7cb508489e608200bf8bccc1 --expected-sha256 13d53bd0fe3a9c64274fe583d81c1b5e074fd982f0ef5b280a7df24ce75e110d --out-dir research/experiments/v6-posterior-context-breadth-audit-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_contextual_breadth_audit.py --evidence research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed0_evaluation_hands.jsonl.gz --evidence research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run/seed1_evaluation_hands.jsonl.gz --expected-sha256 287cadda704eb8cc6dba79c16f0c1b40cedd70dc7cb508489e608200bf8bccc1 --expected-sha256 13d53bd0fe3a9c64274fe583d81c1b5e074fd982f0ef5b280a7df24ce75e110d --out-dir research/experiments/v6-posterior-context-breadth-audit-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:29:45+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-posterior-context-breadth-audit-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:31:34+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "a4f082f3eb835bc739aa627c42446880a78cebe48dda1e75a92216066fcb7426",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_contextual_breadth_audit.py"
+    ],
+    "captured_at": "2026-09-02T06:29:45+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-posterior-context-breadth-audit-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-posterior-context-breadth-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "17872e1e9a9e69b3fa73edbf473355c0dc5e0db7845d8d5339d190a81259969e",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 16896,
+    "offline_samples": 1152,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 109.0,
+    "planned_training_hands": 0,
+    "planned_evaluation_hands": 0,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "pooled_correct_minus_base_bb100": 4.404513888888888,
+    "pooled_correct_minus_base_ci95_half_bb100": 6.339496858888909,
+    "pooled_correct_minus_wrong_bb100": 8.129340277777777,
+    "training_correct_minus_base_bb100": 7.257812499999999,
+    "holdout_correct_minus_base_bb100": -1.3020833333333335,
+    "holdout_correct_minus_base_ci95_half_bb100": 7.490627737721102,
+    "nonnegative_holdout_opponents": 2,
+    "total_holdout_opponents": 3,
+    "both_seats_positive": true,
+    "tests_passed": 280,
+    "broad_admitted": false
+  },
+  "artifacts": [
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/code.patch",
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/source_manifest.json",
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/run",
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_contextual_breadth_audit.py",
+    "scripts/alpha_holdem/test_v6_contextual_breadth_audit.py"
+  ],
+  "notes": [
+    "Paired-deck units, not individual seat rows, are the primary CI unit. The audit is frozen and cannot select or modify checkpoints.",
+    "Primary inference used 1,152 common-deck units formed by averaging both hero seats before computing confidence intervals. All source JSONL hashes matched and warmup rows were excluded."
+  ],
+  "result": {
+    "summary": "Independent raw reconstruction found pooled correct-context improvement +4.405 bb/100 (95% CI -1.935 to +10.744) and correct-versus-wrong +8.129 (CI -0.949 to +17.207). Both seeds and seats were positive. Training domains were +7.258, while SHA-disjoint holdouts were -1.302 ±7.491; two of three holdout opponents were nonnegative.",
+    "conclusion": "Posterior-centered conditioning is reproducibly active and not seat-concentrated, but its small apparent gain is concentrated in seen styles. Holdout evidence is uncertain rather than catastrophic, yet it fails the preregistered breadth condition, so geometric training expansion is premature. An outcome-blind uncertainty-shrinkage feasibility check is warranted before new evaluation hands.",
+    "decision": "HOLD_GEOMETRIC_SCALE_PENDING_OOD_UNCERTAINTY_SHRINKAGE",
+    "next_step": "Using the frozen calibrated classifier and sealed session features only, compare posterior reliability distributions for seen versus SHA-disjoint contexts and quantify whether entropy-based shrinkage preserves seen conditioning while materially reducing unseen residual magnitude; generate no hands."
+  },
+  "tags": [
+    "audit",
+    "breadth",
+    "paired-decks",
+    "zero-new-hands"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 296,
+      "sha256": "17872e1e9a9e69b3fa73edbf473355c0dc5e0db7845d8d5339d190a81259969e"
+    },
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-posterior-context-breadth-audit-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 42387,
+      "sha256": "164033284a05ffb02b32918f8e08bb8b799bbd95f45f9f0edc0cd080fb2a6150"
+    },
+    "scripts/alpha_holdem/v6_contextual_breadth_audit.py": {
+      "type": "file",
+      "bytes": 6378,
+      "sha256": "486f3464cfb091ad22a133b7392069580fcabbd4d9d07e97d1f96d87e91b0dec"
+    },
+    "scripts/alpha_holdem/test_v6_contextual_breadth_audit.py": {
+      "type": "file",
+      "bytes": 678,
+      "sha256": "dd0b5d57d55d5714df680e3291419dde1494f53766dced14ea1725d29b7b02e0"
+    }
+  }
+}

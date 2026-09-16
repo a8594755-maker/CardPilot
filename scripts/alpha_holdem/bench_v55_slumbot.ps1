@@ -13,6 +13,9 @@ param(
     [Parameter(Mandatory=$true)][string]$Tag,
     [int]$HandsPerSession = 1700,
     [int]$Sessions = 12,
+    [int]$LaunchStaggerSeconds = 1,
+    [int]$LaunchReadinessTimeoutSeconds = 120,
+    [double]$BaselineBb100 = -11.4275,
     [string]$OutputDir = 'C:\Users\a8594\CardPilot\models',
     [string]$RunDir = '',
     [string]$PythonExe = '',
@@ -193,6 +196,38 @@ for ($i = 1; $i -le $Sessions; $i++) {
         -NoNewWindow -PassThru
     $jobs += @{ PID = $p.Id; Process = $p; Log = $logFile; ResultJson = $resultJson; HandsJsonl = $handsJsonl; DumpJsonl = $dumpJsonl; Idx = $i }
     Write-Host "  session $i started: PID $($p.Id) -> $logFile"
+    if ($i -lt $Sessions) {
+        $readinessStart = Get-Date
+        $ready = $false
+        while (((Get-Date) - $readinessStart).TotalSeconds -lt $LaunchReadinessTimeoutSeconds) {
+            if (
+                (Test-Path -LiteralPath $handsJsonl -PathType Leaf) -and
+                (Get-Item -LiteralPath $handsJsonl).Length -gt 0 -and
+                (Test-Path -LiteralPath $dumpJsonl -PathType Leaf) -and
+                (Get-Item -LiteralPath $dumpJsonl).Length -gt 0
+            ) {
+                $ready = $true
+                break
+            }
+            $p.Refresh()
+            if ($p.HasExited) {
+                throw "Session $i exited before its first successful hand"
+            }
+            Start-Sleep -Seconds 1
+        }
+        if (-not $ready) {
+            throw (
+                "Session $i did not produce its first successful hand within " +
+                "$LaunchReadinessTimeoutSeconds seconds"
+            )
+        }
+        Write-Host (
+            "  session $i readiness confirmed by hand and decision rows"
+        )
+        if ($LaunchStaggerSeconds -gt 0) {
+            Start-Sleep -Seconds $LaunchStaggerSeconds
+        }
+    }
 }
 
 Write-Host ""
@@ -368,7 +403,11 @@ $handFiles = Get-ChildItem -Path (Join-Path $OutputDir "bench_v55_${Tag}_part*_h
 if ($handFiles.Count -gt 0) {
     Write-Host ""
     Write-Host "Computing exact CI from per-hand JSONL..."
-    $ciArgs = @('scripts/alpha_holdem/slumbot_ci_from_hands.py') + $handFiles + @('--out-json', $ciSummary)
+    $ciArgs = @('scripts/alpha_holdem/slumbot_ci_from_hands.py') +
+        $handFiles + @(
+            '--baseline-bb100', "$BaselineBb100",
+            '--out-json', $ciSummary
+        )
     $ciResult = & $ResolvedPython @ciArgs 2>&1
     $ciText = $ciResult -join "`n"
     Write-Host $ciText
@@ -427,6 +466,31 @@ if (Test-Path $ciSummary) {
 
 $dumpFiles = Get-ChildItem -Path (Join-Path $OutputDir "bench_v55_${Tag}_part*_dump.jsonl") | ForEach-Object { $_.FullName }
 if ($dumpFiles.Count -gt 0) {
+    if ($dumpFiles.Count -ge 2) {
+        Write-Host ""
+        Write-Host "Auditing parallel Slumbot session independence..."
+        $independenceJson = Join-Path $OutputDir (
+            "bench_v55_${Tag}_session_independence.json"
+        )
+        $independenceArgs = @(
+            'scripts/alpha_holdem/audit_slumbot_session_independence.py',
+            '--dump'
+        ) + $dumpFiles + @('--out-json', $independenceJson)
+        & $ResolvedPython @independenceArgs
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $independenceJson)) {
+            Write-Host "ERROR: session independence audit failed."
+            exit 1
+        }
+        $independence = Get-Content $independenceJson -Raw |
+            ConvertFrom-Json
+        if ([string]$independence.status -ne 'PASS') {
+            Write-Host "ERROR: parallel Slumbot deal streams are not independent."
+            exit 1
+        }
+    } else {
+        Write-Host "Skipping session independence audit for one dump part."
+    }
+
     Write-Host ""
     Write-Host "Analyzing Slumbot decision dumps..."
     $dumpAnalysis = Join-Path $OutputDir "bench_v55_${Tag}_dump_analysis.txt"
@@ -490,6 +554,9 @@ if (Test-Path (Join-Path $OutputDir "bench_v55_${Tag}_dump_analysis.txt")) {
 }
 if (Test-Path (Join-Path $OutputDir "bench_v55_${Tag}_loss_report.md")) {
     Write-Host "Loss report: $(Join-Path $OutputDir "bench_v55_${Tag}_loss_report.md")"
+}
+if (Test-Path (Join-Path $OutputDir "bench_v55_${Tag}_session_independence.json")) {
+    Write-Host "Session independence: $(Join-Path $OutputDir "bench_v55_${Tag}_session_independence.json")"
 }
 if (Test-Path $summary) { Get-Content $summary }
 

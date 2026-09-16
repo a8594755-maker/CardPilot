@@ -1,0 +1,165 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-dual-contract-gradient-conflict-audit-20260901",
+  "title": "Dual-contract opponent-seat gradient-conflict audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T17:21:05+00:00",
+  "updated_at": "2026-09-01T17:25:47+00:00",
+  "started_at": "2026-09-01T17:21:05+00:00",
+  "ended_at": "2026-09-01T17:25:47+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The residual PPO failures arise from incompatible opponent-seat policy gradients that a scalar mixed loss averages into regressions; a deterministic conflict-aware aggregate may expose a common descent direction unavailable to global or group-RMS normalization.",
+  "material_change": "Reconstruct the immutable 4,096-hand group-RMS training cohort at the exact frozen zero-residual policy, compute six opponent-seat policy-gradient vectors with within-group centered/RMS advantages, audit pairwise cosine and group directional derivatives for the ordinary mean versus a deterministic conflict-aware aggregate. No training, checkpoint mutation, evaluation reuse for selection, or new environment hands.",
+  "baseline": "Group-RMS matched treatment improved only Slumbot-free (+7.273 bb/100), regressed Standard10 (-6.250) and CFR96 (-2.535), pooled -0.504 CI[-16.184,15.176]. Standard10 remains the only reproducible mature frontier parent; imitation fresh20k -18.5025 and prior solver/regret routes are negative controls.",
+  "source": "research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz",
+  "parent_id": "v6-dual-contract-group-rms-matched-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_gradient_conflict_audit.py --base-checkpoint models/baseline/standard10/latest.pt --training-evidence research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz --seed 20261400 --device cuda --out-dir research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_gradient_conflict_audit.py --base-checkpoint models/baseline/standard10/latest.pt --training-evidence research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz --seed 20261400 --device cuda --out-dir research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:21:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_gradient_conflict_audit.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-evidence research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz --seed 20261400 --device cuda --out-dir research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:24:32+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:25:47+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "df8fc9e021aaccbf584d87fe2143c4874808a8dc4013b131668433e53c68fb34",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T17:21:05+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/source_manifest.json",
+    "source_manifest_sha256": "3c479f56d928f012fd86f3d8c0a5669aa00af94fb3813bae10ecfe01ef7b3203",
+    "source_files": 122
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 4096,
+    "offline_samples": 9026,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 282.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "reconstructed_decisions": 9026,
+    "pairwise_cosines_below_negative_0_10": 4,
+    "off_diagonal_cosine_minimum": -0.33615607802527636,
+    "ordinary_harmful_group_count": 1,
+    "ordinary_worst_normalized_alignment": -0.1708410918497164,
+    "robust_worst_normalized_alignment": 0.5039229446949158,
+    "tests_passed": 227
+  },
+  "artifacts": [
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/code.patch",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/source_manifest.json",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_serialization_failure_20260901T1334/reconstructed_decisions.jsonl.gz",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_serialization_failure_20260901T1334/group_gradients.npz",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_initial_state_mismatch_20260901T1336/summary.json",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_initial_state_mismatch_20260901T1336/reconstructed_decisions.jsonl.gz",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_initial_state_mismatch_20260901T1336/group_gradients.npz",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run/summary.json",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run/reconstructed_decisions.jsonl.gz",
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run/group_gradients.npz"
+  ],
+  "notes": [
+    "Admission to a trained matched smoke requires material gradient conflict (at least two pairwise cosines below -0.10 or a mean aggregate that is locally harmful to at least one group) and a deterministic conflict-aware aggregate with strictly positive gradient alignment for all six groups and a better worst-group normalized alignment than the ordinary mean. This audit does not use the prior evaluation outcomes for optimization.",
+    "The exact preregistered command completed gradient computation and wrote raw/NPZ artifacts, then failed before summary creation because NumPy scalar gate counts were not JSON serializable. Preserved the first-attempt artifacts under run_serialization_failure_20260901T1334; fixed only scalar conversion and will rerun the same evidence/seed.",
+    "The serialization-fixed run completed but failed the preregistered initial-residual identity gate (cd37de89 versus parent f0888035). Root cause: the parent loaded three opponent modules before residual initialization, consuming Torch RNG. Preserved this non-comparable output under run_initial_state_mismatch_20260901T1336; added the same explicit opponent-load sequence and exact corrected command. No evidence or selection gate changed.",
+    "Exact-parent recovery loaded all three opponent modules before residual initialization and matched parent initial residual SHA f0888035682556bfee647ed57a28ae2d3c66578e26192bb84a1e69b79329fbce. The earlier non-comparable and serialization-failure artifacts remain quarantined and registered."
+  ],
+  "result": {
+    "summary": "Exact-parent reconstruction of 9,026 policy decisions found material opponent-seat gradient conflict: four pairwise cosines were below -0.10 (minimum -0.3362), and the ordinary decision-weighted aggregate had negative alignment -0.1708 for one of six groups. A deterministic minimum-norm convex combination produced strictly positive alignment for all six groups with worst alignment +0.5039.",
+    "conclusion": "The local mechanism is real on this frozen cohort: scalar group-RMS aggregation can actively harm one opponent-seat objective even though rescaling advantages alone was correct. Conflict-aware aggregation supplies a mathematically valid common descent direction at the exact parent state. This establishes implementation/training-smoke value, not poker-strength efficacy or a scale claim.",
+    "decision": "ADMIT_CONFLICT_AWARE_MATCHED_TRAINING_SMOKE",
+    "next_step": "Run one offline matched training smoke on the immutable cohort with identical sampled group batches and shared value/entropy updates, changing only ordinary versus minimum-norm policy-gradient aggregation; evaluate both frozen arms on untouched common decks. Interpret non-significance as insufficient evidence unless mechanism or broad direction clearly fails."
+  },
+  "tags": [
+    "gradient-conflict",
+    "multi-objective",
+    "offline-audit",
+    "residual"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22731,
+      "sha256": "3c479f56d928f012fd86f3d8c0a5669aa00af94fb3813bae10ecfe01ef7b3203"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_serialization_failure_20260901T1334/reconstructed_decisions.jsonl.gz": {
+      "type": "file",
+      "bytes": 261014,
+      "sha256": "3beb3bff3e1d1e87f65f5737dd12de4325c88216bf27a18098d0e724e8ecbb31"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_serialization_failure_20260901T1334/group_gradients.npz": {
+      "type": "file",
+      "bytes": 61634,
+      "sha256": "60c747236a69f42fade59f30fc6e03ac1914aa3a76ba7d945cb57567862fa82d"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_initial_state_mismatch_20260901T1336/summary.json": {
+      "type": "file",
+      "bytes": 6143,
+      "sha256": "c874aff1bc22641d3fe7cadc88f338a9471b1dd02672de5ab772a798773a2841"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_initial_state_mismatch_20260901T1336/reconstructed_decisions.jsonl.gz": {
+      "type": "file",
+      "bytes": 261014,
+      "sha256": "56aa4c108e2f1bb8385d00f7bc0410894a52b9dba4681df259fd0f59e487b21d"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run_initial_state_mismatch_20260901T1336/group_gradients.npz": {
+      "type": "file",
+      "bytes": 61634,
+      "sha256": "60c747236a69f42fade59f30fc6e03ac1914aa3a76ba7d945cb57567862fa82d"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 6669,
+      "sha256": "99c64cce2235215a8ab94bf07bf1eadab50480f0eaa612ef25ab5807c66094f7"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run/reconstructed_decisions.jsonl.gz": {
+      "type": "file",
+      "bytes": 261014,
+      "sha256": "b675ed6114cf5906a1c27dd0180ea6f5a0fad5ea760c138ff47643d2b34c59f8"
+    },
+    "research/experiments/v6-dual-contract-gradient-conflict-audit-20260901/run/group_gradients.npz": {
+      "type": "file",
+      "bytes": 61622,
+      "sha256": "c7497c8b49e36f06b37062b3bede2ad910bc11d1ac0437f4371b5a7cd08b1ae1"
+    }
+  }
+}

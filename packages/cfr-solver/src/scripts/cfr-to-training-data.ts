@@ -47,6 +47,9 @@ import {
   getTreeConfig,
   calcBetAmount,
   calcRaiseAmount,
+  getHURangeOptions,
+  getHUPreflopContext,
+  type HUPreflopContext,
   type TreeConfigName,
 } from '../tree/tree-config.js';
 import type { Street, TreeConfig } from '../types.js';
@@ -74,6 +77,7 @@ interface V55CompactSample {
   boardCards: number[];
   state: GameState;
   events: Path1HistoryEvent[];
+  preflop: HUPreflopContext;
   legalMask: number[];
   target: number[];
   h: string;
@@ -86,6 +90,7 @@ type OutputFormat = 'fast-v2' | 'v55-compact';
 export interface GameState {
   pot: number;
   stacks: [number, number];
+  streetCommitted: [number, number];
   facingBet: number;
   currentPlayer: 0 | 1;
   street: Street;
@@ -94,11 +99,55 @@ export interface GameState {
   raiseCount: number;
 }
 
+interface InfoSetCollection extends Iterable<[string, number[]]> {
+  readonly size: number;
+}
+
+/** Avoid V8's per-Map entry ceiling when converting deep 200bb checkpoints. */
+class ShardedInfoSetCollection implements InfoSetCollection {
+  private readonly shards = Array.from(
+    { length: 16 },
+    () => new Map<string, number[]>(),
+  );
+
+  get size(): number {
+    return this.shards.reduce((total, shard) => total + shard.size, 0);
+  }
+
+  set(key: string, value: number[]): void {
+    this.shards[fnv1a32(key) & (this.shards.length - 1)].set(key, value);
+  }
+
+  *[Symbol.iterator](): IterableIterator<[string, number[]]> {
+    for (const shard of this.shards) yield* shard;
+  }
+}
+
 export interface Path1HistoryEvent {
   street: Street;
   player: 0 | 1;
   actionType: 'CHECK' | 'CALL' | 'FOLD' | 'BET' | 'RAISE' | 'ALLIN';
   additionalAmount: number | null;
+}
+
+/**
+ * AlphaHoldem's deployed GameState calls every aggressive action on the
+ * current street a "raise" for cap/accounting purposes, including the opening
+ * bet.  The CFR tree's internal raiseCount deliberately excludes that opening
+ * bet.  Compact rows are a deployment bridge, so export the deployment
+ * convention without changing solver-tree legality.
+ */
+export function deploymentRaiseCountFromEvents(
+  events: Path1HistoryEvent[],
+  street: Street,
+): number {
+  return events.filter(
+    (event) =>
+      event.street === street &&
+      (event.actionType === 'BET' ||
+        event.actionType === 'RAISE' ||
+        event.actionType === 'ALLIN'),
+  ).length;
 }
 
 interface ParsedInfoSetKey {
@@ -173,6 +222,7 @@ export function replayHistoryTrace(
   let stacks: [number, number] = [config.effectiveStack, config.effectiveStack];
   let currentPlayer: 0 | 1 = 0; // OOP acts first
   let facingBet = 0;
+  let streetCommitted: [number, number] = [0, 0];
   let street: Street = 'FLOP';
   let isFirstAction = true;
   let raiseCount = 0;
@@ -184,6 +234,7 @@ export function replayHistoryTrace(
       street = nextStreet(street);
       currentPlayer = 0; // OOP acts first each street
       facingBet = 0;
+      streetCommitted = [0, 0];
       isFirstAction = true;
       raiseCount = 0;
       continue;
@@ -206,6 +257,7 @@ export function replayHistoryTrace(
         events.push({ street, player: p, actionType: 'CALL', additionalAmount: callAmt });
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] -= callAmt;
+        streetCommitted[p] += callAmt;
         pot += callAmt;
         currentPlayer = opp;
         facingBet = 0;
@@ -224,8 +276,9 @@ export function replayHistoryTrace(
         events.push({ street, player: p, actionType: 'ALLIN', additionalAmount: allInAmt });
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] = 0;
+        streetCommitted[p] += allInAmt;
         pot += allInAmt;
-        facingBet = allInAmt;
+        facingBet = Math.max(streetCommitted[p] - streetCommitted[opp], 0);
         if (isRaise) raiseCount++;
         currentPlayer = opp;
         isFirstAction = false;
@@ -259,8 +312,9 @@ export function replayHistoryTrace(
 
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] -= betAmount;
+        streetCommitted[p] += betAmount;
         pot += betAmount;
-        facingBet = betAmount;
+        facingBet = Math.max(streetCommitted[p] - streetCommitted[opp], 0);
         if (isRaise) raiseCount++;
         currentPlayer = opp;
         isFirstAction = false;
@@ -273,6 +327,7 @@ export function replayHistoryTrace(
     state: {
       pot,
       stacks,
+      streetCommitted,
       facingBet,
       currentPlayer,
       street,
@@ -411,7 +466,11 @@ export function mapCfrProbsToV55Actions(
         match[1] === 'bet'
           ? calcBetAmount(state.pot, size, state.stacks[state.currentPlayer])
           : calcRaiseAmount(state.pot, state.facingBet, size, state.stacks[state.currentPlayer]);
-      target[closestV55RaiseSlot(amount / Math.max(state.pot, 1e-9))] += probability;
+      // The retained policy uses legacy postflop mapping, where v55 maps a
+      // BET/RAISE Action.amount (total committed on the street) over the pot.
+      // For a re-raise this differs from the additional chips put in now.
+      const totalTo = state.streetCommitted[state.currentPlayer] + amount;
+      target[closestV55RaiseSlot(totalTo / Math.max(state.pot, 1e-9))] += probability;
     }
   }
   return target;
@@ -1107,7 +1166,7 @@ export function deterministicSampleN<T>(arr: T[], n: number, seedKey: string): T
 
 export function processFlop(
   meta: FlopMeta,
-  infoSets: Map<string, number[]>,
+  infoSets: InfoSetCollection,
   config: TreeConfig,
   oopRange: WeightedCombo[],
   ipRange: WeightedCombo[],
@@ -1122,6 +1181,7 @@ export function processFlop(
 ): { samples: OutputSample[]; count: number } {
   const startTime = Date.now();
   const { flopCards, boardId, bucketCount } = meta;
+  const preflop = getHUPreflopContext(meta.configName as TreeConfigName);
 
   // Step 1: Build bucket → combo reverse mapping
   const { oopMap, ipMap } = buildBucketComboMap(
@@ -1136,6 +1196,15 @@ export function processFlop(
   const samples: OutputSample[] = [];
   let pending: OutputSample[] = [];
   let sampleCount = 0;
+  const skipStats = {
+    inputInfoSets: infoSets.size,
+    sampledOut: 0,
+    nearUniform: 0,
+    actionLengthMismatch: 0,
+    noBucketCombos: 0,
+    cardConflict: 0,
+    invalidProbabilityMass: 0,
+  };
   const emit = (sample: OutputSample): void => {
     sampleCount++;
     if (!onBatch) {
@@ -1157,16 +1226,21 @@ export function processFlop(
       effectiveOutputSampleRate < 1 &&
       fnv1a32(`${selectionSeed}|output|${key}`) / 4294967296 >= effectiveOutputSampleRate
     ) {
+      skipStats.sampledOut++;
       continue;
     }
 
     // Skip if probs are near-uniform (not interesting)
-    if (isNearUniform(probs, minProbDivergence)) continue;
+    if (isNearUniform(probs, minProbDivergence)) {
+      skipStats.nearUniform++;
+      continue;
+    }
 
     // Determine actions for this node
     const actions = inferActionsFromHistory(parsed.historyKey, config);
     if (actions.length !== probs.length) {
       // Mismatch — skip (shouldn't happen if config matches)
+      skipStats.actionLengthMismatch++;
       continue;
     }
 
@@ -1181,7 +1255,10 @@ export function processFlop(
 
     // Look up combos for this bucket string
     const combos = lookupCombos(bucketMap, parsed.street, parsed.bucketStr, flopCards);
-    if (!combos || combos.length === 0) continue;
+    if (!combos || combos.length === 0) {
+      skipStats.noBucketCombos++;
+      continue;
+    }
 
     // Sample N representative combos
     const sampled = deterministicSampleN(
@@ -1196,14 +1273,20 @@ export function processFlop(
       const boardCards = buildBoardForEntry(flopCards, parsed.street, entry);
 
       // Check for card conflicts
-      if (boardCards.some((c) => c === holeCards[0] || c === holeCards[1])) continue;
+      if (boardCards.some((c) => c === holeCards[0] || c === holeCards[1])) {
+        skipStats.cardConflict++;
+        continue;
+      }
 
       const sampleId =
         `flop${String(boardId).padStart(4, '0')}_${parsed.street[0]}` +
         `${parsed.player}_b${parsed.bucketStr}`;
       if (outputFormat === 'v55-compact') {
         const probabilitySum = probs.reduce((sum, value) => sum + value, 0);
-        if (!(probabilitySum > 0) || !Number.isFinite(probabilitySum)) continue;
+        if (!(probabilitySum > 0) || !Number.isFinite(probabilitySum)) {
+          skipStats.invalidProbabilityMass++;
+          continue;
+        }
         const normalized = probs.map((value) => value / probabilitySum);
         const target = mapCfrProbsToV55Actions(parsed.historyKey, actions, normalized, config);
         const legalCounts = mapCfrProbsToV55Actions(
@@ -1222,8 +1305,12 @@ export function processFlop(
           bucket: parsed.bucketStr,
           holeCards,
           boardCards,
-          state: trace.state,
+          state: {
+            ...trace.state,
+            raiseCount: deploymentRaiseCountFromEvents(trace.events, parsed.street),
+          },
           events: trace.events,
+          preflop,
           legalMask: legalCounts.map((value) => (value > 0 ? 1 : 0)),
           target,
           h: sampleId,
@@ -1253,6 +1340,7 @@ export function processFlop(
 
   const elapsed = Date.now() - startTime;
   console.log(`  Flop ${boardId}: ${sampleCount} samples in ${(elapsed / 1000).toFixed(1)}s`);
+  console.log(`  Flop ${boardId} skip stats: ${JSON.stringify(skipStats)}`);
 
   return { samples, count: sampleCount };
 }
@@ -1326,8 +1414,8 @@ function loadFlopMeta(metaPath: string): FlopMeta {
   };
 }
 
-function loadFlopInfoSets(jsonlPath: string): Map<string, number[]> {
-  const map = new Map<string, number[]>();
+function loadFlopInfoSets(jsonlPath: string): InfoSetCollection {
+  const collection = new ShardedInfoSetCollection();
   // Supports gzipped (.jsonl.gz, 200bb) and plain (.jsonl, legacy) outputs.
   // 200bb boards are ~1.5GB decompressed — too large for a single V8 string
   // (ERR_STRING_TOO_LONG), so parse line-by-line over the Buffer and only
@@ -1340,12 +1428,14 @@ function loadFlopInfoSets(jsonlPath: string): Map<string, number[]> {
     if (e <= s) return;
     const trimmed = buf.toString('utf-8', s, e).trim();
     if (!trimmed) return;
+    let entry: { key?: string; probs?: number[] };
     try {
-      const entry = JSON.parse(trimmed);
-      if (entry.key && entry.probs) map.set(entry.key, entry.probs);
+      entry = JSON.parse(trimmed);
     } catch {
       // skip malformed lines
+      return;
     }
+    if (entry.key && entry.probs) collection.set(entry.key, entry.probs);
   };
   for (let i = 0; i < n; i++) {
     if (buf[i] === 0x0a) {
@@ -1354,7 +1444,7 @@ function loadFlopInfoSets(jsonlPath: string): Map<string, number[]> {
     }
   }
   parseLine(start, n);
-  return map;
+  return collection;
 }
 
 function discoverSolvedFlops(
@@ -1464,7 +1554,10 @@ if (IS_WORKER) {
   // Child process worker mode
   const config = JSON.parse(process.env.WORKER_CONFIG!) as WorkerConfig;
   const treeConfig = getTreeConfig(config.configName);
-  const { oopRange, ipRange } = loadHUSRPRanges(config.chartsPath);
+  const { oopRange, ipRange } = loadHUSRPRanges(
+    config.chartsPath,
+    getHURangeOptions(config.configName),
+  );
   const oopCombos = getWeightedRangeCombos(oopRange);
   const ipCombos = getWeightedRangeCombos(ipRange);
 
@@ -1684,7 +1777,10 @@ async function runSingleThreaded(
 ): Promise<{ totalSamples: number; processedFlops: number }> {
   const treeConfig = getTreeConfig(config.configName);
   const chartsPath = resolve(process.cwd(), 'data/preflop_charts.json');
-  const { oopRange, ipRange } = loadHUSRPRanges(chartsPath);
+  const { oopRange, ipRange } = loadHUSRPRanges(
+    chartsPath,
+    getHURangeOptions(config.configName),
+  );
   const oopCombos = getWeightedRangeCombos(oopRange);
   const ipCombos = getWeightedRangeCombos(ipRange);
 

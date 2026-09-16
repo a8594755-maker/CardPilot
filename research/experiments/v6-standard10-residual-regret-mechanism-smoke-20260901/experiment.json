@@ -1,0 +1,128 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-residual-regret-mechanism-smoke-20260901",
+  "title": "Standard10-prior state-conditioned residual-regret smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:32:09+00:00",
+  "updated_at": "2026-09-01T15:37:09+00:00",
+  "started_at": "2026-09-01T15:32:09+00:00",
+  "ended_at": "2026-09-01T15:37:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An exact-v6 external-sampling regret learner that adds state-conditioned cumulative-regret residuals to frozen Standard10 action log-probabilities can preserve the mature policy at zero residual while learning alternative-action credit that generalizes better than global bias search, local PPO margins, single-teacher imitation, or from-zero Deep CFR.",
+  "material_change": "Add an optional strategy provider to the exact ChipState CFR traversal and a numerically checked prior-residual strategy. Train a bounded fresh-reinit residual bundle from frozen Standard10, then compare its fixed LCFR-weighted greedy ensemble with unchanged Standard10 on common-deck generic and learned anchors.",
+  "baseline": "Frozen Standard10 SHA256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428; from-zero Deep CFR snapshot was -473.5109 bb/100 versus it. Historical imitation teacher remained -18.5025 fresh20k and is not reused.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-learned-policy-frontier-audit-20260901",
+  "command": "python scripts/alpha_holdem/v6_standard10_residual_regret_smoke.py --standard10 models/baseline/standard10/latest.pt --iterations 2 --traversals-per-player 2 --train-steps 512 --eval-pairs 256 --seed 60911 --output-dir research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_standard10_residual_regret_smoke.py --standard10 models/baseline/standard10/latest.pt --iterations 2 --traversals-per-player 2 --train-steps 512 --eval-pairs 256 --seed 60911 --output-dir research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:32:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1466aaa8a4bfbfe90586ffbf1521d72ba5c74b897be3664670f661ab2bbc2468",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T15:32:09+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "14718fa8e28e4adb0f0cdac32bf88825f7df4daa70d2c5ecca1e5ae4a064d588",
+    "source_files": 129
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 4096,
+    "wall_time_seconds": 300.0,
+    "planned_environment_training_hands": 8,
+    "planned_evaluation_hands": 4096,
+    "environment_training_hands": 8,
+    "decision_nodes": 23476
+  },
+  "metrics": {
+    "standard10_anchor_delta_bb100": 27.734375,
+    "standard10_anchor_ci95_lower": -174.8600033841042,
+    "standard10_anchor_ci95_upper": 230.3287533841042,
+    "positive_anchor_points": 4,
+    "min_greedy_disagreement": 0.8353413654618473,
+    "max_greedy_disagreement": 0.88909426987061
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/code.patch",
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/summary.json",
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/residual_policy.pt",
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/paired_evaluation.jsonl.gz",
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/analysis.md"
+  ],
+  "notes": [
+    "Preregistered mechanism smoke. Frozen Standard10 remains unchanged; candidate execution is a fixed LCFR-weighted residual ensemble with greedy action choice. No Slumbot hands."
+  ],
+  "result": {
+    "summary": "Eight exact-v6 training roots generated 23,476 decision nodes and a reload-exact Standard10-prior residual bundle. Zero residual reproduced Standard10 on 368 states with zero greedy mismatches. The learned ensemble had positive point deltas on 4/4 anchors, including +27.7344 bb/100 versus Standard10, but every CI crossed zero and greedy disagreement was 83.5-88.9%.",
+    "conclusion": "State-conditioned residual regret is mechanically valid and yields the first positive all-anchor bounded direction after the from-zero rejection, but scale1 rewrites most Standard10 decisions and the estimates are too imprecise for strength claims. It admits a frozen residual-dose control only, not more training or Slumbot.",
+    "decision": "ADMIT_STANDARD10_RESIDUAL_REGRET_CONTROL",
+    "next_step": "Use the unchanged frozen residual bundle for a preregistered residual-scale dose scan on development decks, then confirm only the smallest preservation-compatible positive scale on disjoint decks before considering more CFR roots."
+  },
+  "tags": [
+    "deep-cfr",
+    "residual-regret",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 23556,
+      "sha256": "14718fa8e28e4adb0f0cdac32bf88825f7df4daa70d2c5ecca1e5ae4a064d588"
+    },
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 5918,
+      "sha256": "591e0c0112e0f592c87340b05ec0841dab8ff283b5ba015a3d4d0f71a9f5774c"
+    },
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/residual_policy.pt": {
+      "type": "file",
+      "bytes": 1953990,
+      "sha256": "0748af53a24b4836079e6806e16420d4dd741c7c4f953410bd9af875348684be"
+    },
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/run/paired_evaluation.jsonl.gz": {
+      "type": "file",
+      "bytes": 63200,
+      "sha256": "f0b6763c6ac963d02fe6d16b03c0b097e6e087a4a0eafcf1c7f1d07f4006ebfc"
+    },
+    "research/experiments/v6-standard10-residual-regret-mechanism-smoke-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1798,
+      "sha256": "c79d9579d739f6268b41e8ad30ed4deeecc4b82abbc42d914a6b72e8190edccc"
+    }
+  }
+}

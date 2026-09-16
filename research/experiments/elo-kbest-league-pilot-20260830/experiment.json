@@ -1,0 +1,374 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "elo-kbest-league-pilot-20260830",
+  "title": "Paper-faithful deterministic ELO K-best league pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T13:31:27+00:00",
+  "updated_at": "2026-08-30T14:24:07+00:00",
+  "started_at": "2026-08-30T13:31:27+00:00",
+  "ended_at": "2026-08-30T14:24:07+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Replacing loss-proxy K-best survivor selection with deterministic mirrored round-robin ELO among the active historical pool and each new snapshot will improve robust multi-anchor performance over the untouched fresh-only all-policy-heads control.",
+  "material_change": "Add an opt-in elo-kbest pool strategy. At every eight-update snapshot boundary, play a small deterministic mirrored greedy tournament among active survivors plus the new candidate, update ELO from paired match outcomes in a fixed order, retain top five, and preserve tournament evidence. Keep initialization, three frozen seed anchors, all-policy-head PPO, optimizer, training seed/deals, league settings, and 262,144-hand budget matched to adaptive-league-all-heads-pilot-20260830.",
+  "baseline": "adaptive-league-all-heads-pilot-20260830 untouched fresh-only control; seeded-historical-kbest-league-pilot-20260830 loss-proxy treatment was negative on 7/12 matched rows and failed independent iter64 replication.",
+  "source": "AlphaHoldem AAAI 2022 pp.4692-4694: K-best survivors are selected from competing historical agents by ELO scores; current loss-kbest explicitly logs that it is only a proxy.",
+  "parent_id": "seeded-kbest-iter64-replication-20260830",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_elo_pool.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_replay.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_elo_pool.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py scripts/alpha_holdem/test_train_v5_replay.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:31:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 256 --total-hands 768 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy elo-kbest --k-best 5 --pool-history-limit 200 --elo-tournament-pairs 8 --elo-k-factor 32 --elo-tournament-seed 2026085201 --elo-tournament-provenance-file research/experiments/elo-kbest-league-pilot-20260830/smoke/elo_tournaments.jsonl --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/elo-kbest-league-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 1 --save-interval 1 --archive-checkpoint-every 999999 --run-id elo_kbest_smoke_20260830 --run-dir research/experiments/elo-kbest-league-pilot-20260830/smoke --out research/experiments/elo-kbest-league-pilot-20260830/smoke/latest.pt --seed 20260852 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:39:40+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_elo_session.py --run-dir research/experiments/elo-kbest-league-pilot-20260830/smoke --expected-target-hands 768 --expected-final-iteration 3 --expected-initial-pool-size 3 --expected-final-pool-size 5 --expected-snapshot-every 1 --expected-tournament-pairs 8 --out research/experiments/elo-kbest-league-pilot-20260830/smoke_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:42:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 256 --total-hands 1068 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy elo-kbest --k-best 5 --pool-history-limit 200 --elo-tournament-pairs 8 --elo-k-factor 32 --elo-tournament-seed 2026085201 --elo-tournament-provenance-file research/experiments/elo-kbest-league-pilot-20260830/smoke/elo_tournaments.jsonl --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/elo-kbest-league-pilot-20260830/smoke/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --fixed-training-deal-start-index 812 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 1 --save-interval 1 --archive-checkpoint-every 999999 --run-id elo_kbest_smoke_20260830 --run-dir research/experiments/elo-kbest-league-pilot-20260830/smoke --out research/experiments/elo-kbest-league-pilot-20260830/smoke/latest.pt --seed 20260852 --max-runtime-seconds 600 --resume research/experiments/elo-kbest-league-pilot-20260830/smoke/latest.pt --allow-resume --no-reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:43:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_elo_session.py --run-dir research/experiments/elo-kbest-league-pilot-20260830/smoke --expected-target-hands 1068 --expected-final-iteration 4 --expected-initial-pool-size 3 --expected-final-pool-size 5 --expected-snapshot-every 1 --expected-tournament-pairs 8 --out research/experiments/elo-kbest-league-pilot-20260830/smoke_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:45:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy elo-kbest --k-best 5 --pool-history-limit 200 --elo-tournament-pairs 128 --elo-k-factor 32 --elo-tournament-seed 2026085201 --elo-tournament-provenance-file research/experiments/elo-kbest-league-pilot-20260830/production/elo_tournaments.jsonl --initial-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/elo-kbest-league-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 8 --save-interval 1 --archive-checkpoint-every 16 --run-id elo_kbest_all_heads_262k_20260830 --run-dir research/experiments/elo-kbest-league-pilot-20260830/production --out research/experiments/elo-kbest-league-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:45:39+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_elo_session.py --run-dir research/experiments/elo-kbest-league-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-initial-pool-size 3 --expected-final-pool-size 5 --expected-snapshot-every 8 --expected-tournament-pairs 128 --out research/experiments/elo-kbest-league-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:15:52+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065815.pt --candidate-label elo_kbest_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter16.json --out-md research/experiments/elo-kbest-league-pilot-20260830/curve/iter16.md --execution-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:16:45+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131748.pt --candidate-label elo_kbest_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter32.json --out-md research/experiments/elo-kbest-league-pilot-20260830/curve/iter32.md --execution-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:18:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197455.pt --candidate-label elo_kbest_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter48.json --out-md research/experiments/elo-kbest-league-pilot-20260830/curve/iter48.md --execution-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:19:29+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263463.pt --candidate-label elo_kbest_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter64.json --out-md research/experiments/elo-kbest-league-pilot-20260830/curve/iter64.md --execution-json research/experiments/elo-kbest-league-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:20:55+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/elo-kbest-league-pilot-20260830/curve/iter16.json --out research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:22:13+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/elo-kbest-league-pilot-20260830/curve/iter32.json --out research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter32.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:22:13+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/elo-kbest-league-pilot-20260830/curve/iter48.json --out research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter48.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:22:14+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/elo-kbest-league-pilot-20260830/curve/iter64.json --out research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter64.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T14:22:15+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "d5ed3f0b7654494f4c2245a7ed18bdf0029476cd0f5b6cfe3dfe6eb4a4a687ad",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/audit_train_v5_elo_session.py",
+      "scripts/alpha_holdem/test_train_v5_elo_pool.py",
+      "scripts/alpha_holdem/test_train_v5_dynamic_pool.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/paired_mirror_treatment_delta.py"
+    ],
+    "captured_at": "2026-08-30T14:23:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/elo-kbest-league-pilot-20260830/code.patch",
+    "patch_sha256": "57e4a607ca9897568b74e5826abf3f6cc71e3bb5078568e233250024ffb57f17",
+    "source_manifest": "research/experiments/elo-kbest-league-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "e3c1af5d531e2a716dad59e9f70086036d74a2a3e67d02667723eef1b879519f",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 264560,
+    "lineage_training_hands": 10548436,
+    "offline_samples": 0,
+    "evaluation_hands": 52448,
+    "wall_time_seconds": 3160.0
+  },
+  "metrics": {
+    "implementation_tests_passed": 18,
+    "smoke_session_audit": "PASS",
+    "smoke_total_ood_nodes": 0,
+    "smoke_tournaments": 4,
+    "production_actual_hands": 263463,
+    "production_tournaments": 8,
+    "production_tournament_evaluation_hands": 27136,
+    "production_session_audit": "PASS",
+    "paired_positive_rows": 4,
+    "paired_total_rows": 12,
+    "paired_mean_delta_bb100": -0.0255126953124999,
+    "paired_median_delta_bb100": -0.19140625,
+    "robust_curve_gate_passed": false
+  },
+  "artifacts": [
+    "research/experiments/elo-kbest-league-pilot-20260830/code.patch",
+    "research/experiments/elo-kbest-league-pilot-20260830/source_manifest.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/latest.pt",
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/run_manifest.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/elo_tournaments.jsonl",
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke_session_audit.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/production_session_audit.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/result_summary.md",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/latest.pt",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/run_manifest.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/elo_tournaments.jsonl",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065815.pt",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131748.pt",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197455.pt",
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263463.pt",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter16.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter16.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter32.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter32.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter48.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter48.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter64.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter64.json"
+  ],
+  "notes": [
+    "Preregistered implementation gate: deterministic ratings/order/deals, identity-safe prune/remap, exact tournament JSONL evidence, and resume compatibility tests must pass. Smoke must demonstrate at least one six-to-five ELO prune with zero OOD and exact hand accounting. Production is authorized only after these gates. Production/evaluation will reuse all-heads control training seed 20260852, worker seed base 2026085200, and frozen archive/evaluation schedule; tournament hands count as evaluation_hands, not environment training hands.",
+    "Implementation gate passed: deterministic ELO/order/seed, identity-safe prune, hash-chained atomic evidence, and adjacent replay/dynamic-pool regression tests all passed.",
+    "Smoke terminal audit passed; added and tested consumed-assignment/post-snapshot-pool resume semantics before a live same-run continuation probe.",
+    "Smoke plus live same-run resume gate PASS; production authorized with 128 mirrored pairs per round-robin match.",
+    "Production reached iteration64 and 263,463 actual environment hands; running terminal audit before frozen evaluation.",
+    "All four frozen checkpoint evaluations used the untouched control's seed 20260853 and retained pair outcomes; every paired CI crossed zero, so no Slumbot gate was authorized."
+  ],
+  "result": {
+    "summary": "Implemented checkpoint-safe deterministic ELO K-best selection, completed 264,560 new training hands and 52,448 evaluation hands, and obtained a fully audited but non-improving matched curve.",
+    "conclusion": "The paper-mechanism ELO survivor infrastructure worked, including real accept/reject pool changes and same-run resume, but did not improve robust generalization over the untouched all-heads control: only 4/12 paired rows were positive, mean delta was -0.026 bb/100, median -0.191, no checkpoint improved all anchors, and every paired CI crossed zero.",
+    "decision": "REJECT_ELO_KBEST_NO_ROBUST_GENERAL_GAIN",
+    "next_step": "Do not scale this selector. Choose the next experiment around an actually new learned gradient signal or training target, using the existing all-heads control and fresh matched evaluation."
+  },
+  "tags": [
+    "elo",
+    "kbest",
+    "learned-policy",
+    "self-play"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 15,
+    "command_count": 15
+  },
+  "artifact_integrity": {
+    "research/experiments/elo-kbest-league-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 162418,
+      "sha256": "57e4a607ca9897568b74e5826abf3f6cc71e3bb5078568e233250024ffb57f17"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 1193,
+      "sha256": "e3c1af5d531e2a716dad59e9f70086036d74a2a3e67d02667723eef1b879519f"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 199451824,
+      "sha256": "5b21556590a528a04b9aa65f78c47d7023410a62fe0db605e00cd584f851e29c"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/run_manifest.json": {
+      "type": "file",
+      "bytes": 129553,
+      "sha256": "61cd0a7b15f7ad561db2a435d9079923c9c28155dbd6ad3a2aa2ca1267f337a2"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 86383,
+      "sha256": "4004d8db73355a4ff3ad96164ea214d994396a779d53d62712d803af01a60b36"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 10788,
+      "sha256": "3c6fa5a30390d68a538a5c34fa6aab88ddc965eb6ff76eb72f57503698f060a6"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke/elo_tournaments.jsonl": {
+      "type": "file",
+      "bytes": 28111,
+      "sha256": "3f12ab50e11de6945fcb2caa848756f384c65fb5a3d88d7b99a6b30e61ab4ef4"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/smoke_session_audit.json": {
+      "type": "file",
+      "bytes": 2659,
+      "sha256": "d3ca1285df5c2a31f5da5ec55a941bcf1c97778ce98a2ef28d0e8704af7e3405"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 4565,
+      "sha256": "4a7ac4beeccf4f0c5fc8dbe90942171c01f1d78756847dbbbe2ed989765e98cf"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 1699,
+      "sha256": "2a36ebf9d0599af4766b7539fa6ffd82a4eca58644a531936ba9275e22f8d926"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 199235144,
+      "sha256": "d0860323af6e175471affdb9560d00cb6f5b88e8a7fb53b9c7ac7d52997cde0f"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 257187,
+      "sha256": "660ad23cec5cb4bc4906e1a151f9a7aa02cefb679a6d646c0d9c77cbb1475585"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1540214,
+      "sha256": "ed77ffd859b6478ea02523d22f0557197ce6b761d2cf6788769d709de65e9f06"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 175448,
+      "sha256": "a58fb4688a55cc1e8b92b44959019f87db2a3059af22c4461b0b5beeda484d1f"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/elo_tournaments.jsonl": {
+      "type": "file",
+      "bytes": 65443,
+      "sha256": "97d1761fc10a96a5ffcc9a3eba5dcb947b2b9a6682586a8e5fff4184ab14dfa5"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065815.pt": {
+      "type": "file",
+      "bytes": 199441502,
+      "sha256": "f2bff4e9e9d08f8b6cbfdabef3d392af778084b61a7112f236ce7323d2bf80f8"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131748.pt": {
+      "type": "file",
+      "bytes": 199735774,
+      "sha256": "3e8b01c12b89d590a4b3afe57503bad69a3c8e65071693e04464eb8063a2b2a1"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197455.pt": {
+      "type": "file",
+      "bytes": 199223918,
+      "sha256": "090cfd69897ff17a6e0190acce6dbbc33a67348b7d600a7ec189371b30b1ae88"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263463.pt": {
+      "type": "file",
+      "bytes": 199259822,
+      "sha256": "366ac5cc911c20edf02aa7637ce836df485c6acf178b302342360a25cbe6672f"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 172751,
+      "sha256": "5b9a43d98cda36f266c8b51175ff5961f9ab4b21a83cbbfc40d9efdc4a183ebc"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1812,
+      "sha256": "3f85ea9b2db5382b08640b08adc45b04b9428ebe7cda89411184705c8c6fe8e5"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter16.json": {
+      "type": "file",
+      "bytes": 4930,
+      "sha256": "b328fcfd2fdfd4614aada66ed964c3084762abe4d0f4385747a3a163d3e30703"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 173109,
+      "sha256": "f31c8ae3ce373009bc4df4a31b99b6c81b1444e402f2e52e931365d728d6b3e2"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1812,
+      "sha256": "4bcde2b3aa145cc58975d1bc4752ae63acf2524bb61f1e3ff6fbd3b9a436cbff"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter32.json": {
+      "type": "file",
+      "bytes": 4927,
+      "sha256": "25a4f2f072f8220b88c87cecacae44585b635a08828ffc46d3b613c1d3ba868d"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 173017,
+      "sha256": "aeab33e5c1104802ba07adf45da1bd503c54a091c17a8ec1ef4502c61e9a7d58"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1811,
+      "sha256": "fae6bafbeac6eb3f4ada5c51be8005a4bd5658b34ef103bcb9b68b46bdc60fa8"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter48.json": {
+      "type": "file",
+      "bytes": 4912,
+      "sha256": "dd07b9728b56d4e34da1b4accad0fe36067f329d050d44d178e83f02a0306e1b"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 172885,
+      "sha256": "2edb858181f32d04fdf1055d957ae829b76e05618ba28a52ec6675c5270a7e83"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1812,
+      "sha256": "366776cd35ef1600611537ec755f8b9f8b15d75f19990ae4f3522f5afb6b25d5"
+    },
+    "research/experiments/elo-kbest-league-pilot-20260830/paired_delta/iter64.json": {
+      "type": "file",
+      "bytes": 4940,
+      "sha256": "03907e47b0c9a1c6c26c7d90351bf2833b16075f8dde269083a39d5f75f124a7"
+    }
+  }
+}

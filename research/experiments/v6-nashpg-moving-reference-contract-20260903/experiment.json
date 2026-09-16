@@ -1,0 +1,139 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-nashpg-moving-reference-contract-20260903",
+  "title": "NashPG moving-reference KL and resume contract",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T15:11:48+00:00",
+  "updated_at": "2026-09-03T15:16:37+00:00",
+  "started_at": "2026-09-03T15:11:48+00:00",
+  "ended_at": "2026-09-03T15:16:29+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "An explicit KL(current||reference) with post-PPO periodic reference refresh can be implemented without changing legacy defaults, and an interrupted run can exactly restore reference weights, refresh counters, optimizer state, and main-process RNG before the next update.",
+  "material_change": "Add default-off explicit KL direction, legal-mask-safe KL math, moving-reference refresh at completed trainer PPO-call boundaries, and strict serialized reference/counter/RNG resume state.",
+  "baseline": "Legacy fixed KL(reference||current), refresh interval 0, unchanged by default.",
+  "source": "research/experiments/weak-source-kl-pilot-20260830/nashpg_source_contract_notes.md",
+  "parent_id": null,
+  "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_moving_reference.py scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_moving_reference.py scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T15:11:48+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_moving_reference.py scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T15:12:14+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_source_policy_moving_reference.py scripts/alpha_holdem/test_source_policy_kl_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py --junitxml research/experiments/v6-nashpg-moving-reference-contract-20260903/contract_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T15:16:29+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T15:16:29+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-03T15:00:00+00:00 --out-json research/experiments/v6-nashpg-moving-reference-contract-20260903/logger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T15:16:37+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8243f475704141810242d7ed6f8b44e59893d335b101de3054949b1b7abcfa42",
+    "code_paths": [
+      "scripts/alpha_holdem/source_policy_reference.py"
+    ],
+    "captured_at": "2026-09-03T15:11:48+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-nashpg-moving-reference-contract-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-nashpg-moving-reference-contract-20260903/source_manifest.json",
+    "source_manifest_sha256": "892baf8973cea8815d3d0e0754218ddb457af52f2d1e66a3de725efe605d3826",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 281.0,
+    "environment_training_hands": 0
+  },
+  "metrics": {
+    "targeted_tests_passed": 10,
+    "full_alpha_holdem_tests_passed": 335
+  },
+  "artifacts": [
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/code.patch",
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/source_manifest.json",
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/contract_tests.xml",
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/implementation_manifest.json",
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/logger_audit.json"
+  ],
+  "notes": [
+    "No environment or evaluation hands are authorized in this contract experiment.",
+    "Initial contract run: 7 passed, 2 failed. Failures isolated to helper precision coercion in fp64 finite-difference test and test ordering that sampled expected Torch RNG after resumed-model construction; zero environment/evaluation hands.",
+    "Post-finish logger audit since 2026-09-03T15:00Z: 1 record, 0 warnings."
+  ],
+  "result": {
+    "summary": "Default-off NashPG moving-reference contract implemented and verified with 10/10 focused tests plus 335/335 full AlphaHoldem tests; zero environment or evaluation hands.",
+    "conclusion": "The trainer can now optimize explicit KL(current||reference), refresh the reference only after complete PPO calls, and resume from serialized reference/counter/iteration/RNG state while preserving optimizer and hand counters. Legacy KL(reference||current) with refresh0 remains the default and retains its original arithmetic. Partial PPO interruption preserves the preceding complete checkpoint.",
+    "decision": "ADMIT_SMALL_MULTI_SEED_GEOMETRIC_NASHPG_SMOKE",
+    "next_step": "Preregister a matched static-versus-moving-reference corrected-v6 multi-seed geometric smoke. Judge mechanism on stability, actual refresh/resume evidence, cross-opponent both-seat breadth, Standard10 preservation, and slope—not on requiring early Slumbot profitability."
+  },
+  "tags": [
+    "contract",
+    "nashpg",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 292,
+      "sha256": "892baf8973cea8815d3d0e0754218ddb457af52f2d1e66a3de725efe605d3826"
+    },
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/contract_tests.xml": {
+      "type": "file",
+      "bytes": 1853,
+      "sha256": "61ed37adbd693305f025408c379f34b3800ae62d5849a4445b84b597ad01c13d"
+    },
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/implementation_manifest.json": {
+      "type": "file",
+      "bytes": 1781,
+      "sha256": "c48179ed2f7f0b931a0965ee482db9dbf092075e2886c972860e1ecbf97b1926"
+    },
+    "research/experiments/v6-nashpg-moving-reference-contract-20260903/logger_audit.json": {
+      "type": "file",
+      "bytes": 228,
+      "sha256": "96bfcd4293dfc92aeb6ff23edd19bbcb8509b66eac9280e93df3625bb2f978bb"
+    }
+  }
+}

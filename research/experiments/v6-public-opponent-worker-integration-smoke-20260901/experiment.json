@@ -1,0 +1,133 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-public-opponent-worker-integration-smoke-20260901",
+  "title": "Real single-worker public-opponent integration smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T16:09:27+00:00",
+  "updated_at": "2026-09-01T16:13:25+00:00",
+  "started_at": "2026-09-01T16:09:27+00:00",
+  "ended_at": "2026-09-01T16:13:25+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A default-off worker-local public opponent path can generate exact physical-v6 hero trajectories with deterministic per-hand assignment, zero opponent inference requests, and independent accounting without altering existing trainer behavior.",
+  "material_change": "Add optional public-opponent checkpoint/fraction/counters to worker_process_v5, load the frozen model once per worker, sample it with a worker/hand seed, and run a real 256-terminal-hand shared-memory smoke with hero inference served externally.",
+  "baseline": "Frozen public model execution contract passed replay, legality, private-hole invariance and coverage gates. Existing procedural and default worker paths must retain all tests.",
+  "source": "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt",
+  "parent_id": "v6-slumbot-public-opponent-contract-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_public_opponent_worker_smoke.py --opponent-model research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --hands 256 --seed 60916 --output-dir research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_worker_smoke.py --opponent-model research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --hands 256 --seed 60916 --output-dir research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:09:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_worker_smoke.py --opponent-model research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --hands 256 --seed 60916 --output-dir research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run_recovery",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:12:01+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_worker_smoke.py --opponent-model research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt --hands 256 --seed 60916 --output-dir research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run_recovery2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:12:47+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "c5f28ab2f59a188eba131e808495c87944ae61be3f83be5900b6b041294b6067",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/public_opponent_v6.py"
+    ],
+    "captured_at": "2026-09-01T16:09:27+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/code.patch",
+    "patch_sha256": "086c636fdbb34e3f36fbe2c53e958ca3ec5ae11d1bd4f70a26911d08eaf0548b",
+    "source_manifest": "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "28d7927960bc93660083a61379ebf7a2c5d6a60a9ac416d44d464ab32f265d8e",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 256,
+    "wall_time_seconds": 238.0,
+    "environment_training_hands": 0,
+    "planned_evaluation_hands": 256,
+    "public_opponent_decisions": 984,
+    "hero_transition_rows": 1138
+  },
+  "metrics": {
+    "public_hands": 256,
+    "hero_inference_requests": 1139,
+    "opponent_inference_bypasses": 984
+  },
+  "artifacts": [
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/code.patch",
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run_recovery/summary.json",
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run_recovery2/summary.json",
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/analysis.md"
+  ],
+  "notes": [
+    "No optimizer or hero weight update. Existing worker signature additions are trailing defaults. No network Slumbot calls.",
+    "Initial run/ ended with Windows pipe closure before summary. Recovery adds only child traceback forwarding and EOF-safe parent draining; worker model, seed, target and action path are unchanged.",
+    "run_recovery/ completed exact core accounting but harness joined before draining the final transition batch, causing backpressure and forced termination. Recovery2 drains during shutdown; worker semantics remain unchanged."
+  ],
+  "result": {
+    "summary": "Accepted recovery2 completed exactly256 terminal hands in the real single-worker path, emitted1138 hero transition rows, served1139 hero-only inference requests, and locally sampled/accounted984 public-opponent decisions with zero opponent inference requests. Environment and opponent counters matched and child exitcode was zero.",
+    "conclusion": "The default-off worker-local public opponent path is legal, seed-replayable, inference-isolated, and independently accounted. Harness-only pipe shutdown issues in earlier attempts were preserved and fixed without changing worker semantics.",
+    "decision": "ADMIT_MATCHED_PUBLIC_OPPONENT_HERO_SMOKE",
+    "next_step": "Expose the path through production CLI and checkpoint/session accounting, then run a short matched Standard10-initialized control versus a bounded public-opponent minority treatment; require untouched learned-policy anchor improvement before scaling."
+  },
+  "tags": [
+    "contract-smoke",
+    "opponent-model",
+    "v6",
+    "worker"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 265854,
+      "sha256": "086c636fdbb34e3f36fbe2c53e958ca3ec5ae11d1bd4f70a26911d08eaf0548b"
+    },
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 456,
+      "sha256": "28d7927960bc93660083a61379ebf7a2c5d6a60a9ac416d44d464ab32f265d8e"
+    },
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run_recovery/summary.json": {
+      "type": "file",
+      "bytes": 1215,
+      "sha256": "01b4997e80c73a0e5adbf8bae4dcf0475f4ac07e627ba20287d630a3cb2ca792"
+    },
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/run_recovery2/summary.json": {
+      "type": "file",
+      "bytes": 1212,
+      "sha256": "2605bad7a800e7262292e086d2ac8d38bb3636a4d5475d256a9afb757dc5a198"
+    },
+    "research/experiments/v6-public-opponent-worker-integration-smoke-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1413,
+      "sha256": "4777112ca04960d8bc459b59b66c98489e6f5549bd9cce3dbad09d09c610371e"
+    }
+  }
+}

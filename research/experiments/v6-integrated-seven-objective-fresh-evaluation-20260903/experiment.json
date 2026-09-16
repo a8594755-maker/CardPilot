@@ -1,0 +1,203 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-seven-objective-fresh-evaluation-20260903",
+  "title": "Fresh two-lineage evaluation of seven-objective update",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T04:44:39+00:00",
+  "updated_at": "2026-09-03T05:21:48+00:00",
+  "started_at": "2026-09-03T04:44:39+00:00",
+  "ended_at": "2026-09-03T05:21:48+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At the selected 5e-5 matched parent-KL dose, the seven-objective learned-weight update will translate its cohort common descent into a directionally broader greedy policy than the ordinary reward-plus-KL control across independent 1M parents, four untouched anchors, and both seats, while preserving Standard10 behavior.",
+  "material_change": "Freeze the selected control/treatment checkpoints. For each lineage run 2,048 fresh common-deck pairs across Standard10, CFR4, legacy-iter16, and legacy-mixed65k, both seats, then run 20,000-state Standard10 drift audits on each treatment and aggregate raw evidence across lineages.",
+  "baseline": "v6-integrated-seven-objective-dose-boundary-20260903",
+  "source": "v6-integrated-seven-objective-dose-boundary-20260903",
+  "parent_id": "v6-integrated-seven-objective-dose-boundary-20260903",
+  "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/control.pt --treatment research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/treatment.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262210 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed1",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/control.pt --treatment research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/treatment.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262210 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:44:39+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed2/control.pt --treatment research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed2/treatment.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20262220 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:02:39+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/treatment.pt --out-dir research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed1 --states 20000 --seed 20262230 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:20:03+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent models/baseline/standard10/latest.pt --parent-sha256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428 --treatment research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed2/treatment.pt --out-dir research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed2 --states 20000 --seed 20262231 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:20:21+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_update_evaluation.py --eval seed1=research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed1/summary.json --eval seed2=research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed2/summary.json --drift seed1=research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed1/drift_analysis.json --drift seed2=research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed2/drift_analysis.json --update-summary research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/summary.json --out research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:20:44+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:21:48+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "456fb60b8e2b4acf9fdeda5a5a1274184c3562f54d20039c281d735a3511ee0c",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_public_opponent_matched_eval.py",
+      "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+      "scripts/alpha_holdem/aggregate_v6_integrated_update_evaluation.py"
+    ],
+    "captured_at": "2026-09-03T04:44:39+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/source_manifest.json",
+    "source_manifest_sha256": "acbe9942756d2e1d8060cfe5bd11e23ec5a23ca9b323cbd0e4aa8b4eceba1e92",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 65536,
+    "wall_time_seconds": 2229.0,
+    "new_environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "raw_pairs": 16384,
+    "offline_drift_states": 40000
+  },
+  "metrics": {
+    "pairs_per_anchor_per_lineage": 2048,
+    "anchor_count": 4,
+    "lineages": 2,
+    "selected_parent_kl": 5e-05,
+    "combined_pooled_delta_bb100": 1.03607177734375,
+    "combined_pooled_delta_ci95_bb100": 2.6417249462155796,
+    "combined_standard10_delta_bb100": -1.422119140625,
+    "combined_cfr4_delta_bb100": 2.691650390625,
+    "combined_legacy_iter16_delta_bb100": -0.5615234375,
+    "combined_legacy_mixed65k_delta_bb100": 3.436279296875,
+    "seed1_pooled_delta_bb100": -1.1627197265625,
+    "seed2_pooled_delta_bb100": 3.23486328125,
+    "combined_seat0_delta_bb100": 1.66015625,
+    "combined_seat1_delta_bb100": 0.4119873046875,
+    "tests_passed": 319
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/code.patch",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed1/summary.json",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed1/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed2/summary.json",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed2/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed1/drift_analysis.json",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed1/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed2/drift_analysis.json",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed2/drift_raw.jsonl.gz",
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/aggregate.json"
+  ],
+  "notes": [
+    "Preregistered promotion requires combined pooled and Standard10 deltas nonnegative, at least 3/4 combined anchors nonnegative, both combined seats nonnegative, each lineage pooled delta nonnegative, exact raw/checkpoint evidence, and both Standard10 drift audits pass. A null result at this tiny single-step dose is insufficient to reject long-horizon conflict-aware training.",
+    "Seed1 completed normally: pooled -1.1627 +/-3.6175 bb/100, 2/4 anchors positive, Standard10 -3.7109; directional breadth gate failed but uncertainty is large. Continue preregistered independent Seed2.",
+    "Seed2 completed normally: pooled +3.2349 +/-3.8504 bb/100, 3/4 anchors positive, Standard10 +0.8667, both seats positive. Proceed to frozen treatment drift audits.",
+    "Both fresh 20k-state Standard10 drift audits PASS: Seed1 mean TV 0.01183 / disagreement 0.0122; Seed2 mean TV 0.01029 / disagreement 0.0111.",
+    "No Slumbot calls and no new environment training hands. Raw pair hashes, checkpoint hashes, independent evaluation seeds, and drift raw hashes all verified."
+  ],
+  "result": {
+    "summary": "Across 65,536 untouched greedy evaluation hands, seven-objective treatment versus matched ordinary control was pooled +1.0361 +/-2.6417 bb/100 and positive in both seats, but only 2/4 combined anchors were nonnegative: CFR4 +2.6917, mixed65k +3.4363, iter16 -0.5615, Standard10 -1.4221. Seed1 was -1.1627 while Seed2 was +3.2349. Both fresh 20k-state Standard10 drift audits passed.",
+    "conclusion": "The one-step conflict-aware direction is not externally validated for promotion: its positive pooled/seat direction does not replicate by lineage or Standard10/anchor breadth. Because effect sizes are small relative to uncertainty, Seed2 passes all breadth gates, and preservation remains within absolute drift thresholds, this is insufficient-dose/missing-objective evidence rather than rejection of long-horizon conflict-aware learning. Forward KL common descent alone does not reliably preserve the historically important Standard10 greedy execution boundary.",
+    "decision": "HOLD_SEVEN_OBJECTIVE_TRAINER_AND_AUDIT_GREEDY_BOUNDARY_OBJECTIVE",
+    "next_step": "Before more environment training or another costly matched evaluation, use the immutable audit cohort to compute the Standard10 greedy-margin preservation gradient on both 1M checkpoints. Test whether an eight-objective common descent direction (six opponent-seat rewards, source KL, source greedy boundary) exists and whether the seven-objective update specifically sacrifices that boundary. Only if the mechanism replicates should run a small matched boundary-aware update."
+  },
+  "tags": [
+    "fresh-evaluation",
+    "mgda",
+    "multi-anchor",
+    "two-lineage",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 688,
+      "sha256": "acbe9942756d2e1d8060cfe5bd11e23ec5a23ca9b323cbd0e4aa8b4eceba1e92"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed1/summary.json": {
+      "type": "file",
+      "bytes": 11372,
+      "sha256": "f8dc020fc4b7ff3f4c85add4d2441be2895aeeaea32e581b97896dfc593a1c33"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed1/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 530415,
+      "sha256": "4e284cb785abe07998aab24927e95f324b1cc6817429027ae3047aab4dded6fd"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed2/summary.json": {
+      "type": "file",
+      "bytes": 11368,
+      "sha256": "c55cf4aed08714e48577faba494ea3a00d8e5f84117ab5ec7ad2227369640ceb"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/eval_seed2/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 530687,
+      "sha256": "208f19d9e9b648c8e2e63174adc133343e2c6728af323a30ffa7a2ca7bc6761b"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed1/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4423,
+      "sha256": "67d665ad226233dd0d612d3af46655238f0bc47a6fae4e29d03a486688c1612d"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed1/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 318983,
+      "sha256": "34f9560ebf27deeedf77b326688028b941abb798279655a75f76f23973428fb2"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed2/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4421,
+      "sha256": "592a32b7e0d6672211bbe4a8612d7f18b125e8d98bd288bacd68f324f0bedc48"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/drift_seed2/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 318627,
+      "sha256": "16d7dae7dd90334cc86c0aea20312727fb58441590382368d816add546b33258"
+    },
+    "research/experiments/v6-integrated-seven-objective-fresh-evaluation-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 6607,
+      "sha256": "5fd0f72b33fcba22d235c2a522aa135529b1581cce8643bed1620c06f55f0fc4"
+    }
+  }
+}

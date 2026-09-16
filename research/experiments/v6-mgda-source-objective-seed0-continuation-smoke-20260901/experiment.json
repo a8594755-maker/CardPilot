@@ -1,0 +1,183 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-source-objective-seed0-continuation-smoke-20260901",
+  "title": "MGDA source-KL seventh-objective seed0 continuation smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T18:07:27+00:00",
+  "updated_at": "2026-09-01T18:24:13+00:00",
+  "started_at": "2026-09-01T18:07:27+00:00",
+  "ended_at": "2026-09-01T18:24:13+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Adding Standard10 KL as a seventh unit-normalized common-descent objective during a matched 8k-to-12k continuation will correct seed0 source-boundary drift without sacrificing the six opponent-seat reward objectives or broad learned-anchor performance.",
+  "material_change": "Clone the frozen seed0 MGDA 8k checkpoint and Adam into both arms. Collect one identical fresh 4,096-hand continuation cohort from the shared starting policy. Control applies six-objective MGDA; treatment adds base-to-candidate legal-action KL as a seventh MGDA objective, norm-matched to the same ordinary reward-gradient scale. Freeze at 12k, evaluate 1,024 new mirrored pairs per three anchors, and replay the prior 6,144-state preservation panel.",
+  "baseline": "Seed0 8k MGDA had favorable pooled learning but relative Standard10 -2.173 combined and preservation audit KL 1.438x ordinary control; its greedy agreement remained 98.32%. This smoke targets that specific relative drift from the exact failing seed.",
+  "source": "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt",
+  "parent_id": "v6-mgda-source-boundary-preservation-audit-20260901",
+  "command": "python scripts/alpha_holdem/v6_mgda_source_objective_continuation.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --start-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt --state-panel research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz --continuation-hands 4096 --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20261500 --device cuda --out-dir research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_mgda_source_objective_continuation.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --start-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt --state-panel research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz --continuation-hands 4096 --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20261500 --device cuda --out-dir research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:07:27+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:24:13+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "0d722ced24ab151b500059857129944b51ff0b28af4540d17f60bc41a3057768",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T18:07:27+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "ac1248c9fc5bf44519734c5c832c2ec800d5b24eb7e8e8cf5a87f41260b1f0ee",
+    "source_files": 131
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 8192,
+    "lineage_training_hands": 12288,
+    "offline_samples": 0,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 1006.0,
+    "planned_environment_training_hands": 8192,
+    "planned_evaluation_hands": 12288
+  },
+  "metrics": {
+    "control_transition_rows": 8959,
+    "treatment_transition_rows": 8959,
+    "pooled_delta_bb100": -4.552897135416666,
+    "pooled_ci95_low_bb100": -27.18411976798233,
+    "pooled_ci95_high_bb100": 18.078325497149002,
+    "standard10_delta_bb100": -13.3056640625,
+    "slumbot_free_delta_bb100": 0.9155273437500002,
+    "cfr96_delta_bb100": -1.2685546874999993,
+    "seat0_delta_bb100": -1.1217447916666667,
+    "seat1_delta_bb100": -7.984049479166666,
+    "treatment_reward_alignment_fraction": 1.0,
+    "treatment_source_alignment_fraction": 1.0,
+    "control_panel_greedy_agreement": 0.9645182490348816,
+    "treatment_panel_greedy_agreement": 0.9934896230697632,
+    "control_panel_mean_kl": 0.0037266795989125967,
+    "treatment_panel_mean_kl": 0.00023971920018084347,
+    "tests_passed": 233
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/code.patch",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_autograd_preupdate_failure_20260901T1415/training_hands.jsonl.gz",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_schedule_serialization_posttrain_failure_20260901T1420/training_hands.jsonl.gz",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_schedule_serialization_posttrain_failure_20260901T1420/control_residual_12288.pt",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_schedule_serialization_posttrain_failure_20260901T1420/treatment_residual_12288.pt",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/summary.json",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/training_hands.jsonl.gz",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/update_schedules.json",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt",
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/treatment_residual_12288.pt"
+  ],
+  "notes": [
+    "Admission to seed1 replication requires exact shared start/optimizer and identical collection evidence; treatment positive alignment for all six reward objectives and KL on >=75% of steps; treatment 12k panel mean KL <= control and greedy agreement no worse than control by >0.5 point; treatment-control pooled >0, Standard10 >=0, >=2/3 anchors positive, both seats >=0; base/cap/hashes valid. A failure rejects this seventh-objective formulation, not the already-demonstrated six-objective learning mechanism.",
+    "First exact command completed both 4,096-hand collection executions and passed identity comparison, then failed at control optimizer step0 because source-KL and auxiliary gradients reused one autograd graph. No optimizer step, checkpoint, or evaluation occurred. Preserved raw evidence under run_autograd_preupdate_failure_20260901T1415; fixed auxiliary loss to use an independent forward and will rerun exact start/seed.",
+    "Second exact command completed both 32-step updates and wrote both 12k checkpoints, then failed before panel/evaluation because NumPy schedule arrays were not JSON serializable. Preserved raw evidence and pre-eval checkpoints under run_schedule_serialization_posttrain_failure_20260901T1420. Converted schedule arrays to lists only; deterministic rerun will restart from the immutable 8k checkpoint and Adam rather than continue partial output.",
+    "Independent raw recomputation confirmed 8,192 actual continuation hands (4,096 per arm), identical 8,959 transitions per arm, training SHA 3e3f6c97fca2872ba3d182d5eb134ef86085736cdb2b5014118678ab20a34e10, 3,072 evaluation pairs / 12,288 hands, and evaluation SHA 2dc1ea3f5f2de723974f3d66b31993b435fabb72abe89f2a0f74ae746105bedc.",
+    "Two recoverable implementation interruptions were preserved: one before optimizer step0 due graph reuse, and one after all training but before evaluation due schedule serialization. The accepted run restarted deterministically from the immutable 8k checkpoint and Adam; it did not resume partial optimizer state."
+  ],
+  "result": {
+    "summary": "The seventh-objective treatment achieved positive alignment for all six reward groups and source KL on 32/32 steps. It strongly improved outcome-blind preservation (panel agreement 99.35% versus control 96.45%; mean KL 0.000240 versus 0.003727), but matched poker performance was pooled -4.553 bb/100 CI[-27.184,18.078], Standard10 -13.306, Slumbot-free +0.916, CFR96 -1.269, with both seat deltas negative.",
+    "conclusion": "Unit-normalizing source KL as a seventh MGDA objective over-constrains useful policy movement: it optimizes the preservation proxy exactly while worsening actual reward breadth, including against Standard10 itself. This is clear mechanism-level evidence to reject this formulation despite small evaluation uncertainty. The unconstrained six-objective control remains a valid 12k continuation artifact and should be evaluated against its 8k parent separately.",
+    "decision": "REJECT_UNIT_NORMALIZED_SOURCE_KL_SEVENTH_OBJECTIVE",
+    "next_step": "Freeze the six-objective 12k control checkpoint and compare it directly with the immutable 8k MGDA parent on new common decks and the existing preservation panel. Use that untouched 8k-to-12k slope to decide whether unconstrained MGDA is undertrained or beginning to erode generality."
+  },
+  "tags": [
+    "continuation",
+    "matched",
+    "mgda",
+    "preservation",
+    "source-kl"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 24481,
+      "sha256": "ac1248c9fc5bf44519734c5c832c2ec800d5b24eb7e8e8cf5a87f41260b1f0ee"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_autograd_preupdate_failure_20260901T1415/training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 550898,
+      "sha256": "8f5fc7610a68d55947b854d8015e4eae55ffd81832a6ed23ab0a11f82de81155"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_schedule_serialization_posttrain_failure_20260901T1420/training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 550898,
+      "sha256": "ca8f5de553c6739a8db0431952fe6f4ec225f0960a1a56501673ca061458af5b"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_schedule_serialization_posttrain_failure_20260901T1420/control_residual_12288.pt": {
+      "type": "file",
+      "bytes": 1394674,
+      "sha256": "7831a7545bbae20ae30d387895158af8639cf5f4616b8486d7a1c20d1832cf51"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run_schedule_serialization_posttrain_failure_20260901T1420/treatment_residual_12288.pt": {
+      "type": "file",
+      "bytes": 1395082,
+      "sha256": "7867791fa9cde29eecc93bfea66aeb825b50a02698c761cc400d9da8725ef7fc"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 45890,
+      "sha256": "3cb5636de6fc6146f099684b554110dd179bceafc48d02bb55dec732fa64256c"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 550898,
+      "sha256": "3e3f6c97fca2872ba3d182d5eb134ef86085736cdb2b5014118678ab20a34e10"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/update_schedules.json": {
+      "type": "file",
+      "bytes": 1470701,
+      "sha256": "f54b7bc98c5a225b2a3836d7b6ed99b8689d52b5cd241d3239b6aee175719775"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 197937,
+      "sha256": "2dc1ea3f5f2de723974f3d66b31993b435fabb72abe89f2a0f74ae746105bedc"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/control_residual_12288.pt": {
+      "type": "file",
+      "bytes": 1394674,
+      "sha256": "7831a7545bbae20ae30d387895158af8639cf5f4616b8486d7a1c20d1832cf51"
+    },
+    "research/experiments/v6-mgda-source-objective-seed0-continuation-smoke-20260901/run/treatment_residual_12288.pt": {
+      "type": "file",
+      "bytes": 1395082,
+      "sha256": "7867791fa9cde29eecc93bfea66aeb825b50a02698c761cc400d9da8725ef7fc"
+    }
+  }
+}

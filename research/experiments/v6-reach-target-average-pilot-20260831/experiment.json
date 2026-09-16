@@ -1,0 +1,2157 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-reach-target-average-pilot-20260831",
+  "title": "Matched native own-reach target averaging pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T20:39:26+00:00",
+  "updated_at": "2026-08-31T21:16:34+00:00",
+  "started_at": "2026-08-31T21:03:44+00:00",
+  "ended_at": "2026-08-31T21:16:34+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "RaoBlackwellized whole-hand teacher-mixture targets may reduce the observed nativeaverage fidelitygap at fixed reservoirstates andoptimizerbudget.",
+  "material_change": "Samehistorical262144row reservoir/a73initializer/8epochs;replaceonlysofttargets withownreach mixture;new8192nativevalidationseed2026102401,noexternaltraining.",
+  "baseline": "",
+  "source": "research/experiments/v6-reach-target-average-pilot-20260831/preregistration.md",
+  "parent_id": "v6-realization-average-fidelity-20260831",
+  "command": "python -m pytest research/experiments/v6-reach-target-average-pilot-20260831/test_reach_targets.py -q --junitxml=research/experiments/v6-reach-target-average-pilot-20260831/preparation_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/v6-reach-target-average-pilot-20260831/test_reach_targets.py -q --junitxml=research/experiments/v6-reach-target-average-pilot-20260831/preparation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:39:26+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-reach-target-average-pilot-20260831/reach_targets.py research/experiments/v6-reach-target-average-pilot-20260831/test_reach_targets.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:40:34+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-08-31T18:20:00+00:00 --out-json research/experiments/v6-reach-target-average-pilot-20260831/preparation_record_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:41:05+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-reach-target-average-pilot-20260831/test_reach_targets.py research/experiments/v6-reach-target-average-pilot-20260831/test_pipeline.py research/experiments/v6-reach-target-average-pilot-20260831/test_review.py -q --junitxml=research/experiments/v6-reach-target-average-pilot-20260831/admission_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:03:44+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-reach-target-average-pilot-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:03:44+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_reach_targets.py C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_pipeline.py C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_review.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:03:57+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-reach-target-average-pilot-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:16:33+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-reach-target-average-pilot-20260831"
+    ],
+    "captured_at": "2026-08-31T20:39:27+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-reach-target-average-pilot-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-reach-target-average-pilot-20260831/source_manifest.json",
+    "source_manifest_sha256": "c71ad778b8abad25be1b044bc187e8348dd3168f5ed38f8ad947dd8bcdf625fd",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 262144,
+    "evaluation_hands": 8192,
+    "wall_time_seconds": 770.0,
+    "slumbot_hands": 0,
+    "replayed_training_hands": 262144,
+    "model_state_queries": 7352772,
+    "supervised_validation_hands": 8192,
+    "qualification_hands": 0,
+    "optimizer_rows_processed": 2097152
+  },
+  "metrics": {
+    "wall_time_seconds": 579.5310000000172,
+    "review_wall_time_seconds": 139.5
+  },
+  "artifacts": [
+    "research/experiments/v6-reach-target-average-pilot-20260831/preregistration.md",
+    "research/experiments/v6-reach-target-average-pilot-20260831/code.patch",
+    "research/experiments/v6-reach-target-average-pilot-20260831/source_manifest.json",
+    "research/experiments/v6-reach-target-average-pilot-20260831/preparation_tests.xml",
+    "research/experiments/v6-reach-target-average-pilot-20260831/reach_targets.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/test_reach_targets.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/preparation_record_audit.json",
+    "research/experiments/v6-reach-target-average-pilot-20260831/admission_tests.xml",
+    "research/experiments/v6-reach-target-average-pilot-20260831/implementation_tests.xml",
+    "research/experiments/v6-reach-target-average-pilot-20260831/run_pilot.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/review_finish.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/native_relabel.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/fit_average.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/fit_metrics.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/test_pipeline.py",
+    "research/experiments/v6-reach-target-average-pilot-20260831/test_review.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0000.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0001.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0002.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0003.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0004.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0005.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0006.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0007.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0008.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0009.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0010.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0011.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0012.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0013.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0014.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0015.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0016.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0017.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0018.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0019.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0020.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0021.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0022.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0023.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0024.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0025.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0026.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0027.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0028.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0029.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0030.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0031.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0032.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0033.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0034.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0035.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0036.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0037.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0038.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0039.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0040.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0041.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0042.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0043.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0044.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0045.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0046.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0047.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0048.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0049.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0050.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0051.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0052.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0053.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0054.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0055.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0056.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0057.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0058.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0059.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0060.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0061.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0062.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0063.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0064.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0065.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0066.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0067.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0068.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0069.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0070.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0071.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0072.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0073.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0074.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0075.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0076.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0077.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0078.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0079.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0080.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0081.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0082.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0083.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0084.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0085.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0086.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0087.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0088.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0089.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0090.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0091.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0092.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0093.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0094.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0095.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0096.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0097.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0098.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0099.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0100.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0101.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0102.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0103.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0104.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0105.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0106.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0107.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0108.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0109.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0110.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0111.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0112.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0113.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0114.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0115.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0116.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0117.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0118.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0119.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0120.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0121.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0122.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0123.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0124.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0125.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0126.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0127.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0128.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0129.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0130.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0131.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0132.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0133.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0134.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0135.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0136.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0137.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0138.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0139.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0140.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0141.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0142.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0143.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0144.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0145.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0146.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0147.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0148.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0149.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0150.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0151.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0152.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0153.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0154.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0155.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0156.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0157.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0158.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0159.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0160.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0161.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0162.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0163.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0164.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0165.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0166.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0167.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0168.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0169.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0170.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0171.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0172.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0173.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0174.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0175.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0176.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0177.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0178.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0179.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0180.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0181.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0182.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0183.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0184.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0185.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0186.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0187.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0188.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0189.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0190.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0191.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0192.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0193.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0194.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0195.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0196.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0197.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0198.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0199.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0200.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0201.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0202.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0203.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0204.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0205.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0206.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0207.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0208.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0209.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0210.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0211.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0212.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0213.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0214.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0215.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0216.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0217.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0218.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0219.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0220.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0221.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0222.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0223.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0224.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0225.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0226.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0227.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0228.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0229.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0230.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0231.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0232.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0233.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0234.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0235.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0236.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0237.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0238.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0239.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0240.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0241.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0242.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0243.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0244.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0245.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0246.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0247.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0248.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0249.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0250.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0251.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0252.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0253.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0254.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0255.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\reach_targets.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\relabel_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\retained_ids.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0000.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0001.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0002.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0003.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0004.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0005.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0006.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0007.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\relabel_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\validation_arrays.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\validation_metadata.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\validation_targets.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\checkpoints\\epoch01.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\checkpoints\\epoch04.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\checkpoints\\epoch08.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\admission_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\control_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\control_validation_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\final_qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_average.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_metrics.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_progress.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fresh_deck_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\implementation_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\initial_qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\native_relabel.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\preparation_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\preparation_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\reach_targets.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\run_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_pipeline.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_reach_targets.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_review.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_collection_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch00_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch00_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch00_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch01_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch01_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch01_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch04_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch04_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch04_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch08_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch08_hero_tv.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch08_probabilities.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_hero_counts.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Selected afterindependentLARGE_AVERAGING_FIDELITY_GAP evidence. Puretarget/scatter preparation only;no modelquery/newhands/trainingyet. ExistingC60control remainsuntouched;mainpipeline/reviewimplementationrequired. This is not100kqualification or proofbetterfidelitymeansbetterwinrate.",
+    "11puretarget/scatter testsPASS andpy_compilePASS. Bothseat ownhistory independent, currentaction excluded, eachhandreset, exactreservoirroworder preserved andduplicateassignmentrejected. Qualifiedposteriorhelper pinnedSHA2a4088. Clarified768teacher/control qualificationqueries and192newtreatment qualificationqueries;0newuniquehands forreplays. No modelqueries/relabeling/newvalidation/fit orproductionlauncher yet; implementfixedpipeline next.",
+    "Latest7records audit0warnings. Processinspection2026-08-31T16:40:35-04:00 finds0active pokertraining/eval/reviewprocesses. CurrentpilotPLANNED withtestedcore only; nextworkisimplementnative-onlyrelabel/freshvalidation/fixed8epoch/reviewpipeline. Do notrestartcompletedphase2runs or100kqualification.",
+    "Full pipeline/reviewer admission32testsPASS; fixed native-only protocol unchanged. Independent products/reference and complete streamed fixture reviews PASS. No production model queries or new hands before launch. Same historical C60 control untouched;0newtraininghands,8192newnativevalidationtarget. Execution source snapshots captured before queries by launcher; no simultaneous poker workload."
+  ],
+  "result": {
+    "summary": "Matched native own-reach target fit completed2048steps/8192validationhands: REACH_TARGET_FIDELITY_GATE_NOT_PASSED.",
+    "conclusion": "Matched historical-control native fidelity experiment, not a strength result. Full-own-history reference exceeds truncated student history; GPU control was nonconcurrent. No Slumbot data used in learning.",
+    "decision": "REACH_TARGET_FIDELITY_GATE_NOT_PASSED",
+    "next_step": "Analyze representation/capacity and target fitting before increasing response budget."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 7,
+    "command_count": 7
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-reach-target-average-pilot-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 6140,
+      "sha256": "882fdbe4be2012ee83d0786590599137e7b1ce11b9803e976da453e874bf1eca"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 952,
+      "sha256": "c71ad778b8abad25be1b044bc187e8348dd3168f5ed38f8ad947dd8bcdf625fd"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/preparation_tests.xml": {
+      "type": "file",
+      "bytes": 2047,
+      "sha256": "c3f4faac6b932354de4daa0ce02f2f6569f72e2d6875c674cdf28d8f1382a8e4"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/reach_targets.py": {
+      "type": "file",
+      "bytes": 2512,
+      "sha256": "55f586eb644942ad3322dc49387e3abe385e8b63975a133eeba7ead5f051ab69"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/test_reach_targets.py": {
+      "type": "file",
+      "bytes": 2159,
+      "sha256": "70ab9035d63f82dbcf6278829302cb51d2e1f4576e8b2b0c0a39e996ce0132ea"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/preparation_record_audit.json": {
+      "type": "file",
+      "bytes": 807,
+      "sha256": "4a6a72c50e93dfe278aa97ce2e3bcf175c64e8d18c81e668c7ab6ce5cd3b72bc"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/admission_tests.xml": {
+      "type": "file",
+      "bytes": 5594,
+      "sha256": "d7b13c02d29d2082618b3f0f696122d6e20bd9e818c786cf18c6bfdddfa0eba0"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/implementation_tests.xml": {
+      "type": "file",
+      "bytes": 4719,
+      "sha256": "e962f3d000e607c8cf3db591707cf9e2f521b757b1c860dfa465c0532080e7db"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/run_pilot.py": {
+      "type": "file",
+      "bytes": 17732,
+      "sha256": "16bf73c312ab31a98b3b897b4ae39fb6da6821fe33b94f4cbfba03372f8033ec"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 17625,
+      "sha256": "79461066d1bea533c38477cc10d0c5c7c02121d79ca48a8bdc542113453596a1"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/native_relabel.py": {
+      "type": "file",
+      "bytes": 7424,
+      "sha256": "f3e419368ac7ca32a21007bf5079176fad6bd18e47b66c91775a39a036ef5c49"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/fit_average.py": {
+      "type": "file",
+      "bytes": 6283,
+      "sha256": "aab6ed9f8bf75108d3ef3afbbb40af51f0bb4c4b84a66f124cda94f6266bf3a5"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/fit_metrics.py": {
+      "type": "file",
+      "bytes": 2743,
+      "sha256": "4e0cf45ca1e31cb00adfa84562320482026d3a69d60507a9c23d74dca6082246"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/test_pipeline.py": {
+      "type": "file",
+      "bytes": 6418,
+      "sha256": "df34c624c7ae229744b78af9835909d12d76462e3ffe209f35511906f3e4672c"
+    },
+    "research/experiments/v6-reach-target-average-pilot-20260831/test_review.py": {
+      "type": "file",
+      "bytes": 2849,
+      "sha256": "9ea50cb082fbdc4dd02a6756a09974da36da717dd38dc5de5d167937ac3786b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 2382,
+      "sha256": "83c0dd3dabb035dd6e92a0aa84c6c852356d634a61e41905d942f57f3d098240"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 3925,
+      "sha256": "4f5486c5f0b537c994568635884c41d9d2d92541b7c32b4f658c2b22f2a63979"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0000.npz": {
+      "type": "file",
+      "bytes": 2530343,
+      "sha256": "80dcb9bdd9f51662b91dc32002794cd19084509a4da2cd39debb8e5984bf7300"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0001.npz": {
+      "type": "file",
+      "bytes": 2502034,
+      "sha256": "49a218b090987811030e2889857efb621b6e8f95f9a6598b8b3068026481dec1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0002.npz": {
+      "type": "file",
+      "bytes": 2449317,
+      "sha256": "27860a8b35ad1398736876077c6283a7c6efc4bd1b24cc2a22a6d6a2543d2ed5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0003.npz": {
+      "type": "file",
+      "bytes": 2438186,
+      "sha256": "240edafc34cbca5d3b0e44d34344b6873ef85116ae82595e8645e4e44fbe5242"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0004.npz": {
+      "type": "file",
+      "bytes": 2460483,
+      "sha256": "64b39372bf1a156d9920819fe852eecd0c161861bacbb5f04301fd2dc2c49b74"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0005.npz": {
+      "type": "file",
+      "bytes": 2480337,
+      "sha256": "6d089f291f5bb6c964b45ffe5f050d0195ca5ec3a9a5cfb2eec604e5ee046ed4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0006.npz": {
+      "type": "file",
+      "bytes": 2497000,
+      "sha256": "ec7d416202d6e427b1d58fb77d9319d47342afdbc7167d81f463f9a46a996645"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0007.npz": {
+      "type": "file",
+      "bytes": 2486867,
+      "sha256": "0be2b9ef81e89bd031524fd12915d6c09e30c3412700b5a2823a65c0c950bd0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0008.npz": {
+      "type": "file",
+      "bytes": 2515316,
+      "sha256": "8d8ca5817a432c956c0cd06839a4dc28f17c393a52b6b09433f11e52e8007327"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0009.npz": {
+      "type": "file",
+      "bytes": 2524972,
+      "sha256": "f0390cfd229d060d10ed5531df79e9160ccace1597a51eaeafab07ae14ed46a2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0010.npz": {
+      "type": "file",
+      "bytes": 2459945,
+      "sha256": "383989c38d64e299533fb66f2f48481018b7bc2b158e30a3719a71b0bead42e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0011.npz": {
+      "type": "file",
+      "bytes": 2477498,
+      "sha256": "b1b7488466e8d37b84bfd507bc76f55dd3c14b4c30db1edfecbe209edc841859"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0012.npz": {
+      "type": "file",
+      "bytes": 2510883,
+      "sha256": "57d626b2a9454d98424888c17e2532227225d39f444d78e478873cd3b51e1c43"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0013.npz": {
+      "type": "file",
+      "bytes": 2544517,
+      "sha256": "47f51bfacc9cc9b5afe9e0e0c67d68192235aed91c3119934532bcb52431f460"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0014.npz": {
+      "type": "file",
+      "bytes": 2505295,
+      "sha256": "d5140feb72b4adb5a6012013f98356026a231e536f6fe94dc8de64dc6f253a9d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0015.npz": {
+      "type": "file",
+      "bytes": 2451584,
+      "sha256": "16bab069873b72e3ba1f1cff03c6a4b6bf1e26a0e04b18d100258478e276b73e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0016.npz": {
+      "type": "file",
+      "bytes": 2490897,
+      "sha256": "1d437250ffa8cbf2a7b1d253e37f46907b07e35e92a4e9503dac89887c2ccc77"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0017.npz": {
+      "type": "file",
+      "bytes": 2517830,
+      "sha256": "2a2c916214719378345f077edd5d0b91c23dab9f15c8bf72afd373580b1c41c3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0018.npz": {
+      "type": "file",
+      "bytes": 2433290,
+      "sha256": "b8f8e0d1be588880ab4b5de84bcf15315e0a738f168b52dadb530793347dd1d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0019.npz": {
+      "type": "file",
+      "bytes": 2467953,
+      "sha256": "5c167103914fc88145b357794ce289e2fb6ea67d8759aefd006047aa43a859e4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0020.npz": {
+      "type": "file",
+      "bytes": 2437737,
+      "sha256": "0f54f40bc4c73bb9ca2f3aa2611016188ae39410883b29cef8dd55bd0ed69865"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0021.npz": {
+      "type": "file",
+      "bytes": 2473328,
+      "sha256": "81a8530f5ad3d20370b940b8ee22a2376c4c2888368f3b19bfa5f2a2bd4d82c7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0022.npz": {
+      "type": "file",
+      "bytes": 2485704,
+      "sha256": "5156b11895940b3072f0495872ecb26440eb60fe354a4f42ef891dc8c4cb2a5a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0023.npz": {
+      "type": "file",
+      "bytes": 2497712,
+      "sha256": "73e3febc782f33064fbc7f3c2a04b234087fd61c0569ccd66bd910b926dd17ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0024.npz": {
+      "type": "file",
+      "bytes": 2500511,
+      "sha256": "edfb264ff4f8cd2b8c40779784f7667cecf496fd5b7bdfb3f31a7d13095f4bc3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0025.npz": {
+      "type": "file",
+      "bytes": 2497921,
+      "sha256": "ea12e15a10234fc4ecc5843f4fd08d52cae8c2140f2406212bc19baf6d89aab4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0026.npz": {
+      "type": "file",
+      "bytes": 2480874,
+      "sha256": "93562454d2d23acd02b722c292b73a0ffaad22af8e44145c8f6354a8b51ae0b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0027.npz": {
+      "type": "file",
+      "bytes": 2531506,
+      "sha256": "4d78c4c2489f0d70e85b651bdc2e67148e5910654a73c7d02b712903b8b278d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0028.npz": {
+      "type": "file",
+      "bytes": 2486338,
+      "sha256": "c7d3fb1ae62fc3238b5270802e711f0d3abcdd33c8fb51a68396526e6dba5b6b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0029.npz": {
+      "type": "file",
+      "bytes": 2436973,
+      "sha256": "0c92a5e5787fbd20b52d304c2b4105d62d7965728b6222fd52ef31f2df652290"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0030.npz": {
+      "type": "file",
+      "bytes": 2498901,
+      "sha256": "d7d4bc556611a72e0d17450088a7dde1cbf110263341cb7f98f78fbeff48b6f7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0031.npz": {
+      "type": "file",
+      "bytes": 2521153,
+      "sha256": "6d11ed69bdc857c19c0400da7b5561c3a9a10d2f77ec821e77c7260c44c8646e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0032.npz": {
+      "type": "file",
+      "bytes": 2486632,
+      "sha256": "b99d71590d23772d179c0f5587bda1fd093fa633abb10f9aa2ed92cdd3f68e5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0033.npz": {
+      "type": "file",
+      "bytes": 2537628,
+      "sha256": "56a4fa941455b52fe49ced1964c748172f94bee5c51ba3f712247940035b05f5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0034.npz": {
+      "type": "file",
+      "bytes": 2461736,
+      "sha256": "bd6601fe7f7d528ef094f3f0b01a6d11c6fce622d535304f216e7b52046f7e98"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0035.npz": {
+      "type": "file",
+      "bytes": 2486754,
+      "sha256": "2ea260e4ac5aba68dd385e76390e8e839381900a38106f87f6c92793ac316ffe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0036.npz": {
+      "type": "file",
+      "bytes": 2472056,
+      "sha256": "d831b07be1c9785608460aba273068bc2243b6a1c13e486fe12d36dc0ed7e891"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0037.npz": {
+      "type": "file",
+      "bytes": 2471840,
+      "sha256": "9b32efa4c853ab6674630b871e41f26d674cfafad67712aba0aa1e4c79a7aaa1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0038.npz": {
+      "type": "file",
+      "bytes": 2525914,
+      "sha256": "553663cbc2f738eca346abe525d9f990a23378b64b87dee7e4bac15e333ab355"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0039.npz": {
+      "type": "file",
+      "bytes": 2468227,
+      "sha256": "07645ab814e1641797bcb9fac8e91fcaa6e06f36256b810a35dccdf42932d01c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0040.npz": {
+      "type": "file",
+      "bytes": 2558115,
+      "sha256": "5100be9cdbd2dfc3940f7a8bfef333458264010a47f55f27e19811069e5e0816"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0041.npz": {
+      "type": "file",
+      "bytes": 2519171,
+      "sha256": "ed6f9b222a508878bce2c2e8f47e277e573d5dd4a175d588e8459f2140e7f8bf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0042.npz": {
+      "type": "file",
+      "bytes": 2467023,
+      "sha256": "9eea18a5da2e65bcf0e614eeac52a472f742ae83e5683152854217af4501a372"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0043.npz": {
+      "type": "file",
+      "bytes": 2529565,
+      "sha256": "b1cfaad198fecf87217ce7e4398dae5fdbbb5e66412c5b9fcf2f82d08a898e29"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0044.npz": {
+      "type": "file",
+      "bytes": 2491744,
+      "sha256": "3423098d5ba9214f76ec686f48b45e7096495d86ce9e768de1bd13bddb5bd234"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0045.npz": {
+      "type": "file",
+      "bytes": 2498759,
+      "sha256": "75c822794a51182a862fe6f2bf55d44bf06bdc948b55291f22a43d497d728db8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0046.npz": {
+      "type": "file",
+      "bytes": 2433837,
+      "sha256": "c9a5ed229f3507b469a032d54e771463e3e9e5a0700c433615c17b29ebe97287"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0047.npz": {
+      "type": "file",
+      "bytes": 2440099,
+      "sha256": "21d7ce570ae6f62977d30bb461365d68e5d46347506fe745fc4f47a809b4836d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0048.npz": {
+      "type": "file",
+      "bytes": 2439763,
+      "sha256": "f1345a69061a5cdd1597c9d7d3124dcc816bea24a61a3d93eb87860262506baf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0049.npz": {
+      "type": "file",
+      "bytes": 2485283,
+      "sha256": "8884ccb91cd5f4d78ba144f36e1593d8a1d890502dd974608426d8c8fd13c2e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0050.npz": {
+      "type": "file",
+      "bytes": 2523161,
+      "sha256": "c039e9b7779ee4bea82ba0003f3c6bba63f9386cf50f39ceab6564555a1824a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0051.npz": {
+      "type": "file",
+      "bytes": 2478358,
+      "sha256": "8bfde37f4089eea584934f4b047fe58362e25ae72b29d57297d885ecbe822448"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0052.npz": {
+      "type": "file",
+      "bytes": 2487748,
+      "sha256": "82fcebd335beb76e23b2949ff2cfd61a106bf950ac002184fc58e5625e8b9d17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0053.npz": {
+      "type": "file",
+      "bytes": 2462807,
+      "sha256": "c85d19eb1a1c955b687b988ab65badf90af8d8c6aacf534875716ecc79f1270c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0054.npz": {
+      "type": "file",
+      "bytes": 2456063,
+      "sha256": "8d924908851c112078885889100f4754bf00b316cb77823e5fb695e561b5506b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0055.npz": {
+      "type": "file",
+      "bytes": 2524277,
+      "sha256": "5e3347063207c56ea1467cfb49345fe8c1ffcc1d794ee1ab840870f52f1cc2dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0056.npz": {
+      "type": "file",
+      "bytes": 2485816,
+      "sha256": "1a7bae0747e27c68fd112fd2874271ee5c9fdf8055f5bd080f4708e70ab3884c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0057.npz": {
+      "type": "file",
+      "bytes": 2468642,
+      "sha256": "b122e24a7a9f1fdafdd6429d7acdd07b99d2b15e610186db9342b56ff5d8d8cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0058.npz": {
+      "type": "file",
+      "bytes": 2495472,
+      "sha256": "c24c7a7b154fe479c0ffa9fad4c52bae57e2ef861e810a469a5bd99502058ade"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0059.npz": {
+      "type": "file",
+      "bytes": 2475139,
+      "sha256": "09f60ba1aa50abf88a605bd49ccf303d3d0c3ad2275af0580cda39145ea84064"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0060.npz": {
+      "type": "file",
+      "bytes": 2507848,
+      "sha256": "815257634f04822c1b23873fd1471da687400de4af1867271546d6abf2e230fe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0061.npz": {
+      "type": "file",
+      "bytes": 2461682,
+      "sha256": "914be65382f78c41ab243fa5427323efe7c109438531a844cc55851add1c7bba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0062.npz": {
+      "type": "file",
+      "bytes": 2521391,
+      "sha256": "4c0fbc929727a3230c3839fc3918427247dbaf0ae9a53f7aa02655792ca56cfb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0063.npz": {
+      "type": "file",
+      "bytes": 2473661,
+      "sha256": "edc359a7a98f817d1e158c89acb2fc9dcaf581021a453a35ccec07f8235402d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0064.npz": {
+      "type": "file",
+      "bytes": 2443617,
+      "sha256": "b917b136b28665cf988deea78431538b00827a975eb1d82992fd38f06ffa70e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0065.npz": {
+      "type": "file",
+      "bytes": 2498139,
+      "sha256": "1c19108502b2adc9d7d1736716016a04e7391c41959498c7e87f0034f94f32cb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0066.npz": {
+      "type": "file",
+      "bytes": 2505094,
+      "sha256": "7f86c001625366244bca8b9cffefc7206c3ad79cfdca3c0ffa780a1ba98cc4d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0067.npz": {
+      "type": "file",
+      "bytes": 2453279,
+      "sha256": "aaf6dcbab82d555142658271494b5107c6c6d6e71c703fbe51d8f1460020d88a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0068.npz": {
+      "type": "file",
+      "bytes": 2531739,
+      "sha256": "e1991d05e5b77a0eff4d1c40dc5d3a4acdb76bcf8c4c2bb6edde12418be6c7f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0069.npz": {
+      "type": "file",
+      "bytes": 2513990,
+      "sha256": "88fb9e3e0f909398c7443f3bbabd5f809ae9359eeedf043b380091bffc7da967"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0070.npz": {
+      "type": "file",
+      "bytes": 2460527,
+      "sha256": "0d00dc6831f5760df0b3b93c4d25007843e8a23eaa737ebf2edef73cfb0afaac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0071.npz": {
+      "type": "file",
+      "bytes": 2484918,
+      "sha256": "64d6e4f4b5c48daa2911801d29af87c02eb9d69581856c657786254fe6d45951"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0072.npz": {
+      "type": "file",
+      "bytes": 2499378,
+      "sha256": "9bf7e5c2044d80efd64dc2baa6a1a352e83a3a2ab6e00a554301961eb7a31026"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0073.npz": {
+      "type": "file",
+      "bytes": 2520606,
+      "sha256": "81cf6e7fc57126f07ed90da1d54a12d7be26b12c936a386a1dec96eac25ec471"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0074.npz": {
+      "type": "file",
+      "bytes": 2502167,
+      "sha256": "8167065968ca677371e4f359e9d212ea68335de1aeee31a8f4fb80ed2e8c1ad6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0075.npz": {
+      "type": "file",
+      "bytes": 2503158,
+      "sha256": "53fe4d2658d3ad9c4ffe54228c02932d516f5bceb9e322acaa707559726b2c4e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0076.npz": {
+      "type": "file",
+      "bytes": 2518429,
+      "sha256": "9cc3de132157370bd7810aac9dcb7d7d90e3046ead4ee6a25155953dbc0e6130"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0077.npz": {
+      "type": "file",
+      "bytes": 2503404,
+      "sha256": "97597be4c9c1c082e44ec1f295f4821803adff985a2501907452b90cb18463bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0078.npz": {
+      "type": "file",
+      "bytes": 2449128,
+      "sha256": "0d4c29517c2d9481cc24586d948c8cedd0fc0f800b3a4bf1974b63c70cd8b99b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0079.npz": {
+      "type": "file",
+      "bytes": 2567323,
+      "sha256": "1d4c2d12527b53726b7753e51d2d56d66a18480458b1243ba6688c35e238a156"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0080.npz": {
+      "type": "file",
+      "bytes": 2517418,
+      "sha256": "ec81c04454cdbd55e812747f6be48622a64060707ac58d5c45e7a89fb2e01f61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0081.npz": {
+      "type": "file",
+      "bytes": 2503540,
+      "sha256": "c7fdb33da2996b0232186cf59968c0328717d6ff259058099f8c3668138101dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0082.npz": {
+      "type": "file",
+      "bytes": 2489641,
+      "sha256": "f9a288ddc16317eec60634560bb15cfc2292cae1a8f73cf05040c823833b4c73"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0083.npz": {
+      "type": "file",
+      "bytes": 2440279,
+      "sha256": "5d1c04c079b8058eb45a9b460b16307e32039116cde45afdb84bb5a4e25463a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0084.npz": {
+      "type": "file",
+      "bytes": 2466351,
+      "sha256": "c35c586baa992f43c58205004aaf40d73cfe52d7043081477a98be6d2d4c7c9a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0085.npz": {
+      "type": "file",
+      "bytes": 2485714,
+      "sha256": "d422f4414a663b95813f6c91ef8a29d9c4543a3724bbdb0f8c07336166be5000"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0086.npz": {
+      "type": "file",
+      "bytes": 2519161,
+      "sha256": "854dfd8fb582afa4f55d9c52f736d05f7b06477dfad277ffe6b847d024b6d469"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0087.npz": {
+      "type": "file",
+      "bytes": 2510536,
+      "sha256": "49fd59e3aba308547eb5f7e1171209a5d51bf8cd82d8c1365f4506d10243075b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0088.npz": {
+      "type": "file",
+      "bytes": 2544046,
+      "sha256": "f68e2c99c6e7cb587e02af9c6b5134336fee588e3e036cc2d2b80c5bcbe153bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0089.npz": {
+      "type": "file",
+      "bytes": 2478234,
+      "sha256": "55be952bcad485a56cb1b611c2b8dfc49f452b25ed595bb55215be7380602495"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0090.npz": {
+      "type": "file",
+      "bytes": 2496559,
+      "sha256": "64894ff7d4654f72fbec2859818680ed4385cf2d50adaec1889026d4586c94be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0091.npz": {
+      "type": "file",
+      "bytes": 2460420,
+      "sha256": "6978f27b433bb76f8fd6e58e660c804feee65ba043edb977215094b559b54bc5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0092.npz": {
+      "type": "file",
+      "bytes": 2476104,
+      "sha256": "19ec247e595c4fb90e0ad82864d89f56ac964be334263f5e0660bf906b9dcef7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0093.npz": {
+      "type": "file",
+      "bytes": 2518068,
+      "sha256": "6adc00d14dad75273c0701d57cccd783fa250265fe863339f43a4c8563e3ffc8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0094.npz": {
+      "type": "file",
+      "bytes": 2488656,
+      "sha256": "979ac3753d4ea911ae359c8aac8cb51d9bd09caca424678d18bba620e7f106e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0095.npz": {
+      "type": "file",
+      "bytes": 2559932,
+      "sha256": "dcf31fde9d1231bf827d018eff73aff19669b78a10ed6dee22f62b6b8f9e4c93"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0096.npz": {
+      "type": "file",
+      "bytes": 2479206,
+      "sha256": "998a8e11ac7dd14dea2056e78d24215a6fde38a4bc168efab0d9e8e1342f05bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0097.npz": {
+      "type": "file",
+      "bytes": 2502409,
+      "sha256": "0b6c935a912c33c9af231b9e90d5bed0218f283a0ec0ad74c61bbb244191d0af"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0098.npz": {
+      "type": "file",
+      "bytes": 2475572,
+      "sha256": "9bd9147ab9d419901a989202b2c2c22b9d92dabbe27a3d145d36608ee6935858"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0099.npz": {
+      "type": "file",
+      "bytes": 2529096,
+      "sha256": "a0ad8ed08cd0e21da548c0ca91036746f422b22c07710c18fc06d0b8f4aa8630"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0100.npz": {
+      "type": "file",
+      "bytes": 2493723,
+      "sha256": "213b4f54188323f433ae2b4dffb1f97eee4a5c930634abde33d45f784f99db88"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0101.npz": {
+      "type": "file",
+      "bytes": 2488488,
+      "sha256": "85ea263fd6fa4497fb9518cc774370ee3594fd965c6fd1fcce2d94c5d3a2ee25"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0102.npz": {
+      "type": "file",
+      "bytes": 2503570,
+      "sha256": "045e6580c2ebd6d0c059e1bee48a3bcb1790e44e7f20560c188cd3d585faf412"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0103.npz": {
+      "type": "file",
+      "bytes": 2442637,
+      "sha256": "70aa859ef0a90b39b74f68681f066620084161663d5ad43fe1483c4ca9c43516"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0104.npz": {
+      "type": "file",
+      "bytes": 2508602,
+      "sha256": "90691db799f0df79d72f3543410c343af59a15041c42b384831c26a63c7dc1bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0105.npz": {
+      "type": "file",
+      "bytes": 2450719,
+      "sha256": "750d51aaeca121427ef478a6d4e3ccdb83ddf6ec763b1256d1ac7f00254d3e27"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0106.npz": {
+      "type": "file",
+      "bytes": 2469298,
+      "sha256": "3fa1a282fc645858a5f52fa0d609b533a5b0761f119b79fdeaa9c8d29618a059"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0107.npz": {
+      "type": "file",
+      "bytes": 2446341,
+      "sha256": "889a9040f3b60588fdf2e51c73275e3adeecbbdde23f98a9139649e26f3fad6f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0108.npz": {
+      "type": "file",
+      "bytes": 2496700,
+      "sha256": "76f5ecb8d3df01fe27a41beebc42540a2ae9d7596472beb99590c934d02053aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0109.npz": {
+      "type": "file",
+      "bytes": 2506682,
+      "sha256": "77c7ed849deda47d2edbdf9480eff7bd4d7afc3942d0bd2b242ef3f0b86ca31f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0110.npz": {
+      "type": "file",
+      "bytes": 2498095,
+      "sha256": "09c22b9e77fbf96e6cc1a4b7141d12fdd875d502e296713e0a4ac66ab5ffb591"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0111.npz": {
+      "type": "file",
+      "bytes": 2531150,
+      "sha256": "e4adeb3f38225922a11ba18f7999a6573f29d191e399e6a279ed880b822c3cd2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0112.npz": {
+      "type": "file",
+      "bytes": 2431045,
+      "sha256": "518a19226fab738e5d89de3c7ef8808625c03d391191eb86ab986c777cc98a97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0113.npz": {
+      "type": "file",
+      "bytes": 2500809,
+      "sha256": "d7545e91a18d451600286db73fa82ca99950d7aa7eaf634c1e2ca4fc401743a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0114.npz": {
+      "type": "file",
+      "bytes": 2452431,
+      "sha256": "afe881ba1b47155135fb59ca50d11b5c73b567a26933ac7e09fd530a5245f637"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0115.npz": {
+      "type": "file",
+      "bytes": 2507785,
+      "sha256": "7933be9ccc852f92d13be7cefea32b9bbc370264f6489f72669d68807c63514d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0116.npz": {
+      "type": "file",
+      "bytes": 2493278,
+      "sha256": "4cc5302c09b4b3ebb3869169e89112d853945353c5451ebabcbf18b79d2cf89b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0117.npz": {
+      "type": "file",
+      "bytes": 2515837,
+      "sha256": "92d8d0d6a59810ef4610424a4c74c21d65e68b9cfde338a42ea99c97e5de0775"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0118.npz": {
+      "type": "file",
+      "bytes": 2505573,
+      "sha256": "bc2238f027555c9cf7182f9c1b1964562c785cc4ba16277872a550617f0ad38c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0119.npz": {
+      "type": "file",
+      "bytes": 2454530,
+      "sha256": "3feb5deb1f2f8af6f4f6ce852a3864d0cbbb2294015e00aa4818c81db88c9158"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0120.npz": {
+      "type": "file",
+      "bytes": 2416090,
+      "sha256": "0ad03c967f0cee515c01d73a400e39f6c81b0a21bcf8b2e614f1091f0195fcf6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0121.npz": {
+      "type": "file",
+      "bytes": 2481285,
+      "sha256": "444acc8925e89f92d7db7731274a12a6d6c703ec67ced7bbea6b954b4226b662"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0122.npz": {
+      "type": "file",
+      "bytes": 2436939,
+      "sha256": "7b58252a11b9926f8c2579493da663c2efbd256fac2717f190b59eadfed92f66"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0123.npz": {
+      "type": "file",
+      "bytes": 2436699,
+      "sha256": "15da76d84596c91cb18eb3e2087874e491b57ee50960320002d2e0847708114a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0124.npz": {
+      "type": "file",
+      "bytes": 2444073,
+      "sha256": "37c85dcc53b5373fa9140e7663b26e162a16197439dbdacc4d0ec1e753132397"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0125.npz": {
+      "type": "file",
+      "bytes": 2532660,
+      "sha256": "7c3e4fb19527d55915157d48572af1585a0cc131fc309b457ae4ddbc91c4508f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0126.npz": {
+      "type": "file",
+      "bytes": 2491815,
+      "sha256": "072b4840c939e50dadcf2da4900d5a47f8461cc1170fb98607fef7b1013f288a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0127.npz": {
+      "type": "file",
+      "bytes": 2470005,
+      "sha256": "697e121d06192b7283fcad0fe1b78497a1368435a8b3d82bccf66ecc3601d2a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0128.npz": {
+      "type": "file",
+      "bytes": 2458213,
+      "sha256": "3b71afabfe2a423b654bceba488ec901a4771b0ca7c4396088cdfeb5fa7b3987"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0129.npz": {
+      "type": "file",
+      "bytes": 2480285,
+      "sha256": "52b347ba1896a38a8dd6a0c73fcb7b2e65a8630952c794f3a55cac2203689bf2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0130.npz": {
+      "type": "file",
+      "bytes": 2489945,
+      "sha256": "e0d1febbdea214008689c8f53d2fd2da09cb7940052617c0c2deafebbd52132a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0131.npz": {
+      "type": "file",
+      "bytes": 2533913,
+      "sha256": "43e72d35f228e9552a53a2e2e08b254f71f8b558e6dd4af74410d809cc1affa3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0132.npz": {
+      "type": "file",
+      "bytes": 2484873,
+      "sha256": "791a08cf39206d6119a933830c4b8fcb6b1085a6c621733b28dde8fed7c7da9c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0133.npz": {
+      "type": "file",
+      "bytes": 2447740,
+      "sha256": "95b70a7ca82654e0463da94dcbc08a0436b86b0685fd3a3f1f6ab7b197add919"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0134.npz": {
+      "type": "file",
+      "bytes": 2501439,
+      "sha256": "ad4180f2dc37f83c6df16e326e13bb5f3f6383e1285bc5f5ab5c217038464ab7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0135.npz": {
+      "type": "file",
+      "bytes": 2518045,
+      "sha256": "4e41418d2e687c86cb600992b28c4ec45e358868234d3a6ddd7d12e02365e382"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0136.npz": {
+      "type": "file",
+      "bytes": 2406711,
+      "sha256": "5635e3e6ecf6aaeb5bacbcda8d8d4409db2c1109b2c835588282abd64ff36eee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0137.npz": {
+      "type": "file",
+      "bytes": 2480598,
+      "sha256": "9eb533b03edaba09811258e6711a1efadaa107b9b060d13d881904b6d41e6525"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0138.npz": {
+      "type": "file",
+      "bytes": 2530307,
+      "sha256": "d9bd1b1b008684a6d6a6c840a80aac2ce699e74b961db85c62021fa007e59af2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0139.npz": {
+      "type": "file",
+      "bytes": 2500809,
+      "sha256": "a046cff7bb8d9f52b416da090bcbf7dd703ba533f5921c1caf8fda345f02bbe6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0140.npz": {
+      "type": "file",
+      "bytes": 2536879,
+      "sha256": "76a543015076984a3b3d2f16eec57ad548da536fae41275ffdc72d5465039d46"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0141.npz": {
+      "type": "file",
+      "bytes": 2503689,
+      "sha256": "2338daac69547bec948e71477b19892cea75c1d486e32a5cb11d57d48b26d41a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0142.npz": {
+      "type": "file",
+      "bytes": 2486755,
+      "sha256": "ae8bf0016a1747e902519c99e31564147beb3e620213a910211e44823a22da18"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0143.npz": {
+      "type": "file",
+      "bytes": 2514600,
+      "sha256": "a0c88e2764c9b058e7cb7bb65e6b6f1af97d7d57d2dff91b0e663a5c1fe1ddf8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0144.npz": {
+      "type": "file",
+      "bytes": 2505120,
+      "sha256": "095eb5096a996393354fab4bdf6ff352434e02d565df6373a0bb8b4776be2368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0145.npz": {
+      "type": "file",
+      "bytes": 2506860,
+      "sha256": "7ed4a148263c73bfeaf3fdbf1ebe5275a98b5da6760cdaacbed94e6d1927ebcf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0146.npz": {
+      "type": "file",
+      "bytes": 2476461,
+      "sha256": "8984d18ad5b3a9ac5e366b1a498bb2e10f2369b7cc0e1fa524f889f6fc2e2195"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0147.npz": {
+      "type": "file",
+      "bytes": 2489323,
+      "sha256": "da0eb9058854342a5ec7d90eaf35d9dfbdf0a11ac26d958b1f6a7c40ab8b2f17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0148.npz": {
+      "type": "file",
+      "bytes": 2447681,
+      "sha256": "797dfff31c4b9fd1eb80251364d726556954994b25df5a2f4387603f5c37095e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0149.npz": {
+      "type": "file",
+      "bytes": 2454142,
+      "sha256": "260400ab857aca511799d9e0622db6fb3090f7fccb44087afb7606e923b32d88"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0150.npz": {
+      "type": "file",
+      "bytes": 2498391,
+      "sha256": "e9442fadaab8e1b2c6d6092481f7de2299f2f92e9b068d44325a9008200edfdd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0151.npz": {
+      "type": "file",
+      "bytes": 2485030,
+      "sha256": "a09612b4f9d78721122046eb8387b9df6a114fa68cd3506a76a11c154ead773d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0152.npz": {
+      "type": "file",
+      "bytes": 2472097,
+      "sha256": "fad0ceb6c3ff303d1c879692abd48da9ea34fc70923c6475b3da4c3d7a25e1d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0153.npz": {
+      "type": "file",
+      "bytes": 2454759,
+      "sha256": "d52a5f74c070f9e1f4240381d44dda68d41acd6f03785262a9e726a50088d2fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0154.npz": {
+      "type": "file",
+      "bytes": 2482388,
+      "sha256": "c6440b2999877ddb58614a0fe89e505101dc0be36bf0c4db2769c209ab551297"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0155.npz": {
+      "type": "file",
+      "bytes": 2535002,
+      "sha256": "9964eea1ff5aab3eae3197f1a5bbd02400e74bb1288c20ab8a804019ec1c5bcd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0156.npz": {
+      "type": "file",
+      "bytes": 2462026,
+      "sha256": "0ddfd07297ce7529135d57bf37a04e4eca2f766a0c3bfa70010e8de605648560"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0157.npz": {
+      "type": "file",
+      "bytes": 2501486,
+      "sha256": "93c0087524333b1db6ef92bd0182aebe11801846434d7b9fa5bf736b7eb8abd5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0158.npz": {
+      "type": "file",
+      "bytes": 2556789,
+      "sha256": "4b2d6f5ea90cbf6f4c789c6d36561794c64142e04237c53a29331da6b0d1cbef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0159.npz": {
+      "type": "file",
+      "bytes": 2508398,
+      "sha256": "6d795d9a479a13193a5874d2b202763653992ba74421c31f5d64ed767f223993"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0160.npz": {
+      "type": "file",
+      "bytes": 2539834,
+      "sha256": "e920c6b93a84aad51b0af90766be37b296ac5a5aef522f34578391e9b79390ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0161.npz": {
+      "type": "file",
+      "bytes": 2461124,
+      "sha256": "5311ab9add7f0a48155916370eac6e6d8a48b98a5e1c1f44052f230df9be9f01"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0162.npz": {
+      "type": "file",
+      "bytes": 2523959,
+      "sha256": "e1cbf4f11bb3102b781a1bb26fdb4b760bb47037ef45e3c2b43e9354fdd91902"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0163.npz": {
+      "type": "file",
+      "bytes": 2546525,
+      "sha256": "cf454766262efd6ef0413946f125596a1f774401a66880b7f1669cf836110922"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0164.npz": {
+      "type": "file",
+      "bytes": 2532261,
+      "sha256": "49c1e435ae385e5047b9aa9bcc0395c19bb2eb7940531f94d2c0ef8d7437a73f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0165.npz": {
+      "type": "file",
+      "bytes": 2512641,
+      "sha256": "d8cff8f47448a392628ceb45e9a01aa8848b99ebaf4656257b2c4de090196c67"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0166.npz": {
+      "type": "file",
+      "bytes": 2466551,
+      "sha256": "f23aa7e864bfaf533c1ec6f4cc2b31994082927868de2efab038fc0add427607"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0167.npz": {
+      "type": "file",
+      "bytes": 2536691,
+      "sha256": "525315083d3e0a77b48bb979ebbf4b790bc1b34c9eeeb57cb39592658fcd5695"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0168.npz": {
+      "type": "file",
+      "bytes": 2461913,
+      "sha256": "868df90acabea4e667c0f3119c1a4865608826ac7b0b4b21f9d956088a00eb2e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0169.npz": {
+      "type": "file",
+      "bytes": 2472106,
+      "sha256": "a7a4eb085941921fd8ab4a83babae1e45504eec813587ce941f84a4376ef68b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0170.npz": {
+      "type": "file",
+      "bytes": 2498282,
+      "sha256": "e76c6dfe782fadef74743b6edd9c21f1c2c693ed609e8f5e74e2375a420ab3c1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0171.npz": {
+      "type": "file",
+      "bytes": 2425545,
+      "sha256": "96a8eaccb22cd400b988f1133ea816967e1e2f0ac46bb69eb824297e6924795b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0172.npz": {
+      "type": "file",
+      "bytes": 2514595,
+      "sha256": "d19d7f93e3c8f016f8a85fb9f10e127c83ad3dd9d0de25d054c62bc5927592ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0173.npz": {
+      "type": "file",
+      "bytes": 2520145,
+      "sha256": "13172a4b2270a073abeb2f72e883f205a3a2c401d746a17e1d34a4d7c10123d7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0174.npz": {
+      "type": "file",
+      "bytes": 2501326,
+      "sha256": "4a230960ca3959edd7dbdd2493bc7cb876dedc915ed6562ecda180246f2bde67"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0175.npz": {
+      "type": "file",
+      "bytes": 2449678,
+      "sha256": "b29f79239baf7de35d7490cbfc50c1763db096aa2b004561ca94b39ff978d91b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0176.npz": {
+      "type": "file",
+      "bytes": 2460198,
+      "sha256": "bfa86fd26c34727177033006558cdd017bdf0681ababab8c9f758405dc13ec20"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0177.npz": {
+      "type": "file",
+      "bytes": 2482093,
+      "sha256": "838898d5027d3e09b597c2bfed91455b350950d9ecb6de92b3f10cd8a69f6875"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0178.npz": {
+      "type": "file",
+      "bytes": 2499281,
+      "sha256": "ae0ec276f275f7a483d2b8979f4bebcd2136f3b9ea8a29a3dd4dce69acb33c4d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0179.npz": {
+      "type": "file",
+      "bytes": 2441822,
+      "sha256": "f992de52357b34f5bbc913163823e54ef17ffc59dcc093f1cb1b0ad2329be1d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0180.npz": {
+      "type": "file",
+      "bytes": 2465678,
+      "sha256": "7198e469b50b3799aba3ba1745502e000c512b21a3ec26d4c47d53181d562ba9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0181.npz": {
+      "type": "file",
+      "bytes": 2468622,
+      "sha256": "63de12f80847c6c4fbb658f21e302d6f5d2f65633811a8f3f1c5889426029a59"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0182.npz": {
+      "type": "file",
+      "bytes": 2438117,
+      "sha256": "663adf8f912a5aef68cf55d8f8452d55793cda29fb87f5663e1ca68b2c6c1355"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0183.npz": {
+      "type": "file",
+      "bytes": 2469502,
+      "sha256": "752040daa7c8c59cccd119adbc5dce89fc6fe9d82841f4e665f40a1bce39039b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0184.npz": {
+      "type": "file",
+      "bytes": 2503721,
+      "sha256": "c4c366b5b5b22074e33c0d1e4a103492786ff42907a4ea6571968dda33197e96"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0185.npz": {
+      "type": "file",
+      "bytes": 2496387,
+      "sha256": "1b65bb268cce736ab05a2dfae06f3f240a5722a14ab72ed10eb0d6c92cddd2b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0186.npz": {
+      "type": "file",
+      "bytes": 2504267,
+      "sha256": "4ecdbada97231cdf02dc76c92566ecffbec1cc3a6bb7309393c0a5515a7a7530"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0187.npz": {
+      "type": "file",
+      "bytes": 2508298,
+      "sha256": "3bd0a2a1ad144ac7f6806f8d58fa340d94dda86bbdf0d1d320a2a24068af88b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0188.npz": {
+      "type": "file",
+      "bytes": 2467502,
+      "sha256": "6a615c4c23eb6d63ff149703ed5198faef6e989fd88a67e5e2eef5a4157b5df6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0189.npz": {
+      "type": "file",
+      "bytes": 2513804,
+      "sha256": "40dd4de15a3a260fa97f577f5062c1b336a9d2cd1cc1b02faabef92fdd901ff6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0190.npz": {
+      "type": "file",
+      "bytes": 2533430,
+      "sha256": "c8a8797fb0b309378568b4289f01dcf18ddc548fd8b9699548ac078e2457f921"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0191.npz": {
+      "type": "file",
+      "bytes": 2455214,
+      "sha256": "3175ade29f32bb1513df7d1d1ac96d14ab5f6b2dce0e8ca3e9708d537b16b8dc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0192.npz": {
+      "type": "file",
+      "bytes": 2497815,
+      "sha256": "9a661c819b64ca359f8455f8489e7b03e02896ce0b1795898730ef6d7306f71b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0193.npz": {
+      "type": "file",
+      "bytes": 2421442,
+      "sha256": "31807260c669066eefe3be520a69863dba2f1ed8e5623ef188900e5fa5344c78"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0194.npz": {
+      "type": "file",
+      "bytes": 2510884,
+      "sha256": "f49518a43b297c0d00702e8c9f8089a1daa38194ec8b010f604f5b9c68e6cef9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0195.npz": {
+      "type": "file",
+      "bytes": 2472206,
+      "sha256": "dd499d14a1581603ade2008b42d85b4b60b3e11051feb62486acf07bef8e5327"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0196.npz": {
+      "type": "file",
+      "bytes": 2502978,
+      "sha256": "6cb017274e80f7a3a10b2ac68ba65f05384d3f4e983ec82409ae53159578920f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0197.npz": {
+      "type": "file",
+      "bytes": 2501885,
+      "sha256": "427049da5b48da9a18583c74659d1ee832cfe592e83d973e658ce9f47e3e4a50"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0198.npz": {
+      "type": "file",
+      "bytes": 2501954,
+      "sha256": "c8de35505949e7db79cfc0eab99161e1cff74e34ea8300bfe195751b33f57b2b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0199.npz": {
+      "type": "file",
+      "bytes": 2490022,
+      "sha256": "729c5f18d94d43934adc2b05d26ed6461ca9350c011572e292451fe53f860da4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0200.npz": {
+      "type": "file",
+      "bytes": 2494102,
+      "sha256": "37320842cc7c50f8712577c5430513778f233d3f41d08d763f7085069d95bfce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0201.npz": {
+      "type": "file",
+      "bytes": 2478545,
+      "sha256": "919997b5805a15e623cd310b434bb6afd7b8ca104451587632769a875155df54"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0202.npz": {
+      "type": "file",
+      "bytes": 2555653,
+      "sha256": "5ba242b147da30273437fe1cca19d64007f474fb6996e249050160f7069d81c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0203.npz": {
+      "type": "file",
+      "bytes": 2495243,
+      "sha256": "1dccb956a782dfa9f8f68df9f8b0c8bc6604aa02eb6a3978a851343f881a774a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0204.npz": {
+      "type": "file",
+      "bytes": 2479289,
+      "sha256": "a3347bd5868df3072dbd68533f67cb9bfad91f51db358386f03e6e897f689a71"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0205.npz": {
+      "type": "file",
+      "bytes": 2475692,
+      "sha256": "9e037ee058881b1503b17c64ef8d21c21dda7618d81f10baa27cc315a9592433"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0206.npz": {
+      "type": "file",
+      "bytes": 2468463,
+      "sha256": "29b391dfd28d8a11b25ce40eab26229de3575617d6f947764b83c72a66c46196"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0207.npz": {
+      "type": "file",
+      "bytes": 2516971,
+      "sha256": "7e54914263da100ce42b4e0c25b38037fd7affbf0e12e4dfbd1f130d237234be"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0208.npz": {
+      "type": "file",
+      "bytes": 2451574,
+      "sha256": "fbff2aead8638460b9573959c49d1e0d8dfbcea250776cb5babd392aa6e34a96"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0209.npz": {
+      "type": "file",
+      "bytes": 2513517,
+      "sha256": "c1be88342f1526c014e1d97c229e80b0fefa21a940ee3487c0bf964ef4eaae0b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0210.npz": {
+      "type": "file",
+      "bytes": 2488458,
+      "sha256": "f0e5dcac237cb37869afeb48aa83786c6eb91b7a4fa54c2bd66b70fb76e22384"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0211.npz": {
+      "type": "file",
+      "bytes": 2477059,
+      "sha256": "9f84eac29115fbbc5c8b0fafff114209c4b4f3f70c0cfacc7449258bb79993b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0212.npz": {
+      "type": "file",
+      "bytes": 2455867,
+      "sha256": "ce3b54e74950b607182908294fe3e9d2451b1a811a14e11baea2e6c0a392c657"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0213.npz": {
+      "type": "file",
+      "bytes": 2465040,
+      "sha256": "673c405427666765dc3009b844aa761438624dc84e6f06b005569076231ed6f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0214.npz": {
+      "type": "file",
+      "bytes": 2551360,
+      "sha256": "8654a0c20e598d71e8db39baeae861867484d3ce93970db7260b3fdc3bf67eb9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0215.npz": {
+      "type": "file",
+      "bytes": 2411331,
+      "sha256": "981c56661160f995565680088fb142c33dfa3712e9293a22def22ab67f6a2f5a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0216.npz": {
+      "type": "file",
+      "bytes": 2453053,
+      "sha256": "6ade096b7ac3fe8462675b886b855bea71e90d5c2e3b08593dd001b957471e06"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0217.npz": {
+      "type": "file",
+      "bytes": 2449780,
+      "sha256": "b39ec47fb9f2827d36561b8a99f156abd2f0a0ca22211ba1df1f656ecdb4758e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0218.npz": {
+      "type": "file",
+      "bytes": 2481655,
+      "sha256": "940a6ed8a8e52bccb094d79c8f095c71ec5d1db2a6d252a60e59288c2031d0a1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0219.npz": {
+      "type": "file",
+      "bytes": 2463348,
+      "sha256": "4f5c5de3c158e4ec6a82ebf0fadc266251baeee4e91470d61edb45f70a4bce19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0220.npz": {
+      "type": "file",
+      "bytes": 2507604,
+      "sha256": "3f825cb575f3ec69ca1084e094cd5e928195f0230bf7126aa7c0c04d683c3db2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0221.npz": {
+      "type": "file",
+      "bytes": 2457107,
+      "sha256": "ac682f0652df57eb0d5c669ed0c5005afbef86dea8a71b46e6687c71210f77f9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0222.npz": {
+      "type": "file",
+      "bytes": 2528921,
+      "sha256": "7756910108266d524f2627a5543140a56cd6b36c879ee49dda6f4b391fc10016"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0223.npz": {
+      "type": "file",
+      "bytes": 2475164,
+      "sha256": "218008d1423be5e648251e60083e8704fbd560e3d7851a6b04fb0b7d27bdfec7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0224.npz": {
+      "type": "file",
+      "bytes": 2514908,
+      "sha256": "29fdfbb69c85a3903638f3ec1ff8c8b7ab4a85ddf0946e228cad31655a8f6a0f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0225.npz": {
+      "type": "file",
+      "bytes": 2427428,
+      "sha256": "e0bb67e7c15a9e4785fdef4602c53c07dbb7a5a1e2b42403688fd97a5181707a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0226.npz": {
+      "type": "file",
+      "bytes": 2485123,
+      "sha256": "0886c5ba5f9bef1c21a388dec9b934bf141d4938cb7bd8e937c3f92a7b4a3a32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0227.npz": {
+      "type": "file",
+      "bytes": 2413475,
+      "sha256": "652cf10cc33211cac13eef7e48e7165d4207c10d7dcbb7d49f4e9c8c98bc284e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0228.npz": {
+      "type": "file",
+      "bytes": 2502935,
+      "sha256": "cbab9fb7770618b51b05cf3cde59028103eede1d563d5566f4b9b563d0d15619"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0229.npz": {
+      "type": "file",
+      "bytes": 2487625,
+      "sha256": "914de6defa88627d6234cdaaeb8b6a037d44ad591415030db28b9363c9d8c9d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0230.npz": {
+      "type": "file",
+      "bytes": 2425052,
+      "sha256": "931b305552d2b16433d64da99fb9b9ca7345a82a6bb5a9c54986bbe4b146b51d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0231.npz": {
+      "type": "file",
+      "bytes": 2565557,
+      "sha256": "a4b83f6aa5b8b8e6464530669a3f6d3c910b95b92ccd01567aff7fa6cba68db3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0232.npz": {
+      "type": "file",
+      "bytes": 2511115,
+      "sha256": "03c9c19fee3ab3bf9b3e720f44ff5d767f72fd94c5386ab775a0e21b1295aefd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0233.npz": {
+      "type": "file",
+      "bytes": 2447280,
+      "sha256": "552ec31ac463073f9653e0d65b62cc41169726e4957de9f2d4017bde8c2687f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0234.npz": {
+      "type": "file",
+      "bytes": 2495408,
+      "sha256": "eec48d2c3e1eb786e840b9b17c12c08b7312b10bce9b542473c583e53ec213f4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0235.npz": {
+      "type": "file",
+      "bytes": 2518214,
+      "sha256": "85327da272f4b574cabb164f0c6f5c78eae8c49ccb624783fd1245468c38435a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0236.npz": {
+      "type": "file",
+      "bytes": 2487651,
+      "sha256": "617e9cd5dae1172bcfad7609b56d50101258f0457d50a41d82a3d566651c8c60"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0237.npz": {
+      "type": "file",
+      "bytes": 2472820,
+      "sha256": "430e28265a85b99790ad410b2ca58d2ce5b091688eb90c42111a4fc16305b583"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0238.npz": {
+      "type": "file",
+      "bytes": 2484583,
+      "sha256": "bb8c35c974f02a6d7a57f9635f99b4635edc9b0cfcf4fab3e05f8db406b43be8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0239.npz": {
+      "type": "file",
+      "bytes": 2533514,
+      "sha256": "7f5094d3a3a4159f0282adeea5c01f284ac331fe32db5ff2a8ce836f21be6699"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0240.npz": {
+      "type": "file",
+      "bytes": 2482519,
+      "sha256": "97b8c8ebd476bb6354777e80c4056fe90dcbe8718f90b44c36b6b1e997a093e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0241.npz": {
+      "type": "file",
+      "bytes": 2458101,
+      "sha256": "ddde4dbcc7ff1ff3fa7da3c2e76f675b702f9c41ec84cd3c14a68f910107fa2a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0242.npz": {
+      "type": "file",
+      "bytes": 2514368,
+      "sha256": "5c7e99430eb086fc2f955973e90924cf7b7dfe24f8ec7c80b42d6c2548015cad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0243.npz": {
+      "type": "file",
+      "bytes": 2477782,
+      "sha256": "d56bf6c0101206e4b1dd924fb8d656387c1454e9a067967d11448002fa5c0c98"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0244.npz": {
+      "type": "file",
+      "bytes": 2507982,
+      "sha256": "b319f70d82582b4b980986728ffb63f3e09f5b96dfed8836e745cff0e95a7262"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0245.npz": {
+      "type": "file",
+      "bytes": 2486048,
+      "sha256": "c48995dc099bb1b73701e23af9902f34eb291402fa3131d1a5ed8163022abcc3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0246.npz": {
+      "type": "file",
+      "bytes": 2465910,
+      "sha256": "8ac3ccd6a6838a9ea9aeac5e10be50b10c9e48c83f57e937117421e9179f4816"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0247.npz": {
+      "type": "file",
+      "bytes": 2505547,
+      "sha256": "ccc6c93327f5a3909ccca85411629e0b88d6b4534c7b87797d2cb7b5aba9fa72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0248.npz": {
+      "type": "file",
+      "bytes": 2515314,
+      "sha256": "db4aa03470caf71980611f20213813118d517080bdbe53823441d06e3604a67e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0249.npz": {
+      "type": "file",
+      "bytes": 2495645,
+      "sha256": "aaa427cb557ae2e8b540e075b12cb1b007026fbd70882c0b7ec736080354a530"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0250.npz": {
+      "type": "file",
+      "bytes": 2468539,
+      "sha256": "378a8a98fba21c0582539452d55d1fdf272cc7492c2bbd99a14428cf372ca2b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0251.npz": {
+      "type": "file",
+      "bytes": 2465653,
+      "sha256": "97820fcc3d9644efbd77b71b40da1f3bba7f7782f9f627d8763163fca58055f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0252.npz": {
+      "type": "file",
+      "bytes": 2501765,
+      "sha256": "cc59758358625b967c8eefb58b02488b0bf4575e01f26e869d64eaeea6833fe7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0253.npz": {
+      "type": "file",
+      "bytes": 2466188,
+      "sha256": "3d46c163b8436e1588a4a95b80a83f72177198a501c7ff03f11bbca85b529903"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0254.npz": {
+      "type": "file",
+      "bytes": 2465295,
+      "sha256": "c73983e0c3bb104bb951b26598f92a9366ae803b696a403f2fe1bd4b7396d075"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block0255.npz": {
+      "type": "file",
+      "bytes": 2498367,
+      "sha256": "97c5f8a9477c462b9336ae9e10ab57dec27c38d561b0a7aeb5282c6852ae99ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\block_manifest.json": {
+      "type": "file",
+      "bytes": 126762,
+      "sha256": "1ec24e5191b32373d4b7722e434e3c1ec54d2f3bc0dfc8f837f7419fad171336"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\reach_targets.npy": {
+      "type": "file",
+      "bytes": 18874496,
+      "sha256": "06fc372c6885c3938f153d3744e0c033d04941f7deabc0ca9dc095c040f210fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\relabel_analysis.json": {
+      "type": "file",
+      "bytes": 533,
+      "sha256": "dbae2236542d7e20af71e90133ccd69844cc757332d2bde27903b7eae167f815"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_relabel\\retained_ids.npy": {
+      "type": "file",
+      "bytes": 4194432,
+      "sha256": "cca8767fe44ffbf4477f87b1e4124f0c0d558e0f1d8ea5e9084c1ef6c9cbaa9f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_hands.jsonl": {
+      "type": "file",
+      "bytes": 28299457,
+      "sha256": "3717ad821b196532ff50306eae2a6b42cc4f8932210ede1c1446099f257a7195"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0000.npz": {
+      "type": "file",
+      "bytes": 2440142,
+      "sha256": "68322d62efcc1c21793eaceeeb2a98ca8c39445c0ba0c18f4f58be21b2621ea1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0001.npz": {
+      "type": "file",
+      "bytes": 2454017,
+      "sha256": "5c9ee0351ff1cefa60a6098747b80bab1e47d4676551d878c61bc62323efab96"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0002.npz": {
+      "type": "file",
+      "bytes": 2487372,
+      "sha256": "8de40f831026603375901510699d24613bff2458d0ccd91fcad34d8d94a8a47f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0003.npz": {
+      "type": "file",
+      "bytes": 2474159,
+      "sha256": "61ec026eb5214c1174ff8cb7c4051e070319ffe5e15563f1fd2801e0b5bf59b1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0004.npz": {
+      "type": "file",
+      "bytes": 2478410,
+      "sha256": "25e993dcfcb9eee2d4a2206d65fd34ab4036122c1755f27d9be80fe369d08159"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0005.npz": {
+      "type": "file",
+      "bytes": 2449785,
+      "sha256": "b756edf7309659859c7c40d0ed8c46829998cf7433721a5485709de1dce741ad"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0006.npz": {
+      "type": "file",
+      "bytes": 2469418,
+      "sha256": "edca7f1d13d725ebe94ec222d6db7ea637f488d3f86f91a086d8fb659136dcdc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block0007.npz": {
+      "type": "file",
+      "bytes": 2480071,
+      "sha256": "062b0681309bb1ce1da393f3ac8ee65527bdbf9492b27c77f17ba16100f37cd5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\block_manifest.json": {
+      "type": "file",
+      "bytes": 3931,
+      "sha256": "0d2c6cc3216c25410639c44625c18b9cd7dbf8396d39eb2342bca7e1c69aa018"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\relabel_analysis.json": {
+      "type": "file",
+      "bytes": 334,
+      "sha256": "63c28776df1f3b00cea42fe3e44259a2799fa9cd6464ce372acff34f3658dec5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\validation_arrays.npz": {
+      "type": "file",
+      "bytes": 2507736,
+      "sha256": "3db43e1aa771b292b2478188efc54fa67be719efff048b6bfe5f2a8c1313e475"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\validation_metadata.npz": {
+      "type": "file",
+      "bytes": 31686,
+      "sha256": "17fee801ada061704a0fc673bc35b30e12de55d8b9aac46760033fa04c84d97d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_relabel\\validation_targets.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "72669b39de9bf1706fb88242ac12e90fee9b17e536aa38f730174a816f0f7a14"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\checkpoints\\epoch01.pt": {
+      "type": "file",
+      "bytes": 98356870,
+      "sha256": "960ba2f3bf234358d1316a677b18171acf9bd574d67d88d48e99254859b20bd8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\checkpoints\\epoch04.pt": {
+      "type": "file",
+      "bytes": 98356870,
+      "sha256": "ca9f99797d7406beaa39cc368883d0f5ad06a3f94690606eaefb88ad5d1d69dd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\checkpoints\\epoch08.pt": {
+      "type": "file",
+      "bytes": 98356870,
+      "sha256": "56531e0121f133415b03301c34db93edb0ceeb663d73643fbe7bacc0dd935c40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\admission_tests.xml": {
+      "type": "file",
+      "bytes": 5594,
+      "sha256": "d7b13c02d29d2082618b3f0f696122d6e20bd9e818c786cf18c6bfdddfa0eba0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 6738,
+      "sha256": "34c2d7abe8ee8879718dd70c3efe9310fbb236458f15c5cf6434fa3390db1f17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\control_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "8bdb6df0f330379d952d2580778db907ad00287ccde733f817481a92fdfab6fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\control_validation_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "924903cec1d621481a360f240942983406a3533b2efcce92acf73fc26205d109"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 1344,
+      "sha256": "125544a9c9bbb1da6b1babcdfe6a60324317cb6d3aac94e6ec33961a075019a6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\final_qualification.json": {
+      "type": "file",
+      "bytes": 247,
+      "sha256": "4f0c5b70e0a7823129f229e7f426c744a51eec848eff0b6560ed5cacff945284"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_analysis.json": {
+      "type": "file",
+      "bytes": 4466,
+      "sha256": "2db1bf0c558c39e637aa7a0bf1342c6aba3015a9ac17c0f964528145e3968fa8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_average.py": {
+      "type": "file",
+      "bytes": 6283,
+      "sha256": "aab6ed9f8bf75108d3ef3afbbb40af51f0bb4c4b84a66f124cda94f6266bf3a5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_metrics.py": {
+      "type": "file",
+      "bytes": 2743,
+      "sha256": "4e0cf45ca1e31cb00adfa84562320482026d3a69d60507a9c23d74dca6082246"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fit_progress.json": {
+      "type": "file",
+      "bytes": 110,
+      "sha256": "c7cedf99e1d16b986998ce4523641c97a529cd8db0e51e1dd57faf3a7e87682c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\fresh_deck_audit.json": {
+      "type": "file",
+      "bytes": 203,
+      "sha256": "4cbca84dbebd2d1905e378be6d7c4df34b72d709284fbb8c4afbce0901961e0b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\implementation_tests.xml": {
+      "type": "file",
+      "bytes": 4719,
+      "sha256": "e962f3d000e607c8cf3db591707cf9e2f521b757b1c860dfa465c0532080e7db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\initial_qualification.json": {
+      "type": "file",
+      "bytes": 1113,
+      "sha256": "2f1ae3fe207f0a8eaa1af35f63f5cdd8d128bbb91d887b27116be862afb7cf3c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 3435,
+      "sha256": "313ee6b64f0a1664694399d505dd1eb62ccb1c3a1bcd38793688a77da72da75c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\latest.pt": {
+      "type": "file",
+      "bytes": 98356870,
+      "sha256": "56531e0121f133415b03301c34db93edb0ceeb663d73643fbe7bacc0dd935c40"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\native_relabel.py": {
+      "type": "file",
+      "bytes": 7424,
+      "sha256": "f3e419368ac7ca32a21007bf5079176fad6bd18e47b66c91775a39a036ef5c49"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\preparation_record_audit.json": {
+      "type": "file",
+      "bytes": 807,
+      "sha256": "4a6a72c50e93dfe278aa97ce2e3bcf175c64e8d18c81e668c7ab6ce5cd3b72bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\preparation_tests.xml": {
+      "type": "file",
+      "bytes": 2047,
+      "sha256": "c3f4faac6b932354de4daa0ce02f2f6569f72e2d6875c674cdf28d8f1382a8e4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 6140,
+      "sha256": "882fdbe4be2012ee83d0786590599137e7b1ce11b9803e976da453e874bf1eca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 5594,
+      "sha256": "1bb5ce13deddb86d6e321a07b47d37f452610ec48244db75cd106312b2d5811f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\reach_targets.py": {
+      "type": "file",
+      "bytes": 2512,
+      "sha256": "55f586eb644942ad3322dc49387e3abe385e8b63975a133eeba7ead5f051ab69"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 17625,
+      "sha256": "79461066d1bea533c38477cc10d0c5c7c02121d79ca48a8bdc542113453596a1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\run_pilot.py": {
+      "type": "file",
+      "bytes": 17732,
+      "sha256": "16bf73c312ab31a98b3b897b4ae39fb6da6821fe33b94f4cbfba03372f8033ec"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_pipeline.py": {
+      "type": "file",
+      "bytes": 6418,
+      "sha256": "df34c624c7ae229744b78af9835909d12d76462e3ffe209f35511906f3e4672c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_reach_targets.py": {
+      "type": "file",
+      "bytes": 2159,
+      "sha256": "70ab9035d63f82dbcf6278829302cb51d2e1f4576e8b2b0c0a39e996ce0132ea"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\test_review.py": {
+      "type": "file",
+      "bytes": 2849,
+      "sha256": "9ea50cb082fbdc4dd02a6756a09974da36da717dd38dc5de5d167937ac3786b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 452915,
+      "sha256": "edb25a01353c827a7f77bfa247778c83ae975211de046104998bcaacde330eb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_collection_audit.json": {
+      "type": "file",
+      "bytes": 213,
+      "sha256": "4491ace9d991322c39494eaa055fe2bd0b91595c1bbb798dfe5913f3ef194842"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch00_ce.npy": {
+      "type": "file",
+      "bytes": 556256,
+      "sha256": "407481946bd62b437b7f3f63799e95d65920bc8f1b38ec320d7bf92058decaca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch00_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "c826ef6891bc1825afa9fae8e651ee29fd3d3f81e2d7e3b421de979d77e7c56d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch00_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "19a3c7a0dc8baae94433fc122a67b6c10c5fd815f378ee9af56c0d109863d4fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch01_ce.npy": {
+      "type": "file",
+      "bytes": 556256,
+      "sha256": "5340c0777dbf1e4ee65648786434f97f448e4abaa4755abe89faebbeb650b0da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch01_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "bf9632c9e03f43bb08eb48e088a83b89421a42cd5aa289bba6c66f2ca52b6c57"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch01_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "bfabdaa58a0f85c8f3e0bcc62cdcc7cf3aea5a48797bcb256977c27c84a2ebc4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch04_ce.npy": {
+      "type": "file",
+      "bytes": 556256,
+      "sha256": "ff0a17793ddd593ba4722411f375d6fe012e80c8025dea8d7b82ab8f11a98725"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch04_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "a4f11624bbfa49df59f07b5a7e64dd505af9c5133f15a94fcf857cc08af600d9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch04_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "ca0dfd4fbb43da3b63cffe9bf8e3d9a19dc317a8f656d56b511581c346fbfe9e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch08_ce.npy": {
+      "type": "file",
+      "bytes": 556256,
+      "sha256": "3ae928d6be2a519ebba5a5ffebef401d8e19af28919abada76fce466a65f270c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch08_hero_tv.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "27ccf0006ed89bb1878b20602cc3a3cde38b5892f5ce77f8b95ba284ae5b4f3b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_epoch08_probabilities.npy": {
+      "type": "file",
+      "bytes": 5005280,
+      "sha256": "200de65117fe7be5adfb5088d1713e9652ed8f17f035b28b259d7c09f12dd060"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\validation_hero_counts.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "ecf22c7fde7e5988024229321a9f25dc503ff41fbecfb82d3f66993d78f7f3e1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 2707,
+      "sha256": "9c439acec863c6cbb02cf89c51356f14e4c676e8a5a6953844bb7a93b4f04890"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-average-pilot-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 802,
+      "sha256": "b0d564af043f593603dafff76b0354c8e143cb6e1b35066e18d9ac260778465f"
+    }
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-contract-ppo-smoke-20260901",
+  "title": "Standard10-preserving legacy-contract PPO smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T11:06:06+00:00",
+  "updated_at": "2026-09-01T11:12:16+00:00",
+  "started_at": "2026-09-01T11:06:06+00:00",
+  "ended_at": "2026-09-01T11:12:16+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Low-LR all-policy-head PPO on repaired v6 physical rules with the exact legacy observation/slot contract can complete a replayable 8k mixed source-plus-procedural rollout while keeping Standard10 source-state TV below 0.03 and greedy disagreement below 0.05. Passing is a training-mechanism gate, not strength evidence.",
+  "material_change": "Rebind exact Standard10 tensors into v6legacyv4obs, reset optimizer/counters, train policy heads plus value for 8,192 physical hands against a fixed Standard10/procedural 50-50 opponent curriculum, source-KL 0.1, and audit accounting, tensor scope, checkpoint metadata, and deterministic four-street drift.",
+  "baseline": "Direct frozen bridge fresh20k was -24.5683 CI[-42.8407,-6.2959]; naive v6 rebinding was much worse. This experiment must generate new environment hands and preserve the useful source contract without imitation labels or Slumbot feedback.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "research/experiments/v6-legacy-v4-observation-training-contract-20260901/restriction_analysis.json",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt models/baseline/standard10/latest.pt models/baseline/standard10/latest.pt models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112700 --fixed-training-deal-stream --fixed-training-deal-start-index 8000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_legacy_contract_ppo_smoke_20260901 --run-dir research/experiments/v6-legacy-contract-ppo-smoke-20260901/training --out research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/latest.pt --seed 20261127 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt models/baseline/standard10/latest.pt models/baseline/standard10/latest.pt models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112700 --fixed-training-deal-stream --fixed-training-deal-start-index 8000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_legacy_contract_ppo_smoke_20260901 --run-dir research/experiments/v6-legacy-contract-ppo-smoke-20260901/training --out research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/latest.pt --seed 20261127 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:06:06+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-legacy-contract-ppo-smoke-20260901/training --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 4 --expected-archive-every 1 --expected-normalization global --workspace . --out research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:12:16+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-contract-ppo-smoke-20260901/evaluate_drift.py --states 50000 --seed 2026090112 --device cuda --batch-size 1024 --source-tv-max .03 --greedy-disagreement-max .05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:12:16+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-contract-ppo-smoke-20260901/audit_drift.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T11:12:16+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8d2c324af911558f2475eaede281f252d61f9df50b25e0ef083da10aac14ff2b",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T11:06:06+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-contract-ppo-smoke-20260901/code.patch",
+    "patch_sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2",
+    "source_manifest": "research/experiments/v6-legacy-contract-ppo-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "44d4986ad6a82d9789144258e02d8d486008611a82c2e27cf856fe669546134c",
+    "source_files": 77
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 9013,
+    "lineage_training_hands": 9013,
+    "offline_samples": 50000,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 370.0,
+    "target_environment_hands": 8192,
+    "environment_training_hands": 9013,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "source_tv_max": 0.03,
+    "source_greedy_disagreement_max": 0.05,
+    "source_tv_mean": 0.006001010881732814,
+    "source_tv_p95": 0.01977892592549324,
+    "source_greedy_disagreement": 0.0061,
+    "reference_policy_kl_max": 0.00020669916501412025,
+    "tensor_scope_pass": 1,
+    "session_audit_pass": 1,
+    "drift_audit_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/code.patch",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/latest.pt",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/run_manifest.json",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/h1_training_metrics.jsonl",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/opponent_assignments.jsonl",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/session_audit.json",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/evaluate_drift.py",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/drift_analysis.json",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/drift_raw.jsonl.gz",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/audit_drift.py",
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/drift_independent_audit.json"
+  ],
+  "notes": [
+    "One treatment smoke only. The immutable parent is the matched zero-update control. No Slumbot allocation from this mechanism gate.",
+    "Training completed without KL early stop: 9,013 physical environment hands, 8,229 transition-bearing hands, two optimizer updates, four immutable Standard10 opponent anchors plus 50% per-hand procedural opponents.",
+    "Outcome-blind paired 50k state gate passed. Mean TV 0.0060010 and greedy physical-action disagreement 0.0061; preflop disagreement 0.01064 was the largest street value.",
+    "Tensor audit passed: all 76 trunk/buffer tensors remained bit-exact; changes were confined to policy_head, preflop_policy_head, and value_head as preregistered."
+  ],
+  "result": {
+    "summary": "The repaired legacy-v4 observation/action-slot contract supported a replayable 9,013-hand v6 physical PPO smoke while preserving Standard10 closely: 50k-state mean TV 0.00600 and greedy disagreement 0.61%, with exact trunk preservation and all accounting/provenance audits passing.",
+    "conclusion": "The training mechanism gate passes. This establishes that PPO can generate genuinely new v6 environment experience without destroying the strongest known external execution contract. It does not establish strength: direct frozen bridge Standard10 remains significantly losing at fresh20k, and the smoke used too little training for a Slumbot claim.",
+    "decision": "ADMIT_MATCHED_LEGACY_CONTRACT_LEARNED_WEIGHT_PILOT",
+    "next_step": "Run one preregistered approximately 65k-environment-hand treatment under the same bridge contract with matched untouched parent and multiple archived anchors; use offline source-drift and matched fresh-only multi-anchor evaluation before any larger scale-up. Do not use imitation-only or direct bridge qualification."
+  },
+  "tags": [
+    "learned-weights",
+    "ppo",
+    "selfplay",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795616,
+      "sha256": "e558d705b47cff6a6011084959b94020f642e5d2be34d40eebd894207dafe2e2"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 14230,
+      "sha256": "44d4986ad6a82d9789144258e02d8d486008611a82c2e27cf856fe669546134c"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/latest.pt": {
+      "type": "file",
+      "bytes": 166056970,
+      "sha256": "993a21b1e90106039ef16528aa5f77d4237f20aa810743ba7d688cd9ad40c6d8"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/run_manifest.json": {
+      "type": "file",
+      "bytes": 59312,
+      "sha256": "541d9b709e4decf148bac2e8ebb782e9c476b91ff726da28fc8e98a72eee9f5f"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 54075,
+      "sha256": "8e246352bdb02f24b79fc43b54cbe71a40e2ec31b498f79204d2d2c5b4db961a"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5637,
+      "sha256": "e908a7f6906f0cd4b182988615b9b284b972fa39ce98f1cf38b7873311ff62a4"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/training/session_audit.json": {
+      "type": "file",
+      "bytes": 5419,
+      "sha256": "3201988a2baf2de47d630973532fa90b0faf06d0718832a81f403ce9c8acfea6"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/evaluate_drift.py": {
+      "type": "file",
+      "bytes": 10249,
+      "sha256": "c0c9ac8188b370121a2d384d6bc28901ad31d00b477ec3894aa726bc8547ad50"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4001,
+      "sha256": "ccd9abcd8cd081997a44e13cbac1418e10e44daecf4fec434dd8842a139b8acc"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 796068,
+      "sha256": "50aad0547a53db9cc2072e61b810968a3dd7276e8a1ea9379acb72ab7e67232a"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/audit_drift.py": {
+      "type": "file",
+      "bytes": 2428,
+      "sha256": "a00b76f080accb9392149274c61f5327e37dc458e8eec2af6f403afb6f84e50b"
+    },
+    "research/experiments/v6-legacy-contract-ppo-smoke-20260901/drift_independent_audit.json": {
+      "type": "file",
+      "bytes": 764,
+      "sha256": "cfeb1b645aa0df9239d4d5172d7759e7b4db2541329728ea39c894f290f87523"
+    }
+  }
+}

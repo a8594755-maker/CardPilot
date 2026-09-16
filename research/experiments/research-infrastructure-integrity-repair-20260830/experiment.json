@@ -1,0 +1,132 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "research-infrastructure-integrity-repair-20260830",
+  "title": "Research provenance and Slumbot baseline integrity repair",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T02:19:15+00:00",
+  "updated_at": "2026-08-30T02:19:35+00:00",
+  "started_at": "2026-08-30T02:19:15+00:00",
+  "ended_at": "2026-08-30T02:19:35+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Capturing code paths, dirty patches, source manifests, artifact hashes, exact commands, automatic wall time, and current Standard10 baseline defaults will eliminate all repairable audit warnings and prevent future evidence/report contamination.",
+  "material_change": "Replace stale -71.383 baseline defaults with -11.4275; make milestone text baseline-agnostic; extend experiment_log with patch/source/artifact SHA256 provenance, exact-command audits, automatic wall time, and provenance auditing; truthfully retrofit 12 recent records.",
+  "baseline": "Pre-repair audit: 12 post-cleanup experiment records had 97 warnings; Slumbot report defaults used obsolete -71.383 bb/100 baseline.",
+  "source": "research/experiment_audit_pre_repair.json",
+  "parent_id": null,
+  "command": "python research/test_experiment_log.py",
+  "commands": [
+    {
+      "command": "python research/test_experiment_log.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T02:19:15+00:00"
+    },
+    {
+      "command": "python -m unittest scripts.alpha_holdem.test_slumbot_ci_from_hands",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T02:19:35+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-08-29T21:45:00+00:00 --out-json research/experiment_audit_post_repair.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T02:19:35+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py validate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T02:19:35+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8bd5a35bfa7f18bfa5d37d05dc6acd761f6d8614695d2b4601e7e8b33686a972",
+    "code_paths": [
+      "research/experiment_log.py",
+      "research/test_experiment_log.py",
+      "scripts/alpha_holdem/slumbot_ci_from_hands.py",
+      "scripts/alpha_holdem/test_slumbot_ci_from_hands.py",
+      "scripts/alpha_holdem/bench_v55_slumbot.ps1"
+    ],
+    "captured_at": "2026-08-30T02:19:15+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/research-infrastructure-integrity-repair-20260830/code.patch",
+    "patch_sha256": "54c46e15fe3eb3e94cef10f0b2ef7d6ab1883f4d735e3e904b87192c81e9ca31",
+    "source_manifest": "research/experiments/research-infrastructure-integrity-repair-20260830/source_manifest.json",
+    "source_manifest_sha256": "1375a7a6645172a394b9000b7dcb3e03a36b48e7a34b32b08b1899c76774e593",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 20.0,
+    "records_retrofitted": 12,
+    "tests_run": 7
+  },
+  "metrics": {
+    "pre_repair_warnings": 97,
+    "post_repair_warnings": 36,
+    "repairable_warnings_remaining": 0,
+    "documented_historical_gaps": 36
+  },
+  "artifacts": [
+    "research/experiment_audit_pre_repair.json",
+    "research/experiment_audit_post_repair.json",
+    "research/experiments/research-infrastructure-integrity-repair-20260830/code.patch",
+    "research/experiments/research-infrastructure-integrity-repair-20260830/source_manifest.json"
+  ],
+  "notes": [
+    "All 36 remaining warnings are three truthful historical gaps per pre-repair record: no start-time dirty patch, no start-time source manifest, and at least one descriptive/placeholder command. No repairable wall-time, artifact-integrity, or evaluation-accounting warning remains."
+  ],
+  "result": {
+    "summary": "Updated the active Slumbot baseline default to Standard10 -11.4275 bb/100 and reduced the 12-record audit from 97 warnings to 36 documented, irrecoverable historical provenance gaps; all repairable warnings are gone.",
+    "conclusion": "The new logger captures exact commands, restricted dirty patches, source manifests, artifact SHA256/size, and automatic wall time for future runs. Seven tests and the 52-record validator pass. Historical provenance gaps remain explicit rather than being backfilled with fabricated evidence.",
+    "decision": "ADOPT_PROVENANCE_V2_FIELDS_AND_CURRENT_BASELINE",
+    "next_step": "Use the repaired logging contract for the next learned-policy experiment; require exact command and code paths at start, then update accounting from every generated evidence bundle."
+  },
+  "tags": [
+    "infrastructure",
+    "provenance",
+    "slumbot"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiment_audit_pre_repair.json": {
+      "type": "file",
+      "bytes": 21234,
+      "sha256": "be913da356975d99c9b42492a0624b95368c48e126617c16682d2c41c8463872"
+    },
+    "research/experiment_audit_post_repair.json": {
+      "type": "file",
+      "bytes": 6966,
+      "sha256": "6136dfac35e8cb34b3e66ebaa24d1e84745bc77265efc068a1474f29fd9f57a6"
+    },
+    "research/experiments/research-infrastructure-integrity-repair-20260830/code.patch": {
+      "type": "file",
+      "bytes": 6813,
+      "sha256": "54c46e15fe3eb3e94cef10f0b2ef7d6ab1883f4d735e3e904b87192c81e9ca31"
+    },
+    "research/experiments/research-infrastructure-integrity-repair-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 981,
+      "sha256": "1375a7a6645172a394b9000b7dcb3e03a36b48e7a34b32b08b1899c76774e593"
+    }
+  }
+}

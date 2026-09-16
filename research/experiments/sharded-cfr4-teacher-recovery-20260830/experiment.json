@@ -1,0 +1,147 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "sharded-cfr4-teacher-recovery-20260830",
+  "title": "Four-board full-conversion teacher control",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T01:39:22+00:00",
+  "updated_at": "2026-08-30T02:18:48+00:00",
+  "started_at": "2026-08-30T01:39:22+00:00",
+  "ended_at": "2026-08-30T02:12:12+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The old four-board positive mirror signal either reflects useful concentrated high-resolution targets or a truncation artifact. Repeating the exact board split with all sharded rows will distinguish these explanations while holding solver checkpoints and distillation fixed.",
+  "material_change": "Use only boards 0-3 from the corrected full eight-board compact directories; train H64/source-KL1/residual-L2=.01 dual-mask adapters for three epochs with boards 2/3 as validation/test, then evaluate epoch2/3 on the fixed mirror seed.",
+  "baseline": "Old truncated four-board dual-mask epoch3 mirror10k +2.005 +/-0.631 but fresh5k -41.98; corrected full eight-board epoch2 mirror4096 -0.623 +/-0.810.",
+  "source": "research/experiments/sharded-cfr8-teacher-recovery-20260830/compact_srp8_i200_full",
+  "parent_id": "sharded-cfr8-teacher-recovery-20260830",
+  "command": "python scripts/alpha_holdem/distill_cfr_v55_compact.py --source Standard10 --data <boards0-3 SRP+3BP> --adapter-hidden 64 --source-kl 1 --residual-l2 .01 --epochs 3 --val-board-ids 2 --test-board-ids 3",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "provenance_gap": "Historical record predates automatic patch/source-manifest capture; the exact dirty worktree cannot be reconstructed post hoc."
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 788728,
+    "evaluation_hands": 41383,
+    "wall_time_seconds": 1970.0,
+    "compact_rows": 788728,
+    "train_rows": 344272,
+    "val_rows": 269019,
+    "test_rows": 175437,
+    "mirror_pairs": 10000,
+    "slumbot_requested_hands": 5000,
+    "slumbot_hands": 4999,
+    "slumbot_sessions": 8,
+    "slumbot_socket_failures": 1,
+    "live_decisions": 29214
+  },
+  "metrics": {
+    "epoch2_val_target_kl": 0.2900005,
+    "epoch2_source_kl": 0.126361,
+    "epoch2_mirror4096_bb100": 1.18115234375,
+    "epoch2_mirror4096_ci95": 0.9342995591,
+    "epoch3_mirror4096_bb100": 0.30517578125,
+    "epoch3_mirror4096_ci95": 0.889828434,
+    "mirror10000_bb100": 1.4486,
+    "mirror10000_ci95": 0.5574377989,
+    "mirror10000_ci95_lower": 0.8911622011,
+    "mirror10000_sb_bb100": -17.285,
+    "mirror10000_bb_bb100": 20.1822,
+    "slumbot_bb100": -9.43588717743549,
+    "slumbot_ci95": 41.9362225747654,
+    "slumbot_ci95_lower": -51.3721097522009,
+    "slumbot_ci95_upper": 32.50033539733,
+    "slumbot_baseline_bb100": -11.4275,
+    "slumbot_baseline_delta_bb100": 1.99161282256451,
+    "slumbot_sb_bb100": -14.40625,
+    "slumbot_bb_bb100": -4.47942469037155
+  },
+  "artifacts": [
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/mirror4096_epoch02.json",
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/mirror4096_epoch03.json",
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/mirror10000_epoch02.json",
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_ci_summary.json",
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_session_independence.json",
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_promotion_gate.json",
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_promotion_gate.md"
+  ],
+  "notes": [
+    "Full sharded 4-board teacher retains positive mirror signal; epoch2 selected over epoch3 by fixed-seed 4096-pair mirror result. Expanding epoch2 to 10k gate.",
+    "Epoch2 passed preregistered 10k paired mirror gate with positive CI lower bound and zero OOD nodes; launched 8 independent fresh Slumbot sessions x625 hands.",
+    "Frozen checkpoint SHA256 571a9c413834247c80b63a797548689ea745878c060f265876d00bddcc3ff2db. Eight original sessions completed without restart; part1 hand 451 hit WinError 10048 socket exhaustion and the harness skipped it, yielding 4,999 immutable raw hand rows rather than supplementing. All stderr files were empty.",
+    "CI recomputed from raw hand JSONL with explicit active Standard10 baseline -11.4275 bb/100; session-independence audit PASS. Promotion wrapper FAIL includes known obsolete env/obs/action metadata expectations and missing legacy health/selector artifacts, plus insufficient hand count; these do not alter raw bb/100 or CI.",
+    "Post-hoc infrastructure repair refreshed verifiable wall-time and artifact-integrity fields. The exact historical dirty-worktree patch/source manifest and placeholder commands cannot be reconstructed without falsifying provenance; the record explicitly preserves that gap."
+  ],
+  "result": {
+    "summary": "The corrected full-sharded four-board epoch2 adapter passed the 10k paired internal gate at +1.4486 bb/100 CI95 +/-0.5574, but the same frozen SHA scored -9.4359 bb/100 over 4,999 fresh independent Slumbot hands, CI95 [-51.3721,+32.5003].",
+    "conclusion": "Restoring all converter rows did not reproduce the prior catastrophic external loss and improved substantially over the earlier dual-mask candidate, but the frozen policy remains negative and statistically unresolved externally. Session independence passed; one requested hand was skipped after a documented socket-exhaustion API failure. The checkpoint does not qualify for scaling or a strength claim.",
+    "decision": "REJECT_NO_EXTERNAL_SCALE_PAUSE_FOR_INFRA_REPAIR",
+    "next_step": "Stop at this safe point. Before any new experiment, repair baseline/report defaults and experiment provenance/accounting; then explicitly choose between one deeper CFR convergence control and a mainline shift to genuine self-play/opponent-league learned-weight training."
+  },
+  "tags": [
+    "200bb",
+    "cfr",
+    "control"
+  ],
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/distill_cfr_v55_compact.py --source Standard10 --data <boards0-3 SRP+3BP> --adapter-hidden 64 --source-kl 1 --residual-l2 .01 --epochs 3 --val-board-ids 2 --test-board-ids 3",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-30T01:39:22+00:00"
+    }
+  ],
+  "reproducibility": {
+    "exact_command_available": false,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 0,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/mirror4096_epoch02.json": {
+      "type": "file",
+      "bytes": 6328,
+      "sha256": "872896cce7f5c16aa6363ac2953555e9c0083f4017083be82966c3b99c4bc4a7"
+    },
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/mirror4096_epoch03.json": {
+      "type": "file",
+      "bytes": 6316,
+      "sha256": "b394b86d8c2829cd1953fda359fc28f30beb60427cc62a6a64e7396c242b1875"
+    },
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/mirror10000_epoch02.json": {
+      "type": "file",
+      "bytes": 6349,
+      "sha256": "0e85a3da62083ef38da736e17d00af73c76da57b7c1748c5dd05efbcc8e0653a"
+    },
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_ci_summary.json": {
+      "type": "file",
+      "bytes": 2055,
+      "sha256": "0edce211c3067d2b3da66c4d1693d06db81fcfbf45e6a34af3b38e7882ec6f24"
+    },
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_session_independence.json": {
+      "type": "file",
+      "bytes": 14381,
+      "sha256": "327ba6da98c3da8b3c57b9c3972d5a3bec7039e441fc0c320e62b853b8bfbad8"
+    },
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_promotion_gate.json": {
+      "type": "file",
+      "bytes": 4465,
+      "sha256": "26f724419cafe26e6e4eefd27404785496a688d8c499e91f62ffcdd0405358d2"
+    },
+    "research/experiments/sharded-cfr4-teacher-recovery-20260830/slumbot_fresh5k/bench_v55_cfr4_full_h64_skl1_e2_fresh5k_promotion_gate.md": {
+      "type": "file",
+      "bytes": 2771,
+      "sha256": "351af798f940cb8d5b93d012e041ccbca5d069c69249fb1f6bf2a648209858d8"
+    }
+  }
+}

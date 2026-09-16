@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-opponent-session-context-feasibility-20260902",
+  "title": "Public cross-hand opponent-context feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T05:30:36+00:00",
+  "updated_at": "2026-09-02T05:35:49+00:00",
+  "started_at": "2026-09-02T05:30:36+00:00",
+  "ended_at": "2026-09-02T05:35:49+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A compact outcome-independent public action context accumulated across hands can identify the six heterogeneous broad-league opponent styles on fresh sessions (at least 50% accuracy by 32 hands and 75% by 64, with every class at least 50%), supporting a context-conditioned learned policy that can specialize without benchmark-specific rules.",
+  "material_change": "Generate deterministic 64-hand sessions with frozen Standard10 hero against six training and three SHA-disjoint holdout policies. Build only public street-by-action rates and activity counts, fit horizon-specific linear classifiers on eight sessions per training policy, evaluate on four untouched sessions per policy and unseen holdout sessions, and save raw decks/actions. No Slumbot and no policy-strength claim.",
+  "baseline": "Existing shared residual gradients conflict across opponent-seat groups, while MGDA/CAGrad and direct-greedy ES did not yield scalable directions. Current policies observe only within-hand history and cannot carry opponent evidence across hands.",
+  "source": "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json",
+  "parent_id": "v6-greedy-es-direction-snr-scale-control-20260902",
+  "command": "python scripts/alpha_holdem/v6_opponent_context_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20262110 --sessions-per-training-policy 12 --sessions-per-holdout-policy 4 --hands-per-session 64 --train-sessions-per-policy 8 --device cuda --out-dir research/experiments/v6-opponent-session-context-feasibility-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_opponent_context_feasibility.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20262110 --sessions-per-training-policy 12 --sessions-per-holdout-policy 4 --hands-per-session 64 --train-sessions-per-policy 8 --device cuda --out-dir research/experiments/v6-opponent-session-context-feasibility-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:30:36+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-opponent-session-context-feasibility-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:35:49+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "999b02bfe02577461518fb4f3638a61d61cccb738c0464182869bb45ed1884d9",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T05:30:37+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-opponent-session-context-feasibility-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-opponent-session-context-feasibility-20260902/source_manifest.json",
+    "source_manifest_sha256": "33d300bac90debb5fd54f670a25fa0fd957b250ab3a9eae87b8aeab34217fef5",
+    "source_files": 169
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 3072,
+    "lineage_training_hands": 3072,
+    "offline_samples": 84,
+    "evaluation_hands": 2304,
+    "wall_time_seconds": 313.0,
+    "planned_training_hands": 3072,
+    "planned_evaluation_hands": 2304,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "horizon32_test_accuracy": 0.625,
+    "horizon32_min_class_accuracy": 0.25,
+    "horizon64_test_accuracy": 0.7916666666666666,
+    "horizon64_min_class_accuracy": 0.25,
+    "horizon64_holdout_mean_entropy": 0.003681171452626586,
+    "classifier_train_accuracy": 1.0,
+    "admitted": false,
+    "tests_passed": 268
+  },
+  "artifacts": [
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/code.patch",
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/source_manifest.json",
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/run",
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_opponent_context_feasibility.py",
+    "scripts/alpha_holdem/test_v6_opponent_context_feasibility.py"
+  ],
+  "notes": [
+    "The 3,072 training hands are environment hands used only to form session-level representation examples; no policy weights were trained and no Slumbot hands were used.",
+    "The aggregate 64-hand accuracy gate passed, but the preregistered minimum-class breadth gate failed (25% versus 50%). Unseen-policy entropy near zero reveals severe OOD overconfidence. This rejects only the raw unregularized classifier, not cross-hand context universally."
+  ],
+  "result": {
+    "summary": "Frozen Standard10 generated 84 deterministic 64-hand public-only sessions across six training and three SHA-disjoint holdout policies. The linear classifier reached 62.5% at 32 hands and 79.17% at 64 hands on untouched training-policy sessions, but minimum per-class accuracy was only 25% and unseen holdout predictions were pathologically overconfident.",
+    "conclusion": "Public cross-hand action counts contain aggregate opponent-style signal, but the current unregularized linear readout fails breadth and OOD calibration. It is unsafe to condition a learned poker policy on this representation as implemented. The result is a mechanism-level rejection of the raw readout, not evidence that cross-hand adaptation is intrinsically unlearnable or undertraining evidence about a policy.",
+    "decision": "REJECT_UNREGULARIZED_PUBLIC_SESSION_CONTEXT_READOUT",
+    "next_step": "Reuse the frozen session-feature evidence in a zero-new-hand nested-CV L2 and temperature-calibration control; keep the existing untouched test sessions sealed until model selection is complete."
+  },
+  "tags": [
+    "feasibility",
+    "opponent-modeling",
+    "representation",
+    "session-context"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 31771,
+      "sha256": "33d300bac90debb5fd54f670a25fa0fd957b250ab3a9eae87b8aeab34217fef5"
+    },
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-opponent-session-context-feasibility-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 40491,
+      "sha256": "a3f70a5c9a818ede8c6ebf0178435f5ec80323646e9e0c36102931a05978fcb3"
+    },
+    "scripts/alpha_holdem/v6_opponent_context_feasibility.py": {
+      "type": "file",
+      "bytes": 13790,
+      "sha256": "dfa1139544f4f853ccc363e3d14e221d74a4b412411d42fdfac27621e180d297"
+    },
+    "scripts/alpha_holdem/test_v6_opponent_context_feasibility.py": {
+      "type": "file",
+      "bytes": 670,
+      "sha256": "92ce6135e57cae75c6249155d81bc3c9d47c2f3602ac2f8d239acd330da9742f"
+    }
+  }
+}

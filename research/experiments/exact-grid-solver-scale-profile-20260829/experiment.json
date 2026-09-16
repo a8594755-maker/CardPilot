@@ -1,0 +1,104 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "exact-grid-solver-scale-profile-20260829",
+  "title": "Corrected exact-grid CFR resolution profile",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T22:22:40+00:00",
+  "updated_at": "2026-08-30T02:18:47+00:00",
+  "started_at": "2026-08-29T22:22:40+00:00",
+  "ended_at": "2026-08-29T22:41:36+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "On the 128GB host, increasing abstraction from the validated 2-bucket smoke to at least 8 buckets is tractable with a larger V8 heap, and heldout strategy drift across iteration checkpoints can identify a minimum useful solve budget before multi-board scaling.",
+  "material_change": "Add non-destructive per-run output directories; solve the same corrected 200bb exact-grid SRP/3BP flop at increasing buckets and iterations, recording wall time, memory boundary, info sets, and strategy drift rather than training from an unconverged teacher.",
+  "baseline": "Corrected one-flop 2-bucket 10-iteration smoke: SRP 783,584 info sets in 8.7s; 3BP 139,380 in 1.4s; exact financial parity.",
+  "source": "data/cfr/deployment_v55_hu_srp_200bb_financial_v2",
+  "parent_id": "deployment-matched-cfr-smoke-20260829",
+  "command": "node --max-old-space-size=24576 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_srp_200bb --output-dir <run> --flops 1 --iterations <N> --buckets <B>",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "provenance_gap": "Historical record predates automatic patch/source-manifest capture; the exact dirty worktree cannot be reconstructed post hoc."
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1136.0,
+    "solver_runs": 5,
+    "srp_b8_i10_infosets": 2230802,
+    "srp_b8_i200_infosets": 13914074,
+    "tests_passed": 6
+  },
+  "metrics": {
+    "financial_state_parity": "PASS",
+    "srp_b8_i10_solve_seconds": 9.3,
+    "srp_b8_i10_status": "PASS",
+    "srp_b8_i200_solve_seconds": 228.511,
+    "srp_b8_i200_peak_memory_mb": 7981,
+    "drift_i50_i200_root_tv": 0.2394568639,
+    "drift_i50_i200_flop_depth1_tv": 0.1894425116,
+    "deterministic_prefix": "PASS"
+  },
+  "artifacts": [
+    "research/experiments/exact-grid-solver-scale-profile-20260829/srp_b8_i10/flop_000.meta.json",
+    "research/experiments/exact-grid-solver-scale-profile-20260829/drift_b8_seed20260829_i50_to_i200.json",
+    "research/experiments/exact-grid-solver-scale-profile-20260829/srp_b8_seed20260829_i200/flop_000.meta.json"
+  ],
+  "notes": [
+    "8-bucket/10-iteration corrected SRP solve completed with a 24GB V8 heap: 2,230,802 info sets, 9.3s solve, 121.7MB JSONL. The prior default-heap OOM was a runtime limit, not host capacity.",
+    "Seed plumbing made key coverage prefix-deterministic. At b8/i200 the solve reached 13,914,074 infosets, 7.98GB peak heap and 228.5s traversal (336.2s including 762MB export), yet root/depth1 drift from i50 remained 0.239/0.189 TV. Map-based full-tree CFR is not converged or scalable enough for multi-board production.",
+    "Post-hoc infrastructure repair refreshed verifiable wall-time and artifact-integrity fields. The exact historical dirty-worktree patch/source manifest and placeholder commands cannot be reconstructed without falsifying provenance; the record explicitly preserves that gap."
+  ],
+  "result": {
+    "summary": "Profiled corrected exact-grid tabular CFR through 8 buckets and 200 seeded iterations and made its learning curve reproducible.",
+    "conclusion": "The host can run b8/i200, but one SRP flop already consumes 13.9M infosets, 8.0GB heap, 228.5s solve and a 762MB export. More importantly, root/depth-1 strategy drift from i50 remains 0.239/0.189 TV. Direct multi-board production or paper-scale tabular expansion is unjustified; the existing full-game vector path is also not yet wired to street-correct pot-relative trees/export.",
+    "decision": "LIMIT_MAP_TO_BOUNDED_PILOT",
+    "next_step": "Use a small seeded multi-board SRP+3BP pilot only to test whether broad deployment-matched supervision can generalize into a frozen adapter; require heldout-board KL and internal paired poker gates before any larger solver scale."
+  },
+  "tags": [
+    "200bb",
+    "scaling",
+    "solver"
+  ],
+  "commands": [
+    {
+      "command": "node --max-old-space-size=24576 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_srp_200bb --output-dir <run> --flops 1 --iterations <N> --buckets <B>",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-29T22:22:40+00:00"
+    }
+  ],
+  "reproducibility": {
+    "exact_command_available": false,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 0,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/exact-grid-solver-scale-profile-20260829/srp_b8_i10/flop_000.meta.json": {
+      "type": "file",
+      "bytes": 620,
+      "sha256": "1e81036d9fbff5b43e5fba0ee7f1f6d35d5879dfa23dd9b90d4286f60faa7813"
+    },
+    "research/experiments/exact-grid-solver-scale-profile-20260829/drift_b8_seed20260829_i50_to_i200.json": {
+      "type": "file",
+      "bytes": 7848,
+      "sha256": "1a75f504797f990dddcc481f4989e1bfbc24ad1138abb29289b9cc1a3273c5bb"
+    },
+    "research/experiments/exact-grid-solver-scale-profile-20260829/srp_b8_seed20260829_i200/flop_000.meta.json": {
+      "type": "file",
+      "bytes": 644,
+      "sha256": "b7a2bffc6121efcf49fd710724e6c907831dcd127044e305917de983df844a0f"
+    }
+  }
+}

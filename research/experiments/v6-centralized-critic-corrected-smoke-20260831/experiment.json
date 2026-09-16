@@ -1,0 +1,807 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-centralized-critic-corrected-smoke-20260831",
+  "title": "Corrected privileged centralized-critic matched smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T00:17:44+00:00",
+  "updated_at": "2026-09-01T00:29:19+00:00",
+  "started_at": "2026-09-01T00:18:06+00:00",
+  "ended_at": "2026-09-01T00:29:19+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "With preregistered critic metrics serialized, opponent-private-card CTDE reduces critic error and improves same-seed cross-anchor PPO updates.",
+  "material_change": "Fresh new-seed65536-hand matched control/treatment plus61440-hand matrix; failed parent control is not reused.",
+  "baseline": "First CTDE control completed but the parent failed before treatment because preregistered critic metrics were omitted from JSONL.",
+  "source": "research/experiments/v6-centralized-critic-corrected-smoke-20260831/preregistration.md",
+  "parent_id": "v6-centralized-critic-matched-smoke-20260831",
+  "command": "python research/experiments/v6-centralized-critic-corrected-smoke-20260831/run_smoke.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-centralized-critic-corrected-smoke-20260831/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:17:44+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\test_smoke.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:18:14+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\source_legacy.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026104100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_ctde_corrected_control_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\latest.pt --seed 20261041 --max-runtime-seconds 1200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:18:21+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control --expected-target-hands 99999999 --expected-target-environment-hands 65536 --expected-final-iteration 15 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:20:00+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 65536 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\source_legacy.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026104100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 4 --run-id v6_ctde_corrected_treatment_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\latest.pt --seed 20261041 --max-runtime-seconds 1200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream --centralized-critic-hidden 256 --centralized-critic",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:20:04+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment --expected-target-hands 99999999 --expected-target-environment-hands 65536 --expected-final-iteration 14 --expected-pool-size 5 --expected-archive-every 4 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:59+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:21:59+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20261040 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:22:00+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-centralized-critic-corrected-smoke-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:29:17+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-centralized-critic-corrected-smoke-20260831",
+      "research/experiments/v6-centralized-critic-matched-smoke-20260831/run_smoke.py",
+      "research/experiments/v6-centralized-critic-matched-smoke-20260831/review_finish.py",
+      "research/experiments/v6-centralized-critic-matched-smoke-20260831/test_smoke.py",
+      "scripts/alpha_holdem/network_hybrid_h1.py",
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py"
+    ],
+    "captured_at": "2026-09-01T00:17:44+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-centralized-critic-corrected-smoke-20260831/code.patch",
+    "patch_sha256": "8616e77b66d37314fa3f1e6f4ece5996bde089f8444a65bfb40da4c0a94c75fc",
+    "source_manifest": "research/experiments/v6-centralized-critic-corrected-smoke-20260831/source_manifest.json",
+    "source_manifest_sha256": "a6eada12ead78e6e1f9133b691b22d7f55d0ec7e95fc6c612ad07bc1fec71480",
+    "source_files": 12
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 136844,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 61440,
+    "wall_time_seconds": 673.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 651.4529999999795,
+    "review_wall_time_seconds": 3.577999999979511
+  },
+  "artifacts": [
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/preregistration.md",
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/code.patch",
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/source_manifest.json",
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/run_smoke.py",
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/review_finish.py",
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/test_smoke.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\source_legacy.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\control.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\treatment.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\run_smoke.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\test_smoke.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\run_smoke.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\test_smoke.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\test_smoke.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\checkpoints\\checkpoint_iter000004_hands000000016481.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\checkpoints\\checkpoint_iter000008_hands000000033060.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\checkpoints\\checkpoint_iter000012_hands000000049530.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000004_hands000000016477.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000008_hands000000032967.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000012_hands000000049416.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Uses new seed20261041/worker2026104100 and fresh endpoints; parent control is excluded.",
+    "Corrected admission tests passed; metric serializer fields and new-seed non-reuse command verified before environment hands."
+  ],
+  "result": {
+    "summary": "Privileged centralized-critic smoke completed: CENTRALIZED_CRITIC_SMOKE_NOT_PROMISING.",
+    "conclusion": "Fixed known-anchor CTDE smoke is internal mechanism evidence, not external strength.",
+    "decision": "CENTRALIZED_CRITIC_SMOKE_NOT_PROMISING",
+    "next_step": "Reject this privileged critic and implement a matched EMA actor-target smoke."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 22,
+    "command_count": 22
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 1956,
+      "sha256": "1ee116a7105b40d3c6e08ff0c4022dfd848b3c76b2b2876b86f2399340f3c625"
+    },
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/code.patch": {
+      "type": "file",
+      "bytes": 323161,
+      "sha256": "8616e77b66d37314fa3f1e6f4ece5996bde089f8444a65bfb40da4c0a94c75fc"
+    },
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 2540,
+      "sha256": "a6eada12ead78e6e1f9133b691b22d7f55d0ec7e95fc6c612ad07bc1fec71480"
+    },
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/run_smoke.py": {
+      "type": "file",
+      "bytes": 4413,
+      "sha256": "04feda1b78649791a948f97a20bbaff35fbceee9da080e443aed558e37829cc5"
+    },
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 498,
+      "sha256": "bc0c5716386cda4b654d37bd66d2c810fffe40b16a009b730540218014ce49d6"
+    },
+    "research/experiments/v6-centralized-critic-corrected-smoke-20260831/test_smoke.py": {
+      "type": "file",
+      "bytes": 1465,
+      "sha256": "2160731b62f0fc4470f9096e81f3271883cb122d40904602c876beeb93f06aa9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13850,
+      "sha256": "8c0d6a1df903512d2b38ca958fc8b196769efddf6d74eaed67a373434b36bfc7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 405039,
+      "sha256": "1d6b92b8165e3dc6d750af762cbc2e6402f0739fe9027c1f0dfbff3cd2efb79a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 24209,
+      "sha256": "e2d5624274c863912035723bc6f39c8ed38a0462797e0719b4821515899dc838"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 756,
+      "sha256": "6feebb178cf45733e9807c50ac08596d0f732ffd4facb2f59ebcb1a53a543583"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 27307,
+      "sha256": "1d94f314895556f14fcba0b795fdbf3d67cffd7aeddc5df01b93585b4476facc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\source_legacy.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\control.pt": {
+      "type": "file",
+      "bytes": 199384752,
+      "sha256": "92fe4a0c79f2b9e736979f89ed8ac2ed3d29dd56cd8dfedbb18672400b9e15cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\frozen\\treatment.pt": {
+      "type": "file",
+      "bytes": 200338014,
+      "sha256": "3fe0955e12609a54c1251fc604dfc0c048471d23d26abf4816609d90a9f6a0a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 711,
+      "sha256": "8304bcadb727597c9e47dde8dca2ff8ce1d474c60ce9cd922747c9a93f55320a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 2044,
+      "sha256": "2b03bbf8a59bf721e86c0c91f6c9c3e8fe47b206a66bf1ff5744ade56e9380b1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1635,
+      "sha256": "f2f0e08339c4f30a2437e37db7a7b3e2a0879ac6c78ed67d61ffda23fce7b5ee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1636,
+      "sha256": "9578209ca4c2df5dd380c4c38b0ab81effb6900b8a272345e6193a9734b3cc97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1637,
+      "sha256": "8f867f28df5ceb39bec93bdd8818e39bdca2fae79fbc0d74831329adb8c3a892"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1635,
+      "sha256": "523bc37f3160878903b0e56330f4d40180095d39c6fbf209d530f5418ae62036"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1635,
+      "sha256": "a977ada24c1bd1e5ecef8236083ab67b847a214f96c45a07647af091f30edb22"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\control_stdout.log": {
+      "type": "file",
+      "bytes": 12051,
+      "sha256": "79aace8db59189fe588bebd5d80be74c6f3759524a7339744162706fcab03eaf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 8428,
+      "sha256": "0549561eef974e08cbe426cfd4655cc941b61ba6636249e20fcfb6bf2b16ca8b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 1956,
+      "sha256": "1ee116a7105b40d3c6e08ff0c4022dfd848b3c76b2b2876b86f2399340f3c625"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 498,
+      "sha256": "bc0c5716386cda4b654d37bd66d2c810fffe40b16a009b730540218014ce49d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\run_smoke.py": {
+      "type": "file",
+      "bytes": 4413,
+      "sha256": "04feda1b78649791a948f97a20bbaff35fbceee9da080e443aed558e37829cc5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1593,
+      "sha256": "8ea31a7c7070ea36ed48d7e15f828b4811337f3db9c5e5fae60065bfa8db5253"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1632,
+      "sha256": "bff764d862140873e1cbbd58c788aa4b4f2b839ec3ba353e94602ad90e7ecd32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1635,
+      "sha256": "2f3710777e0d1be45f851bab529d55d84cc1f56f680d6e74ba3ee49fa56331d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1635,
+      "sha256": "7793531290dc55ac60c30023abd7307eb69b94ef4a794ec422acf83c501a759a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1634,
+      "sha256": "c638731dbce2f2c5d733a005b6cad9bcb27f2911c84bff21bf81cdfad75932ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\test_smoke.py": {
+      "type": "file",
+      "bytes": 1465,
+      "sha256": "2160731b62f0fc4470f9096e81f3271883cb122d40904602c876beeb93f06aa9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1639,
+      "sha256": "9147a9e9fb59fe2c8dac7e682c93216c3300cd481dc85b6338d4f46d642611b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1638,
+      "sha256": "1645f2153dff5344671e812825bc97ffaac981270b6fb7beff131e79ed2e8571"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1639,
+      "sha256": "c8159bff4c275297fed35c36711b1121d9addf7e938d42245ceef334fc3ee58b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1641,
+      "sha256": "50638819595dc38bdc203a660a8b702d4c0b2e6d40533416c8b67bd5d75da1a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1638,
+      "sha256": "ed3ecd4da23a98c578ae475dffb9c4b0602d931398c971e28e14e2335c5526df"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\treatment_stdout.log": {
+      "type": "file",
+      "bytes": 11620,
+      "sha256": "478513c7e6940282a490ee0d9fdb87acc487fce19bab826f1e9270320f3851cc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 1150,
+      "sha256": "38c331262d224043edaab614c30038e95d10926946fb237dc85ae8d86fc5e6e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\run_smoke.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 8694,
+      "sha256": "258d999aeaee91ac63d0d060522ad8ff9c1f20a8a7a8ca65a4ae13b74d9feff0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\test_smoke.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 4873,
+      "sha256": "d9b0b9540d2ce992072e11a97af244c0ef622ecb6aaf3d35f55a4aa93f9aa121"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\__pycache__\\test_smoke.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 2821,
+      "sha256": "c7f9b8704427010ab01bd8f65128b0a799c0e39d7945b066a1afbc42e4ad69ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573421,
+      "sha256": "6fde1eae5ddd40a64bd541d78c3f379aa867fb39c61ada2d08e986ce71770f5a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1690,
+      "sha256": "2a1a52f254417458ecb3370bb0f9883e5f40bd5ae8088ce905e193014df79b88"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 568927,
+      "sha256": "35d9b6efbc95558d4ecd3bcb3bb9e923fb97c3decc3e66699da7e5235d5ab492"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "1f4418d71bd2234a951b6d90a8f8a1abcab4b77420d02421cb879b52c7e6c399"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572551,
+      "sha256": "b781b69e880189afb8bf72d48228164f6aa176aafdf4aabac9fbc33c2bb48697"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "5e17e00738a606664015430f3d6109522d68335b6753020d47f9575f4907b68d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574213,
+      "sha256": "b016c5a262a0f58656faf2f85d8e61658b62b5b8b7786cda03eef146a5051a42"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1690,
+      "sha256": "128776a71e250698c98f9b130d05b82d91035d78cb1149e4cf918b20cdf9cee6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574627,
+      "sha256": "871a01727cfc25d04dcaf4b779ec9ef779705f172ce5b5925bd941e042b17746"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\control_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1690,
+      "sha256": "ef81ae9caf207633f094329192cff4c6371385384baa78d9376443f3f069586c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573637,
+      "sha256": "64fd3c8ff8dc015042d66206dc037069c0acfb03d43fdbd39b23c82818f1a0fe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1648,
+      "sha256": "db35b91270998afa86874c8ab89adae37a13ff000399b50be46b6755ab51ac43"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 569007,
+      "sha256": "f9aa57dd7c65a18f362ccc1833cd3a2699c31b8ede0d992cbfa030d717100104"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1687,
+      "sha256": "a8304be7f2add9e9162926bcea3e2fdef88b6ece2a1c3061fd719ced5e6d62fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572668,
+      "sha256": "176450b7c6f9bdb3057f402d2d2b53622db1f379922994aab9380843c2599b09"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1690,
+      "sha256": "074c223c6442bb6ca5fd52f8546a6b1f7328d0914ba050bfa8bd99e61ed3ef66"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574453,
+      "sha256": "cf0c2f89f44b36523d09eb2fb5aec2cc6c12377d7cf75593307862b1aa6f77a6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1690,
+      "sha256": "71b713ebe07bc1ba00bfca27a1a9e47dedb4ec569f5151d0e9aec53e6e2947e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574805,
+      "sha256": "0c316ceb520862290426060e6d5a1945bd1f5d0a0a2c72b9fbcb5e902d10feef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1689,
+      "sha256": "d5b58b173a35e26cfc0c39bb989e11ab0ea0685991a84101179d553715c0f365"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573595,
+      "sha256": "f3e5a6aaac3afcd82938a47674a788bafffc8fd4f413fb2a5785671ddb7359e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "a016287f521d1295bc4d80cf073fc5588365dea2834039989cfca3fb43a125b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 568979,
+      "sha256": "3702590122143a3ccfa4d286de814bb26b9cacb7f84ff8097418e54313d4125c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1693,
+      "sha256": "ce38c00069680ff47771c27ac74022be90271a2b6c6f5a51dee038a99f5a40e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572671,
+      "sha256": "fa469feb4dc24b7bc66afb33e36c421692b47f17914a081b3f83597d7770e98f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1694,
+      "sha256": "a61bab92014cc27562a549f390c3721a0c77d1c478cadbc63ee1e4b2f2a8f519"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574405,
+      "sha256": "4e31a6ead6875a7274bdb1c55dad2c167cdcaf5cb9e8abaad3fbed395b5f1a71"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1696,
+      "sha256": "30653a2d292f27b57ab8fd8407b5466e24599ad74c7ffc17cfaf658e3c76565a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574809,
+      "sha256": "7455c9e3dc115fefabbaf421e6e665ad6f6206539e1b40dcf54fc5f1aa19b8b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\matrix\\treatment_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1693,
+      "sha256": "24bc76fa6653d20da4592a36660679be285f55ba547a32718203630fb0329ca5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 6372,
+      "sha256": "6b3f166bdebf59a722666089e25403d263853e22c115a5df846f544b1d25ec53"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 396945,
+      "sha256": "2a52f52385033573a96155b0ebc6e2f16406c10ab3475a7a434106dc5e9f1b69"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\latest.pt": {
+      "type": "file",
+      "bytes": 199384752,
+      "sha256": "92fe4a0c79f2b9e736979f89ed8ac2ed3d29dd56cd8dfedbb18672400b9e15cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\latest_train.log": {
+      "type": "file",
+      "bytes": 6601,
+      "sha256": "af872e50c849354b4ffbd870d514fbfd65c8614aa4f0c40e08d898753130db78"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 40110,
+      "sha256": "4246b17cb905e06862ef9d3143ac28d3464bcce6c9fd64b0de6c376bc20353b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\run_manifest.json": {
+      "type": "file",
+      "bytes": 60090,
+      "sha256": "dcb4d334c007953ad125c6744a8395e1f3c7b0928b49bf506239a7bc65a46981"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\session_audit.json": {
+      "type": "file",
+      "bytes": 6372,
+      "sha256": "6b3f166bdebf59a722666089e25403d263853e22c115a5df846f544b1d25ec53"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 6383,
+      "sha256": "8d7b17a7c38fabfd01c643615698bff2e1e5186cb4609fdb5f8239704b4bfbe7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 367611,
+      "sha256": "3153d58a41452cee282df653c12db0db1f7237eed79a77f05ebaa9442e8deeed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\latest.pt": {
+      "type": "file",
+      "bytes": 200338014,
+      "sha256": "3fe0955e12609a54c1251fc604dfc0c048471d23d26abf4816609d90a9f6a0a3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\latest_train.log": {
+      "type": "file",
+      "bytes": 6152,
+      "sha256": "c04a504801f5cbf8e183d291cacdc0cbe66d8c187c1e62a45cc83a09a01af4ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 37437,
+      "sha256": "dbbe25cb34bc2251784b1fb5e55ece28d33dfcbcb136328e33a744f26ccf3817"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59945,
+      "sha256": "62d5ce11e5a07fc62deca13a6f8814fb209df6880a49f579bacc35d66dd41d3c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\session_audit.json": {
+      "type": "file",
+      "bytes": 6383,
+      "sha256": "8d7b17a7c38fabfd01c643615698bff2e1e5186cb4609fdb5f8239704b4bfbe7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\checkpoints\\checkpoint_iter000004_hands000000016481.pt": {
+      "type": "file",
+      "bytes": 199409822,
+      "sha256": "f52fad99004e948680f9dbde97042d5f082c19ba3a67f9d263b1d483c241085b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\checkpoints\\checkpoint_iter000008_hands000000033060.pt": {
+      "type": "file",
+      "bytes": 199409822,
+      "sha256": "161da02d36fa2dabff87c27bb8ef4b634a6314d97e5293c4897b250e3f8df037"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\control\\checkpoints\\checkpoint_iter000012_hands000000049530.pt": {
+      "type": "file",
+      "bytes": 199409822,
+      "sha256": "e8345f27cb1d4dec9adfb22ba19278e4240c4b94c3db14017897c2324c0596da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000004_hands000000016477.pt": {
+      "type": "file",
+      "bytes": 200363538,
+      "sha256": "3e09516c8131906c218b66b1ea77f175862fa550c17517712598055dd5dbee24"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000008_hands000000032967.pt": {
+      "type": "file",
+      "bytes": 200363538,
+      "sha256": "66954e5507c51c2ca100188418b3966b2d6aa40b13d20442300a26872c350e9b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\production\\treatment\\checkpoints\\checkpoint_iter000012_hands000000049416.pt": {
+      "type": "file",
+      "bytes": 200363538,
+      "sha256": "d4bdb98630ecb89f75fc8328300e9cbac61f167d2a1d79f3b50bdd0be2e1e09e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 2223,
+      "sha256": "61f4ff2e7ba5b454759f205b51f808e0de08105acc5a67020ef5242b524622eb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-centralized-critic-corrected-smoke-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 414,
+      "sha256": "41fc812ce829921a07f59478a8dd1be56f625f927a96eada33345d05b52cd0cd"
+    }
+  }
+}

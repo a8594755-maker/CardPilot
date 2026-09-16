@@ -1,0 +1,162 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-preflop-context-prior-outcome-blind-dose-curve-20260901",
+  "title": "Outcome-blind preflop contextual-prior dose curve",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T09:53:43+00:00",
+  "updated_at": "2026-09-01T10:05:14+00:00",
+  "started_at": "2026-09-01T09:53:43+00:00",
+  "ended_at": "2026-09-01T10:05:14+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The 65k treatment became overdosed only after an earlier archived checkpoint that still delivers material contextual correction within the 0.05 source-preservation envelope; selecting that boundary without reward evidence can separate dose failure from direction failure.",
+  "material_change": "Replay frozen source-corpus observations through parent plus matched control/treatment checkpoints at even iterations 2 through 16. Precommit selection to the latest even treatment iteration with postflop exact preservation, both overall parent TV and greedy disagreement <=0.05, and improved SB-open and BB-vs-open raise-target distance versus its same-iteration control.",
+  "baseline": "Iter2 isolated smoke passed at overall TV/disagreement 0.01245/0.01043; independent iter16 pilot failed at 0.06377/0.08378. Iter16 learned panel was inconclusive and is not used for dose selection.",
+  "source": "Immutable archives and session audits from v6-preflop-head-only-context-prior-65k-pilot-20260901; parent SHA256 66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c; source corpus 60,671 audited states.",
+  "parent_id": "v6-preflop-head-only-context-prior-65k-pilot-20260901",
+  "command": "python research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/evaluate_dose_curve.py --device cuda",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/evaluate_dose_curve.py --device cuda",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:53:43+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/run_selected_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:56:36+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:05:14+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e4ed1c179f84f8f3e9abe1c1651ef8afffd9ecea6113ee26c243e98abcaedd12",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T09:53:44+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/code.patch",
+    "patch_sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9",
+    "source_manifest": "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/source_manifest.json",
+    "source_manifest_sha256": "149f91b471948dc4c40b5ccf1497d165a4553d6c9f0602d2c057a80323c78fac",
+    "source_files": 74
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 485368,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 691.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 0
+  },
+  "metrics": {
+    "selected_iteration": 4,
+    "selected_overall_parent_tv": 0.03609832336508396,
+    "selected_overall_parent_disagreement": 0.039409272964019054,
+    "selected_sb_control_greedy_raise_frequency": 0.9962,
+    "selected_sb_treatment_greedy_raise_frequency": 0.9798,
+    "selected_bb_control_greedy_raise_frequency": 0.9110320284697508,
+    "selected_bb_treatment_greedy_raise_frequency": 0.7375444839857651,
+    "selected_panel_pooled_delta_bb100": -8.2587890625,
+    "selected_panel_ci95_lower": -27.15097254119077,
+    "selected_panel_ci95_upper": 10.633394416190772,
+    "selected_panel_positive_anchors": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/code.patch",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/source_manifest.json",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/evaluate_dose_curve.py",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/dose_curve.json",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/state_probabilities.npz",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/run_selected_eval.py",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/eval/paired_delta.json",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/audit_review.py",
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/terminal_review.json"
+  ],
+  "notes": [
+    "Selection is outcome-blind and deterministic over even iterations [2,4,6,8,10,12,14,16]. No checkpoint may be selected using rollout reward, learned anchors, or Slumbot. If a boundary checkpoint exists, run exactly one new-seed 2,048-pair-per-anchor panel for that frozen matched pair.",
+    "Outcome-blind rule selected iter4. Iter6 was the first rejection because disagreement 0.06176 exceeded 0.05 despite TV 0.04876. Selected frozen SHAs control 1c0464... treatment 3969ca....",
+    "Independent review PASS: all eight dose points were recomputed from stored probability arrays with archive hashes; iter4 selection reproduced; all 6,144 selected-panel raw pairs/decks/CIs reproduced. Allocation gate failed, so no Slumbot hands."
+  ],
+  "result": {
+    "summary": "Outcome-blind replay selected iter4 as the last even checkpoint inside the 0.05 preservation envelope; iter6 first failed disagreement. The single untouched iter4 panel then scored -8.26 bb/100 treatment-control, CI[-27.15,10.63], with only 1/3 anchors positive.",
+    "conclusion": "A safe contextual-prior dose exists and materially changes BB defense, but it does not improve general learned-anchor strength. Together with the overdosed iter16 result, this rejects fixed aggregate action-class priors as the next mainline; no Slumbot budget is justified.",
+    "decision": "REJECT_CONTEXTUAL_ACTION_PRIOR_DIRECTION_NO_STRENGTH_SUPPORT",
+    "next_step": "Return to learned objectives rather than action-frequency targets. Use the accumulated evidence to choose a value/action-credit or genuine opponent-league/self-play learned-weight intervention that can improve per-state decisions without forcing aggregate class frequencies; retain preflop-head-only topology only as a diagnostic isolation tool."
+  },
+  "tags": [
+    "dose-curve",
+    "outcome-blind",
+    "preflop",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795324,
+      "sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13653,
+      "sha256": "149f91b471948dc4c40b5ccf1497d165a4553d6c9f0602d2c057a80323c78fac"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/evaluate_dose_curve.py": {
+      "type": "file",
+      "bytes": 8383,
+      "sha256": "da72a3b086e3f64b67a8f8ad6125d549011e2f29fb8785dd4c601954055f06a8"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/dose_curve.json": {
+      "type": "file",
+      "bytes": 70000,
+      "sha256": "ec8bb699081a51abbb93e17337c948d7bafaf8f4af0302ce5b28ececd0f22f0d"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/state_probabilities.npz": {
+      "type": "file",
+      "bytes": 65989988,
+      "sha256": "f28c3ac68ffe5c7b50c5c8e5b4fda62a4ea318e7ff5a6c7b6f8874893d17e1ba"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/run_selected_eval.py": {
+      "type": "file",
+      "bytes": 884,
+      "sha256": "d3b2c26429bd412f50b6aec706f9b366fe11cba8d0b0cb372919d73967ed765d"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/eval/paired_delta.json": {
+      "type": "file",
+      "bytes": 14155,
+      "sha256": "3927e3c22266d4dbcc434d94fea284dfa0b9005ec3fb6cdfbb05871e8be91371"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/audit_review.py": {
+      "type": "file",
+      "bytes": 6676,
+      "sha256": "9b335ed9eaf8815771913d565d5c23b67365aebca23f1e590ac39766a174d73f"
+    },
+    "research/experiments/v6-preflop-context-prior-outcome-blind-dose-curve-20260901/terminal_review.json": {
+      "type": "file",
+      "bytes": 921,
+      "sha256": "37e2ed76a83453d3419a925fd0463bf2ff9ee7f6a6f516e8870b6b7f2d8f0eaa"
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "fixed-10m-script-delivery-20260908",
+  "title": "User-directed from-zero10M script delivery, no training launched",
+  "status": "COMPLETED",
+  "created_at": "2026-09-09T03:31:57+00:00",
+  "updated_at": "2026-09-09T03:32:34+00:00",
+  "started_at": "2026-09-09T03:31:57+00:00",
+  "ended_at": "2026-09-09T03:32:34+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A fixed long-horizon training and evaluation workflow reduces micro-experiment switching.",
+  "material_change": "Add explicit random-init10M, frozen100k sampled evaluation and retained-optimizer cumulative20M commands. Script-only user request.",
+  "baseline": "",
+  "source": "",
+  "parent_id": null,
+  "command": "python -B -m pytest -q -p no:cacheprovider scripts/alpha_holdem/test_long_run_10m.py",
+  "commands": [
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider scripts/alpha_holdem/test_long_run_10m.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-09T03:31:57+00:00"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider scripts/alpha_holdem/test_long_run_10m.py --junitxml=research/experiments/fixed-10m-script-delivery-20260908/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-09T03:32:34+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "fe81bdd4bcd85dbd48b3f9b60680b26e87dd799377b55cef5899ac50bd286cfb",
+    "code_paths": [
+      "scripts/alpha_holdem/long_run_10m.py"
+    ],
+    "captured_at": "2026-09-09T03:31:57+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/fixed-10m-script-delivery-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/fixed-10m-script-delivery-20260908/source_manifest.json",
+    "source_manifest_sha256": "aea5c07b1303e8270703e8f3f95c7cbb0bd8c556b60d15c27bf00e3525155c67",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 37.0
+  },
+  "metrics": {
+    "tests_passed": 4
+  },
+  "artifacts": [
+    "scripts/alpha_holdem/long_run_10m.py",
+    "scripts/alpha_holdem/LONG_RUN_10M.md",
+    "scripts/alpha_holdem/test_long_run_10m.py",
+    "research/experiments/fixed-10m-script-delivery-20260908/code.patch",
+    "research/experiments/fixed-10m-script-delivery-20260908/source_manifest.json",
+    "research/experiments/fixed-10m-script-delivery-20260908/tests.xml"
+  ],
+  "notes": [
+    "No training, checkpoint creation, Slumbot hands or existing audit intervention. New workflow default is true random initialization, not inherited model counter reset."
+  ],
+  "result": {
+    "summary": "Delivered explicit random-init10M training, fixed100k sampled evaluation and cumulative20M continuation scripts; four static/CLI checks passed.",
+    "conclusion": "Script delivery only. No GPU rollout, learned updates or new Slumbot hands; long-run behavior remains unqualified.",
+    "decision": "Do not launch; user requested scripts only. Preserve current external review.",
+    "next_step": "User engineering review and isolated GPU execution acceptance before production train10m."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "scripts/alpha_holdem/long_run_10m.py": {
+      "type": "file",
+      "bytes": 15177,
+      "sha256": "2d1f2b072343088de735b5f8d22f676916b494c3e5e19d8e8ca7b4ad82488860"
+    },
+    "scripts/alpha_holdem/LONG_RUN_10M.md": {
+      "type": "file",
+      "bytes": 3109,
+      "sha256": "5e6b33267082991ae15864a7c09bcb15cb374e40d6612c675bdb98c8accca499"
+    },
+    "scripts/alpha_holdem/test_long_run_10m.py": {
+      "type": "file",
+      "bytes": 1921,
+      "sha256": "d2e188caeace1a7f0c8443ca72311cfed37d8d7642f32b05db88f5c935cca715"
+    },
+    "research/experiments/fixed-10m-script-delivery-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/fixed-10m-script-delivery-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 282,
+      "sha256": "aea5c07b1303e8270703e8f3f95c7cbb0bd8c556b60d15c27bf00e3525155c67"
+    },
+    "research/experiments/fixed-10m-script-delivery-20260908/tests.xml": {
+      "type": "file",
+      "bytes": 668,
+      "sha256": "b363879ffcc8b9740e29f8624f433383e58f6a7c10f29695598f1adcaf9250a2"
+    }
+  }
+}

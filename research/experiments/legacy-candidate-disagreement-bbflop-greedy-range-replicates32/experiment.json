@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-candidate-disagreement-bbflop-greedy-range-replicates32",
+  "title": "candidate_disagreement_bbflop_greedy_range_replicates32",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/candidate_disagreement_bbflop_greedy_range_replicates_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/candidate_disagreement_bbflop_greedy_range_replicates_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "Worst-LCB actions agreed on 30/32 exact states. Five consensus new-all-in rows were nonnegative in all 30 replicate-by-opponent cells with worst-six-way lower95 +96.736 bb; other consensus actions also retained positive worst-six-way lower95. Uniform and conditioned targets disagreed materially on 31 exact overlapping states.",
+    "conclusion": "Do not treat 32 states as enough to train a general policy or claim rare all-in strength outside the sampled states.",
+    "decision": "RETAIN_POSTERIOR_CONTRACT_EXPAND_DATA",
+    "next_step": "Expand candidate-disagreement state coverage with the same posterior contract, or obtain an independent posterior/continuation model for cross-validation."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

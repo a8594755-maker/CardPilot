@@ -1,0 +1,212 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-heldout-proxy-ranking-panel-20260901",
+  "title": "Held-out learned-policy proxy ranking panel",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T03:03:49+00:00",
+  "updated_at": "2026-09-01T03:09:04+00:00",
+  "started_at": "2026-09-01T03:03:49+00:00",
+  "ended_at": "2026-09-01T03:09:04+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A panel of five frozen learned policies excluded from the raw actor's training league can rank the externally strongest parent above both independently failed continuation tails, providing a more credible generic selection signal than the original five training opponents.",
+  "material_change": "Offline generic-greedy common-deck matrix for parent, parent-KL, and weak-KL tail against entropy-penalty, causal-TCN, centralized-critic, full-network-265k, and physical1m frozen opponents; 512 mirrored pairs per cell.",
+  "baseline": "Original five training opponents incorrectly promoted both tails; independent greedy fresh5k points parent -9.4188, parent-KL -65.5040, weak tail -91.0228",
+  "source": "Three frozen candidates and five pre-existing learned opponents, all exact SHA256 identities",
+  "parent_id": "v6-parent-kl-greedy-fresh5k-slumbot-20260901",
+  "command": "python research/experiments/v6-heldout-proxy-ranking-panel-20260901/run_panel.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-heldout-proxy-ranking-panel-20260901/run_panel.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:03:49+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_entropy.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_entropy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:40+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_causal_tcn.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_causal_tcn",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:41+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_centralized.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_centralized",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:41+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_full265.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_full265",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:41+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_physical1m.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_physical1m",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:41+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent_kl.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_entropy.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_kl_entropy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:41+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent_kl.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_causal_tcn.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_kl_causal_tcn",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent_kl.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_centralized.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_kl_centralized",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent_kl.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_full265.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_kl_full265",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_parent_kl.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_physical1m.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\parent_kl_physical1m",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:42+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_weak_tail.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_entropy.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\weak_tail_entropy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_weak_tail.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_causal_tcn.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\weak_tail_causal_tcn",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_weak_tail.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_centralized.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\weak_tail_centralized",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_weak_tail.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_full265.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\weak_tail_full265",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:43+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\candidates_weak_tail.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\frozen\\opponents_physical1m.pt --pairs 512 --seed 20261104 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\matrix\\weak_tail_physical1m",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:04:43+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T03:03:49+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-heldout-proxy-ranking-panel-20260901/code.patch",
+    "patch_sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91",
+    "source_manifest": "research/experiments/v6-heldout-proxy-ranking-panel-20260901/source_manifest.json",
+    "source_manifest_sha256": "82b568039123a571f7071818cb0162daf5c64d2c388493fb57c0b50be8f30be9",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 15360,
+    "wall_time_seconds": 315.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 227.795999999973,
+    "parent_minus_parent_kl_bb100": -73.54765625,
+    "parent_minus_weak_tail_bb100": -128.3951171875,
+    "parent_wins_vs_parent_kl": 0,
+    "parent_wins_vs_weak_tail": 0
+  },
+  "artifacts": [
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/code.patch",
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\analysis.json",
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/result_summary.md",
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/reviewed_analysis.json"
+  ],
+  "notes": [
+    "External point estimates define only the preregistered ordinal validation target; no Slumbot outcomes or states are training labels."
+  ],
+  "result": {
+    "summary": "Five learned policies excluded from the raw actor training league failed the preregistered ordinal validation: they ranked both externally failed tails above the parent on every opponent.",
+    "conclusion": "The expanded learned-descendant panel is another anti-correlated proxy and must not be used for training selection or scale gates. Internal head-to-head strength within this policy lineage does not predict greedy Slumbot transfer.",
+    "decision": "HELDOUT_PROXY_PANEL_REJECTED",
+    "next_step": "Stop tuning fixed learned-policy leagues. The next learned-weight direction must change the data-generating opponent distribution substantially—e.g. broad procedural/rule strategy randomization or genuinely independent self-play population—and validate transfer before scale."
+  },
+  "tags": [
+    "heldout-panel",
+    "offline-eval",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 16,
+    "command_count": 16
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12742975,
+      "sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91"
+    },
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "82b568039123a571f7071818cb0162daf5c64d2c388493fb57c0b50be8f30be9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 3098,
+      "sha256": "bf090b23ed034b291352a9e15e958715a36792c9eed904d9a68fd6e7cc0e771b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-heldout-proxy-ranking-panel-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 554,
+      "sha256": "1f9f2154808ab02c03797ab3be85178733308af6b65999901c5ddec720c0fb71"
+    },
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 550,
+      "sha256": "e49e520f397b2b619764ee47a601dd3a329f101e9190bb11264ef35a99eba41b"
+    },
+    "research/experiments/v6-heldout-proxy-ranking-panel-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 532,
+      "sha256": "0e52ae274d1902028ac779d232ef1462ce5017af51cc4979a852c96d592104a5"
+    }
+  }
+}

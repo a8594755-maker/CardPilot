@@ -1,0 +1,48 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "legacy-target-continuation-drift-disagreement64",
+  "title": "target_continuation_drift_disagreement64",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T12:35:00+00:00",
+  "updated_at": "2026-08-29T12:35:00+00:00",
+  "started_at": null,
+  "ended_at": "2026-08-29T12:35:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Imported historical route; consult the named source for the original hypothesis.",
+  "material_change": "Historical evidence imported into the fixed experiment-memory format.",
+  "baseline": "See source record.",
+  "source": "reports/target_continuation_drift_disagreement64_c1_20260829.json",
+  "parent_id": null,
+  "command": "",
+  "code": {
+    "commit": null,
+    "branch": null,
+    "dirty": null
+  },
+  "runtime": {
+    "imported_from": "reports/cardpilot_research_memory_current.json"
+  },
+  "accounting": {
+    "new_training_hands": null,
+    "lineage_training_hands": null,
+    "offline_samples": null,
+    "evaluation_hands": null,
+    "wall_time_seconds": null
+  },
+  "metrics": {},
+  "artifacts": [
+    "reports/target_continuation_drift_disagreement64_c1_20260829.json"
+  ],
+  "notes": [
+    "Imported summary; unknown fields were not reconstructed."
+  ],
+  "result": {
+    "summary": "All 64 rows were exact-paired candidate-disagreement states. Aggregate source-to-candidate continuation drift was -0.04727 bb/state; BB flop -0.2201 +/-0.4768, SB flop +0.0311 +/-0.0600, and both turn routes exactly zero. No candidate action margin changed from positive to nonpositive. BB-turn and SB-flop candidate choices were already negative on average under the source continuation target.",
+    "conclusion": "Do not make candidate-continuation or multi-step conversion the next large training run, and do not scale the rejected capped-soft checkpoint.",
+    "decision": "REJECT_MULTI_STEP_CONTINUATION_AS_PRIMARY_FAILURE_MECHANISM",
+    "next_step": "A sequential intervention targets a different learned topology or demonstrates substantial candidate-continuation sign/ranking drift on a broader validated policy family; otherwise prioritize action-margin uncertainty, opponent disagreement and tail-risk calibration."
+  },
+  "tags": [
+    "legacy-import"
+  ]
+}

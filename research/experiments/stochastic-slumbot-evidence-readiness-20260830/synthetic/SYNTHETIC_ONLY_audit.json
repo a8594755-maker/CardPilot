@@ -1,0 +1,107 @@
+{
+  "claim_scope": "strict_observable_evidence_and_raw_iid_normal_ci_not_proof_of_hidden_deck_independence",
+  "independence": {
+    "checks": {
+      "aggregate_contains_both_seats": true,
+      "at_least_two_sessions": true,
+      "no_excess_initial_matches_on_at_least100_common_indices": true,
+      "no_five_hand_initial_stream_replay_at_any_offset": true,
+      "no_malformed_final_jsonl": true,
+      "no_pair_has_over_one_percent_same_index_matches": true,
+      "no_pair_has_three_consecutive_identical_deals": true,
+      "no_three_consecutive_same_index_initial_deals": true,
+      "seat_coverage_plausible_in_every_part": true
+    },
+    "claim_scope": "DEAL_STREAM_AND_SEAT_INDEPENDENCE_DIAGNOSTIC_ONLY_NOT_STRENGTH_NOT_HAND_COUNT_AUDIT",
+    "interpretation": "Each base or supplement process obtains its own opaque Slumbot token from new_hand. A one-hand supplement can legitimately contain only one seat; longer parts must contain both seats. This audit stores no token and retains full deal/action fingerprints plus action-independent initial hero-card/seat fingerprints. It detects aligned or shifted observable replay, not hidden-deck identity or full statistical independence. Three aligned matches or five consecutive matches at any offset fail; initial-match fractions are screened only with at least100 common indices.",
+    "pairwise": [
+      {
+        "common_hand_indices": 100,
+        "fingerprint_overlap_at_any_index": 6,
+        "left": "part0.dump",
+        "longest_consecutive_initial_deal_match_run": 0,
+        "longest_consecutive_same_index_match_run": 0,
+        "right": "part1.dump",
+        "same_index_exact_fingerprint_matches": 0,
+        "same_index_initial_deal_match_fraction": 0.0,
+        "same_index_initial_deal_matches": 0,
+        "same_index_match_fraction": 0.0,
+        "shared_five_hand_initial_deal_windows_at_any_offset": 0
+      }
+    ],
+    "schema": "cardpilot.slumbot_session_independence_audit.v3",
+    "sessions": {
+      "part0.dump": {
+        "bb_hands": 50,
+        "hands_observed": 100,
+        "malformed_lines_while_live": 0,
+        "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part0.dump.jsonl",
+        "sb_hands": 50,
+        "unique_fingerprints": 98
+      },
+      "part1.dump": {
+        "bb_hands": 50,
+        "hands_observed": 100,
+        "malformed_lines_while_live": 0,
+        "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part1.dump.jsonl",
+        "sb_hands": 50,
+        "unique_fingerprints": 94
+      }
+    },
+    "status": "PASS"
+  },
+  "input_sha256": {
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\manifest.json": "bdc1a75c3d0108065577d31506d81218aaf5500d08df2ea7ea2567f5214f25eb",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part0.dump.jsonl": "4d1680481eda2e203ab7942c5c1ba92f2289dfa991da23f595e9acd340c86623",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part0.hands.jsonl": "01a818c5c0103a9f5d70b15e34eb717d417b08065699828f76a6c6f8fa7a6827",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part0.result.json": "8aeba5be8e76df417a4636c559b6886aaf433424eeb5c668902e6975ebe0898c",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part1.dump.jsonl": "259d83372c48f3631405415ac591fa5d2d2de18545284b630f0a53996fa02d68",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part1.hands.jsonl": "5c465aaa2009df8ed1556e3abd57bc8d7ea75ee5374e1f88c317a93ad32edb4c",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\part1.result.json": "25bf43a374eea81a4324942c826444496a89ae2cbd7a57d9cb8ec80866f6ba41",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\stochastic-slumbot-evidence-readiness-20260830\\synthetic\\synthetic_not_a_poker_model.pt": "1a1ecd9a7ed1caa12d5cefb8080c04241d3d0df3c4808035c179ad551e4a30a0"
+  },
+  "schema": "cardpilot.slumbot_frozen_hand_evidence_audit.v1",
+  "sessions": [
+    {
+      "hands": 100,
+      "hero_decisions": 50,
+      "id": "part0",
+      "total_chips": 0
+    },
+    {
+      "hands": 100,
+      "hero_decisions": 50,
+      "id": "part1",
+      "total_chips": 0
+    }
+  ],
+  "status": "PASS",
+  "summary": {
+    "avg_bb_per_hand": 0.0,
+    "baseline_bb_per_100": -11.4275,
+    "baseline_ci_lower_above_baseline": false,
+    "baseline_comparison_scope": "historical_greedy_reference_not_matched_sampled_treatment",
+    "baseline_delta_bb_per_100": 11.4275,
+    "baseline_hands_min": 20000,
+    "baseline_point_estimate_improved": false,
+    "bb_per_100": 0.0,
+    "ci95_bb_per_100": 6.947035809081692,
+    "ci95_bb_per_hand": 0.06947035809081692,
+    "hands": 200,
+    "l5_blockers": [
+      "hands < 100000",
+      "bb/100 <= 0",
+      "95% CI lower bound <= 0"
+    ],
+    "l5_formal_win": false,
+    "l6_near_paper_target": false,
+    "l6_target_bb_per_100": 11.1,
+    "l6_tolerance_bb_per_100": 2.0,
+    "lower_bound_bb_per_100": -6.947035809081692,
+    "milestone_level": "L3",
+    "milestone_meaning": "near break-even",
+    "std_bb_per_hand": 0.5012547071170855,
+    "total_bb": 0.0,
+    "upper_bound_bb_per_100": 6.947035809081692
+  }
+}

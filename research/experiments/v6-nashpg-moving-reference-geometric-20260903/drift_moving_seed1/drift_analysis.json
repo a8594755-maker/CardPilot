@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.046,
+      "greedy_disagreements": 230,
+      "max_tv": 0.4303494989871979,
+      "mean_tv": 0.039731346751616846,
+      "p95_tv": 0.09909220449626446,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.068,
+      "greedy_disagreements": 340,
+      "max_tv": 0.3328561782836914,
+      "mean_tv": 0.06127466318024235,
+      "p95_tv": 0.18344426453113558,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.0782,
+      "greedy_disagreements": 391,
+      "max_tv": 0.3334029018878937,
+      "mean_tv": 0.06966344324485545,
+      "p95_tv": 0.1776208370923996,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.0902,
+      "greedy_disagreements": 451,
+      "max_tv": 0.29416489601135254,
+      "mean_tv": 0.07160439275798344,
+      "p95_tv": 0.17455445528030397,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "models/baseline/standard10/latest.pt",
+    "--parent-sha256",
+    "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "--treatment",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-nashpg-moving-reference-geometric-20260903\\moving_seed1\\latest.pt",
+    "--out-dir",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_moving_seed1",
+    "--states",
+    "20000",
+    "--seed",
+    "20263032",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "1",
+    "--greedy-disagreement-max",
+    "1"
+  ],
+  "created_at": "2026-09-03T17:52:00.495888+00:00",
+  "design": {
+    "greedy_disagreement_max": 1.0,
+    "outcome_blind": true,
+    "seed": 20263032,
+    "source_tv_max": 1.0,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 67706,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.0706,
+    "greedy_disagreements": 1412,
+    "max_tv": 0.4303494989871979,
+    "mean_tv": 0.060568461483674514,
+    "p95_tv": 0.16744380518794058,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-nashpg-moving-reference-geometric-20260903\\drift_moving_seed1\\drift_raw.jsonl.gz",
+  "raw_sha256": "54b920a48ad94f3abda80a6545575964f2f9e58b25148e7d6370af0aa6d16637",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 57706,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-nashpg-moving-reference-geometric-20260903\\moving_seed1\\latest.pt",
+    "sha256": "bd76f06a6724c56b44bfd4476fc8bcd56b76e484b835a58c4c22212c0d24768d"
+  },
+  "wall_time_seconds": 4.662807464599609
+}

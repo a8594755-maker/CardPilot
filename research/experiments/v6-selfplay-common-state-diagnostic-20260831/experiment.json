@@ -1,0 +1,169 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-selfplay-common-state-diagnostic-20260831",
+  "title": "Outcome-blind preserved self-play policy behavior diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T15:41:49+00:00",
+  "updated_at": "2026-08-31T15:44:52+00:00",
+  "started_at": "2026-08-31T15:41:49+00:00",
+  "ended_at": "2026-08-31T15:41:52+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The two learned self-play-mixture endpoints differ measurably in their action distributions on fixed common states; behavioral distance does not imply better strength or transfer.",
+  "material_change": "Reuse8404already saved parity predictions on4202states/512old exogenous hand blocks; hand-weighted TV/JS and probability shifts with no live outcome reads, model queries, game steps or network. Protect active40k source/weights.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-selfplay75-transfer-pilot-r4-20260831",
+  "command": "python research/experiments/v6-selfplay-common-state-diagnostic-20260831/run_diagnostic.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-selfplay-common-state-diagnostic-20260831/run_diagnostic.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:41:49+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\test_behavior.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T15:41:51+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-selfplay-common-state-diagnostic-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T15:41:50+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-selfplay-common-state-diagnostic-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-selfplay-common-state-diagnostic-20260831/source_manifest.json",
+    "source_manifest_sha256": "5d115110f1c67a40c181405df4d751715f19aecc840e45769d42e195bc32e249",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 3.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/preregistration.md",
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/code.patch",
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\test_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\state_differences.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\hand_blocks.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\result_summary.md",
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/post_finish_audit.json"
+  ],
+  "notes": [
+    "Registered before looking at current Slumbot outcomes. No alteration of fixed endpoints, active sessions, budget or allocation. Reused rows are not fresh samples or training examples; no model inference.",
+    "Completed outcome-blind reuse of preserved parity predictions; no live returns/model calls/new games. Active external cohort unchanged.",
+    "11analytic tests passed and post-finish audit1record0warnings. Primary hand-block TV0.4025433486588567 CI95[0.3889233378921587,0.4161633594255547],512old exogenous blocks. Not a strength result. Active cohort continued unchanged and advanced naturally into wave1."
+  ],
+  "result": {
+    "summary": "Preserved512hand-block policy diagnostic: meanTV 0.402543,CI95[0.3889233378921587, 0.4161633594255547];zero new hands/queries/network.",
+    "conclusion": "Behavioral distance only, not strength or transfer evidence; both fixed endpoints continue the unchanged external cohort.",
+    "decision": "DESCRIPTIVE_POLICY_DISTANCE_RECORDED",
+    "next_step": "Finish the same live fixed40k cohort and judge learned transfer only from its full audited outcomes."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2957,
+      "sha256": "de231ee4da6afc5dd3ac39717d6488a464fdba662f30e5cdc47a775e8ea97330"
+    },
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1353,
+      "sha256": "5d115110f1c67a40c181405df4d751715f19aecc840e45769d42e195bc32e249"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1145,
+      "sha256": "a2dcdd474c9474a5328836dfcf52f9c97557a212adb798164729499277eaf424"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1819,
+      "sha256": "84766f79069f048b55ce512e0ac68fe0ac6f1ced60c6c944e46771e24fb22fa7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 1984,
+      "sha256": "e4855e5f7a6be0346f45af51a3f419b8ee89c675efac4416a8c5c87444c18a07"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\test_stdout.log": {
+      "type": "file",
+      "bytes": 227,
+      "sha256": "4cc7d079c1976056fc275d2c1f0bace79227b390afac2366de760903ad5ec62c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 6260,
+      "sha256": "11c8af5ba5d608476019aea329ef62235dc8384038efa90ca04cf448bf80d17a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 898,
+      "sha256": "84aed816c049a53be1b93b16d43a2ee7f2304d0ab59836ee2af5b72b9cca871e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\state_differences.json": {
+      "type": "file",
+      "bytes": 1864343,
+      "sha256": "8161f9e8b0e0e6d08541050a6714162f61ef342b02692e2b0669f9a768601f97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\hand_blocks.json": {
+      "type": "file",
+      "bytes": 213396,
+      "sha256": "e606bb66d28e98bee12a9d2985f3557dfab54e27817c2849fb6a43e8d34933da"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay-common-state-diagnostic-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 1143,
+      "sha256": "1db709d953d499ad0f2ec08ac48e370cfd7e25c421a39939021a29eb18c433b0"
+    },
+    "research/experiments/v6-selfplay-common-state-diagnostic-20260831/post_finish_audit.json": {
+      "type": "file",
+      "bytes": 228,
+      "sha256": "91124d7255785ab3177c158a0a4ac56a5f0cee66899aa76567e34d63e13490f3"
+    }
+  }
+}

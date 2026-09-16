@@ -1,0 +1,171 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-static-current-kl-262k-fresh-confirmation-20260903",
+  "title": "Static current-KL 262k high-precision fresh confirmation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T19:26:22+00:00",
+  "updated_at": "2026-09-03T20:14:44+00:00",
+  "started_at": "2026-09-03T19:26:22+00:00",
+  "ended_at": "2026-09-03T20:14:28+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The mixed 65k-to-262k directional signal will reproduce on a wholly new doubled-size common-deck cohort strongly enough for at least two seeds to show positive slopes and combined both-seat, three-anchor breadth.",
+  "material_change": "Keep all six checkpoints frozen and evaluate each matched 65k/262k pair on 4096 fresh pairs per each of four anchors in both seats using independent seeds 20263061-20263063; combine only after all runs finish.",
+  "baseline": "Prior untouched 2048-pair-per-anchor cohort: slopes -2.753, +0.994, +5.586 bb/100; combined +1.276 CI95 [-2.231,+4.783], one breadth-qualified seed, one nonreplicated collapse seed, safe Standard10 drift.",
+  "source": "research/experiments/v6-static-current-kl-262k-scale-20260903/aggregate.json",
+  "parent_id": "v6-static-current-kl-262k-scale-20260903",
+  "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/run_evaluation.ps1",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/run_evaluation.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T19:26:22+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_static_current_kl_262k_confirmation.py --experiment-dir research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903 --prior-dir research/experiments/v6-static-current-kl-262k-scale-20260903 --out research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T20:14:08+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py validate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T20:14:43+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-03T19:26:22+00:00 --out-json research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/logger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T20:14:43+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "f5a571c039b946aeebc48e60930cfccaa5d0bb9bcf00d8d598413e19871e032a",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_public_opponent_matched_eval.py",
+      "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903"
+    ],
+    "captured_at": "2026-09-03T19:26:22+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/source_manifest.json",
+    "source_manifest_sha256": "78721467f711d967c0a210bd7174aa4934d80269431eb47983be3a7d8fb6e578",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 196608,
+    "wall_time_seconds": 2886.0,
+    "environment_training_hands": 0,
+    "planned_evaluation_hands": 196608
+  },
+  "metrics": {
+    "fresh_seed1_slope_bb100": 2.9571533203125,
+    "fresh_seed2_slope_bb100": 0.4219970703124999,
+    "fresh_seed3_slope_bb100": -1.62310791015625,
+    "pooled_seed1_slope_bb100": 1.0538736979166665,
+    "pooled_seed2_slope_bb100": 0.6127115885416666,
+    "pooled_seed3_slope_bb100": 0.7799479166666667,
+    "pooled_all_slope_bb100": 0.8155110677083334,
+    "pooled_all_ci95_low_bb100": -1.5262997307288342,
+    "pooled_all_ci95_high_bb100": 3.1573218661455007,
+    "breadth_qualified_seed_count": 2,
+    "fresh_collapse_seed_count": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/preregistration.md",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/run_evaluation.ps1",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/code.patch",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/source_manifest.json",
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_262k_confirmation.py",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/eval_seed1",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/eval_seed2",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/eval_seed3",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/aggregate.json",
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/logger_audit.json"
+  ],
+  "notes": [
+    "Frozen hashes, evaluation seeds, 4096 pairs per anchor, no adaptive stopping, pooled breadth gates, and rejection criteria were fixed before any fresh evaluation hand was generated.",
+    "Post-finish logger validation and zero-warning audit completed."
+  ],
+  "result": {
+    "summary": "Three frozen matched confirmations completed 196608 wholly new evaluation hands. Fresh slopes were +2.957, +0.422, and -1.623 bb/100. Pooling all 294912 prior+fresh hands yielded positive per-seed slopes +1.054, +0.613, +0.780 and all-seed +0.816 CI95 [-1.526,+3.157].",
+    "conclusion": "All hash, row-count, frozen-checkpoint, seed, and deck-disjointness gates passed. Fresh slopes were positive in two seeds with positive median; pooled seed2 and seed3 each had both seats nonnegative and at least three nonnegative anchors. One fresh broad collapse did not replicate. Directional evidence supports more training despite nonsignificant absolute slope.",
+    "decision": "PROMOTE_STATIC_CURRENT_KL_TO_1M_SCALE",
+    "next_step": "Continue all three frozen 262k lineages to at least 1M cumulative physical hands with repaired monotonic pool identities, exact optimizer/replay/assignment continuity, disjoint fixed deals, geometric archives, and fresh multi-anchor evaluation. Do not call Slumbot until the internal curve and preservation evidence justify an external gate."
+  },
+  "tags": [
+    "fresh-confirmation",
+    "frozen-evaluation",
+    "geometric-learning-curve",
+    "multi-seed"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/preregistration.md": {
+      "type": "file",
+      "bytes": 2425,
+      "sha256": "1305eee26a9b372c939eca845fb250871511e321c2fe8a05434e1897126aaa81"
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/run_evaluation.ps1": {
+      "type": "file",
+      "bytes": 1498,
+      "sha256": "76a610ee7d2f0203aa36489d3f8d69597073c8dc814a09d8e7baa262c87680b2"
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 973,
+      "sha256": "78721467f711d967c0a210bd7174aa4934d80269431eb47983be3a7d8fb6e578"
+    },
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_262k_confirmation.py": {
+      "type": "file",
+      "bytes": 8959,
+      "sha256": "cc4cc96ef54378f27cf64156b4fb4bc8d43c213a02e35bc50f3ec57d6caa5749"
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/eval_seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/eval_seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/eval_seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 21369,
+      "sha256": "5af34628a63d11d85f130856f93d55cfcb7e88f8167dcfc21b50600cf5ab3ff6"
+    },
+    "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/logger_audit.json": {
+      "type": "file",
+      "bytes": 237,
+      "sha256": "c4a0cf425773875fb768a0a7a7b20f1b57529c46a3859a4e86679fb1a9066e34"
+    }
+  }
+}

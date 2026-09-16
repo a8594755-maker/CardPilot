@@ -1,0 +1,128 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-history-consistent-hole-posterior-smoke-20260901",
+  "title": "History-consistent opponent-hole posterior support smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:28:18+00:00",
+  "updated_at": "2026-09-01T14:35:47+00:00",
+  "started_at": "2026-09-01T14:28:18+00:00",
+  "ended_at": "2026-09-01T14:35:47+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Frozen greedy opponent action histories retain enough exact opponent-hole support across both seats and all streets to enable posterior-marginalized counterfactual targets.",
+  "material_change": "Enumerate and replay all opponent-hole pairs for 64 balanced exact-v6 decision states under each frozen opponent observation contract; test support before any value target or weight update.",
+  "baseline": "v6-broad-counterfactual-target-reliability-smoke-20260901",
+  "source": "Standard10 plus four frozen mixed-contract trajectory opponents",
+  "parent_id": "v6-broad-counterfactual-target-reliability-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_history_consistent_hole_posterior.py --candidate models/baseline/standard10/latest.pt --candidate-observation-style legacy_v4 --opponent standard10=models/baseline/standard10/latest.pt --opponent freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --opponent raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent-style standard10=legacy_v4 --opponent-style freshzero=legacy_v4 --opponent-style raw_actor=v6 --opponent-style procedural_soup=v6 --quota-per-stratum 8 --trajectory-seed 2026133001 --max-trajectory-hands 5000 --device cuda --out-dir research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_history_consistent_hole_posterior.py --candidate models/baseline/standard10/latest.pt --candidate-observation-style legacy_v4 --opponent standard10=models/baseline/standard10/latest.pt --opponent freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --opponent raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent-style standard10=legacy_v4 --opponent-style freshzero=legacy_v4 --opponent-style raw_actor=v6 --opponent-style procedural_soup=v6 --quota-per-stratum 8 --trajectory-seed 2026133001 --max-trajectory-hands 5000 --device cuda --out-dir research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:28:18+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:35:47+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4cbb24fe00202c1e66ee2445aa649fb26bae9364c663d2fec69ff82b54ecbd8b",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_history_consistent_hole_posterior.py",
+      "scripts/alpha_holdem/test_v6_history_consistent_hole_posterior.py",
+      "scripts/alpha_holdem/v6_elo_eval.py",
+      "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/preregistration.md"
+    ],
+    "captured_at": "2026-09-01T14:28:18+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "4944ab6e386e22d611180e70d217e69983be1bc3b8161876ca99751c17d7f8d5",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 112,
+    "lineage_training_hands": 112,
+    "offline_samples": 69296,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 449.0
+  },
+  "metrics": {
+    "posterior_tests_passed": 2,
+    "alpha_holdem_tests_passed": 200,
+    "trajectory_hands": 112,
+    "posterior_rows": 64,
+    "total_hole_candidates": 69296,
+    "overall_min_support": 149,
+    "overall_median_support": 772,
+    "posterior_target_generation_admitted": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/preregistration.md",
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/code.patch",
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data/summary.json",
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data/posterior_rows.jsonl"
+  ],
+  "notes": [
+    "All 69,296 enumerated hole candidates were evaluated under frozen exact observation contracts; accepted support is preserved per row."
+  ],
+  "result": {
+    "summary": "Exact deterministic opponent-history filtering completed 64 balanced states from 112 trajectory hands and enumerated 69,296 candidate hole pairs. Every true trajectory hole remained in support, all accepted replays reproduced public/financial state, minimum support was 149 and median support 772; every preregistered support gate passed.",
+    "conclusion": "The fixed-hole hindsight failure has a viable data remedy: frozen greedy action histories leave ample history-consistent opponent-hole support even under mixed legacy/native opponent contracts. This establishes posterior feasibility only; it does not validate action values or a policy. The next reliability run must sample disjoint development/confirmation holes from these supports and independently resample future boards before any learned update.",
+    "decision": "ADMIT_POSTERIOR_MARGINALIZED_TARGET_RELIABILITY",
+    "next_step": "Freeze this posterior artifact and run one separately logged 8+8 posterior-hole/future-runout all-legal target reliability smoke on the same 64 rows. Train nothing unless action identity, confirmation value, every-stratum, and new-all-in gates all pass."
+  },
+  "tags": [
+    "counterfactual",
+    "posterior",
+    "reliability",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 2284,
+      "sha256": "6cd1248013a4c1af00e34e6e69d0b500a77dedbfd0883e71eec6e826da404501"
+    },
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 901,
+      "sha256": "4944ab6e386e22d611180e70d217e69983be1bc3b8161876ca99751c17d7f8d5"
+    },
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data/summary.json": {
+      "type": "file",
+      "bytes": 4573,
+      "sha256": "9458057727d03d05a4c781d09c639eac2a03bf929ff2b96ea7cf88523b16c2d5"
+    },
+    "research/experiments/v6-history-consistent-hole-posterior-smoke-20260901/data/posterior_rows.jsonl": {
+      "type": "file",
+      "bytes": 495357,
+      "sha256": "1ccf2568114055640e2115322f174fb5ab3d6bf0476baaaa3a91cf0e40f1708b"
+    }
+  }
+}

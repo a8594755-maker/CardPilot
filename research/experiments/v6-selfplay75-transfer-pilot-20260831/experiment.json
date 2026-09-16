@@ -1,0 +1,140 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-selfplay75-transfer-pilot-20260831",
+  "title": "Matched v6 self-play share transfer pilot",
+  "status": "FAILED",
+  "created_at": "2026-08-31T14:39:04+00:00",
+  "updated_at": "2026-08-31T14:40:07+00:00",
+  "started_at": "2026-08-31T14:39:04+00:00",
+  "ended_at": "2026-08-31T14:40:07+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Increasing current-policy self-play exposure from25 to75 percent groups may improve transfer after prior internal gains failed externally; narrow fixed-pool exploitation is a hypothesis, not established cause.",
+  "material_change": "Two fresh original-source full-network PPO arms, each1048576 actual physical hands; matched seeds and fixed3-anchor pool; only self-play group share25 versus75 percent differs. Fixed122880 internal diagnostic hands do not select external arms.",
+  "baseline": "v6-physical1m-fresh20k-slumbot-20260831",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-physical1m-learning-curve-20260831",
+  "command": "python research/experiments/v6-selfplay75-transfer-pilot-20260831/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-selfplay75-transfer-pilot-20260831/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:39:04+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T14:39:07+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-selfplay75-transfer-pilot-20260831",
+      "scripts/alpha_holdem",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T14:39:04+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-selfplay75-transfer-pilot-20260831/code.patch",
+    "patch_sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4",
+    "source_manifest": "research/experiments/v6-selfplay75-transfer-pilot-20260831/source_manifest.json",
+    "source_manifest_sha256": "872e4b0b3e53b3c463595846948c37bb70449d9fdaa1e0ebfb66fbe0afed01b0",
+    "source_files": 75
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 63.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/preregistration.md",
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/code.patch",
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution.json",
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/prerun_tests.xml",
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/execution.json"
+  ],
+  "notes": [
+    "Prior frozen final20k completed valid at -137.73925bb/100; no100k admission. No completed work restarted. New fresh starts explicitly reset only NEW arm counters/Adam, not any historical experiment. Candidate-specific parity and separate fixed20k/arm external record required afterward. Prelaunch Python compilation passed; driver records and executes unit tests before training.",
+    "Execution error/interruption preserved; no automatic retries, counter resets, or cell replays.",
+    "Prerun pytest collection failed because direct train_v5 import requires scripts/alpha_holdem on sys.path for its sibling imports. No trainer child launched, no production or frozen directory created, zero new training/evaluation/network hands. All first-attempt originals and captured copies retained unchanged."
+  ],
+  "result": {
+    "summary": "Prerun import-path failure before any training or evaluation; zero new hands. Original failed attempt and evidence preserved.",
+    "conclusion": "Test harness imported train_v5 without its required sibling module search path; this is infrastructure failure, not a learning result.",
+    "decision": "PRETRAIN_TEST_IMPORT_FAILURE",
+    "next_step": "Create separately logged r2 with only test import-path correction and identical unconsumed preregistered seeds/settings; preserve failed attempt."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 5917,
+      "sha256": "5a57126ca5145e7266ed31a746f4f256efb2a4f83648d54217bc20c827f342a9"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/code.patch": {
+      "type": "file",
+      "bytes": 12702916,
+      "sha256": "20d41916f49accbc124ed2f7c3bebf2b0b6ae56df2191446592f2dd7b9ebcde4"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 13923,
+      "sha256": "872e4b0b3e53b3c463595846948c37bb70449d9fdaa1e0ebfb66fbe0afed01b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14028,
+      "sha256": "6e893eb538186f96e4b07496cd22bfc9f855dc8d173a36bfde99065f77110c1a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23449,
+      "sha256": "86fcd425a95192916315f9b37ef0adcfecf68ecbb941a7e80cc716b29e6ee3c1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-selfplay75-transfer-pilot-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 1072,
+      "sha256": "b3b26f64cc2e20a40807a72dc2bd254d5f3a4478568a235ccc1504527691d5b3"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/prerun_tests.xml": {
+      "type": "file",
+      "bytes": 1113,
+      "sha256": "b092ef7e24e138da0e551c1de4369c8f97d30b9b39c65048888fd8400a2ca49c"
+    },
+    "research/experiments/v6-selfplay75-transfer-pilot-20260831/execution.json": {
+      "type": "file",
+      "bytes": 1072,
+      "sha256": "b3b26f64cc2e20a40807a72dc2bd254d5f3a4478568a235ccc1504527691d5b3"
+    }
+  }
+}

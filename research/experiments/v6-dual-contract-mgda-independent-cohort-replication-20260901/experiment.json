@@ -1,0 +1,161 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-dual-contract-mgda-independent-cohort-replication-20260901",
+  "title": "Dual-contract MGDA independent-cohort replication",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T17:33:53+00:00",
+  "updated_at": "2026-09-01T17:39:44+00:00",
+  "started_at": "2026-09-01T17:33:53+00:00",
+  "ended_at": "2026-09-01T17:39:44+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The MGDA common-descent mechanism and at least nonnegative broad policy direction will reproduce on the independent 4,096-hand seed-20261390 cohort, distinguishing a stable small-data learning signal from a cohort-specific gradient geometry effect.",
+  "material_change": "Apply the identical 32-step, six-group, batch-256 ordinary-versus-MGDA matched protocol to the previously collected immutable seed-20261390 cohort (different hand SHA and 8,925 transitions), with shared deterministic initialization and new untouched common-deck evaluation seeds. No new environment hands and no reuse of prior evaluation decks.",
+  "baseline": "First cohort retained positive worst-group MGDA alignment on 32/32 steps and pooled +0.559 bb/100, but only 1/3 anchors improved, Standard10 was -3.833, and seat1 -0.960. This is mechanism-positive but efficacy-inconclusive evidence.",
+  "source": "research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/training_hands.jsonl.gz",
+  "parent_id": "v6-dual-contract-mgda-matched-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_mgda_matched_smoke.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-evidence research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/training_hands.jsonl.gz --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20261390 --device cuda --out-dir research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_mgda_matched_smoke.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-evidence research/experiments/v6-dual-contract-residual-reward-smoke-20260901/run/training_hands.jsonl.gz --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20261390 --device cuda --out-dir research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:33:53+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_mgda_two_cohort_meta.py --evidence research/experiments/v6-dual-contract-mgda-matched-smoke-20260901/run/evaluation_pairs.jsonl.gz --evidence research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/evaluation_pairs.jsonl.gz --summary research/experiments/v6-dual-contract-mgda-matched-smoke-20260901/run/summary.json --summary research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/summary.json --output research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/two_cohort_meta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:39:44+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T17:39:44+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "12c0dc8d6ae4930b530122169bbce1e62a50f26904795e530cee4db8bef67e82",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T17:33:53+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/source_manifest.json",
+    "source_manifest_sha256": "d9fc94611fe80d348d141f3d584991b2941aa1beac6c42a905f4ba068f76b15d",
+    "source_files": 126
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 4096,
+    "offline_samples": 8925,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 351.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 12288
+  },
+  "metrics": {
+    "control_update_rows": 49152,
+    "treatment_update_rows": 49152,
+    "pooled_delta_bb100": 7.254231770833333,
+    "pooled_delta_ci95_low_bb100": -2.396061466698958,
+    "pooled_delta_ci95_high_bb100": 16.904525008365624,
+    "standard10_delta_bb100": 6.6162109375,
+    "slumbot_free_delta_bb100": 13.24609375,
+    "cfr96_delta_bb100": 1.900390625,
+    "positive_anchor_count": 3,
+    "pooled_seat0_delta_bb100": 4.429361979166666,
+    "pooled_seat1_delta_bb100": 10.0791015625,
+    "robust_positive_worst_alignment_fraction": 1.0,
+    "combined_two_cohort_delta_bb100": 3.9068196614583335,
+    "combined_two_cohort_ci95_low_bb100": -5.57960359601393,
+    "combined_two_cohort_ci95_high_bb100": 13.393242918930598,
+    "combined_evaluation_hands": 24576,
+    "tests_passed": 229
+  },
+  "artifacts": [
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/code.patch",
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/source_manifest.json",
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/summary.json",
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/training_schedule.jsonl.gz",
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/control_residual.pt",
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/treatment_residual.pt",
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/two_cohort_meta.json"
+  ],
+  "notes": [
+    "Promotion to new-hand multi-seed scaling requires the replication itself to have pooled delta >0, >=2/3 positive anchors, Standard10 >=0, both seats >=0, caps/base/schedule valid, and robust positive worst alignment on >=75% of steps; then both cohorts will be meta-aggregated before promotion. Failure is evidence against this 32-step formulation, not proof that all long-horizon multi-objective learning is impossible.",
+    "Raw second-cohort SHA256 be20c76173b078e11e0994f410e025cdc2d0a66fe7d91c7d5092d9cf192d290b; exact meta-analysis verified zero deck overlap with the first cohort. Across 6,144 independent matched pairs / 24,576 hands, pooled +3.906820 bb/100 CI[-5.579604,13.393243], every anchor point and both seat points were positive."
+  ],
+  "result": {
+    "summary": "The independent seed-20261390 cohort reproduced the MGDA mechanism on 32/32 steps and passed every policy-direction gate: treatment-control was +6.616 Standard10, +13.246 Slumbot-free, +1.900 CFR96, pooled +7.254 CI[-2.396,16.905], with both seats positive. Two-cohort raw aggregation had zero deck overlap and pooled +3.907 CI[-5.580,13.393], all three anchors and both seats positive.",
+    "conclusion": "Conflict-aware residual learning now has two-seed mechanism replication and positive combined breadth, while uncertainty remains large and the first cohort alone was mixed. This justifies a modest new-hand multi-seed scale to estimate a geometric learning curve and preservation, not a Slumbot test or a claim of established strength.",
+    "decision": "ADMIT_MODEST_NEW_HAND_MULTI_SEED_SCALE",
+    "next_step": "Collect multiple fresh on-policy cohorts at a modest geometric dose, retaining Standard10 frozen-base/cap protection and matched ordinary controls. Evaluate checkpoint doses on untouched common decks; escalate only if slopes, multi-seed breadth, both seats, and Standard10 preservation remain directionally aligned."
+  },
+  "tags": [
+    "mgda",
+    "multi-objective",
+    "offline-training",
+    "replication"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 23529,
+      "sha256": "d9fc94611fe80d348d141f3d584991b2941aa1beac6c42a905f4ba068f76b15d"
+    },
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 38123,
+      "sha256": "904fe1d55423c997ce2d018b9ebf6fe65e96c7dbed234b612e97d18a260dc5bb"
+    },
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/training_schedule.jsonl.gz": {
+      "type": "file",
+      "bytes": 109467,
+      "sha256": "fa83fe78ddabd59025f91d7477b7e2b004a05c7b1f75901ad8f04ad165688f87"
+    },
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 194672,
+      "sha256": "be20c76173b078e11e0994f410e025cdc2d0a66fe7d91c7d5092d9cf192d290b"
+    },
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/control_residual.pt": {
+      "type": "file",
+      "bytes": 1391850,
+      "sha256": "234d05fbfbd6103a4d754396d6312956c6c9e17d46652540c69bdd4f94861df5"
+    },
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/treatment_residual.pt": {
+      "type": "file",
+      "bytes": 1394370,
+      "sha256": "54256f5a8bdd3a0f6b860750c257fc50284ef78b3f8bf46f3a5c2bb0ffa781db"
+    },
+    "research/experiments/v6-dual-contract-mgda-independent-cohort-replication-20260901/run/two_cohort_meta.json": {
+      "type": "file",
+      "bytes": 4178,
+      "sha256": "39fe508f57dcaab0072c8f6ed13102a28af859b7bedf214e8022a19c664893b5"
+    }
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "native-state-contract-audit-20260831",
+  "title": "Native training mirror and Slumbot contract audit",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T06:57:33+00:00",
+  "updated_at": "2026-08-31T07:06:29+00:00",
+  "started_at": "2026-08-31T06:57:33+00:00",
+  "ended_at": "2026-08-31T07:06:29+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The broad internal versus negative external result may involve different execution contracts; fixed native/training/mirror/Slumbot state probes can establish concrete discrepancies without training or playing hands.",
+  "material_change": "Five fixed outcome-independent deterministic probes: posted-blind action binding, SB completion BB option, minimum flop opening bet, minimum re-raise after a3bb bet, opening all-in v4 action encoding. Snapshot production sources and do not fix them during this diagnostic.",
+  "baseline": "Full checkpoint has positive four-anchor internal replication but completed fresh20k Slumbot -81.251bb/100 CI95[-123.160,-39.342]. CPU loader parity alone did not check encoders, rules or action binding.",
+  "source": "research/experiments/matched-weak-kl-representation-curve-20260830/frozen/full.pt",
+  "parent_id": "representation-full-strict-sampled-slumbot20k-20260831",
+  "command": "python research/experiments/native-state-contract-audit-20260831/run_audit.py",
+  "commands": [
+    {
+      "command": "python research/experiments/native-state-contract-audit-20260831/run_audit.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T06:57:33+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "b4a1f91840acaec8bfc295aa8ea67caa3b3f15b04c1474b55727b7820e88e756",
+    "code_paths": [
+      "research/experiments/native-state-contract-audit-20260831"
+    ],
+    "captured_at": "2026-08-31T06:57:33+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/native-state-contract-audit-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/native-state-contract-audit-20260831/source_manifest.json",
+    "source_manifest_sha256": "d3e2dbf556bc06f3d2f0bcb4a2045a11f66cf67883d184dba42a6e21037572e1",
+    "source_files": 3
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 536.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "probe_count": 5,
+    "discrepant_probes": 5,
+    "captured_source_pairs": 63,
+    "reviewed_counterexamples": 5,
+    "historical_runtime_pairs_matched": 18
+  },
+  "artifacts": [
+    "research/experiments/native-state-contract-audit-20260831/preregistration.md",
+    "research/experiments/native-state-contract-audit-20260831/code.patch",
+    "research/experiments/native-state-contract-audit-20260831/source_manifest.json",
+    "research/experiments/native-state-contract-audit-20260831/execution_code/copy_manifest.json",
+    "research/experiments/native-state-contract-audit-20260831/execution_code/source_manifest.json",
+    "research/experiments/native-state-contract-audit-20260831/execution_code/code.patch",
+    "research/experiments/native-state-contract-audit-20260831/audit_analysis.json",
+    "research/experiments/native-state-contract-audit-20260831/result_summary.md",
+    "research/experiments/native-state-contract-audit-20260831/interpretation_addendum.md"
+  ],
+  "notes": [
+    "Both prior original writers exited0 and both records are COMPLETED. No new training, network, complete environment hands, historical result changes, checkpoint rescue or100k launch. Static source inspection motivated these preregistered probes but is not yet quantified causal evidence; preserve discrepancies and repair only in a separate recorded phase.",
+    "All5 fixed probes completed with concrete discrepancies. Independent read-only review checked stored root slot7 b400/b200/b400, SB-limp street1 versus0, illegal opening b66, short raise b564 versusb600, and the2 all-in history cells. Six production runtime files and immutable copies match all3 immediately preceding experiments,18pairs. No completed hands or network. Observed external -81.251bb/100 remains valid; legacy internal-native interpretation is withdrawn as deployment-transfer evidence, not raw data erased or quantitative cause proved."
+  ],
+  "result": {
+    "summary": "Five fixed production-contract probes reproduced5 discrepancies with zero completed hands or network;63source/copy pairs intact and18historical runtime pairs matched.",
+    "conclusion": "Root mirror action binding differs from training/Slumbot; native first SB call advances prematurely, opening/minimum raises differ, and all-in v4 encoding differs. Prior internal-native transfer interpretation requires correction; external20k negative result and all raw evidence remain unchanged. Counterexamples do not quantify causal loss.",
+    "decision": "CONTRACT_DIVERGENCE_FOUND",
+    "next_step": "Create a separately recorded native poker rules and policy-contract repair with independent rule/chip-conservation tests before more training or external qualification."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/native-state-contract-audit-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2519,
+      "sha256": "53fbf38af5740ee98d9c491d25a353f95b0a1deaeb6241d8279558d118371c0e"
+    },
+    "research/experiments/native-state-contract-audit-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/native-state-contract-audit-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 727,
+      "sha256": "d3e2dbf556bc06f3d2f0bcb4a2045a11f66cf67883d184dba42a6e21037572e1"
+    },
+    "research/experiments/native-state-contract-audit-20260831/execution_code/copy_manifest.json": {
+      "type": "file",
+      "bytes": 19670,
+      "sha256": "0db409154e505b946e415bc9ee30c3faa0237e463773b48de9edb3a4998947ba"
+    },
+    "research/experiments/native-state-contract-audit-20260831/execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 11638,
+      "sha256": "f44cf8d8dc8be59f2834864c26c7808aafee6aa8e373e176fcf44e9d0ce58c0d"
+    },
+    "research/experiments/native-state-contract-audit-20260831/execution_code/code.patch": {
+      "type": "file",
+      "bytes": 365811,
+      "sha256": "dcf1fcedcc541e02df426691edb19e21c6a18d4c264cfaaf0d2326eaae63b57d"
+    },
+    "research/experiments/native-state-contract-audit-20260831/audit_analysis.json": {
+      "type": "file",
+      "bytes": 5756,
+      "sha256": "f8db6110fcaa5abe27d334c15d85cbb0b3dc26ea4eb2ca397ea66f2cbde57894"
+    },
+    "research/experiments/native-state-contract-audit-20260831/result_summary.md": {
+      "type": "file",
+      "bytes": 755,
+      "sha256": "460916630e5155bda18ca6c2efd6762fa1bacf49fbed78090e0460c1153610b9"
+    },
+    "research/experiments/native-state-contract-audit-20260831/interpretation_addendum.md": {
+      "type": "file",
+      "bytes": 3720,
+      "sha256": "5279ce816e600e7bf9b79b4d11c4dbeaa2059b7ca216ea1218c6cd843869179d"
+    }
+  }
+}

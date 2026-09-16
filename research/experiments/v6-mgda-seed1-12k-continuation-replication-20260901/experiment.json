@@ -1,0 +1,150 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-seed1-12k-continuation-replication-20260901",
+  "title": "MGDA seed1 8k-to-12k continuation replication",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T18:30:35+00:00",
+  "updated_at": "2026-09-01T18:37:53+00:00",
+  "started_at": "2026-09-01T18:30:35+00:00",
+  "ended_at": "2026-09-01T18:37:53+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The broad positive six-objective MGDA 8k-to-12k slope observed in seed0 will reproduce from seed1 with fresh continuation hands while keeping Standard10 boundary drift bounded.",
+  "material_change": "Resume the exact seed1 frozen 8k MGDA checkpoint and Adam, collect 4,096 fresh on-policy continuation hands, apply the unchanged six-objective MGDA protocol for 32 stratified steps, freeze at 12k, and compare 12k versus 8k on 1,024 new mirrored pairs per three anchors plus the fixed 6,144-state preservation panel.",
+  "baseline": "Seed0 12k-minus-8k pooled +21.758 bb/100 CI[4.759,38.758], 3/3 anchors and both seats positive, with disagreement growth 1.872 points. Seed1 8k checkpoint SHA a569d8f7 is untouched.",
+  "source": "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_treatment_8192.pt",
+  "parent_id": "v6-mgda-seed0-8k-12k-frozen-curve-20260901",
+  "command": "python scripts/alpha_holdem/v6_mgda_single_continuation.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --start-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_treatment_8192.pt --state-panel research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz --continuation-hands 4096 --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20271507 --device cuda --out-dir research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_mgda_single_continuation.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --start-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed1_treatment_8192.pt --state-panel research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz --continuation-hands 4096 --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20271507 --device cuda --out-dir research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:30:35+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:37:53+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "12ec39cb2274848dcc744349943246214a3047cc94b03cc5066c12b7826a07ec",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T18:30:35+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/source_manifest.json",
+    "source_manifest_sha256": "d9ca2f8741c81cb8074e96d806464c49fa04450523a74baf48eec0afaa9c9c21",
+    "source_files": 134
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4096,
+    "lineage_training_hands": 12288,
+    "offline_samples": 0,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 438.0,
+    "planned_environment_training_hands": 4096,
+    "planned_evaluation_hands": 12288
+  },
+  "metrics": {
+    "transition_rows": 9141,
+    "update_rows": 49152,
+    "pooled_delta_bb100": 2.924479166666667,
+    "pooled_ci95_low_bb100": -18.04113805280794,
+    "pooled_ci95_high_bb100": 23.890096386141273,
+    "standard10_delta_bb100": 0.2685546875,
+    "slumbot_free_delta_bb100": -19.94677734375,
+    "cfr96_delta_bb100": 28.451660156250004,
+    "seat0_delta_bb100": 24.791015625,
+    "seat1_delta_bb100": -18.942057291666668,
+    "positive_reward_alignment_fraction": 1.0,
+    "later_greedy_agreement": 0.97265625,
+    "disagreement_growth": 0.012044310569763184,
+    "combined_two_seed_slope_bb100": 12.341389973958334,
+    "combined_two_seed_ci95_low_bb100": -1.1553954216276825,
+    "combined_two_seed_ci95_high_bb100": 25.838175369544352,
+    "tests_passed": 233
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/code.patch",
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/summary.json",
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/training_hands.jsonl.gz",
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/update_schedules.json",
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/treatment_residual_12288.pt"
+  ],
+  "notes": [
+    "Admission beyond 12k requires this independent seed to have later-minus-earlier pooled >0, >=2/3 anchors positive, Standard10 >=0, both seats >=0, positive worst reward alignment on >=75% of steps, exact resume/accounting/hashes, 12k greedy agreement >=95%, disagreement growth <=2 points, and cap <=0.25. Combined seed0+seed1 raw slopes will then be aggregated; CI need not exclude zero for seed1 alone.",
+    "Raw seed1 evaluation SHA 83eb5543a5f5364a17fc246bf9b2a7382ec651d64679910c45100f5f0eb09010. Combining the two independent raw 8k-to-12k curves gave 6,144 pairs / 24,576 hands: pooled +12.341390 bb/100 CI[-1.155395,25.838175], anchors Standard10 +14.367676, Slumbot-free +5.696289, CFR96 +16.960205, seats +19.989583 and +4.693197."
+  ],
+  "result": {
+    "summary": "Seed1 exact continuation completed 4,096 new hands and retained positive reward alignment on 32/32 steps. Its 12k-minus-8k slope was pooled +2.924 bb/100 CI[-18.041,23.890], Standard10 +0.269, Slumbot-free -19.947, CFR96 +28.452, seat0 +24.791, seat1 -18.942. Agreement remained 97.27% and disagreement growth 1.204 points. Combined across both seeds, pooled and every anchor/seat point were positive, but CI crossed zero.",
+    "conclusion": "The six-objective 8k-to-12k slope is positive in both seeds and positive across all combined anchors/seats, supporting an undertrained interpretation. However seed1 failed the preregistered single-seed Slumbot-free and seat1 breadth conditions. Therefore higher-dose scaling is held rather than rejected; additional evidence should prioritize proxy-to-external alignment or precision, not another optimizer tweak.",
+    "decision": "HOLD_BEYOND_12K_ON_SEED1_SEAT_VARIANCE",
+    "next_step": "Do not increase the training dose yet. Audit deployment compatibility for the strongest frozen 12k MGDA checkpoint and, if exact dual-contract execution can be evidenced, use a small fresh Slumbot directional gate to test whether the now-positive multi-seed internal learning curve aligns with the external target. Otherwise increase internal paired precision on the frozen 8k/12k curves."
+  },
+  "tags": [
+    "continuation",
+    "fresh-training",
+    "learning-curve",
+    "mgda",
+    "replication"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 25068,
+      "sha256": "d9ca2f8741c81cb8074e96d806464c49fa04450523a74baf48eec0afaa9c9c21"
+    },
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 4732,
+      "sha256": "b6d08686de38004e7677d88ac31209808823e8631d0b809a3c5d037659f05d47"
+    },
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/training_hands.jsonl.gz": {
+      "type": "file",
+      "bytes": 276796,
+      "sha256": "dd4db2c4c83eb89803a6c3fc475bae45a2b605b3441e7d89198ff21bbcea46dd"
+    },
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/update_schedules.json": {
+      "type": "file",
+      "bytes": 636254,
+      "sha256": "f9f704998aba708d5582bec9f649ec1c1dd4c352ddc0ce1d4b6fbc9198cbd169"
+    },
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 194863,
+      "sha256": "83eb5543a5f5364a17fc246bf9b2a7382ec651d64679910c45100f5f0eb09010"
+    },
+    "research/experiments/v6-mgda-seed1-12k-continuation-replication-20260901/run/treatment_residual_12288.pt": {
+      "type": "file",
+      "bytes": 1394698,
+      "sha256": "b890dcb34c62b3763505abceffbed83e36ec474609289e8188b6789520d34a77"
+    }
+  }
+}

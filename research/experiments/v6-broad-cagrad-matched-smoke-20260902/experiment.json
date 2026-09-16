@@ -1,0 +1,162 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-cagrad-matched-smoke-20260902",
+  "title": "Conflict-averse broad gradient matched smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T04:17:24+00:00",
+  "updated_at": "2026-09-02T04:31:17+00:00",
+  "started_at": "2026-09-02T04:17:24+00:00",
+  "ended_at": "2026-09-02T04:31:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "On the exact immutable six opponent-seat gradient dataset and untouched three-anchor evaluation used by the admitted MGDA mechanism smoke, CAGrad c=0.5 will retain high cosine with the ordinary mean gradient, achieve positive worst-group alignment on at least 75% of updates, and outperform the exact matched MGDA treatment without weakening Standard10 or either seat.",
+  "material_change": "Add a default-off CAGrad treatment aggregator to the existing residual-policy matched harness. Keep Standard10 initialization, 4,096 source hands, 9,026 transition decisions, all 32 schedules, optimizer, cap, seed, three anchors, decks, and 12,288 evaluation hands identical to the prior MGDA smoke; compare raw rows exactly and do not use Slumbot.",
+  "baseline": "Prior exact matched MGDA treatment passed its mechanism gate on the same evidence, with positive worst-group geometry on all 32 updates and pooled MGDA-minus-ordinary +18.7576 bb/100. This experiment must beat MGDA directly, not merely ordinary.",
+  "source": "research/experiments/v6-dual-contract-mgda-matched-smoke-20260901/run",
+  "parent_id": "v6-dual-contract-mgda-matched-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_mgda_matched_smoke.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-evidence research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20261400 --treatment-aggregator cagrad --cagrad-conflict-aversion 0.5 --device cuda --out-dir research/experiments/v6-broad-cagrad-matched-smoke-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_mgda_matched_smoke.py --base-checkpoint models/baseline/standard10/latest.pt --opponent models/baseline/standard10/latest.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --opponent C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --training-evidence research/experiments/v6-dual-contract-group-rms-matched-smoke-20260901/run/training_hands.jsonl.gz --steps 32 --group-batch-size 256 --pairs-per-anchor 1024 --seed 20261400 --treatment-aggregator cagrad --cagrad-conflict-aversion 0.5 --device cuda --out-dir research/experiments/v6-broad-cagrad-matched-smoke-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:17:24+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_cagrad_vs_mgda_matched_audit.py --mgda-dir research/experiments/v6-dual-contract-mgda-matched-smoke-20260901/run --cagrad-dir research/experiments/v6-broad-cagrad-matched-smoke-20260902/run --out-json research/experiments/v6-broad-cagrad-matched-smoke-20260902/matched_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:31:01+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-broad-cagrad-matched-smoke-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:31:01+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "6cd30c30e4fa1d04d8b99395a33c59dd68b9799ca89979caf7b1df97ce71a854",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T04:17:24+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-cagrad-matched-smoke-20260902/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-broad-cagrad-matched-smoke-20260902/source_manifest.json",
+    "source_manifest_sha256": "9249e7dcfa11f26083e3b2dd893068bb8c794bda7afc9c6aeae87162ba2cf03e",
+    "source_files": 159
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 9026,
+    "evaluation_hands": 12288,
+    "wall_time_seconds": 833.0,
+    "planned_evaluation_hands": 12288,
+    "planned_slumbot_hands": 0,
+    "slumbot_hands": 0,
+    "qualification_hands": 0
+  },
+  "metrics": {
+    "cagrad_vs_ordinary_pooled_bb100": -3.92529296875,
+    "cagrad_vs_mgda_pooled_bb100": -4.484700520833334,
+    "cagrad_vs_mgda_ci95_lower": -10.6941183846254,
+    "cagrad_vs_mgda_ci95_upper": 1.7247173429587315,
+    "cagrad_positive_geometry_steps": 32,
+    "mgda_positive_geometry_steps": 32,
+    "cagrad_median_ordinary_cosine": 0.9289468837689087,
+    "cagrad_median_norm_ratio": 0.843340246647053,
+    "cagrad_vs_mgda_positive_anchors": 1,
+    "cagrad_vs_mgda_nonnegative_seats": 0,
+    "matched_contract_pass": true,
+    "admitted": false,
+    "tests_passed": 259
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/code.patch",
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/source_manifest.json",
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/run",
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/matched_audit.json",
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_dual_contract_mgda_matched_smoke.py",
+    "scripts/alpha_holdem/v6_cagrad_vs_mgda_matched_audit.py",
+    "scripts/alpha_holdem/test_v6_dual_contract_mgda_matched_smoke.py",
+    "scripts/alpha_holdem/test_v6_cagrad_vs_mgda_matched_audit.py"
+  ],
+  "notes": [
+    "Preregistration baseline text incorrectly stated prior matched MGDA pooled +18.7576 bb/100. The hash-verified parent summary actually reports +0.5594 bb/100 CI half-width 16.3362; all final comparisons use the parent raw evaluation evidence directly, so the typo does not affect analysis."
+  ],
+  "result": {
+    "summary": "CAGrad c=0.5 trained from the exact same 4,096 immutable hands, 9,026 decisions, 32 schedules, Standard10 initialization, and optimizer contract as the prior matched MGDA smoke, then completed 12,288 untouched internal evaluation games. All 32 CAGrad updates had positive worst-group alignment and median ordinary-direction cosine 0.9289, but CAGrad scored -3.9253 bb/100 versus ordinary and -4.4847 bb/100 versus exact matched MGDA, CI95 [-10.6941,+1.7247].",
+    "conclusion": "CAGrad successfully fixes the geometric concern that MGDA can discard average-gradient progress, yet that cleaner geometry did not translate to matched outcome breadth: only one of three anchor differences was nonnegative and both seat differences were negative versus MGDA. Exact keys, decks, controls, logical schedules, source evidence, initialization, and anchor identities matched. This rejects c=0.5 under this residual/offline-update recipe; it does not reject all conflict-aware optimization or long-horizon learning, and no claim rests only on failure to beat Slumbot at small scale.",
+    "decision": "REJECT_CAGRAD_C0P5_MATCHED_RECIPE_NO_65K",
+    "next_step": "Do not scale this CAGrad recipe. Reassess alternatives that change the policy-improvement signal rather than only gradient aggregation—especially state-conditioned direct greedy improvement or opponent-adaptive recurrent self-play—while retaining geometric multi-seed curves, broad holdouts, both seats, Standard10 preservation, and external/proxy alignment as scale gates."
+  },
+  "tags": [
+    "cagrad",
+    "gradient-conflict",
+    "matched-smoke"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 29869,
+      "sha256": "9249e7dcfa11f26083e3b2dd893068bb8c794bda7afc9c6aeae87162ba2cf03e"
+    },
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/matched_audit.json": {
+      "type": "file",
+      "bytes": 3074,
+      "sha256": "9f2e9e3e33413c85c892b8ee16dc4570ba60f0399b4f620c102c413d4a251e13"
+    },
+    "research/experiments/v6-broad-cagrad-matched-smoke-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 39143,
+      "sha256": "286e2b1749d5eceedda1e2150744f04df38ce249fe82d72f4caee33f849eb8b7"
+    },
+    "scripts/alpha_holdem/v6_dual_contract_mgda_matched_smoke.py": {
+      "type": "file",
+      "bytes": 25426,
+      "sha256": "a3200565e4bbaa1d6542c74ec0b9b186720a06eb665951afa4ad51e2ec8728ff"
+    },
+    "scripts/alpha_holdem/v6_cagrad_vs_mgda_matched_audit.py": {
+      "type": "file",
+      "bytes": 7294,
+      "sha256": "556279521411229ffd50e05582e1ed62803d482edbbdb673470ba99ef9ee30cc"
+    },
+    "scripts/alpha_holdem/test_v6_dual_contract_mgda_matched_smoke.py": {
+      "type": "file",
+      "bytes": 2683,
+      "sha256": "f0cd58d88ab651aaecff03380121f4705c3e7eab131af771d430d3891acbceba"
+    },
+    "scripts/alpha_holdem/test_v6_cagrad_vs_mgda_matched_audit.py": {
+      "type": "file",
+      "bytes": 436,
+      "sha256": "ad9801f0fbf1de9d3e4f8b6a68e6b2608b8705e1df155559bdbbdd69345db8e6"
+    }
+  }
+}

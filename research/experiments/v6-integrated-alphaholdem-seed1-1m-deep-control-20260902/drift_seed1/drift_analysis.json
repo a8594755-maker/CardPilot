@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.007,
+      "greedy_disagreements": 35,
+      "max_tv": 0.16304679214954376,
+      "mean_tv": 0.006653715362197865,
+      "p95_tv": 0.016043698042631154,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.0066,
+      "greedy_disagreements": 33,
+      "max_tv": 0.2999107241630554,
+      "mean_tv": 0.008201883625037772,
+      "p95_tv": 0.0229769348166883,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.0106,
+      "greedy_disagreements": 53,
+      "max_tv": 0.2654953598976135,
+      "mean_tv": 0.012244999399335574,
+      "p95_tv": 0.037039584666490565,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.0212,
+      "greedy_disagreements": 106,
+      "max_tv": 0.27402135729789734,
+      "mean_tv": 0.02002702336876616,
+      "p95_tv": 0.08659654743969444,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "models/baseline/standard10/latest.pt",
+    "--parent-sha256",
+    "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "--treatment",
+    "research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt",
+    "--out-dir",
+    "research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/drift_seed1",
+    "--states",
+    "20000",
+    "--seed",
+    "20262031",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "0.03",
+    "--greedy-disagreement-max",
+    "0.05"
+  ],
+  "created_at": "2026-09-02T23:31:18.778676+00:00",
+  "design": {
+    "greedy_disagreement_max": 0.05,
+    "outcome_blind": true,
+    "seed": 20262031,
+    "source_tv_max": 0.03,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 1049269,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.01135,
+    "greedy_disagreements": 227,
+    "max_tv": 0.2999107241630554,
+    "mean_tv": 0.011781905438834343,
+    "p95_tv": 0.03766009453684089,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-seed1-1m-deep-control-20260902\\drift_seed1\\drift_raw.jsonl.gz",
+  "raw_sha256": "7a10ef8094bcbf0a77629cf76eaaeb1a7ae1f72fb9d2a60af8322cd1b97bf2c3",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 906355,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-seed1-1m-deep-control-20260902\\seed1\\latest.pt",
+    "sha256": "6fbbe021b140b91e448917ae3e2cbb9bcdca444865433074ac944cae79fa844a"
+  },
+  "wall_time_seconds": 4.679522514343262
+}

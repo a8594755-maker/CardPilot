@@ -14,6 +14,7 @@ export interface ExportConfig {
   stackLabel?: string; // e.g. '50bb', '100bb'
   configName?: string; // e.g. 'standard_50bb'
   betSizes?: { flop: number[]; turn: number[]; river: number[] };
+  seed?: number;
 }
 
 /**
@@ -90,6 +91,9 @@ export function exportMeta(
     peakMemoryMB: config.peakMemoryMB,
     timestamp: new Date().toISOString(),
   };
+  if (config.seed !== undefined) {
+    meta.seed = config.seed;
+  }
   if (config.betSizes) {
     meta.betSizes = config.betSizes;
   }

@@ -1,0 +1,132 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-regularized-sampled-export-qualification-20260908",
+  "title": "Retained regularized endpoints sampled external export qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T16:47:52+00:00",
+  "updated_at": "2026-09-08T16:48:47+00:00",
+  "started_at": "2026-09-08T16:47:52+00:00",
+  "ended_at": "2026-09-08T16:48:47+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Deployment-only exports can preserve six frozen policy tensors and sampled public external-state decisions without stale training metadata or new server hands.",
+  "material_change": "Minimal execution metadata exports from two seeds parent/control/treatment, exact forward and sampled physical action parity on retained states across four streets.",
+  "baseline": "",
+  "source": "",
+  "parent_id": null,
+  "command": "python research/experiments/v6-regularized-sampled-export-qualification-20260908/qualify.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-regularized-sampled-export-qualification-20260908/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T16:47:52+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-regularized-sampled-export-qualification-20260908/qualify.py"
+    ],
+    "captured_at": "2026-09-08T16:47:52+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-regularized-sampled-export-qualification-20260908/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-regularized-sampled-export-qualification-20260908/source_manifest.json",
+    "source_manifest_sha256": "6fca8acfe2b9c9492f8846ae2799c854dd42805b7786301b40f4ca1893e1f0d1",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 28,
+    "wall_time_seconds": 55.0,
+    "training_hands": 0,
+    "retained_state_checks": 192,
+    "sampled_action_checks": 960
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/code.patch",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/source_manifest.json",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/result.json",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed1_parent.pt",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed1_control.pt",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed1_regularized.pt",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed3_parent.pt",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed3_control.pt",
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed3_regularized.pt"
+  ],
+  "notes": [
+    "Preregister8 retained physical states per street per seed, six policies192 state comparisons960 uniform decisions. Reconstruct only enough existing traces for street coverage; count actual completed reconstructions separately. No requests, no updates. Existing legacy bridge and journaled client already expose sample mode, so no runtime algorithm edits."
+  ],
+  "result": {
+    "summary": "Six deploy-only exports preserve all model tensors and pass192 retained four-street forward checks plus960 sampled public external action comparisons;28 existing hand reconstructions.",
+    "conclusion": "Exact current CPU sampled physical bridge parity holds on scoped retained fixtures. Zero server requests, zero fresh hands and zero optimizer updates. evaluation_hands28 means deterministic existing-trace reconstructions, not strength evaluation. New exports do not contain stale optimizer/replay/counters; original resumable artifacts unchanged. Live session evidence/statistics still needs fixed preregistration.",
+    "decision": "Use qualified sampled deploy exports for a bounded external development calibration, not greedy substitution or final benchmark.",
+    "next_step": "Preregister both seed candidate-versus-parent fixed Slumbot cohorts, freeze journal/runtime/environment and verify sample-mode replay/session accounting before launch."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/source_manifest.json": {
+      "type": "file",
+      "bytes": 329,
+      "sha256": "6fca8acfe2b9c9492f8846ae2799c854dd42805b7786301b40f4ca1893e1f0d1"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/result.json": {
+      "type": "file",
+      "bytes": 48088,
+      "sha256": "7e28afedf0e0abb789b1ea1e50d2e4ada01c617bd45af9135f004c5d7d3dac91"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed1_parent.pt": {
+      "type": "file",
+      "bytes": 33042836,
+      "sha256": "b372bd4fc5d4f2511decfda188ec39d11f8742a4445d286d1da5456002a5f8ea"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed1_control.pt": {
+      "type": "file",
+      "bytes": 33042900,
+      "sha256": "d0ff6d72931124aae937c111b1f6eef73a0ca6fd18e69ef216ae0157d2f4fa98"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed1_regularized.pt": {
+      "type": "file",
+      "bytes": 33042900,
+      "sha256": "0401e53aacdeffe6b9e4308309003d992bf096cb8dfd4a475836132989f48136"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed3_parent.pt": {
+      "type": "file",
+      "bytes": 33042836,
+      "sha256": "3614177fee0309ae73c69574db92ca8aeafc5cb1a0adc0b63f84da4b09601860"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed3_control.pt": {
+      "type": "file",
+      "bytes": 33042900,
+      "sha256": "aa1b72b68497fe3b0fe8198ab91849ceb8a449ffb7535763e653f4f196af1cac"
+    },
+    "research/experiments/v6-regularized-sampled-export-qualification-20260908/seed3_regularized.pt": {
+      "type": "file",
+      "bytes": 33042900,
+      "sha256": "c9e036f9b7e833c14a23a903af07af32ec159f4e834f0679a777a6d129fb90be"
+    }
+  }
+}

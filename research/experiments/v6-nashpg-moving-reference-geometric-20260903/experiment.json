@@ -1,0 +1,402 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-nashpg-moving-reference-geometric-20260903",
+  "title": "Matched static-versus-moving current-KL geometric pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T15:19:07+00:00",
+  "updated_at": "2026-09-03T17:55:56+00:00",
+  "started_at": "2026-09-03T15:19:07+00:00",
+  "ended_at": "2026-09-03T17:54:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "With identical corrected-v6 integrated training and KL(current||reference), refreshing the reference after each complete PPO call will preserve stable updates while improving or sustaining multi-seed 16k-to-65k breadth slopes relative to a fixed initial reference; mixed early scores without collapse indicate insufficient scale, not rejection.",
+  "material_change": "Three matched seeds, each with static and every-update moving reference arms; 65,536 planned actual environment hands per run, common start weights/seeds/deals/config, only refresh interval differs (0 versus 1).",
+  "baseline": "Matched static KL(current||initial policy) arm; prior integrated recipe used fixed KL(reference||current), so it is contextual evidence rather than the matched control.",
+  "source": "research/experiments/v6-nashpg-moving-reference-contract-20260903",
+  "parent_id": "v6-nashpg-moving-reference-contract-20260903",
+  "command": "pwsh -NoProfile -File research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_training.ps1",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_training.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T15:19:07+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_nashpg_moving_reference_training.py --experiment-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903 --base models/baseline/standard10/latest.pt --out research/experiments/v6-nashpg-moving-reference-geometric-20260903/training_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T16:33:34+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_evaluation.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T16:33:34+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_drift_audits.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_nashpg_moving_reference_geometric.py --experiment-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903 --out research/experiments/v6-nashpg-moving-reference-geometric-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/aggregate_v6_nashpg_moving_reference_geometric.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-nashpg-moving-reference-geometric-20260903\\static_seed1\\checkpoints\\checkpoint_iter000004_hands000000016457.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-nashpg-moving-reference-geometric-20260903\\static_seed1\\latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263011 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_static_slope",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed1/checkpoints/checkpoint_iter000004_hands000000016489.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed1/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263011 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_moving_slope",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed1/checkpoints/checkpoint_iter000004_hands000000016457.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed1/checkpoints/checkpoint_iter000004_hands000000016489.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263011 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_early_delta",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed1/latest.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed1/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263011 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_final_delta",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed2/checkpoints/checkpoint_iter000004_hands000000016468.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263012 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_static_slope",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed2/checkpoints/checkpoint_iter000004_hands000000016484.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263012 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_moving_slope",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed2/checkpoints/checkpoint_iter000004_hands000000016468.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed2/checkpoints/checkpoint_iter000004_hands000000016484.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263012 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_early_delta",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed2/latest.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed2/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263012 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_final_delta",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed3/checkpoints/checkpoint_iter000004_hands000000016457.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed3/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263013 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_static_slope",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed3/checkpoints/checkpoint_iter000004_hands000000016480.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed3/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263013 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_moving_slope",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed3/checkpoints/checkpoint_iter000004_hands000000016457.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed3/checkpoints/checkpoint_iter000004_hands000000016480.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263013 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_early_delta",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed3/latest.pt --treatment research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed3/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 2048 --seed 20263013 --device cuda --out-dir research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_final_delta",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:54:09+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-03T15:00:00+00:00 --out-json research/experiments/v6-nashpg-moving-reference-geometric-20260903/logger_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:55:46+00:00"
+    },
+    {
+      "command": "python -m pytest -q research/test_experiment_log.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:55:56+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py validate",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T17:55:56+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8243f475704141810242d7ed6f8b44e59893d335b101de3054949b1b7abcfa42",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T15:19:07+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-nashpg-moving-reference-geometric-20260903/code.patch",
+    "patch_sha256": "78819c3eef63a9d7505b3acb5f563d50dbe99ead14cdffd21666d735e1d435d0",
+    "source_manifest": "research/experiments/v6-nashpg-moving-reference-geometric-20260903/source_manifest.json",
+    "source_manifest_sha256": "757df4e8627a0c65e7c27a3656e6d08a1e8e293e74bdf06b1fb42ab5d653dbd3",
+    "source_files": 251
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 407507,
+    "lineage_training_hands": 0,
+    "offline_samples": 120000,
+    "evaluation_hands": 393216,
+    "wall_time_seconds": 9302.0,
+    "planned_environment_training_hands": 393216,
+    "environment_training_hands": 407507
+  },
+  "metrics": {
+    "training_audit_passed_runs": 6,
+    "integrity_checks_passed": 96,
+    "static_combined_slope_bb100": 2.707275390625,
+    "moving_combined_slope_bb100": 4.019287109375,
+    "final_moving_minus_static_bb100": -0.663330078125,
+    "moving_seed2_mean_tv": 0.08787758419154061
+  },
+  "artifacts": [
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/preregistration.md",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_training.ps1",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/code.patch",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/source_manifest.json",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/training_audit_base.json",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/training_audit.json",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_evaluation.ps1",
+    "scripts/alpha_holdem/aggregate_v6_nashpg_moving_reference_geometric.py",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_drift_audits.ps1",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/aggregate.json",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed1",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed2",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed3",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed1",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed2",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed3",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_static_slope",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_moving_slope",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_early_delta",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_final_delta",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_static_slope",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_moving_slope",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_early_delta",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_final_delta",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_static_slope",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_moving_slope",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_early_delta",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_final_delta",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_static_seed1",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_moving_seed1",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_static_seed2",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_moving_seed2",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_static_seed3",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_moving_seed3",
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/logger_audit.json"
+  ],
+  "notes": [
+    "Preregistration SHA256 ad65c1053887456f2f2204c3e773314ff9a64bd6839e7ddaa16b611fb9659653. No Slumbot calls are authorized. Standard10 input SHA256 91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428.",
+    "Seed1 matched pair completed naturally: static 65,990 physical hands/13 updates; moving 67,706 physical hands/14 updates. Live moving checkpoint verified direction=current_to_reference, refresh interval1, reference round and completed-update counters exactly equal trainer iteration, optimizer state retained. Seed2 static started.",
+    "First two matched seed pairs completed naturally with 273,983 physical environment hands total. Seed2: static 69,865/15 updates, moving 70,422/15 updates. No KL stop, NaN, ratio breach, reset, or checkpoint error. Seed3 static started.",
+    "All six runs completed 407,507 physical hands and passed the experiment-specific audit. The preserved generic-audit failure is a diagnosed false gate: it required a late candidate to remain in K-best; candidate histories prove ids0..8/9 were generated and explicitly accepted/rejected. Corrected audit passes all six plus exact matched configs and moving cadence/reference equality.",
+    "All 12 frozen common-deck evaluations completed naturally in their original sessions. Aggregate verified 393,216 hands and 96/96 training/evaluation/drift integrity checks, including per-hand deck and algebra identity. No Slumbot calls.",
+    "Every-update moving reference crossed the preregistered catastrophic drift threshold in seed2 (mean TV 0.08788 > 0.08). Static current-to-initial-reference arms retained low drift and positive 16k-to-65k pooled slopes in all three seeds.",
+    "Initial post-finish audit exposed one false positive for actual Windows absolute python.exe evaluator commands; fixed command classification with regression coverage and retained all exact commands.",
+    "Corrected post-finish audit since 2026-09-03T15:00Z: 2 records, 0 warnings; research logger regression suite 4/4 passed and all 322 records validate."
+  ],
+  "result": {
+    "summary": "Six mechanically valid 65k runs produced 407,507 physical training hands and 393,216 untouched evaluation hands. Every-update moving reference had mixed slopes and failed final matched plus Standard10-drift gates; static current-KL had positive slopes in all three seeds.",
+    "conclusion": "The specific refresh-after-every-PPO intervention is not robust: it was worse than static at final in two of three seeds and seed2 exceeded the preregistered mean-TV drift limit. This rejects refresh interval 1, not NashPG broadly and not learned self-play at larger scale. Static KL(current||initial) remained stable and improved from 16k to 65k in all three seeds, so its scale evidence is promising but not yet externally validated.",
+    "decision": "REJECT_SPECIFIC_REFRESH_EVERY_UPDATE; ADMIT_STATIC_CURRENT_KL_262K_SCALE",
+    "next_step": "Preregister exact-state, optimizer/replay/pool-preserving continuation of the three static current-KL lineages from their frozen 65k endpoints to roughly 262k cumulative hands. Evaluate the 65k-to-262k geometric slope on untouched multi-anchor both-seat deals and recheck Standard10 drift before any Slumbot gate."
+  },
+  "tags": [
+    "geometric-learning-curve",
+    "matched-control",
+    "multi-seed",
+    "nashpg-inspired"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 21,
+    "command_count": 21
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/preregistration.md": {
+      "type": "file",
+      "bytes": 2410,
+      "sha256": "ad65c1053887456f2f2204c3e773314ff9a64bd6839e7ddaa16b611fb9659653"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_training.ps1": {
+      "type": "file",
+      "bytes": 4556,
+      "sha256": "82b3ea9be1c565da026b12a2ba30411752ec9314b860bb5629883c73f9c2050f"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12846825,
+      "sha256": "78819c3eef63a9d7505b3acb5f563d50dbe99ead14cdffd21666d735e1d435d0"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 47895,
+      "sha256": "757df4e8627a0c65e7c27a3656e6d08a1e8e293e74bdf06b1fb42ab5d653dbd3"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/training_audit_base.json": {
+      "type": "file",
+      "bytes": 25849,
+      "sha256": "66478c1db3e17e40f8ce6cca57a86fec1713d6c2370fbc4ffdf433f0a08d25ec"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/training_audit.json": {
+      "type": "file",
+      "bytes": 30993,
+      "sha256": "77179ee1c07bedac5c8b5e0b98a5a6063460e51238b06265a0bec0c8d7721cb0"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_evaluation.ps1": {
+      "type": "file",
+      "bytes": 3590,
+      "sha256": "b26899f371d3f74979b6d094efc63d6fc712aae63e0b5eaaa898930f5d14a9c8"
+    },
+    "scripts/alpha_holdem/aggregate_v6_nashpg_moving_reference_geometric.py": {
+      "type": "file",
+      "bytes": 14934,
+      "sha256": "4304f779cf16c8c4d85995cfc4600eb97e5f99b85934b9aad47a24e7ca67f040"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/run_drift_audits.ps1": {
+      "type": "file",
+      "bytes": 1739,
+      "sha256": "81c1a14f95f8befdbc823cb0fc938c9653894a4d6d8de6e5addd7af7afa5fb93"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 49050,
+      "sha256": "4cee26057c932c079b5988e0d6ab2413a1756f1c8b4bb5cf5c2924a0a97f5d8c"
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/static_seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/moving_seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_static_slope": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_moving_slope": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_early_delta": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed1_final_delta": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_static_slope": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_moving_slope": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_early_delta": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed2_final_delta": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_static_slope": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_moving_slope": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_early_delta": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/eval_seed3_final_delta": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_static_seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_moving_seed1": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_static_seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_moving_seed2": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_static_seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/drift_moving_seed3": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-nashpg-moving-reference-geometric-20260903/logger_audit.json": {
+      "type": "file",
+      "bytes": 323,
+      "sha256": "16fc7ea7e1d9075945ee608e88edcd1dd80cbcde9d9b60720cb3eb5c3c8818a9"
+    }
+  }
+}

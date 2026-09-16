@@ -1,0 +1,719 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-actor-ema-terminal-smoke-20260831",
+  "title": "Actor-head EMA terminal-policy smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T00:32:53+00:00",
+  "updated_at": "2026-09-01T00:57:45+00:00",
+  "started_at": "2026-09-01T00:32:53+00:00",
+  "ended_at": "2026-09-01T00:57:45+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A fixed EMA over sampled-PPO actor-head updates filters trajectory jitter and yields a stronger frozen greedy policy than the raw terminal actor without changing learned-policy inputs or rules.",
+  "material_change": "Add checkpointed actor-head EMA instrumentation; train one 131072-physical-hand all-policy-heads trajectory and compare source, raw terminal, and EMA terminal on common-deck five-anchor evaluation.",
+  "baseline": "Raw terminal actor from the identical training trajectory; legacy Standard10 greedy fresh20k -11.4275 bb/100 CI [-28.7124,5.8574], strict sampled -48.9778; prior imitation-teacher fresh20k about -18.5025.",
+  "source": "models/baseline/standard10/latest.pt sha256=91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "parent_id": "v6-centralized-critic-corrected-smoke-20260831",
+  "command": "python research/experiments/v6-actor-ema-terminal-smoke-20260831/run_smoke.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-actor-ema-terminal-smoke-20260831/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:32:53+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\test_smoke.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:37:46+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 131072 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\source_legacy.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay 0.9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026104200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_actor_ema_terminal_smoke_20260831 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\latest.pt --seed 20261042 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:37:50+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train --expected-target-hands 99999999 --expected-target-environment-hands 131072 --expected-final-iteration 27 --expected-pool-size 5 --expected-archive-every 8 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:50+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:59+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:44:59+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:00+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:01+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\raw.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:02+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\ema.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:03+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\ema.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor1.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:03+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\ema.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor2.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:04+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\ema.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor3.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:05+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\ema.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor4.pt --pairs 2048 --seed 20261043 --device cpu --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:45:06+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-actor-ema-terminal-smoke-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:57:15+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T00:32:53+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-actor-ema-terminal-smoke-20260831/code.patch",
+    "patch_sha256": "9dcd10483450837cebbc62d92cb0dfdebbec93a7c5b21363c1a482abe67ea867",
+    "source_manifest": "research/experiments/v6-actor-ema-terminal-smoke-20260831/source_manifest.json",
+    "source_manifest_sha256": "4421d35367fc11b1d11ad48e919bb0d10e01d826ef9d0931190c821476fd3cf1",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 132553,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 61440,
+    "wall_time_seconds": 1492.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 1157.4060000000172,
+    "ema_raw_bb_per_100": -20.082568359375,
+    "ema_raw_ci95_low": -42.46577478992616,
+    "ema_raw_ci95_high": 2.3006380711761594,
+    "ema_source_bb_per_100": 97.79462890625,
+    "ema_source_ci95_low": 44.92592916542332,
+    "ema_source_ci95_high": 150.66332864707667,
+    "positive_ema_raw_anchors": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/preregistration.md",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/code.patch",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\source_legacy.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\raw.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\ema.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\run_smoke.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\test_smoke.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\train_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\__pycache__\\run_smoke.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\__pycache__\\test_smoke.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\audit_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\h1_training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\latest_train.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\opponent_assignments.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\session_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\checkpoints\\checkpoint_iter000008_hands000000033021.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\checkpoints\\checkpoint_iter000016_hands000000066017.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\checkpoints\\checkpoint_iter000024_hands000000099005.pt",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/analysis.json",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/reviewed_analysis.json",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/result_summary.md",
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/production/train/session_audit.json"
+  ],
+  "notes": [
+    "Preregistered before EMA implementation. No imitation teacher; no Slumbot hands."
+  ],
+  "result": {
+    "summary": "One 132553-physical-hand sampled PPO trajectory produced raw and decay-0.9 EMA actor endpoints; 61440 common-deck five-anchor hands compared source/raw/EMA, and independent raw-pair review passed.",
+    "conclusion": "EMA preserved more of the source but underperformed the identical trajectory's raw terminal actor by 20.083 bb/100; only 1/5 anchor contrasts was positive. The EMA-source gain shows learning beat the source internally, not that averaging helped. Historical greedy-vs-sampled evidence therefore does not justify this fixed EMA mechanism, and the negative imitation-teacher evidence remains unreversed.",
+    "decision": "ACTOR_EMA_TERMINAL_SMOKE_NOT_PROMISING",
+    "next_step": "Retain the stronger frozen raw terminal endpoint as a candidate and run a small fresh Slumbot transfer gate before spending more training compute; do not expand EMA or imitation. If transfer is not competitive, diagnose the greedy/sampled contract with on-policy evaluation rather than another smoothing variant."
+  },
+  "tags": [
+    "actor-ema",
+    "self-play",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 20,
+    "command_count": 20
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2522,
+      "sha256": "6569843e8e1d70bdb7d2e5b3327ff759d5f1506d42e89f6adfa061e201414d27"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/code.patch": {
+      "type": "file",
+      "bytes": 12738633,
+      "sha256": "9dcd10483450837cebbc62d92cb0dfdebbec93a7c5b21363c1a482abe67ea867"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "4421d35367fc11b1d11ad48e919bb0d10e01d826ef9d0931190c821476fd3cf1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13812,
+      "sha256": "d4354987a69a25b66031c1d05278457631879098b1994adea442a1a250b3128b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23001,
+      "sha256": "6f36a905c9b9e1b22c1950ca6050bd61f87b906d6d40fd26c7d2028751e3a914"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 858,
+      "sha256": "4cb82e5c947258165234711c7b886b48dceac8b0138963fbe3bda9f00406c4d4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 26036,
+      "sha256": "52fcd109ba06ed6b6393da64cd4144fc58e4e1f552fe68b5b3bac9c8cb73da08"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\source_legacy.pt": {
+      "type": "file",
+      "bytes": 197083140,
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 661,
+      "sha256": "cd6ee1f2e6d8b98e89b9b13c09d4a93bbdb4576bde0a020ab1fcb99b2a329418"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\raw.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\frozen\\ema.pt": {
+      "type": "file",
+      "bytes": 199372046,
+      "sha256": "5e43dc3f0eed49fdb13bd6a305dbdcc86e4671154b204a7a2457b49128fdee5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 1984,
+      "sha256": "a6f235210f7895c5d4c0d1af1275a8f23d1ba7776f9dec3325f5808da02f8b1d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1587,
+      "sha256": "fd99eaf934257d7432f63f012d79af4a9f8f15a8b1431fc76412fe2bde393449"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1588,
+      "sha256": "3a8ab51ac1761cfe478363650b733f2a5f461fbdc1b78086bd64161439a2b2ee"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1586,
+      "sha256": "88e302ebc10a0ecb53a41823c840ab7635c5d7b765b8d7d7ed31b15901b3bf5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1588,
+      "sha256": "db319aeb8fab629bc88578d365a0fe9ffe9101c8b47a393042ca41e6df09aeac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\ema_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1587,
+      "sha256": "0ac2221efd6712ed28e62c2baeefd60510aaad7080c76933954c478595fbf5f1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 4230,
+      "sha256": "0797437063f5b3b79eb8ec5bdfeeffc2accabe6b3b3e620715c2ef3cc7b674a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 2522,
+      "sha256": "6569843e8e1d70bdb7d2e5b3327ff759d5f1506d42e89f6adfa061e201414d27"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1584,
+      "sha256": "1bdf76abe6661403106464e784c4e659ed98aa077369b2c420b10c28f3892af0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1588,
+      "sha256": "f9914f63be6fc0eb49eaecc9a927e40602108ae7840c1566aa92b5c5a89f6302"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1587,
+      "sha256": "909a0dd9898a6fe7a1c3f30e76f35a3ed92d2a9443809552714f8b5e37efcf00"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1586,
+      "sha256": "95e46121bdc4859c2213450e0f163d343a8686fdecbfdb87159341269e1920f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\raw_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1587,
+      "sha256": "85ca092d86953742cfd877605c907071004a1a9bdb0577515a6d0da7062b4db5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 5071,
+      "sha256": "113c7fe9ccb2468216c0a3ad7c2f7409be34c33c1bac96638fc1b1a777fbab18"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\run_smoke.py": {
+      "type": "file",
+      "bytes": 18170,
+      "sha256": "9051410a39fd18f4e85fba3c845d83f224d083df38554b25ccefe52546815346"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1553,
+      "sha256": "26edf81ba10968a0be89fcc1688358bfd4058ac8b0031b2ca6a85229ec3d3484"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1595,
+      "sha256": "46f2423faab5698efc9cdf305a5b6c128de9222134c615f122db61102e15b04a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1595,
+      "sha256": "5f70a87c17c45eed739c340ace793fb0f279af127bdad945210db1f73379a29f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1592,
+      "sha256": "885a6d9fc1a9a011618ad261d80a83a09454859652277b7a9665666a1bd5be76"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\source_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1595,
+      "sha256": "44cf109f8989a21bafd8b19380e3db64ef6693417a12bc94afb17281ccedd3a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\test_smoke.py": {
+      "type": "file",
+      "bytes": 2956,
+      "sha256": "dc5b467d1f402675ee8a027963dd4750360cf615b723d123aa0d4d2518dee5cc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\train_stdout.log": {
+      "type": "file",
+      "bytes": 18748,
+      "sha256": "ed57dc4fb906822e8216073617bf2ff7df9304705fe50b36fc3b80388098eeff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 9426,
+      "sha256": "fd3c3ce8b09fe70d3e1899c535cdac9d8c025d7627e972685e606da90ee886e0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\__pycache__\\run_smoke.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 32631,
+      "sha256": "8d5e85f6f8fec9556f432329bbbafff48e92e49c8c02c5e11e6f533598477b3a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\__pycache__\\test_smoke.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 15197,
+      "sha256": "783911ef0fad5e4d44da67c2139f2c1d810951e6698cd438e36f2164ffef6f91"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573363,
+      "sha256": "4ccdcf1f488453da06e6a8aed6e86b7b954caff8b6067eb9cecf009ab0cd53fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1642,
+      "sha256": "72aa6025988f8591dcd923d3d120a05b90721da619bf41aeb26e50d71d097d0d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 568960,
+      "sha256": "1cfbbc105461f571c5d53a5baa2d2d8ad22b0a08696af3f79a72e1650118378d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1643,
+      "sha256": "9353d938bf89b6914105441936062e68e2bc4436a4cbb22e6dcf503dd579e70f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572603,
+      "sha256": "0c6bbc16d3b7154554615256644c54436ee8deddaeba9910300f19ce1a97e7d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1641,
+      "sha256": "54ec6d9840c11efd7a6ab1b0b30abd395c236466e1bbc02ce67954234cb5c179"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574191,
+      "sha256": "c807afa2269f468edcd21f3df8791faaaeaef54b379c88ebefb4adcdcf77d8b4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1643,
+      "sha256": "d91023570c83789ffa5ff04e96ffd2cc35367ac9fc5adf8296fd6af92e8997f9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574641,
+      "sha256": "84001eabf3fd3eb7d01809f3828c80c1a94e2045d87f77e26edee0ae43e6ba9b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\ema_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1642,
+      "sha256": "d68eab755edca105b98bcb11a8ef602be5ce37759b75e769ee83ee1f9e1ad9af"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573234,
+      "sha256": "a647c8caf759b297d8acf07353d0d303524eb602afe4631d09dce2a245a08084"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1639,
+      "sha256": "bbe5595fa8795de0b89b5795ca8d7dcc4dd337e7e026f98b225334546f50e6b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 568935,
+      "sha256": "ce4b2e3632ecc793be695070703e53492a57e63caa5ce99e877462015e3dee67"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1643,
+      "sha256": "cc0dbcec0431dab6c579b097675e818edf8a21c2ef1c6e1615cc91e4ae6de03b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572511,
+      "sha256": "80a4f131c4fc1bb714726b5bd3e6653254d9f41b75cfbaea0101163f8a040390"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1642,
+      "sha256": "f795178bc72f8f2c19a432e6900f6227420d2bd8a947ae93e55c4e563c9cd3fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574061,
+      "sha256": "3f9810f561d22ccbb20ac6515c81012263cfa32d64170b2e35f28096abdb03b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1641,
+      "sha256": "667f882824991f3b0ed8ae2d652c095eb55930aeaf27c07e25b10726fa961612"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574528,
+      "sha256": "fe0c1f9edb4e46c0f0a86902b8d61afe4b525be6a92bf8bf7434c956bba6d54e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\raw_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1642,
+      "sha256": "621b5ade4437e4c03ccaa53d52b54ca3a514de15556687c31b941a10636842a9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 573436,
+      "sha256": "357639f7d8bc5398ecd0a5d2cca1a8c278112dfcf883f7ff0d9c85ae19ec62e8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1608,
+      "sha256": "9cabfae5955b53302b6848ac1acfd1cb4c16cd77fba2da85f0f72a3f0deb7a48"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 569022,
+      "sha256": "8b3dd899c39ddb7f47daebceec5eb5763dc70abed5dc3d940896e3b1353ce471"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1650,
+      "sha256": "269907180692531e0c7d8d4be01a35af7cd23a92930571f5845d9a734b5e372d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 572705,
+      "sha256": "68365f38178422292cb5098ee90a89d3b4081cd5401e138165ed7f211a1829d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1650,
+      "sha256": "61445060da433d06f71c7f731468c05567bf96f20e5bd81a580b0d48bf9c00bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574252,
+      "sha256": "5ed881709f3088b753bcb29946c629d1df0c8ff0ef66370351dd8c5e1a09b88e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1647,
+      "sha256": "c270a310f2ad80227cb249a6e92f0e8dbdb18c097146d2fad0dc97511a33e49f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 574740,
+      "sha256": "4986b29241a2d10dccb76e1f0e10bf4de460e76803207a4b3ca01a556c6e656a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\matrix\\source_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1650,
+      "sha256": "491ba6f03d89b2e07ec1911014e5a044d88a04bf0d61fc0d6f423612ad59de7b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\audit_stdout.log": {
+      "type": "file",
+      "bytes": 6322,
+      "sha256": "495ce9bf705ff2de557979ee8934caaef9eae887094ec1065bf5ff74bde722ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 709725,
+      "sha256": "f9b96c85b5f3d2f04f3eeb465aadb9c2af0123259c12d5fd9c3b28725a2b65d3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\latest.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\latest_train.log": {
+      "type": "file",
+      "bytes": 11913,
+      "sha256": "756a1a19ac8d3955ea03c1253ffac48b688e8f2c661a70b29d00e837e8f6dcb9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 72844,
+      "sha256": "356ce76d49dba431f7ae7bbb01cf07077b3e29ef0654c7b18dbfc529ffdf9b72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\run_manifest.json": {
+      "type": "file",
+      "bytes": 59537,
+      "sha256": "ab8f96138819ed96caef2b3e4494f4abd36ef2ec477fbf9642bd82beb1205b1d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\session_audit.json": {
+      "type": "file",
+      "bytes": 6322,
+      "sha256": "495ce9bf705ff2de557979ee8934caaef9eae887094ec1065bf5ff74bde722ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\checkpoints\\checkpoint_iter000008_hands000000033021.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "461d8c2ed0ade277abc8b06b036dcc3104d749b72f382f2a540e6e1b21fd298e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\checkpoints\\checkpoint_iter000016_hands000000066017.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "a2fa5233d4c8322d4f0644dcb09c9084942e419f0ff453d6e0bd2266fd3521a4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-ema-terminal-smoke-20260831\\production\\train\\checkpoints\\checkpoint_iter000024_hands000000099005.pt": {
+      "type": "file",
+      "bytes": 199429718,
+      "sha256": "c759cb1094e6125dea4efc7d8c1905ca9bfd6c75f2ce52d107da7b448f0e7eec"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/analysis.json": {
+      "type": "file",
+      "bytes": 1984,
+      "sha256": "a6f235210f7895c5d4c0d1af1275a8f23d1ba7776f9dec3325f5808da02f8b1d"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1494,
+      "sha256": "d6a07d51c5e163d1975b2a027dee1caf635868d094a496a35397cadd46397701"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/result_summary.md": {
+      "type": "file",
+      "bytes": 592,
+      "sha256": "2db696f4fdd22bcddb1f50a5f53f333c18e48b1973120a878fdec44848699983"
+    },
+    "research/experiments/v6-actor-ema-terminal-smoke-20260831/production/train/session_audit.json": {
+      "type": "file",
+      "bytes": 6322,
+      "sha256": "495ce9bf705ff2de557979ee8934caaef9eae887094ec1065bf5ff74bde722ef"
+    }
+  }
+}

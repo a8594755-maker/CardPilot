@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="13" time="1.556" timestamp="2026-08-31T10:40:12.840609" hostname="Louis"><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_only_selfplay_share_and_run_identity_differ" time="0.004" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_group_fraction_and_reproducible_rng[0.25-2]" time="0.001"><failure message="AssertionError: assert (5 == 8)&#10; +  where 5 = len({'distinct_pool_opponents': 2, 'group_count': 8, 'groups': [{'group_id': 0, 'opponent_id': 1, 'workers': [1, 6]}, {'gr...ent_id': -1, 'workers': [5]}, {'group_id': 5, 'opponent_id': 2, 'workers': [9]}, ...], 'self_play_group_count': 2, ...})">fraction = 0.25, expected = 2
+
+    @pytest.mark.parametrize('fraction,expected',[(.25,2),(.75,6)])
+    def test_group_fraction_and_reproducible_rng(fraction,expected):
+        rng,replica=random.Random(20261005),random.Random(20261005)
+        for _ in range(20):
+            a,groups=build_group_opponent_assignments(12,3,8,fraction,rng,[.1,.2,.7])
+            b,repeated=build_group_opponent_assignments(12,3,8,fraction,replica,[.1,.2,.7])
+            assert list(a)==list(b) and groups==repeated
+&gt;           assert len(groups)==8 and sum(g['opponent_id']==-1 for g in groups)==expected
+E           AssertionError: assert (5 == 8)
+E            +  where 5 = len({'distinct_pool_opponents': 2, 'group_count': 8, 'groups': [{'group_id': 0, 'opponent_id': 1, 'workers': [1, 6]}, {'gr...ent_id': -1, 'workers': [5]}, {'group_id': 5, 'opponent_id': 2, 'workers': [9]}, ...], 'self_play_group_count': 2, ...})
+
+research\experiments\v6-selfplay75-transfer-pilot-r2-20260831\test_pilot.py:38: AssertionError</failure></testcase><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_group_fraction_and_reproducible_rng[0.75-6]" time="0.001"><failure message="AssertionError: assert (5 == 8)&#10; +  where 5 = len({'distinct_pool_opponents': 1, 'group_count': 8, 'groups': [{'group_id': 0, 'opponent_id': 2, 'workers': [1, 6]}, {'gr...nt_id': -1, 'workers': [5]}, {'group_id': 5, 'opponent_id': -1, 'workers': [9]}, ...], 'self_play_group_count': 6, ...})">fraction = 0.75, expected = 6
+
+    @pytest.mark.parametrize('fraction,expected',[(.25,2),(.75,6)])
+    def test_group_fraction_and_reproducible_rng(fraction,expected):
+        rng,replica=random.Random(20261005),random.Random(20261005)
+        for _ in range(20):
+            a,groups=build_group_opponent_assignments(12,3,8,fraction,rng,[.1,.2,.7])
+            b,repeated=build_group_opponent_assignments(12,3,8,fraction,replica,[.1,.2,.7])
+            assert list(a)==list(b) and groups==repeated
+&gt;           assert len(groups)==8 and sum(g['opponent_id']==-1 for g in groups)==expected
+E           AssertionError: assert (5 == 8)
+E            +  where 5 = len({'distinct_pool_opponents': 1, 'group_count': 8, 'groups': [{'group_id': 0, 'opponent_id': 2, 'workers': [1, 6]}, {'gr...nt_id': -1, 'workers': [5]}, {'group_id': 5, 'opponent_id': -1, 'workers': [9]}, ...], 'self_play_group_count': 6, ...})
+
+research\experiments\v6-selfplay75-transfer-pilot-r2-20260831\test_pilot.py:38: AssertionError</failure></testcase><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_both_healthy_endpoints_required_no_score_input" time="0.000" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_independent_arithmetic_agrees" time="0.001" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_bad_values_rejected[values0]" time="0.000" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_bad_values_rejected[values1]" time="0.000" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_bad_values_rejected[values2]" time="0.000" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_bad_values_rejected[values3]" time="0.000" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_count_complete_raw_lines_only" time="0.010" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_raw_prefix_deck_and_rewards_validation" time="0.010" /><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_exposure_is_assignment_slots_not_hand_fraction" time="0.000"><failure message="AssertionError">def test_exposure_is_assignment_slots_not_hand_fraction():
+        rows=[]
+        rng=random.Random(20261005)
+        for i in range(3):
+            assigned,groups=build_group_opponent_assignments(12,3,8,.75,rng,[.1,.2,.7])
+            rows.append(dict(applies_to_iteration=i+1,group_metadata=groups,
+                             workers=[dict(worker_id=w,opponent=dict(kind='self_play' if a==-1 else 'pool_snapshot'))
+                                      for w,a in enumerate(assigned)]))
+&gt;       result=stats.exposure(rows,3,6)
+
+research\experiments\v6-selfplay75-transfer-pilot-r2-20260831\test_pilot.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+records = [{'applies_to_iteration': 1, 'group_metadata': {'distinct_pool_opponents': 1, 'group_count': 8, 'groups': [{'group_id'...}, {'opponent': {'kind': 'self_play'}, 'worker_id': 4}, {'opponent': {'kind': 'pool_snapshot'}, 'worker_id': 5}, ...]}]
+iterations = 3, expected_groups = 6
+
+    def exposure(records, iterations, expected_groups):
+        """Assigned worker-update slots, NOT measured self-play terminal hands."""
+        used=[r for r in records if r['applies_to_iteration']&lt;=iterations]
+        assert [r['applies_to_iteration'] for r in used]==list(range(1,iterations+1))
+        counts=[]
+        for row in used:
+            groups=row['group_metadata']
+&gt;           assert len(groups)==8 and sum(g['opponent_id']==-1 for g in groups)==expected_groups
+E           AssertionError
+
+research\experiments\v6-selfplay75-transfer-pilot-r2-20260831\transfer_stats.py:33: AssertionError</failure></testcase><testcase classname="research.experiments.v6-selfplay75-transfer-pilot-r2-20260831.test_pilot" name="test_budget_and_frozen_diagnostic_design" time="0.000" /></testsuite></testsuites>

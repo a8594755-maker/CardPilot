@@ -1,0 +1,169 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-reach-target-gap-decomposition-r2-20260831",
+  "title": "Reach-target fidelity gap decomposition corrected preflight",
+  "status": "FAILED",
+  "created_at": "2026-08-31T21:25:38+00:00",
+  "updated_at": "2026-08-31T21:26:06+00:00",
+  "started_at": "2026-08-31T21:25:38+00:00",
+  "ended_at": "2026-08-31T21:26:06+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The failed0.15fidelitygate can be localized to training underfit, generalization, CE-versus-TV mismatch or truncated-history strata before another learned-weight intervention.",
+  "material_change": "Correct only false-positive process guard; same frozen4checkpoint diagnostic,1048576old-state queries,0newhands/network/training.",
+  "baseline": "Parent epoch08 reach-target fit and historical C60 control.",
+  "source": "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/preregistration.md",
+  "parent_id": "v6-reach-target-average-pilot-20260831",
+  "command": "python research/experiments/v6-reach-target-gap-decomposition-r2-20260831/run_diagnostic.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-reach-target-gap-decomposition-r2-20260831/run_diagnostic.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T21:25:38+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-reach-target-gap-decomposition-r2-20260831"
+    ],
+    "captured_at": "2026-08-31T21:25:38+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/source_manifest.json",
+    "source_manifest_sha256": "ba86f0b44dfed2ef001ade7519ea80ab29e9dbe9f1a3920a2ad1ec8ed372cc19",
+    "source_files": 6
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 28.0,
+    "slumbot_hands": 0,
+    "model_state_queries": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 0.875
+  },
+  "artifacts": [
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/preregistration.md",
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/admission_tests.xml",
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/run_diagnostic.py",
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/review_finish.py",
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/test_diagnostic.py",
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/code.patch",
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\admission_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\failure.txt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\run_diagnostic.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\test_diagnostic.py",
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/failure.txt"
+  ],
+  "notes": [
+    "Original attempt failed before execution/modelqueries because filename-only guard matched transient launcher. R2 excludes only current parent/current PID; scientific design and thresholds bitwise unchanged. Admission3testsPASS;0active pokerPythonprocesses."
+  ],
+  "result": {
+    "summary": "Input-manifest path error before any model query;0hands/network/queries.",
+    "conclusion": "Initializer path incorrectly pointed to the reach-target child rather than its immutable phase2 source. Failure preserved; no scientific result.",
+    "decision": "PREFLIGHT_INPUT_PATH_ERROR",
+    "next_step": "Create corrected r3 after existence/hash checking every frozen input; keep diagnostic design unchanged."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 3163,
+      "sha256": "8e448cb7325562cafab18179f616c926e302e7255d061ccce418ea377fd49dff"
+    },
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/admission_tests.xml": {
+      "type": "file",
+      "bytes": 688,
+      "sha256": "5eb665559fe651961a53220cac740fd02ede64b5a8cf4ca940c63cb44fc60d20"
+    },
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/run_diagnostic.py": {
+      "type": "file",
+      "bytes": 11291,
+      "sha256": "6d0ea1a3e66f1c238ab1f9e7f3fd4917fa881edfdd2398e46b1a5109a92539e5"
+    },
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 6326,
+      "sha256": "cbf334c8b553c95c7ffada818297ff1ba9aa5d3c3b4071cc3fba688815d36690"
+    },
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/test_diagnostic.py": {
+      "type": "file",
+      "bytes": 1007,
+      "sha256": "d3135893d7f59fc9718c9d5423dd2bab1e24c3e9ab0afe1e455053548ada0464"
+    },
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1417,
+      "sha256": "ba86f0b44dfed2ef001ade7519ea80ab29e9dbe9f1a3920a2ad1ec8ed372cc19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\admission_tests.xml": {
+      "type": "file",
+      "bytes": 688,
+      "sha256": "5eb665559fe651961a53220cac740fd02ede64b5a8cf4ca940c63cb44fc60d20"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 321,
+      "sha256": "40a6ab32b9dd236919f5745c936413204e32c5beb90742cc88a8d2ca9f2332fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\failure.txt": {
+      "type": "file",
+      "bytes": 1104,
+      "sha256": "90ccd2dc888df95bac2cded28d6098e38db6b7e354c114afd5a64e1522d8353a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 3163,
+      "sha256": "8e448cb7325562cafab18179f616c926e302e7255d061ccce418ea377fd49dff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 6326,
+      "sha256": "cbf334c8b553c95c7ffada818297ff1ba9aa5d3c3b4071cc3fba688815d36690"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\run_diagnostic.py": {
+      "type": "file",
+      "bytes": 11291,
+      "sha256": "6d0ea1a3e66f1c238ab1f9e7f3fd4917fa881edfdd2398e46b1a5109a92539e5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-reach-target-gap-decomposition-r2-20260831\\test_diagnostic.py": {
+      "type": "file",
+      "bytes": 1007,
+      "sha256": "d3135893d7f59fc9718c9d5423dd2bab1e24c3e9ab0afe1e455053548ada0464"
+    },
+    "research/experiments/v6-reach-target-gap-decomposition-r2-20260831/failure.txt": {
+      "type": "file",
+      "bytes": 1104,
+      "sha256": "90ccd2dc888df95bac2cded28d6098e38db6b7e354c114afd5a64e1522d8353a"
+    }
+  }
+}

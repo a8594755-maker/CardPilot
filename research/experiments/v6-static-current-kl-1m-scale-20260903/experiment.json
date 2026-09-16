@@ -1,0 +1,388 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-static-current-kl-1m-scale-20260903",
+  "title": "Static current-KL 262k-to-1M multi-seed scale",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T20:16:32+00:00",
+  "updated_at": "2026-09-04T05:33:08+00:00",
+  "started_at": "2026-09-03T20:16:32+00:00",
+  "ended_at": "2026-09-04T05:33:08+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The independently confirmed positive 65k-to-262k slopes will continue through one million cumulative physical hands in at least two seeds while preserving both-seat multi-anchor breadth and Standard10 capability.",
+  "material_change": "Exact-state continuation of all three frozen 262k lineages to at least 1048576 cumulative physical hands with repaired monotonic pool candidate identities, preserved optimizer/replay/league/assignment state, static current-to-Standard10 KL, and disjoint fixed deal streams.",
+  "baseline": "Across 294912 frozen prior-plus-fresh evaluation hands, all three 65k-to-262k slopes were positive (+1.054,+0.613,+0.780 bb/100) and seeds2/3 passed both-seat three-anchor breadth; pooled +0.816 CI95 [-1.526,+3.157].",
+  "source": "research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903/aggregate.json",
+  "parent_id": "v6-static-current-kl-262k-fresh-confirmation-20260903",
+  "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-1m-scale-20260903/run_training.ps1",
+  "commands": [
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-1m-scale-20260903/run_training.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T20:16:32+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed2_iter151.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T22:37:55+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-1m-scale-20260903/run_seed3.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T23:21:45+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/validate_train_v5_replay_resume.py --checkpoint research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/latest.pt --manifest research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/run_manifest.json --metrics research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/h1_training_metrics.jsonl --assignments research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/opponent_assignments.jsonl --source-policy-reference research/experiments/v6-static-current-kl-262k-scale-20260903/seed3/latest.pt --deal-start-index 32500000 --out research/experiments/v6-static-current-kl-1m-scale-20260903/seed3_resume_preflight_iter101.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T01:23:27+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed3_iter101.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T01:23:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/validate_train_v5_replay_resume.py --checkpoint research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/latest.pt --manifest research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/run_manifest.json --metrics research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/h1_training_metrics.jsonl --assignments research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/opponent_assignments.jsonl --source-policy-reference research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/latest.pt --deal-start-index 32700000 --out research/experiments/v6-static-current-kl-1m-scale-20260903/seed3_resume_preflight_iter159.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T03:26:19+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed3_iter159.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T03:26:19+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py --experiment-dir research/experiments/v6-static-current-kl-1m-scale-20260903 --base models/baseline/standard10/latest.pt --out research/experiments/v6-static-current-kl-1m-scale-20260903/training_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T04:43:42+00:00"
+    },
+    {
+      "command": "pwsh -NoProfile -File research/experiments/v6-static-current-kl-1m-scale-20260903/run_evaluation.ps1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T05:33:08+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py --experiment-dir research/experiments/v6-static-current-kl-1m-scale-20260903 --prior-dir research/experiments/v6-static-current-kl-262k-scale-20260903 --prior-dir research/experiments/v6-static-current-kl-262k-fresh-confirmation-20260903 --out research/experiments/v6-static-current-kl-1m-scale-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-04T05:33:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "98d4f5be42f7009aaca5a35bd4654a6017117de27469dd2fca7be9e105c1b159",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/stage_v6_integrated_scale_resume.py",
+      "research/experiments/v6-static-current-kl-1m-scale-20260903"
+    ],
+    "captured_at": "2026-09-03T20:16:32+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-static-current-kl-1m-scale-20260903/code.patch",
+    "patch_sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252",
+    "source_manifest": "research/experiments/v6-static-current-kl-1m-scale-20260903/source_manifest.json",
+    "source_manifest_sha256": "5840ebf5ffd8dcede9275ba1b2727032af4b1f141094f9333083dc78bca9280d",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 2357804,
+    "lineage_training_hands": 3152810,
+    "offline_samples": 60000,
+    "evaluation_hands": 98304,
+    "wall_time_seconds": 33396.0,
+    "environment_training_hands": 2357804,
+    "planned_environment_training_hands": 2350722
+  },
+  "metrics": {
+    "seed1_slope_bb100": -1.9378662109375,
+    "seed2_slope_bb100": 0.311279296875,
+    "seed3_slope_bb100": 2.93408203125,
+    "combined_slope_bb100": 0.43583170572916674,
+    "combined_slope_ci95_low_bb100": -3.090786931583506,
+    "combined_slope_ci95_high_bb100": 3.9624503430418394,
+    "positive_slope_seeds": 2,
+    "breadth_qualified_seeds": 1,
+    "max_mean_tv": 0.010944810803014628,
+    "max_greedy_disagreement_rate": 0.01255
+  },
+  "artifacts": [
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/preregistration.md",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/run_training.ps1",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/code.patch",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/source_manifest.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_stage_manifest.json",
+    "scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/run_evaluation.ps1",
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed2_resume_preflight_iter151.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed2_iter151.ps1",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/run_seed3.ps1",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed2/latest.pt",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed2/checkpoints/checkpoint_iter000192_hands000000790801.pt",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3_resume_preflight_iter101.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed3_iter101.ps1",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3_resume_preflight_iter159.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed3_iter159.ps1",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/checkpoints/checkpoint_iter000128_hands000000527052.pt",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed1/latest.pt",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed1/checkpoints/checkpoint_iter000192_hands000000790790.pt",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/latest.pt",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/checkpoints/checkpoint_iter000192_hands000000790745.pt",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/training_audit.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/training_audit_failed_v2_pre_tail_fix.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/aggregate.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed1/summary.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed1/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed2/summary.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed2/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed3/summary.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed3/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed1/drift_analysis.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed1/drift_raw.jsonl.gz",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed2/drift_analysis.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed2/drift_raw.jsonl.gz",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed3/drift_analysis.json",
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed3/drift_raw.jsonl.gz"
+  ],
+  "notes": [
+    "Preflight passed 26/26 tests. SHA-pinned staging independently verified all three parent checkpoints, metric/assignment prefixes, assignment RNG chains, optimizer, serialized two-entry replay, loss-K-best/adaptive-league state, physical accounting, and disjoint deal windows. Seed1 started from iter55 without reset.",
+    "The read-only 1M audit is fixed to require global archives 64/128/192, exact staged prefixes, optimizer/replay/accounting continuity, unique session evidence, and a strictly monotonic new candidate-ID suffix above every parent history ID.",
+    "Seed1 checkpoint iter114 reached 544024 cumulative physical hands (279079 exact resumed-session hands). Optimizer/replay continuity remained intact; repaired pool IDs advanced monotonically from 30. Evaluation and aggregation contracts were added but not executed before the frozen training endpoint.",
+    "Seed1 checkpoint iter149 reached 708824 cumulative physical hands (443879 exact resumed-session hands); global-128 archive was persisted at cumulative 613120 with SHA256 b5c22562f5e4bbde205a2f158fca82c0c7c91b6845a68f2d79af4ee1907188fb. No NaN, KL-stop, replay-recovery, or candidate-ID continuity failure observed.",
+    "Seed1 completed its fixed endpoint naturally at iter221: 1052694 cumulative physical hands, 787749 new suffix hands, final SHA256 1fdc7ebc2560888938cc55bbf6c9eef05deb2e5c9270fbebb123d3143357dbe3, optimizer LR 1e-4, replay entries 2, monotonic new pool IDs 30..112. Seed2 resumed exact state and its first repaired candidate was ID29; checkpoint iter73 reached 341864 cumulative physical hands.",
+    "Seed2 checkpoint iter112 reached 526269 cumulative physical hands (263410 new suffix hands). Its repaired candidate IDs remained strictly sequential 29..56; optimizer/replay/assignment state and static current-to-Standard10 KL remained healthy. Aggregate new suffix across seed1 and seed2 is 1051159 hands.",
+    "The original launcher process was externally interrupted after seed2 iter151, not by a trainer failure or endpoint decision. SHA-bound recovery preflight passed: 714817 cumulative physical hands, optimizer step602/LR1e-4, serialized replay2, assignment tail pending iter152, checkpoint SHA e45dadd30154b32786d35db5296fdf9c2572c3fbc470178100a26ff5c9141a23. Recovery advanced the fixed-deal window from 31300000 beyond conservative first-unused 31340300 to 31500000, preserving worker seeds while preventing deck replay.",
+    "Recovery-aware 1M training audit compiled after adding SHA-bound iteration-151 evidence checks for metric/assignment prefixes, optimizer continuation, segmented physical accounting, and a disjoint resumed deal window; this is read-only audit code and does not affect the live trainer.",
+    "Prepared and syntax-checked a single-seed seed3 launcher with SHA guards for its untouched 262k parent and staged metric/assignment prefixes; it has not been executed while seed2 recovery remains active.",
+    "Seed2 recovery completed naturally at iter222 and 1049409 cumulative physical hands (786550 new from the 262k parent; 334592 in the recovery segment). Final SHA256 d17081e1d611f9c1bbc4129c715211780d2c8e1f48519c8699b071481a85e27c; optimizer step886/LR1e-4, replay2 with no recovery boundary, assignment chain222 records tail 6a1ef24056a8d493d06f59028a70b330406924838b552c0579fb475163b82153, repaired candidates 29..111, active pool [0,1,2,9,97]. Generic final audit passed all gates when supplied the SHA-bound iter151 recovery preflight; archive192 SHA256 65e805fe7b8e5125286d40187723f1f0a01d58a0a7efc07c45c251672a26472c.",
+    "Seed3 launched only after Seed2 exit. SHA guards passed for untouched 262k parent and staged prefixes; startup restored iter56, optimizer LR1e-4, replay entries2/cumulative rows396744, loss-K-best pool [0,1,2,13,8], adaptive league, and exact assignment RNG tail56 with no pending assignment.",
+    "Seed3 checkpoint iter81 reached 386299 cumulative physical hands (119097 new suffix). Candidate IDs 30..41 are monotonic and ID39 entered the active loss-K-best pool. External foreground GPU contention reduced throughput but did not alter configuration or produce numerical/contract failures; the same guarded session remains active.",
+    "Seed3 reached its preregistered 7200-second guard and exited cleanly at iter101, 481181 cumulative physical hands (213979 new suffix), checkpoint SHA f7a86ded93be329b12e13060983aaf108f5309e3850441da0e349af16c89192b. Resume preflight PASS: optimizer step402, replay serialized with no limitation, 102 assignment records with pending iter102, and new deal start32500000 above conservative first-unused32319632. An initial preflight CLI attempt incorrectly supplied Standard10 where the validator expects the original resume anchor; it failed before creating output and was corrected to the SHA-pinned 262k parent.",
+    "Seed3 recovery checkpoint iter121 reached 580053 cumulative physical hands (312851 new from its 262k parent). Recovery reused pending iter102 exactly, optimizer/replay remained continuous, and repaired candidate IDs advanced 52..61; audit code now supports an ordered chain of multiple SHA-bound recovery preflights.",
+    "Seed3 second session hit the 7200-second guard cleanly at iter159 and 758231 cumulative physical hands (491029 new from 262k). Boundary SHA c91337aa083da75b30d5e3ea62f24dcdf9c73097b2b6ff1dc29275696f3bbc6f; optimizer step634; replay serialized; pending assignment iter160; deal start32700000 exceeds conservative first-unused32524976. Archive128 SHA recorded. Because the checkpoint's immediate resume anchor is now its in-place latest path, the validator correctly binds this and later recovery boundaries to the boundary checkpoint SHA; the audit separately anchors the first boundary to the immutable 262k parent and chains later deal/optimizer evidence.",
+    "Seed3 completed naturally at iter219 and 1050707 cumulative physical hands (783505 new from its 262k parent), final SHA256 9c3235d2254d923103730310946b1c23be3e3122068f68bdc9e6273554bd9ee5, optimizer step874/LR1e-4, replay2, assignments219 tail 64b9f0644cfa412123e55452c5103741e3065be5872009141ce039de946c150f, repaired candidates30..110, and active pool [0,1,2,13,51]. Archive192 SHA256 84f4a265743b0d4706927a50cf97ce435fbf16cf911aed6509a0870cdef7b3eb.",
+    "Final training audit passed all three lineages and session-independence with 2357804 new and 3152810 cumulative physical environment hands. The first audit exposed an audit-only accounting assumption: interrupted workers had 1516 and 2844 completed terminal tails beyond the last committed metric at seed3 recovery boundaries. Each next session's metric rows prove a constant inherited physical prefix (482697 and 761075 respectively); the audit now records and verifies these carried tails rather than incorrectly requiring session_completed_hands to start at the last committed metric. Frozen weights and raw training evidence were not altered.",
+    "Untouched evaluation completed 98304 physical matched hands. Seed slopes were -1.9379, +0.3113, and +2.9341 bb/100; combined +0.4358 CI95 [-3.0908,+3.9625]. Median slope was positive and 2/3 seeds positive, but only seed3 qualified both-seat and at-least-three-anchor breadth. All 60k outcome-blind Standard10 drift states passed; max mean TV 0.01095 and max greedy disagreement 0.01255."
+  ],
+  "result": {
+    "summary": "Three exact-state static current-KL lineages reached at least one million cumulative physical environment hands with full recovery/accounting integrity; frozen matched evaluation found a small positive combined 262k-to-1M slope but mixed seed/anchor breadth.",
+    "conclusion": "The method is mechanically sound and has positive median and 2-of-3 seed slopes, with no catastrophic Standard10 drift or replicated broad reversal. It misses the preregistered promotion rule because only one seed preserves broad both-seat multi-anchor improvement, so the evidence is insufficient rather than a long-horizon rejection.",
+    "decision": "INSUFFICIENT_SCALE_OR_MIXED_DIRECTIONAL_EVIDENCE",
+    "next_step": "Before spending another multi-million-hand tranche, run a zero-new-Slumbot, outcome-aware but label-free attribution study over existing raw external cohorts and counterfactually validate any replicated state-class vulnerability using internal matched simulation or solver targets. Use that evidence to choose between targeted general resampling/value calibration and continued larger-scale static-KL training."
+  },
+  "tags": [
+    "current-kl",
+    "exact-continuation",
+    "million-hand-scale",
+    "multi-seed"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 10,
+    "command_count": 10
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/preregistration.md": {
+      "type": "file",
+      "bytes": 2720,
+      "sha256": "de79f6dca07014fbc1a083c4286e20a0f2a4877cf1c1ae9124c8a7301cb41a71"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/run_training.ps1": {
+      "type": "file",
+      "bytes": 6713,
+      "sha256": "a87ee268d2e84a629730cb7091a0e5432c99324110fc444dd0a724e45fb4fe0a"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/code.patch": {
+      "type": "file",
+      "bytes": 292740,
+      "sha256": "d82fb8a53d7c80c7a880c81b41139d60f5870142c0b136a2bdebbe757c037252"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 1101,
+      "sha256": "5840ebf5ffd8dcede9275ba1b2727032af4b1f141094f9333083dc78bca9280d"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_stage_manifest.json": {
+      "type": "file",
+      "bytes": 7151,
+      "sha256": "20e47bebd3fea57d2525c5c675669fecd925618b6498c7c96f1c71251ccde8a6"
+    },
+    "scripts/alpha_holdem/audit_v6_static_current_kl_1m_training.py": {
+      "type": "file",
+      "bytes": 20783,
+      "sha256": "d9cfc0bdc76779669c259961eafa50eb7c3b807b7033a013e9781d2256bb5c81"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/run_evaluation.ps1": {
+      "type": "file",
+      "bytes": 3437,
+      "sha256": "0fa49253df2b5fcf947163ed35484f1ded6fa90a1ca94888196714ba8c00c9b5"
+    },
+    "scripts/alpha_holdem/aggregate_v6_static_current_kl_1m.py": {
+      "type": "file",
+      "bytes": 10731,
+      "sha256": "98e8fe17dcd822959f883bd80db0a35f72d2e9053741bebbdbc2db0a0fe84808"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed2_resume_preflight_iter151.json": {
+      "type": "file",
+      "bytes": 2275,
+      "sha256": "1239085c9ed79010fb89aaec460a47958fc3c267363e1c6ff236c051c6ac7014"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed2_iter151.ps1": {
+      "type": "file",
+      "bytes": 3428,
+      "sha256": "9b7f8d2468a5d7b28d6c0ec368f944e85f40b397b6b3f81061f1caf175c8d760"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/run_seed3.ps1": {
+      "type": "file",
+      "bytes": 4333,
+      "sha256": "4f3b73e9715850f2ad301dcbe9c3159b576ec9935f4b3a631bdc3eb03711a221"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed2/latest.pt": {
+      "type": "file",
+      "bytes": 310478576,
+      "sha256": "d17081e1d611f9c1bbc4129c715211780d2c8e1f48519c8699b071481a85e27c"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed2/checkpoints/checkpoint_iter000192_hands000000790801.pt": {
+      "type": "file",
+      "bytes": 308650654,
+      "sha256": "65e805fe7b8e5125286d40187723f1f0a01d58a0a7efc07c45c251672a26472c"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3_resume_preflight_iter101.json": {
+      "type": "file",
+      "bytes": 2276,
+      "sha256": "3a97dc6cb982b95ee384bdafa76a63f04990ca852e67132366761a9b99ddb6bf"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed3_iter101.ps1": {
+      "type": "file",
+      "bytes": 3428,
+      "sha256": "9525d766d376f406ab07a315ed3de226f6ce6fc1edeec111b5a324c67b4358f2"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3_resume_preflight_iter159.json": {
+      "type": "file",
+      "bytes": 2275,
+      "sha256": "a40c9662f6ca8d6ea2ce3e537dfc0fd085e9c42319f32ef62eaa816fbb7f2fb0"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/resume_seed3_iter159.ps1": {
+      "type": "file",
+      "bytes": 3435,
+      "sha256": "a77eb99163005c61de1dea8ab3877b3c2cfcfe7d04f4f254bb7d7e1d355e73d1"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/checkpoints/checkpoint_iter000128_hands000000527052.pt": {
+      "type": "file",
+      "bytes": 311838686,
+      "sha256": "7956bb524b530bb1d072330931a12918c1c76bb0e86f26d22cd03ad2a1ab2de1"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed1/latest.pt": {
+      "type": "file",
+      "bytes": 306414384,
+      "sha256": "1fdc7ebc2560888938cc55bbf6c9eef05deb2e5c9270fbebb123d3143357dbe3"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed1/checkpoints/checkpoint_iter000192_hands000000790790.pt": {
+      "type": "file",
+      "bytes": 307939166,
+      "sha256": "6c0bb35c3feff5f5a5440eba99bb6f8f515fe74eec1d11dbd927ebe1d65fa4fe"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/latest.pt": {
+      "type": "file",
+      "bytes": 307265712,
+      "sha256": "9c3235d2254d923103730310946b1c23be3e3122068f68bdc9e6273554bd9ee5"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/seed3/checkpoints/checkpoint_iter000192_hands000000790745.pt": {
+      "type": "file",
+      "bytes": 314127326,
+      "sha256": "84f4a265743b0d4706927a50cf97ce435fbf16cf911aed6509a0870cdef7b3eb"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/training_audit.json": {
+      "type": "file",
+      "bytes": 24129,
+      "sha256": "c9101cbeff1c4368ac2d2a2aaeed7046421b2ee733cc9c69dee1158336c70b86"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/training_audit_failed_v2_pre_tail_fix.json": {
+      "type": "file",
+      "bytes": 23663,
+      "sha256": "85857fcbaa1fb64edfa384df0c04300f86edfe678c968aac6dd428ed889a8400"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 16572,
+      "sha256": "d34b769516f26810f2cf7b2147e92c2ce6bf653a347e64eb50c8aeef6061b0e8"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed1/summary.json": {
+      "type": "file",
+      "bytes": 11245,
+      "sha256": "8d86f8df737d0d2d638fa41be0ffca4d8e0c9888207b03a31e8145e6f81b3ae8"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed1/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 531556,
+      "sha256": "ef4513923a77510ff71fc69c29c41bf412e6cd29d5b8dbaa20e33c836fdb9c82"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed2/summary.json": {
+      "type": "file",
+      "bytes": 11255,
+      "sha256": "a163fdecf437f4889c7204433c3ede54a28808ca8f0014938a8d93a4be0fe46f"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed2/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 532116,
+      "sha256": "42ed2b763d215f069e805f3c060fad960f949c81d2968d28eb1efb47987bfdca"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed3/summary.json": {
+      "type": "file",
+      "bytes": 11262,
+      "sha256": "3b90b4e991a27869191f369e218cdd49452fbb3944811852f66c66d2f29f54b4"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/eval_seed3/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 531163,
+      "sha256": "03abdf724f1bf3fc800633574062655c91f5e6dc8a88368ac2505d3ab39638bd"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed1/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4358,
+      "sha256": "3acfc74dc35240f75a0051b869347a8a0decf47782c6e1baa46d7e21b6da5f3e"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed1/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319022,
+      "sha256": "fda48c4478286649ce5b6c8efb4f6553737f32087c66e05a713e97aae29da4b9"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed2/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4360,
+      "sha256": "84dac1f2d1be05c4d167d1954a1cc68cbcd06c0b0c7bf0a4e819aac967eae3f1"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed2/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 319740,
+      "sha256": "dbe14912996644761a60e00fbc722a6a551ab049f6932ddc9118526654ff6058"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed3/drift_analysis.json": {
+      "type": "file",
+      "bytes": 4361,
+      "sha256": "cb62cd320bbb2aaf49ff45b576fe9b2f98e25d96447907888d57706e02bf5377"
+    },
+    "research/experiments/v6-static-current-kl-1m-scale-20260903/drift_seed3/drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 320129,
+      "sha256": "b3ca6eb43b4e0222c1b6b2f5cedbd8170924bc39e69af3708a3fbaf3ace871d5"
+    }
+  }
+}

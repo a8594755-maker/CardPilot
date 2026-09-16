@@ -1,0 +1,121 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-fresh-only-retained-buffer-qualification-20260907",
+  "title": "Current-regimen fresh-only retained-buffer qualification",
+  "status": "COMPLETED",
+  "created_at": "2026-09-08T03:20:11+00:00",
+  "updated_at": "2026-09-08T03:21:34+00:00",
+  "started_at": "2026-09-08T03:20:11+00:00",
+  "ended_at": "2026-09-08T03:21:34+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A retained but unsampled replay buffer permits a clean current-regimen fresh-only control without resetting learned state or historical accounting; strength effect remains unknown.",
+  "material_change": "Isolated single parser guard permits buffer2 ratio0 while preserving restore/append/serialization paths; qualify before worker smoke or scale.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-family-allocation-two-seed-geometric-20260907",
+  "command": "python -B -m pytest research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/test_hook.py -q",
+  "commands": [
+    {
+      "command": "python -B -m pytest research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/test_hook.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:20:11+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/check_parents.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:21:07+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907"
+    ],
+    "captured_at": "2026-09-08T03:20:11+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/source_manifest.json",
+    "source_manifest_sha256": "8d35e9100582cfe707a7b7197d8a7948e21dc70284454fe74c1a7b002d8ef33c",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 83.0,
+    "training_hands": 0
+  },
+  "metrics": {
+    "tests_passed": 9,
+    "real_parents_checked": 2
+  },
+  "artifacts": [
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/protocol.md",
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/code.patch",
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/source_manifest.json",
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/check_parents.py",
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/real_parent_check.json",
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/hook.py"
+  ],
+  "notes": [
+    "Nine isolated parser/guard tests passed. Real checkpoint sampling qualification begins with zero poker executions; ratio0 buffer2 retains the restore branch, unlike disabling the buffer."
+  ],
+  "result": {
+    "summary": "Nine isolated guard tests and both current real-parent replay sampling checks passed with zero poker hands.",
+    "conclusion": "Ratio0 with buffer2 can retain historical replay entries/RNG/counters; zero-target sampler consumes neither replay rows nor RNG and does not mutate buffers. Positive-target controls sampled4099/4096 rows. This is parser and saved-state mechanism evidence,not an actual worker resume or policy strength improvement.",
+    "decision": "Admit a bounded real-worker fresh-only smoke from both fixed flat parents before any matched scale. Preserve production parents and never use smoke descendants as trial roots.",
+    "next_step": "Integrate the isolated parser hook with existing managed lifecycle; verify initial full state, rolling buffer and unchanged cumulative replay count, actual zero replay rows, Adam progress and assignment/deal evidence on both seeds."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/protocol.md": {
+      "type": "file",
+      "bytes": 1953,
+      "sha256": "e5d7951f3445f366c826c9da4888b0f1ef82aae7552b185e03baefa3b6fbe5df"
+    },
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 983,
+      "sha256": "8d35e9100582cfe707a7b7197d8a7948e21dc70284454fe74c1a7b002d8ef33c"
+    },
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/check_parents.py": {
+      "type": "file",
+      "bytes": 3890,
+      "sha256": "3691be108a91b0ff4948b5b5744b6272c7e4233ef70b65367407c8c7bd7ac589"
+    },
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/real_parent_check.json": {
+      "type": "file",
+      "bytes": 4426,
+      "sha256": "8ea8c77f925911c1bf1b259fcc74235679872e8f1ab1c72cc496c61eb612b357"
+    },
+    "research/experiments/v6-fresh-only-retained-buffer-qualification-20260907/hook.py": {
+      "type": "file",
+      "bytes": 1405,
+      "sha256": "c2cf29adff75d7ecdd694717c4b15b69be95890ce925b30a83e9b6ecf880b800"
+    }
+  }
+}

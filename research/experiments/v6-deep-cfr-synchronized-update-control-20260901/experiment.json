@@ -1,0 +1,133 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-synchronized-update-control-20260901",
+  "title": "Exact-v6 synchronized versus sequential CFR update control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T15:03:35+00:00",
+  "updated_at": "2026-09-01T15:06:20+00:00",
+  "started_at": "2026-09-01T15:03:35+00:00",
+  "ended_at": "2026-09-01T15:06:20+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Freezing the iteration-start strategy profile while collecting both traversers will reduce seat-wise traversal-sample imbalance and improve terminal generic-anchor behavior versus the otherwise matched sequential collect-update ordering.",
+  "material_change": "Run matched sequential and synchronized three-iteration arms with identical trainable-passive weights, common per-iteration decks, paired sampling/optimizer seeds, two roots per player, 128 update steps, and one untouched 128-pair three-anchor greedy panel per terminal.",
+  "baseline": "The prior sequential pilot's terminal greedy mean fell to -359.11 bb/100 and iteration-2 traverser nodes were 1,203 versus 9,674.",
+  "source": "v6-deep-cfr-iterative-pilot-20260901",
+  "parent_id": "v6-deep-cfr-iterative-pilot-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_sync_control.py --iterations 3 --traversals-per-player 2 --train-steps 128 --batch-size 256 --eval-pairs 128 --seed 60905 --output-dir research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_sync_control.py --iterations 3 --traversals-per-player 2 --train-steps 128 --batch-size 256 --eval-pairs 128 --seed 60905 --output-dir research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T15:03:35+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5a14d2a60b978ed54ba8338468fdec4042468fc560d2ac54a0d437d4a4699791",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T15:03:35+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "6ed18fb7eb763253eb0382a58e250c107d032053b5e274c07d6e92e290e4102a",
+    "source_files": 121
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 1536,
+    "wall_time_seconds": 165.0,
+    "planned_environment_training_hands": 24,
+    "planned_evaluation_hands": 1536,
+    "environment_training_hands": 24
+  },
+  "metrics": {
+    "sequential_mean_log_imbalance": 3.2355143216034,
+    "synchronized_mean_log_imbalance": 3.9604625551473362,
+    "sequential_terminal_greedy_mean_bb100": -108.4765625,
+    "synchronized_terminal_greedy_mean_bb100": 158.10416666666666,
+    "synchronized_anchors_better": 3
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/common_decks.json",
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/sequential/terminal.pt",
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/synchronized/terminal.pt",
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "Both arms are terminal-selected. Common decks are reused across arms and traversers; each arm/root computation is counted separately.",
+    "summary sha256=35fa2e38e6144b4498c4f220a11951173b1faaedd031ed29f228f922d734939a; decks sha256=2edfa229a6723f224977c9f36c55502813770a73870ea84de94a8876552ee160; sequential sha256=1b369313c9ece80ae2b9589558cc06108bb8e273bb7aecb571568999f5c1db49; synchronized sha256=385149aff6dd44d6c16f843133fe33e65f903d88681c8aa98b3777e2839477aa; alpha_holdem suite 214 passed."
+  ],
+  "result": {
+    "summary": "Synchronized collection improved all three terminal generic-anchor cells and the mean by +266.58 bb/100 versus matched sequential, but increased seat-node log imbalance from 3.236 to 3.960 because sampled preflop folds yielded zero P0 traverser nodes in later iterations.",
+    "conclusion": "Iteration synchronization removes a real ordering confound but is not sufficient at tiny budgets without exploration support. Terminal-current evaluation is also not the SD-CFR average-strategy contract.",
+    "decision": "REJECT_SYNCHRONIZATION_AS_SUFFICIENT_FIX",
+    "next_step": "Add explicit recorded epsilon opponent exploration and iteration-weighted per-hand strategy-snapshot evaluation; compare epsilon0 versus0.1 under synchronized common-deck collection and require nonzero coverage plus improved balance."
+  },
+  "tags": [
+    "deep-cfr",
+    "matched-control",
+    "synchronized",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 22062,
+      "sha256": "6ed18fb7eb763253eb0382a58e250c107d032053b5e274c07d6e92e290e4102a"
+    },
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 11579,
+      "sha256": "35fa2e38e6144b4498c4f220a11951173b1faaedd031ed29f228f922d734939a"
+    },
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/common_decks.json": {
+      "type": "file",
+      "bytes": 26838,
+      "sha256": "2edfa229a6723f224977c9f36c55502813770a73870ea84de94a8876552ee160"
+    },
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/sequential/terminal.pt": {
+      "type": "file",
+      "bytes": 1808266,
+      "sha256": "1b369313c9ece80ae2b9589558cc06108bb8e273bb7aecb571568999f5c1db49"
+    },
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/run/synchronized/terminal.pt": {
+      "type": "file",
+      "bytes": 2540490,
+      "sha256": "385149aff6dd44d6c16f843133fe33e65f903d88681c8aa98b3777e2839477aa"
+    },
+    "research/experiments/v6-deep-cfr-synchronized-update-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1931,
+      "sha256": "ae63a6211960afbb4c41611ece8633186ea670ca912048435abaccfeca234565"
+    }
+  }
+}

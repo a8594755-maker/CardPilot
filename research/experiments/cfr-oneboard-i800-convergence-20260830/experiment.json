@@ -1,0 +1,170 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "cfr-oneboard-i800-convergence-20260830",
+  "title": "Matched one-board CFR i800 convergence control",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T13:00:14+00:00",
+  "updated_at": "2026-08-30T13:17:37+00:00",
+  "started_at": "2026-08-30T13:00:14+00:00",
+  "ended_at": "2026-08-30T13:17:37+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "For the exact board0/config/seed used by the i200 teacher, recomputing SRP and 3BP to i800 will materially reduce shallow-node strategy drift relative to i50-to-i200; if shallow drift remains high, CFR targets should not be confidence-weighted or scaled from i200.",
+  "material_change": "Re-solve the exact As-7d-2c board0 from zero at b8/i800 for deployment_v55_srp_200bb and deployment_v55_3bp_200bb with seed 20260829, because the solver does not serialize regrets and --resume only skips completed boards. Compare deterministic sampled i200-to-i800 strategy drift by street/depth using the existing primary-source comparison code.",
+  "baseline": "cfr-convergence-confidence-audit-20260830: i50-to-i200 mean TV 0.069 SRP and 0.080 3BP; 18.4%/21.9% of rows exceed TV 0.1, with 3BP shallow roots especially unstable.",
+  "source": "cfr-convergence-confidence-audit-20260830 decision DEEPEN_ONE_BOARD_BEFORE_CONFIDENCE_WEIGHTING; exact i200 metadata in deployment-cfr8-deep-20260829.",
+  "parent_id": "cfr-convergence-confidence-audit-20260830",
+  "command": "node --max-old-space-size=32768 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_srp_200bb --flops 1 --iterations 800 --buckets 8 --seed 20260829 --output-dir research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800",
+  "commands": [
+    {
+      "command": "node --max-old-space-size=32768 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_srp_200bb --flops 1 --iterations 800 --buckets 8 --seed 20260829 --output-dir research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:00:14+00:00"
+    },
+    {
+      "command": "node --max-old-space-size=16384 --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_3bp_200bb --flops 1 --iterations 800 --buckets 8 --seed 20260829 --output-dir research/experiments/cfr-oneboard-i800-convergence-20260830/threebet_i800",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:12:03+00:00"
+    },
+    {
+      "command": "python packages/cfr-solver/src/scripts/compare-cfr-strategies.py --old research/experiments/deployment-cfr8-deep-20260829/cfr_srp8_i200/flop_000.jsonl --new research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800/flop_000.jsonl --sample-rate 0.002 --out research/experiments/cfr-oneboard-i800-convergence-20260830/drift_srp_board0_i200_i800.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:14:40+00:00"
+    },
+    {
+      "command": "python packages/cfr-solver/src/scripts/compare-cfr-strategies.py --old research/experiments/deployment-cfr8-deep-20260829/cfr_3bp8_i200/flop_000.jsonl --new research/experiments/cfr-oneboard-i800-convergence-20260830/threebet_i800/flop_000.jsonl --sample-rate 0.002 --out research/experiments/cfr-oneboard-i800-convergence-20260830/drift_3bp_board0_i200_i800.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T13:14:40+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e1b5ad2c718abbaa2147026b841090c4afe87848010d565c06e41b3cc21905f5",
+    "code_paths": [
+      "packages/cfr-solver/src"
+    ],
+    "captured_at": "2026-08-30T13:00:14+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/cfr-oneboard-i800-convergence-20260830/code.patch",
+    "patch_sha256": "e4e45ccbb81a420654ae1a13965f13996c09afbf910232b6621f08584fe81278",
+    "source_manifest": "research/experiments/cfr-oneboard-i800-convergence-20260830/source_manifest.json",
+    "source_manifest_sha256": "5f368cd38be5c07bbdbb45c742a8e223f92c991f4f6f16ca1c9d572b28792427",
+    "source_files": 126
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 26377030,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 1043.0
+  },
+  "metrics": {
+    "srp_i800_infosets": 22703360,
+    "srp_i800_solve_seconds": 623.6,
+    "srp_i800_total_seconds": 693.3,
+    "threebet_i800_infosets": 3673670,
+    "threebet_i800_solve_seconds": 123.1,
+    "threebet_i800_total_seconds": 133.6,
+    "srp_all_i200_i800_mean_tv": 0.13576735312781607,
+    "srp_flop_depth0_i200_i800_mean_tv": 0.15287990867407034,
+    "srp_flop_depth1_i200_i800_mean_tv": 0.11653283499466284,
+    "threebet_all_i200_i800_mean_tv": 0.1353493968703606,
+    "threebet_flop_depth0_i200_i800_mean_tv": 0.21273838604023976,
+    "threebet_flop_depth1_i200_i800_mean_tv": 0.12399591124217717,
+    "srp_root_fraction_tv_over_0_1": 0.875,
+    "threebet_root_fraction_tv_over_0_1": 0.875
+  },
+  "artifacts": [
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/code.patch",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/source_manifest.json",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800/flop_000.jsonl",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800/flop_000.meta.json",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/threebet_i800/flop_000.jsonl",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/threebet_i800/flop_000.meta.json",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/drift_srp_board0_i200_i800.json",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/drift_3bp_board0_i200_i800.json",
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/convergence_summary.md"
+  ],
+  "notes": [
+    "No learned policy is changed in this convergence control. Promotion criterion: i200-to-i800 shallow/root drift must be materially below i50-to-i200 on both SRP and 3BP before any convergence-weighted distillation. Solver --resume is intentionally not used because no regret-state continuation exists.",
+    "A prior attempt to invoke solve.ts with --help revealed that the CLI has no help mode and briefly launched legacy defaults. Exact PID 41468 was terminated at iter0/0 infosets; the default output directory contained no files afterward, so it contributes zero samples and no artifact.",
+    "SRP i800 completed from zero on the exact matched board/config/seed: 22,703,360 infosets, 623.6s solve, 693.3s including 1.257GB JSONL export. Starting matched 3BP i800 serially to avoid resource contention.",
+    "3BP i800 completed from zero: 3,673,670 infosets, 123.1s solve, 133.6s including 195.8MB export. Starting deterministic 0.002 sampled matched i200-to-i800 comparisons; all flop histories at depth <=1 are included regardless of sampling.",
+    "Both trees show consistent 36-39% shallow mean-TV reductions from i50->i200 to i200->i800, but absolute drift remains too high for confidence weighting: 7/8 root buckets in each tree still exceed TV 0.1. ALL-row drift is not a convergence estimator because i800 expands reachable support substantially."
+  ],
+  "result": {
+    "summary": "Exact matched board0 b8/i800 recomputes produced 22,703,360 SRP and 3,673,670 3BP infosets. Shallow mean TV fell by 36-39% versus the earlier i50-to-i200 interval, but root instability remained high (87.5% of buckets above TV 0.1 in both trees).",
+    "conclusion": "More CFR iterations consistently reduce shallow drift, but i200 and even i800 are not sufficiently stable to justify checkpoint-drift confidence weights. The deeper artifacts are useful higher-fidelity teacher data; these measurements are strategy drift only, not exploitability.",
+    "decision": "REJECT_I200_CONFIDENCE_WEIGHTING_RETAIN_I800_TEACHER",
+    "next_step": "Use the i800 board0 artifacts only as higher-fidelity supervision/control. Before scaling CFR breadth, test whether replacing the unstable i200 board0 targets with i800 targets yields a measurable learned-policy gain under a bounded matched distillation experiment, without treating drift as calibrated confidence."
+  },
+  "tags": [
+    "cfr",
+    "convergence",
+    "teacher-confidence"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/code.patch": {
+      "type": "file",
+      "bytes": 46504,
+      "sha256": "e4e45ccbb81a420654ae1a13965f13996c09afbf910232b6621f08584fe81278"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 23611,
+      "sha256": "5f368cd38be5c07bbdbb45c742a8e223f92c991f4f6f16ca1c9d572b28792427"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800/flop_000.jsonl": {
+      "type": "file",
+      "bytes": 1317907613,
+      "sha256": "5b92dfae15a86a6bba4df8d3a69e85fcd121b6f7782d08c122195c5ea7b00a6a"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/srp_i800/flop_000.meta.json": {
+      "type": "file",
+      "bytes": 645,
+      "sha256": "3e070ff6905a6fef7fb277a15c931eb59fde107a78a344b80fbe4ccec5f36f74"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/threebet_i800/flop_000.jsonl": {
+      "type": "file",
+      "bytes": 205307288,
+      "sha256": "9198a62196d8d7dc914fa187a7a2c8164a4db5af5078fca56f5b7d69897ee9a0"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/threebet_i800/flop_000.meta.json": {
+      "type": "file",
+      "bytes": 643,
+      "sha256": "bbe3e2a7db304c3637a6a8a161ab10e2810947dd6c2c3e962f38b4e85cc626f1"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/drift_srp_board0_i200_i800.json": {
+      "type": "file",
+      "bytes": 7100,
+      "sha256": "e90561a23569eca1b34dbe00230f4407e4db9135e69a0f8b8794213ce8ea9ef6"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/drift_3bp_board0_i200_i800.json": {
+      "type": "file",
+      "bytes": 7095,
+      "sha256": "3cc1bbab6b112fe6e1633c95c7602ccc4ed672bd97b4f7332ac8d5477aeeedca"
+    },
+    "research/experiments/cfr-oneboard-i800-convergence-20260830/convergence_summary.md": {
+      "type": "file",
+      "bytes": 1728,
+      "sha256": "b48fafe5d6fc521ce85bef5c310df29a8582e785a119e016fa1e96088b5ea779"
+    }
+  }
+}

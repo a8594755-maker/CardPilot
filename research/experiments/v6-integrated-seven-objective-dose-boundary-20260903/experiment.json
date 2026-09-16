@@ -1,0 +1,160 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-seven-objective-dose-boundary-20260903",
+  "title": "Integrated seven-objective nonlinear dose boundary",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T04:39:38+00:00",
+  "updated_at": "2026-09-03T04:43:12+00:00",
+  "started_at": "2026-09-03T04:39:38+00:00",
+  "ended_at": "2026-09-03T04:43:12+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The seven-objective direction is a valid common descent update at sufficiently small finite steps in both 1M lineages; a geometric parent-KL curve at 3.125e-6, 1.25e-5, 5e-5, plus the prior failed 2e-4 point will identify the largest reproducible dose before Standard10-KL curvature reverses.",
+  "material_change": "No new environment samples. Reapply matched ordinary and seven-objective directions to both immutable parents at three smaller parent-KL doses, verify all seven exact cohort objective deltas, and aggregate with the existing 2e-4 failure.",
+  "baseline": "v6-integrated-seven-objective-update-smoke-20260903",
+  "source": "v6-integrated-standard10-seat-gradient-conflict-audit-20260903",
+  "parent_id": "v6-integrated-seven-objective-update-smoke-20260903",
+  "command": "python scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --target-parent-kl 0.000003125 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_3p125e-6",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --target-parent-kl 0.000003125 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_3p125e-6",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:39:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --target-parent-kl 0.0000125 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_1p25e-5",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:40:39+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --target-parent-kl 0.00005 --device cuda --out-dir research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:41:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_integrated_seven_objective_dose_curve.py --dose-run d3p125e-6=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_3p125e-6/summary.json --dose-run d1p25e-5=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_1p25e-5/summary.json --dose-run d5e-5=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/summary.json --dose-run d2e-4=research/experiments/v6-integrated-seven-objective-update-smoke-20260903/update/summary.json --out research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:42:31+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T04:43:12+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "a80811a248cf30b5b160ec105431ec43e66c3ee0ab25dba55797c3c522279d71",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_integrated_seven_objective_update_smoke.py",
+      "scripts/alpha_holdem/aggregate_v6_integrated_seven_objective_dose_curve.py"
+    ],
+    "captured_at": "2026-09-03T04:39:38+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/source_manifest.json",
+    "source_manifest_sha256": "699f15502016f2269faad3182d5566382ab3916c4f57e8773b531b9bbca4fe9d",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 214.0,
+    "new_environment_training_hands": 0,
+    "reused_offline_training_hands": 12288,
+    "slumbot_hands": 0,
+    "tested_doses": 4
+  },
+  "metrics": {
+    "dose_1": 3.125e-06,
+    "dose_2": 1.25e-05,
+    "dose_3": 5e-05,
+    "prior_failed_dose": 0.0002,
+    "selected_parent_kl": 5e-05,
+    "failed_parent_kl": 0.0002,
+    "seed1_selected_source_kl_delta": -3.5246252082288265e-05,
+    "seed2_selected_source_kl_delta": -3.149762051180005e-05,
+    "tests_passed": 319
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/code.patch",
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_3p125e-6/summary.json",
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_1p25e-5/summary.json",
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/summary.json",
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/aggregate.json"
+  ],
+  "notes": [
+    "Preregistered selection: choose the largest tested dose where treatment improves all six reward losses and source KL in both lineages, parent-KL calibration is within 2%, and ordinary control fails common descent in both. Do not run external evaluation until this gate passes.",
+    "Dose 3.125e-6 passed all preregistered cohort gates in both lineages; continue the fixed geometric curve without external evaluation.",
+    "Dose 1.25e-5 also passed all cohort gates in both lineages; continue to fixed 5e-5 point.",
+    "Dose 5e-5 passed all cohort gates in both lineages; aggregate against the prior 2e-4 nonlinear failure.",
+    "No new environment hands, external evaluation, or Slumbot calls. Generated checkpoints are resume-ineligible and optimizer-free."
+  ],
+  "result": {
+    "summary": "The fixed geometric curve found reproducible finite-step common descent at parent KL 3.125e-6, 1.25e-5, and 5e-5 in both lineages; 2e-4 fails due to Standard10-KL curvature. At selected 5e-5, treatment improves all six reward groups plus source KL in both lineages, while matched control harms CFR4-seat1 in Seed1 and CFR4-seat0 plus source KL in Seed2.",
+    "conclusion": "The seven-objective mechanism translates beyond infinitesimal gradients, but has a fourfold dose boundary between 5e-5 and 2e-4 parent KL. This is sufficient to evaluate one frozen update at 5e-5, not to claim a production optimizer or long-horizon benefit.",
+    "decision": "EVALUATE_SEVEN_OBJECTIVE_DOSE_5E5",
+    "next_step": "Run untouched greedy treatment-versus-control evaluation for both lineages at the selected 5e-5 dose across Standard10, CFR4, legacy-iter16, and legacy-mixed65k with both seats; also audit fresh Standard10 state drift. Aggregate across independent update lineages before deciding whether to implement the on-policy trainer contract."
+  },
+  "tags": [
+    "dose-curve",
+    "frozen-evidence",
+    "mgda",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 5,
+    "command_count": 5
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 521,
+      "sha256": "699f15502016f2269faad3182d5566382ab3916c4f57e8773b531b9bbca4fe9d"
+    },
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_3p125e-6/summary.json": {
+      "type": "file",
+      "bytes": 11408,
+      "sha256": "2817c38e3c0c20bf8afaeb55cdd3aed564e40e6d66c9bacba1a796675f8122fc"
+    },
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_1p25e-5/summary.json": {
+      "type": "file",
+      "bytes": 11418,
+      "sha256": "0762ef8be97e0041b1299d7b3a48611465f21cb9aaf14800ecaa08a935779b28"
+    },
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/summary.json": {
+      "type": "file",
+      "bytes": 11399,
+      "sha256": "c5ed1c63ee37ae5a9e5d896f0e8681e3173e076f53850f6f9d4677584a9e48fa"
+    },
+    "research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 14303,
+      "sha256": "4745faafe034d8758b65874b352d8f2b4e0f96f19bc7cbf698625c324f985d74"
+    }
+  }
+}

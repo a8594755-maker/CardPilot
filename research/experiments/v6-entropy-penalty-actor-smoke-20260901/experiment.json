@@ -1,0 +1,299 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-entropy-penalty-actor-smoke-20260901",
+  "title": "Matched entropy-penalty actor-head smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T01:23:20+00:00",
+  "updated_at": "2026-09-01T01:49:45+00:00",
+  "started_at": "2026-09-01T01:23:20+00:00",
+  "ended_at": "2026-09-01T01:49:45+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Replacing the +0.005 entropy bonus with a symmetric -0.005 entropy penalty sharpens learned actor margins and improves generic-greedy reward without excessive policy drift.",
+  "material_change": "One 131072-physical-hand matched-seed actor-head treatment; greedy common-deck source/control/treatment matrix plus offline preserved-state entropy/TV mechanism gate.",
+  "baseline": "Prior raw control SHA 9fd38ad3 trained with entropy +0.005/floor0.05; same checkpoint greedy fresh5k -9.4188 and sampled -79.2126.",
+  "source": "legacy Standard10 SHA 91b0c587; frozen control SHA 9fd38ad3; five untouched anchors",
+  "parent_id": "v6-actor-raw-greedy-fresh5k-slumbot-20260901",
+  "command": "python research/experiments/v6-entropy-penalty-actor-smoke-20260901/run_smoke.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-entropy-penalty-actor-smoke-20260901/run_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:23:20+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\test_smoke.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:26:20+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 131072 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .01 --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\source_legacy.pt --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef -.005 --entropy-floor 0 --pool-strategy latest --fixed-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor1.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor2.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor3.pt C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor4.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\production\\treatment\\opponent_assignments.jsonl --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026104200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 8 --run-id v6_entropy_penalty_actor_smoke_20260901 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\production\\treatment --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\production\\treatment\\latest.pt --seed 20261042 --max-runtime-seconds 1800 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\source_legacy.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:26:23+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\production\\treatment --expected-target-hands 99999999 --expected-target-environment-hands 131072 --expected-final-iteration 26 --expected-pool-size 5 --expected-archive-every 8 --expected-normalization global --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\production\\treatment\\session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:46+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\source_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:51+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor1.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\source_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor2.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\source_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor3.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\source_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor4.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\source_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:53+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\control_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor1.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\control_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:54+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor2.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\control_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor3.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\control_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\control.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor4.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\control_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor0.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\treatment_anchor0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor1.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\treatment_anchor1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor2.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\treatment_anchor2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor3.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\treatment_anchor3",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:57+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\treatment.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\anchor4.pt --pairs 2048 --seed 20261046 --device cpu --policy-mode greedy --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\matrix\\treatment_anchor4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:34:58+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-entropy-penalty-actor-smoke-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:49:19+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T01:23:20+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-entropy-penalty-actor-smoke-20260901/code.patch",
+    "patch_sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91",
+    "source_manifest": "research/experiments/v6-entropy-penalty-actor-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "51cdccf353f6397f7f11b80f7dd5d185e3ec4786cd0575e1a5399ec2a43a1638",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 131301,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 91552,
+    "wall_time_seconds": 1585.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 1356.328,
+    "treatment_control_bb_per_100": -5.977587890625,
+    "treatment_control_ci95_low": -38.68585925753536,
+    "treatment_control_ci95_high": 26.73068347628536,
+    "treatment_source_bb_per_100": 166.194287109375,
+    "entropy_reduction": 0.0425731338245651,
+    "treatment_control_state_tv": 0.06266471036299189,
+    "positive_treatment_control_anchors": 2
+  },
+  "artifacts": [
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/preregistration.md",
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/code.patch",
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\candidate_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\treatment.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\analysis.json",
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/analysis.json",
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/reviewed_analysis.json",
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/result_summary.md",
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/production/treatment/session_audit.json",
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/frozen/treatment.pt"
+  ],
+  "notes": [
+    "Preregistered before greedy evaluator implementation and treatment launch. Zero Slumbot authorization."
+  ],
+  "result": {
+    "summary": "One 131301-physical-hand matched treatment replaced entropy bonus with symmetric entropy penalty. Greedy source/control/treatment common-deck matrix and 15056-state mechanism replay produced 91552 offline evaluation hands; independent review passed.",
+    "conclusion": "The entropy mechanism worked cleanly (preserved-state entropy -0.04257, TV 0.06266) but greedy reward did not: treatment-control -5.9776 bb/100 with 2/5 positive anchors. Sharpening logits alone is not a strength improvement. Reject scaling and do not spend Slumbot hands on this endpoint.",
+    "decision": "ENTROPY_PENALTY_SMOKE_NOT_PROMISING",
+    "next_step": "Preserve the prior raw greedy candidate as the best external point. Stop entropy/EMA/imitation variations. The next learned-weight direction should change opponent coverage or value estimation with a mechanism tied to exploitability, and must use greedy-aligned internal evaluation before any external gate."
+  },
+  "tags": [
+    "entropy",
+    "greedy",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 20,
+    "command_count": 20
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 1998,
+      "sha256": "3c18ef1a609b594093113ea8c60225cdbfe6964bc76c713264231e426da2c5aa"
+    },
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12742975,
+      "sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91"
+    },
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "51cdccf353f6397f7f11b80f7dd5d185e3ec4786cd0575e1a5399ec2a43a1638"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 13824,
+      "sha256": "89eb3ab6c42bd9762824774c43bc3f0771eb808cfe0c9812a27da61126d4b823"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 23250,
+      "sha256": "0096b3c13649a99a822583433591620739f65e90f3bb58d596238ce666ba97b7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 887,
+      "sha256": "26bb27768bf6d563cb13f67d00154d18163598a873bebc4481c2acbc615fadcc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\candidate_manifest.json": {
+      "type": "file",
+      "bytes": 690,
+      "sha256": "d1c2069b9aaee24e12526e083a9a25bf0e6350651819e9aeb5f0808c6fac4b5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\frozen\\treatment.pt": {
+      "type": "file",
+      "bytes": 199404452,
+      "sha256": "79a2a9cb72d2b02b43a6b82c07ec09de2f33de9184e6a98435e676a2c8a9086d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 274,
+      "sha256": "40da526044e5b65baac735bdb67c7cedd50e5f981d3498dbc61cf95f919aab07"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-entropy-penalty-actor-smoke-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 2035,
+      "sha256": "5a0466dc169e8762e450d39dbf8d13b1400773e14d2544ebce1a814644572b63"
+    },
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 2035,
+      "sha256": "5a0466dc169e8762e450d39dbf8d13b1400773e14d2544ebce1a814644572b63"
+    },
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1737,
+      "sha256": "74c1be2326d41918ae694b855959abe0be5e7a1da558f5b9766ed5a39e42cc69"
+    },
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 339,
+      "sha256": "bb7b52b1c24e295763a6d23b113d97a53147bf5375fefe75f300d6b75d75b2a7"
+    },
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/production/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 6365,
+      "sha256": "6824fc57cb1625504dbc10bd41f5d06fa79e27b258d8283f441205df8a7044de"
+    },
+    "research/experiments/v6-entropy-penalty-actor-smoke-20260901/frozen/treatment.pt": {
+      "type": "file",
+      "bytes": 199404452,
+      "sha256": "79a2a9cb72d2b02b43a6b82c07ec09de2f33de9184e6a98435e676a2c8a9086d"
+    }
+  }
+}

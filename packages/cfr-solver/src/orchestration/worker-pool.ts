@@ -4,6 +4,7 @@
 import { fork, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { totalmem } from 'node:os';
 import type { FlopTask, WorkerResult, WorkerProgress } from './solve-worker.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,8 @@ interface WorkerEntry {
   process: ChildProcess;
   busy: boolean;
   id: number;
+  currentTask: FlopTask | null;
+  failed: boolean;
 }
 
 export class WorkerPool {
@@ -28,6 +31,9 @@ export class WorkerPool {
   private taskQueue: FlopTask[] = [];
   private pendingCount = 0;
   private resolveAll: (() => void) | null = null;
+  private rejectAll: ((error: Error) => void) | null = null;
+  private failure: Error | null = null;
+  private shuttingDown = false;
   private onResult: ((result: WorkerResult) => void) | null;
   private onProgress: ((progress: WorkerProgress) => void) | null;
 
@@ -45,7 +51,13 @@ export class WorkerPool {
         stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
       });
 
-      const entry: WorkerEntry = { process: child, busy: false, id: i };
+      const entry: WorkerEntry = {
+        process: child,
+        busy: false,
+        id: i,
+        currentTask: null,
+        failed: false,
+      };
 
       child.on('message', (msg: WorkerResult | WorkerProgress) => {
         if (msg.type === 'progress') {
@@ -56,6 +68,7 @@ export class WorkerPool {
         if (msg.type === 'result') {
           this.onResult?.(msg);
           entry.busy = false;
+          entry.currentTask = null;
           this.pendingCount--;
           this.dispatchNext(entry);
 
@@ -67,17 +80,19 @@ export class WorkerPool {
       });
 
       child.on('error', (err) => {
-        console.error(`Worker ${i} error:`, err);
-        entry.busy = false;
-        this.pendingCount--;
-
-        if (this.pendingCount === 0 && this.taskQueue.length === 0) {
-          this.resolveAll?.();
-        }
+        this.failWorker(entry, new Error(`Worker ${i} error: ${err.message}`, { cause: err }));
       });
 
       child.on('exit', (code) => {
-        if (code !== 0 && code !== null) {
+        if (!this.shuttingDown && entry.busy) {
+          const boardId = entry.currentTask?.boardId;
+          this.failWorker(
+            entry,
+            new Error(
+              `Worker ${i} exited with code ${code ?? 'null'} while solving board ${boardId ?? 'unknown'}`,
+            ),
+          );
+        } else if (!this.shuttingDown && code !== 0 && code !== null) {
           console.error(`Worker ${i} exited with code ${code}`);
         }
       });
@@ -104,9 +119,11 @@ export class WorkerPool {
    * Wait for all submitted tasks to complete.
    */
   async waitAll(): Promise<void> {
+    if (this.failure) throw this.failure;
     if (this.pendingCount === 0 && this.taskQueue.length === 0) return;
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       this.resolveAll = resolve;
+      this.rejectAll = reject;
     });
   }
 
@@ -114,6 +131,7 @@ export class WorkerPool {
    * Terminate all worker processes.
    */
   async shutdown(): Promise<void> {
+    this.shuttingDown = true;
     for (const entry of this.workers) {
       entry.process.kill('SIGTERM');
     }
@@ -132,22 +150,28 @@ export class WorkerPool {
    * Reserves ~4GB for OS + main process, splits rest among workers.
    */
   private static autoDetectHeapMB(numWorkers: number): number {
-    try {
-      const os = require('node:os');
-      const totalMB = Math.floor(os.totalmem() / (1024 * 1024));
-      const reservedMB = 4096; // 4GB for OS + main process
-      const perWorker = Math.floor((totalMB - reservedMB) / numWorkers);
-      // Clamp between 4GB and 64GB per worker
-      return Math.max(4096, Math.min(65536, perWorker));
-    } catch {
-      return 8192; // fallback: 8GB
-    }
+    const totalMB = Math.floor(totalmem() / (1024 * 1024));
+    const reservedMB = 4096; // 4GB for OS + main process
+    const perWorker = Math.floor((totalMB - reservedMB) / numWorkers);
+    // Clamp between 4GB and 64GB per worker.
+    return Math.max(4096, Math.min(65536, perWorker));
   }
 
   private dispatchNext(entry: WorkerEntry): void {
     if (this.taskQueue.length === 0) return;
     const task = this.taskQueue.shift()!;
     entry.busy = true;
+    entry.currentTask = task;
     entry.process.send(task);
+  }
+
+  private failWorker(entry: WorkerEntry, error: Error): void {
+    if (entry.failed || this.shuttingDown) return;
+    entry.failed = true;
+    entry.busy = false;
+    entry.currentTask = null;
+    this.failure ??= error;
+    console.error(error.message);
+    this.rejectAll?.(this.failure);
   }
 }

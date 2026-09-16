@@ -1,0 +1,129 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-iterative-pilot-20260901",
+  "title": "Exact-v6 iterative neural regret pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:59:55+00:00",
+  "updated_at": "2026-09-01T15:02:54+00:00",
+  "started_at": "2026-09-01T14:59:55+00:00",
+  "ended_at": "2026-09-01T15:02:54+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "With the selected 128-step dose and live-feature passive initialization, three exact-v6 regret iterations will remain computationally bounded, preserve resumable evidence, and produce a terminal policy whose fixed-panel greedy average improves over initialization on at least two of three generic anchors.",
+  "material_change": "Run three iterations with two root traversals per player, fresh-Adam 128-step updates matching the dose control, per-iteration network/buffer/RNG/strategy snapshots, and terminal-only interpretation on a fixed 128-pair call-station/uniform/min-bet sampled+greedy panel.",
+  "baseline": "The matched dose control selected 128 steps after 35.2%/33.5% held-out loss reductions; no iterative performance evidence exists yet.",
+  "source": "v6-deep-cfr-optimizer-dose-control-20260901",
+  "parent_id": "v6-deep-cfr-optimizer-dose-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_iterative_pilot.py --iterations 3 --traversals-per-player 2 --train-steps 128 --batch-size 256 --eval-pairs 128 --seed 60904 --output-dir research/experiments/v6-deep-cfr-iterative-pilot-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_iterative_pilot.py --iterations 3 --traversals-per-player 2 --train-steps 128 --batch-size 256 --eval-pairs 128 --seed 60904 --output-dir research/experiments/v6-deep-cfr-iterative-pilot-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:59:55+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cf89228b7747ee9e6ed67f7f720365831f5903d7b39de855451878404fa8f79c",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T14:59:55+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-iterative-pilot-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-iterative-pilot-20260901/source_manifest.json",
+    "source_manifest_sha256": "653a508506aa5424c921f8dc27cbcf6db5fdc0f04fb1f0b8eaaa93651e6d2fec",
+    "source_files": 120
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 6144,
+    "wall_time_seconds": 179.0,
+    "planned_environment_training_hands": 12,
+    "planned_evaluation_hands": 6144,
+    "environment_training_hands": 12,
+    "root_traversals": 12,
+    "decision_nodes": 74953,
+    "terminal_rollouts": 48271
+  },
+  "metrics": {
+    "initial_greedy_anchor_mean_bb100": 69.25911458333331,
+    "terminal_greedy_anchor_mean_bb100": -359.11328125,
+    "terminal_argmax_movement": 0.6786290674875491,
+    "anchors_improved": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/run/metrics.jsonl",
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/run/checkpoint_iter3.pt",
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/analysis.md"
+  ],
+  "notes": [
+    "Terminal iteration is frozen before evaluation and is the only candidate used for admission; intermediate evaluations form a learning-curve diagnostic, not checkpoint selection.",
+    "summary sha256=53dd0f036b4b50caa6ee5ac75f1bca7c1ef86a13e8d516e0772884cdaf15b3e1; metrics sha256=4327e86a6d15839a8451e12b367018176ca67097b69f9391eaa70d68bc960bff; terminal sha256=973b42985c0809830a8230b617c6dd46bd9b84dabc4f7125c202b7bda2c0d317; alpha_holdem suite 214 passed."
+  ],
+  "result": {
+    "summary": "Three exact-v6 iterations completed and reloaded exactly, but terminal greedy generic-anchor mean declined from +69.26 to -359.11 bb/100 and only one of three anchors improved. Traverser-node counts became sharply seat-asymmetric under within-iteration sequential updates.",
+    "conclusion": "The selected optimizer dose creates large behavior change but the sequential collect-update ordering is confounded and the resulting terminal curve is not promising. Larger training is rejected until iteration synchronization is tested.",
+    "decision": "REJECT_ITERATIVE_NEURAL_REGRET_PILOT",
+    "next_step": "Run a same-budget matched synchronization control: freeze both networks at iteration start, collect both traversers on common decks, then update both; compare sample imbalance and terminal fixed-panel curve against this sequential treatment."
+  },
+  "tags": [
+    "deep-cfr",
+    "iterative",
+    "pilot",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 21874,
+      "sha256": "653a508506aa5424c921f8dc27cbcf6db5fdc0f04fb1f0b8eaaa93651e6d2fec"
+    },
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 16450,
+      "sha256": "53dd0f036b4b50caa6ee5ac75f1bca7c1ef86a13e8d516e0772884cdaf15b3e1"
+    },
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/run/metrics.jsonl": {
+      "type": "file",
+      "bytes": 1481,
+      "sha256": "4327e86a6d15839a8451e12b367018176ca67097b69f9391eaa70d68bc960bff"
+    },
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/run/checkpoint_iter3.pt": {
+      "type": "file",
+      "bytes": 14040445,
+      "sha256": "973b42985c0809830a8230b617c6dd46bd9b84dabc4f7125c202b7bda2c0d317"
+    },
+    "research/experiments/v6-deep-cfr-iterative-pilot-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1951,
+      "sha256": "4c1f52475531e8cab56c08f0acaaa349a9ac8f9e59783cbbd98b82be8489852a"
+    }
+  }
+}

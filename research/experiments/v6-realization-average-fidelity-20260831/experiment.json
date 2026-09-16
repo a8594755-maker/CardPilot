@@ -1,0 +1,426 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-realization-average-fidelity-20260831",
+  "title": "Preserved realization-average fidelity diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T20:21:21+00:00",
+  "updated_at": "2026-08-31T20:36:59+00:00",
+  "started_at": "2026-08-31T20:27:46+00:00",
+  "ended_at": "2026-08-31T20:33:39+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A reach-weighted teacher-mixture reference can distinguish studentbehavior compression/coverage gaps from unsupported claims of teacherstrength.",
+  "material_change": "Read-only all8192nativeheldout heroes and20kcompleted externalhands;4frozenmodels; log-ownreach posterior andTV/JS,0newhands/training/network.",
+  "baseline": "",
+  "source": "research/experiments/v6-realization-average-fidelity-20260831/preregistration.md",
+  "parent_id": "v6-fictitious-average-phase2-fresh20k-slumbot-20260831",
+  "command": "python -m pytest research/experiments/v6-realization-average-fidelity-20260831/test_mixture.py -q --junitxml=research/experiments/v6-realization-average-fidelity-20260831/preparation_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/v6-realization-average-fidelity-20260831/test_mixture.py -q --junitxml=research/experiments/v6-realization-average-fidelity-20260831/preparation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:21:21+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-realization-average-fidelity-20260831/test_mixture.py -q --junitxml=research/experiments/v6-realization-average-fidelity-20260831/implementation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:27:46+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-realization-average-fidelity-20260831/run_diagnostic.py research/experiments/v6-realization-average-fidelity-20260831/review_finish.py research/experiments/v6-realization-average-fidelity-20260831/mixture.py research/experiments/v6-realization-average-fidelity-20260831/test_mixture.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:27:46+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-realization-average-fidelity-20260831/run_diagnostic.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:27:46+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\test_mixture.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:27:49+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-08-31T18:20:00+00:00 --out-json research/experiments/v6-realization-average-fidelity-20260831/startup_record_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:28:14+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-08-31T18:20:00+00:00 --out-json research/experiments/v6-realization-average-fidelity-20260831/corrected_record_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:29:27+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-realization-average-fidelity-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:32:22+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-realization-average-fidelity-20260831/test_review_cached.py -q --junitxml=research/experiments/v6-realization-average-fidelity-20260831/cached_review_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:33:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-realization-average-fidelity-20260831/review_cached.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:33:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-realization-average-fidelity-20260831/review_cached.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:33:23+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-realization-average-fidelity-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T20:33:39+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-realization-average-fidelity-20260831"
+    ],
+    "captured_at": "2026-08-31T20:21:21+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-realization-average-fidelity-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-realization-average-fidelity-20260831/source_manifest.json",
+    "source_manifest_sha256": "e118dced8cd8579a18e95b5c5a93ccd241d3ec5397120dc90e01a4a2980f15de",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 353.0,
+    "slumbot_hands": 0,
+    "diagnostic_model_queries": 385020
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-realization-average-fidelity-20260831/preregistration.md",
+    "research/experiments/v6-realization-average-fidelity-20260831/code.patch",
+    "research/experiments/v6-realization-average-fidelity-20260831/source_manifest.json",
+    "research/experiments/v6-realization-average-fidelity-20260831/preparation_tests.xml",
+    "research/experiments/v6-realization-average-fidelity-20260831/implementation_tests.xml",
+    "research/experiments/v6-realization-average-fidelity-20260831/run_diagnostic.py",
+    "research/experiments/v6-realization-average-fidelity-20260831/review_finish.py",
+    "research/experiments/v6-realization-average-fidelity-20260831/mixture.py",
+    "research/experiments/v6-realization-average-fidelity-20260831/test_mixture.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution_code\\copy_manifest.json",
+    "research/experiments/v6-realization-average-fidelity-20260831/startup_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\batch_qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\coverage.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\full_reference_probability_check.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\implementation_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\metadata.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\mixture.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\mixture_metrics.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\observations.npz",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\preparation_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model0.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model1.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model2.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model3.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\run_diagnostic.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\startup_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\test_mixture.py",
+    "research/experiments/v6-realization-average-fidelity-20260831/corrected_record_audit.json",
+    "research/experiments/v6-realization-average-fidelity-20260831/cached_review_tests.xml",
+    "research/experiments/v6-realization-average-fidelity-20260831/review_cached.py",
+    "research/experiments/v6-realization-average-fidelity-20260831/test_review_cached.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\review_cached.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_execution.json"
+  ],
+  "notes": [
+    "After completednegative externalpilot;100k planSTOPPED. Prospectiveoffline fidelityanalysis only,notcounterfactualwinrate or teacherstrengthtest. Full-ownhistory teacherposterior excludescurrent/future/opp actions fromweightupdates;diagnostic thresholds fixed beforequeries.",
+    "18tests passed including realimmutable parents and production before-action/reset routing;py_compilePASS. Launch fixedpreserved-input diagnostic now, no newhands/training/network. Exact full-SHA models and6sourcefiles capturedbeforequeries. Nativehero=index%2, all8completedexternal sessions,768qualificationqueries then4per selectedstate;current/opp/futureactions excluded fromposteriorupdates.",
+    "Sixrecent response/average/parity/pilot/conditionalqualification/diagnostic records audit0warnings;validnegativepilotCOMPLETED and qualificationSTOPPED0hands. Diagnostic is the solecurrent workload, noexternalclients/training active.",
+    "Correction to preceding startup-audit note: actual artifact reports6records,1warning (conditional100k STOPPED record has no execution walltime because it never started). Do not read previous0warning note as evidence. Originalaudit preserved; setexplicit zero qualificationexecutiontime on that never-launched record and re-audit.",
+    "Corrected audit now6records0warnings. Original1warningartifact preserved; qualificationexecution0 is explicit because no100k process/sessioneverlaunched, offlinepreparation timingretained inXML. No change tocompletedpokerhands/model/runtime evidence.",
+    "Originalreadonly terminalreviewPID10216 stopped afterconfirmed performancebug: per-row NpzFilegetitem repeatedly decompresses completearrays (review_finish.py64,74-81). No reviewed_analysis/result_summary existed; completedinference2114/modelqueries385020/raw/sourcefiles unchanged. Preserve originalcapturedreviewbytes. Use separate eager-cache wrapper withsameoriginalreviewformulas/arrays,0additionalmodelqueries or uniquehands; record interruption asreview-only,notdiagnosticrunfailure.",
+    "2eager-cache tests PASS: exactsamearray bytes/values, repeatedaccesssameinmemoryobject, ordinarynpy/othernpz semantics unchanged. Separatewrapper calls unchangedcapturedoriginalreview; only mixture_metrics.npz deserialization madeeager. No renewedmodelinference or newhands; abortedreadonlyreviewentry preserved.",
+    "Independent eagercached review PASS: nativeheroTV0.22529476 CI[0.22251535,0.22807418]; externalheroTV0.23172894,sessionCI[0.23001978,0.23343952];shift0.00643489 CI[0.00267090,0.01019888],not>.05 threshold. LARGE_AVERAGING_FIDELITY_GAP already onnativeholdout;not predominantlyexternalshift under prespecifiedcutoff. Next highestinformation is matchednative own-reach posterior target/RaoBlackwellization, not furtherresponsebudget or externalrule tuning. Doesnotestablish teacherstrength orcausalwinrateimprovement."
+  ],
+  "result": {
+    "summary": "Preserved-state reach-mixture fidelity: nativeTV0.2253,externalTV0.2317;LARGE_AVERAGING_FIDELITY_GAP;0newhands.",
+    "conclusion": "Independent full-ownhistory posterior andhand/session arithmetic passed; no counterfactualreturn or generalstrength identification.",
+    "decision": "LARGE_AVERAGING_FIDELITY_GAP",
+    "next_step": "Use fidelity evidence to choose separately preregistered nativeaveraging/coverage or generalteacher/selfplay experiment; no externaldata training."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-realization-average-fidelity-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4980,
+      "sha256": "d67480a4b786ffb10a367843a7abe7ad070b57f4fdc60a732f819feba5750ca9"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 948,
+      "sha256": "e118dced8cd8579a18e95b5c5a93ccd241d3ec5397120dc90e01a4a2980f15de"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/preparation_tests.xml": {
+      "type": "file",
+      "bytes": 2658,
+      "sha256": "8429a3a2840623a46f2ba51e267c08c014f69f997018ce13990698b6b358b544"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/implementation_tests.xml": {
+      "type": "file",
+      "bytes": 3014,
+      "sha256": "be6a0c76d1e2665f5604971be57d2c94f53206779eca6c33c94349b852548b5f"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/run_diagnostic.py": {
+      "type": "file",
+      "bytes": 16693,
+      "sha256": "fcaae43b8f4fc27cbfc6df436b19f447d699f3b17b09797828fedd7b1401fbb3"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/review_finish.py": {
+      "type": "file",
+      "bytes": 8648,
+      "sha256": "a2f818ae8b9ba6f4723ca26823a3e03b1bce9033563585cabe6f818d5ebf4ecd"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/mixture.py": {
+      "type": "file",
+      "bytes": 3624,
+      "sha256": "2a40888852ebfddb29a71c63529543655f5c829523654e91dcc7b9515f2e506c"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/test_mixture.py": {
+      "type": "file",
+      "bytes": 3880,
+      "sha256": "1c181a365705e4b57cf324c385feeeea8be1b6c3f02be76cd59b7c37c3f34686"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1334,
+      "sha256": "83144cacb0f06224988a5546b02ad0a0d2a4206127422363aed0a716ee06570f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2123,
+      "sha256": "f75ceecebfc53021b816c1f974fc411184dff6b4468132d204cc559a8d6fc8fc"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/startup_record_audit.json": {
+      "type": "file",
+      "bytes": 910,
+      "sha256": "85ab2fd43cafc7fffef3f978088eab3a5eb3a05aa82e811d4f66a066457a0a86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\batch_qualification.json": {
+      "type": "file",
+      "bytes": 680,
+      "sha256": "9a342e6951537919ae5d7322351f5687a4cafbb5cee8bc837a815bb37099d8ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 3923,
+      "sha256": "e6fadd67d268dca877680e39609cf547ba80d545b229bb7ab91d9696cc6b0015"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\coverage.json": {
+      "type": "file",
+      "bytes": 175,
+      "sha256": "910013f6d489e51678a467d4a2084a3be056a56d6e0562680c86b8c6c2c6da9a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 457,
+      "sha256": "3441db51186b1f804ab6aaba85ac5a8abe915dc4095c1d1f31ee5dff5fbcea32"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\full_reference_probability_check.json": {
+      "type": "file",
+      "bytes": 142,
+      "sha256": "e2c2221ba2d37d0fa6f1369b6abc59f88647266a829af74852ee3e1d33716e9b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\implementation_tests.xml": {
+      "type": "file",
+      "bytes": 3014,
+      "sha256": "be6a0c76d1e2665f5604971be57d2c94f53206779eca6c33c94349b852548b5f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 4492,
+      "sha256": "2ba8609283341026a071794f2fd25da7751ee345dd13c99e9a89a5d5bdf1e9ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\metadata.jsonl": {
+      "type": "file",
+      "bytes": 21348198,
+      "sha256": "9982b6556e2b2a274fcede53e0d5ca07a6090c99026949e0e688ed15b01b1fe0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\mixture.py": {
+      "type": "file",
+      "bytes": 3624,
+      "sha256": "2a40888852ebfddb29a71c63529543655f5c829523654e91dcc7b9515f2e506c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\mixture_metrics.npz": {
+      "type": "file",
+      "bytes": 9649301,
+      "sha256": "50888fe00a6a65d9e7cd521a226ac1369b2020be4cc6b0496b91ca1f7cf3aff1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\observations.npz": {
+      "type": "file",
+      "bytes": 3164811,
+      "sha256": "cc643def0319e7693be5e839cae4aad4e6135a1108af8ef59a257cbb1f72e885"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\preparation_tests.xml": {
+      "type": "file",
+      "bytes": 2658,
+      "sha256": "8429a3a2840623a46f2ba51e267c08c014f69f997018ce13990698b6b358b544"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 4980,
+      "sha256": "d67480a4b786ffb10a367843a7abe7ad070b57f4fdc60a732f819feba5750ca9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 3014,
+      "sha256": "4e430518fa0a0d5c9cdf1b3a86aa74a3f79150467d22371a4ce51dfab4e4b28c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model0.npy": {
+      "type": "file",
+      "bytes": 6916664,
+      "sha256": "8233630017fabda5b0d347e32a6ad5dde652ed9bf5dec9c5f807e3d3251b359a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model1.npy": {
+      "type": "file",
+      "bytes": 6916664,
+      "sha256": "a87684f65872fbff84c5f1b905d9487492627615dd164bf5d3c1c317eff8edba"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model2.npy": {
+      "type": "file",
+      "bytes": 6916664,
+      "sha256": "8fa1e56057c1ff1229321d034c69de33ba5bee9083376d9e1917cb9b2222f075"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\probabilities_model3.npy": {
+      "type": "file",
+      "bytes": 6916664,
+      "sha256": "906959a62972ee12826d43ff824150bac7bfebb3d626decb7a034bd3431ba267"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 8648,
+      "sha256": "a2f818ae8b9ba6f4723ca26823a3e03b1bce9033563585cabe6f818d5ebf4ecd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\run_diagnostic.py": {
+      "type": "file",
+      "bytes": 16693,
+      "sha256": "fcaae43b8f4fc27cbfc6df436b19f447d699f3b17b09797828fedd7b1401fbb3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\startup_record_audit.json": {
+      "type": "file",
+      "bytes": 910,
+      "sha256": "85ab2fd43cafc7fffef3f978088eab3a5eb3a05aa82e811d4f66a066457a0a86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\test_mixture.py": {
+      "type": "file",
+      "bytes": 3880,
+      "sha256": "1c181a365705e4b57cf324c385feeeea8be1b6c3f02be76cd59b7c37c3f34686"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/corrected_record_audit.json": {
+      "type": "file",
+      "bytes": 719,
+      "sha256": "1c6635267bc9c91b41a3cb49c343c6345c88b53233c8ea27a360d74881d11f61"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/cached_review_tests.xml": {
+      "type": "file",
+      "bytes": 569,
+      "sha256": "7ef232db4cd64aef758be120dff943f1055f5e7c14ef62ebc7667a18a54a6330"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/review_cached.py": {
+      "type": "file",
+      "bytes": 2380,
+      "sha256": "2c197cae54964f149eab541ca7be56cfde42cde578fef8d23690ba90354fb98c"
+    },
+    "research/experiments/v6-realization-average-fidelity-20260831/test_review_cached.py": {
+      "type": "file",
+      "bytes": 1271,
+      "sha256": "cda2837cb9093c4a5e1a050cc1aa0fcc80915b39fe7e3bc2cec933e8e3fb6d6d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\review_cached.py": {
+      "type": "file",
+      "bytes": 2380,
+      "sha256": "2c197cae54964f149eab541ca7be56cfde42cde578fef8d23690ba90354fb98c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 323,
+      "sha256": "de14b8db86597379e9cbd79eb8577f68b3e69142e68f9cab4c3319b8463e7d02"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 379,
+      "sha256": "536947173a0921854c4a7d9e403537781c11370847471888819fed021a52ed1b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1759,
+      "sha256": "6c3db8a85270afd70a4c03924a7a4d9b9ca11d704e2b8978ebbefd76dfcd4e12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 651,
+      "sha256": "d379474f874992b4c60f4a42b329874c0f189740d9a368ca7111914b0c72cb2d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-realization-average-fidelity-20260831\\cached_review_execution.json": {
+      "type": "file",
+      "bytes": 360,
+      "sha256": "b6e8c27de64342436332174fcd70a417d01517bde43b4121bbce8ff82ba43528"
+    }
+  }
+}

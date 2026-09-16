@@ -1,0 +1,152 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-counterfactual-target-reliability-smoke-20260901",
+  "title": "Broad exact-v6 counterfactual target reliability smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:19:33+00:00",
+  "updated_at": "2026-09-01T14:25:40+00:00",
+  "started_at": "2026-09-01T14:19:33+00:00",
+  "ended_at": "2026-09-01T14:25:40+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Candidate-continuation all-legal-action targets with independent future-runout confirmation can be reliable across both seats and all four streets before any state-conditioned weight update.",
+  "material_change": "Generate a balanced 256-state exact physical-v6 dataset against four mixed-contract opponents, branch every legal action under 8+8 common-random future runouts, and gate target reliability before training.",
+  "baseline": "counterfactual-soft-policy-pilot-20260830",
+  "source": "Standard10 exact legacy-v4 bridge; four frozen trajectory opponents",
+  "parent_id": "v6-standard10-greedy-bias-coordinate-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_counterfactual_target_reliability.py --candidate models/baseline/standard10/latest.pt --candidate-observation-style legacy_v4 --opponent standard10=models/baseline/standard10/latest.pt --opponent freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --opponent raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent-style standard10=legacy_v4 --opponent-style freshzero=legacy_v4 --opponent-style raw_actor=v6 --opponent-style procedural_soup=v6 --quota-per-stratum 32 --dev-runouts 8 --confirm-runouts 8 --trajectory-seed 2026132001 --branch-seed 2026132002 --max-trajectory-hands 5000 --device cuda --out-dir research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_counterfactual_target_reliability.py --candidate models/baseline/standard10/latest.pt --candidate-observation-style legacy_v4 --opponent standard10=models/baseline/standard10/latest.pt --opponent freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --opponent raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent-style standard10=legacy_v4 --opponent-style freshzero=legacy_v4 --opponent-style raw_actor=v6 --opponent-style procedural_soup=v6 --quota-per-stratum 32 --dev-runouts 8 --confirm-runouts 8 --trajectory-seed 2026132001 --branch-seed 2026132002 --max-trajectory-hands 5000 --device cuda --out-dir research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:19:33+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_counterfactual_target_reliability.py --candidate models/baseline/standard10/latest.pt --candidate-observation-style legacy_v4 --opponent standard10=models/baseline/standard10/latest.pt --opponent freshzero=research/experiments/v6-legacy-fresh-zero-elo-smoke-20260901/frozen/final.pt --opponent raw_actor=research/experiments/v6-actor-raw-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent procedural_soup=research/experiments/v6-procedural-iter32-soup-greedy-fresh20k-slumbot-20260901/frozen/final.pt --opponent-style standard10=legacy_v4 --opponent-style freshzero=legacy_v4 --opponent-style raw_actor=v6 --opponent-style procedural_soup=v6 --quota-per-stratum 32 --dev-runouts 8 --confirm-runouts 8 --trajectory-seed 2026132001 --branch-seed 2026132002 --max-trajectory-hands 5000 --device cuda --out-dir research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data_recovery",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:21:23+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:25:40+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "4c93117a38d0097843de0ba605079b2577c085097bc91c8cc4e915036a5225a1",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_counterfactual_target_reliability.py",
+      "scripts/alpha_holdem/test_v6_counterfactual_target_reliability.py",
+      "scripts/alpha_holdem/v6_elo_eval.py",
+      "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/preregistration.md"
+    ],
+    "captured_at": "2026-09-01T14:19:34+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "68e9d71438555d76640a117f39b72468550b19d0f2233d4e22e2c4e147a5da79",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 1152,
+    "lineage_training_hands": 1152,
+    "offline_samples": 30240,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 367.0
+  },
+  "metrics": {
+    "reliability_tests_passed": 9,
+    "bridge_action_table_regression_tests_passed": 3,
+    "alpha_holdem_tests_passed": 198,
+    "recovery_trajectory_hands": 576,
+    "failed_trajectory_hands_reconstructed": 576,
+    "recovery_continuation_rollouts": 30112,
+    "durable_failed_continuation_rollouts": 128,
+    "overall_dev_confirm_agreement": 0.7890625,
+    "overall_confirm_delta_bb": 21.553046875,
+    "overall_confirm_delta_ci95_low": 14.987344002150275,
+    "overall_confirm_delta_ci95_high": 28.118749747849723,
+    "new_allin_fraction": 0.265625,
+    "training_admitted": 0
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/preregistration.md",
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/code.patch",
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/failure_initial.md",
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data/rows.jsonl",
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data_recovery/summary.json",
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data_recovery/rows.jsonl"
+  ],
+  "notes": [
+    "Initial launch stopped after one partial row due to bridge/native table index mismatch; partial evidence retained and excluded. Same-seed recovery authorized only after regression repair.",
+    "The failed launch deterministically completed the same 576 trajectory hands before branching; these are counted in addition to the recovery. Offline samples count only 128 durable failed-row rollouts plus 30,112 recovery rollouts; unknown non-durable partial work is not guessed."
+  ],
+  "result": {
+    "summary": "After an isolated action-table binding repair, the same-seed recovery collected 256 balanced exact-v6 states from 576 trajectory hands and completed 30,112 all-legal continuation rollouts. Development-selected actions had positive independent-confirmation mean delta, but overall action agreement was 78.9%, SB-preflop agreement 46.9%, and 26.6% of rows selected a new all-in.",
+    "conclusion": "Future-runout confirmation alone does not make fixed-opponent-hole counterfactual targets reliable. The apparently large positive value is contaminated by hindsight over exact hidden holes and development action selection; action identity is unstable exactly where preflop hidden information matters, and the new-all-in rate reproduces the known catastrophic target pathology. The preregistered gate prevented any learned update.",
+    "decision": "REJECT_FIXED_HOLE_COUNTERFACTUAL_TARGETS_UNRELIABLE",
+    "next_step": "Do not train or tune this dataset. The next data method must sample opponent holes from a history-consistent posterior (replaying the frozen opponent policy likelihood), share those posterior samples across legal actions, and pass the same independent action-identity and tail gates before any weights change."
+  },
+  "tags": [
+    "counterfactual",
+    "learned-weights",
+    "reliability",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 3044,
+      "sha256": "d8fb92fdbcb5bbd38d61489b2483224a17de15567d97989c4c43637c98d6d949"
+    },
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 907,
+      "sha256": "68e9d71438555d76640a117f39b72468550b19d0f2233d4e22e2c4e147a5da79"
+    },
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/failure_initial.md": {
+      "type": "file",
+      "bytes": 897,
+      "sha256": "5fd45c3707593c6e2baf8f01500157caa1e65342f6a4d2c25bc011cd64f51afd"
+    },
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data/rows.jsonl": {
+      "type": "file",
+      "bytes": 13029,
+      "sha256": "d19be194e5d83213e14ba175a51297c83757587935508ee8187f036f6e29e6f2"
+    },
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data_recovery/summary.json": {
+      "type": "file",
+      "bytes": 5176,
+      "sha256": "72cce61f94ecdc52dd0aa1c8414eb763a16bf8dc54f7402c34227768087283c8"
+    },
+    "research/experiments/v6-broad-counterfactual-target-reliability-smoke-20260901/data_recovery/rows.jsonl": {
+      "type": "file",
+      "bytes": 582683,
+      "sha256": "874ed12d0f843c175034927e6c67c9151494edcd959a92085ba254c295d92af8"
+    }
+  }
+}

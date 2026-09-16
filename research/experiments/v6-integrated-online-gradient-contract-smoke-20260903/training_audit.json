@@ -1,0 +1,147 @@
+{
+  "base": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/audit_v6_integrated_alphaholdem_geometric.py",
+    "--run",
+    "seed1=research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/seed1",
+    "--base",
+    "models/baseline/standard10/latest.pt",
+    "--min-environment-hands",
+    "1065653",
+    "--expected-archive-iterations",
+    "224",
+    "--expected-run-count",
+    "1",
+    "--require-continuation",
+    "--out",
+    "research/experiments/v6-integrated-online-gradient-contract-smoke-20260903/training_audit.json"
+  ],
+  "expected_run_count": 1,
+  "passed": true,
+  "passed_runs": 1,
+  "runs": [
+    {
+      "archives": [
+        {
+          "hands": 922752,
+          "iteration": 224,
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-gradient-contract-smoke-20260903\\seed1\\checkpoints\\checkpoint_iter000224_hands000000922752.pt",
+          "sha256": "7c22604ad1e0259c27f814e76c7baa9f6d0d5144581adde3fe827b4bf01b6837"
+        }
+      ],
+      "assignment_audit": {
+        "pending_assignments": null,
+        "records_verified": 224,
+        "tail_iteration": 224,
+        "tail_sha256": "0b07f46681a31bd6a4cae49f67b057f7243411d5a87c293feac597840c64b1b4"
+      },
+      "bridge_lineage": [
+        {
+          "iteration": 224,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-gradient-contract-smoke-20260903\\seed1\\latest.pt",
+          "sha256": "5f6fdd6f7a51b741eb4a9597e30d18f9b2792259eaf15c4e36445720f380f227"
+        },
+        {
+          "iteration": 220,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-seed1-1m-deep-control-20260902\\seed1\\latest.pt",
+          "sha256": "6fbbe021b140b91e448917ae3e2cbb9bcdca444865433074ac944cae79fa844a"
+        },
+        {
+          "iteration": 56,
+          "legacy_weights_rebound_to_new_contract": false,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-262k-scale-20260902\\seed1_retry\\latest.pt",
+          "sha256": "eb70ff199c5703ef2f805a9eb326935b87287421e5d196787463deb7334b8dcc"
+        },
+        {
+          "iteration": 15,
+          "legacy_weights_rebound_to_new_contract": true,
+          "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+          "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-geometric-pilot-20260902\\seed1\\latest.pt",
+          "sha256": "4defee91789c643d881a633af74f900423b84bc4f8aa795f631e8eb2e20a9fa2"
+        }
+      ],
+      "changed_tensors": [
+        "policy_head.bias",
+        "policy_head.weight",
+        "preflop_policy_head.bias",
+        "preflop_policy_head.weight",
+        "value_head.0.bias",
+        "value_head.0.weight",
+        "value_head.2.bias",
+        "value_head.2.weight",
+        "value_head.4.bias",
+        "value_head.4.weight"
+      ],
+      "continuation": {
+        "new_environment_hands": 19716,
+        "new_replay_rows": 27393,
+        "new_transition_hands": 16397,
+        "parent_environment_hands": 1049269,
+        "parent_iteration": 220,
+        "parent_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-alphaholdem-seed1-1m-deep-control-20260902\\seed1\\latest.pt",
+        "parent_sha256": "6fbbe021b140b91e448917ae3e2cbb9bcdca444865433074ac944cae79fa844a",
+        "parent_transition_hands": 906355
+      },
+      "final_pool_ids": [
+        0,
+        1,
+        2,
+        77,
+        96
+      ],
+      "gates": {
+        "all_12_workers_completed_hands": true,
+        "assignment_rng_replay_exact": true,
+        "checkpoint_manifest_metric_identity": true,
+        "contiguous_updates": true,
+        "continuation_environment_accounting_exact": true,
+        "continuation_flags_exact": true,
+        "continuation_log_suffix_exact": true,
+        "continuation_replay_accounting_exact": true,
+        "continuation_transition_accounting_exact": true,
+        "corrected_legacy_contract_bound": true,
+        "dynamic_pool_healthy": true,
+        "finite_health_metrics": true,
+        "fresh_replay_boundary_then_nonzero": true,
+        "geometric_archives_present": true,
+        "importance_ratios_below_delta1": true,
+        "manifest_finished": true,
+        "only_policy_and_value_heads_changed": true,
+        "optimizer_state_nonempty_and_synchronized": true,
+        "paper_recipe_exact": true,
+        "physical_environment_target_reached": true,
+        "replay_cumulative_exact": true,
+        "trust_region_healthy": true
+      },
+      "hashes": {
+        "assignments": "41c77c968845d647251b6b54dd11f83873be214a2127154bc6396e57da069de8",
+        "checkpoint": "5f6fdd6f7a51b741eb4a9597e30d18f9b2792259eaf15c4e36445720f380f227",
+        "log": "f70a2a3a16299361bc133f2bec705937241c63bb4bfff3f3e718ba338845b064",
+        "manifest": "4016c5b933223feb0fdc5a32342392472d655cd7fcc100bac8b2967e03dfde14",
+        "metrics": "dd5b84e8bdaaf5c8d1c169732e0f6403c7936641c60ebf314f7f3d4cddc6e45b"
+      },
+      "iterations": 224,
+      "max_approx_kl": 0.0018400070257484913,
+      "max_importance_ratio": 1.29,
+      "max_reference_policy_kl": 0.002378078643232584,
+      "name": "seed1",
+      "passed": true,
+      "physical_environment_hands": 1068985,
+      "replay_cumulative_rows": 1608228,
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-integrated-online-gradient-contract-smoke-20260903\\seed1",
+      "transition_hands": 922752
+    }
+  ],
+  "schema": "cardpilot.integrated_alphaholdem_geometric_audit.v1",
+  "total_physical_environment_hands": 1068985,
+  "total_transition_hands": 922752
+}

@@ -1,0 +1,153 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-tail-parent-slumbot-state-drift-20260901",
+  "title": "Tail-parent Slumbot-state greedy drift diagnostic",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T02:33:58+00:00",
+  "updated_at": "2026-09-01T02:35:45+00:00",
+  "started_at": "2026-09-01T02:33:58+00:00",
+  "ended_at": "2026-09-01T02:35:45+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The low-LR tail's external collapse despite internal improvement is mediated by concentrated greedy action drift from the stronger parent on real Slumbot decision-state support, which can identify a generic policy-preservation target.",
+  "material_change": "Offline replay every decision state from the completed audited tail fresh5k through the frozen tail and parent policies; compute outcome-free probability TV, bidirectional KL, greedy disagreement, entropy, and action-slot mixes overall and by street/seat.",
+  "baseline": "Tail fresh5k -91.0228 vs parent fresh5k -9.4188 under the same generic greedy execution contract",
+  "source": "tail sha=6f3bf544...; parent sha=9fd38ad3...; audited tail on-policy state corpus",
+  "parent_id": "v6-actor-tail-greedy-fresh5k-slumbot-20260901",
+  "command": "python research/experiments/v6-tail-parent-slumbot-state-drift-20260901/run_diagnostic.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-tail-parent-slumbot-state-drift-20260901/run_diagnostic.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T02:33:58+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T02:33:58+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/code.patch",
+    "patch_sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91",
+    "source_manifest": "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/source_manifest.json",
+    "source_manifest_sha256": "287a5bcd6802e3b9b2377a86d5c5ba05d5dfb70460d4a77935d5eb6b2faccfe1",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 29916,
+    "wall_time_seconds": 107.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "wall_time_seconds": 10.64100000000326,
+    "states": 14958,
+    "overall_total_variation": 0.019229762589787876,
+    "overall_greedy_disagreement": 0.01591121807728306,
+    "largest_partition_total_variation": 0.04552113079791528,
+    "largest_partition_greedy_disagreement": 0.03139198678232136
+  },
+  "artifacts": [
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/code.patch",
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\state_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\analysis.json",
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/result_summary.md",
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/reviewed_analysis.json",
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/state_metrics.jsonl"
+  ],
+  "notes": [
+    "No outcomes are used as labels and no counterfactual value claim is allowed."
+  ],
+  "result": {
+    "summary": "Outcome-free replay of 14958 audited tail Slumbot decision states found only small diffuse probability drift from the parent; independent aggregation review passed.",
+    "conclusion": "Tail-parent overall TV 0.0192 and greedy disagreement 1.59%, with no street/seat partition near the preregistered concentration thresholds. The external pilot gap does not justify a localized action patch or Slumbot-labeled correction.",
+    "decision": "NO_CONCENTRATED_POLICY_DRIFT",
+    "next_step": "Build a truly held-out generic opponent/evaluation signal or preservation objective before further training; retain the parent as the strongest external learned point candidate and do not deepen the failed tail unchanged."
+  },
+  "tags": [
+    "offline-diagnostic",
+    "policy-drift",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12742975,
+      "sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91"
+    },
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "287a5bcd6802e3b9b2377a86d5c5ba05d5dfb70460d4a77935d5eb6b2faccfe1"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 12924,
+      "sha256": "46069d697833fff947c43ac5edfe01376958f48a64884928c223669430a2d0d2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 409381,
+      "sha256": "d48dd940763a5630e7cf10d242785a7a15c32118546b3b162e5e3ff162dae79e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 22005,
+      "sha256": "6afc56f21cfe7925c7e4b9fb8d98101bef5eeaa0495bee3dd0758b6a07c83847"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\input_manifest.json": {
+      "type": "file",
+      "bytes": 2495,
+      "sha256": "9255ea155de67874f0af1ff4993f8c9881fb7cf339a2021571fe5b9461ef8326"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12058591,
+      "sha256": "0ee386ed51253d07363c3b298d5d4c3d3902c492cda6462541a1f09395cd2f86"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-tail-parent-slumbot-state-drift-20260901\\analysis.json": {
+      "type": "file",
+      "bytes": 18772,
+      "sha256": "643f9fd372fd3c2bd9c0d86c1ea6c2970a014e0a0e010c284afdff7c253364a6"
+    },
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 865,
+      "sha256": "0b43132a22dae39866f99e78a151ee1e886ee63ec73840256332c18b1cc972bf"
+    },
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 798,
+      "sha256": "da341869658bf3e6e9e453a523b6118ffe6c8d062284fb6f2522e08c7861d22e"
+    },
+    "research/experiments/v6-tail-parent-slumbot-state-drift-20260901/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 12058591,
+      "sha256": "0ee386ed51253d07363c3b298d5d4c3d3902c492cda6462541a1f09395cd2f86"
+    }
+  }
+}

@@ -11,6 +11,7 @@ export interface OrchestratorConfig {
   flops: Array<{ cards: [number, number, number]; label: string }>;
   iterations: number;
   bucketCount: number;
+  seed?: number;
   outputDir: string;
   chartsPath: string;
   configName?: string; // tree config name for workers
@@ -117,6 +118,7 @@ export async function solveParallel(config: OrchestratorConfig): Promise<Orchest
       label,
       iterations: config.iterations,
       bucketCount: config.bucketCount,
+      seed: config.seed === undefined ? undefined : config.seed + originalIndex,
       outputDir: config.outputDir,
       chartsPath: config.chartsPath,
       configName: config.configName as any,
@@ -124,9 +126,14 @@ export async function solveParallel(config: OrchestratorConfig): Promise<Orchest
     });
   }
 
-  // Wait for all to complete
-  await pool.waitAll();
-  await pool.shutdown();
+  // Wait for all to complete. Always terminate the remaining workers if one
+  // crashes so a failed batch exits promptly and can be resumed from its
+  // checkpoint instead of hanging forever.
+  try {
+    await pool.waitAll();
+  } finally {
+    await pool.shutdown();
+  }
 
   const totalElapsed = Date.now() - totalStart;
   const totalInfoSets = results.reduce((s, r) => s + r.infoSets, 0);

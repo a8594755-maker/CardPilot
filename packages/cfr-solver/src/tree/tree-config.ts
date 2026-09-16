@@ -2,6 +2,7 @@
 // Supports SRP (single raised pot) and 3-bet pot configs at various stack depths.
 
 import type { TreeConfig, BetSizeConfig } from '../types.js';
+import type { HUSRPRangesOptions } from '../integration/preflop-ranges.js';
 
 // V1: HU SRP at 50bb (2 bet sizes per street)
 // BTN opens to 2.5bb, BB calls → pot = 5bb, effective stack = 47.5bb
@@ -333,6 +334,13 @@ export const COACHING_BET_SIZES: BetSizeConfig = {
   },
 };
 
+/** Exact postflop bet fractions exposed by AlphaHoldem v55's nine-slot action space. */
+export const DEPLOYMENT_V55_BET_SIZES: BetSizeConfig = {
+  flop: [0.33, 0.5, 0.67, 0.75, 1.0, 1.5],
+  turn: [0.33, 0.5, 0.67, 0.75, 1.0, 1.5],
+  river: [0.33, 0.5, 0.67, 0.75, 1.0, 1.5],
+};
+
 const COACHING_ADVANCED: TreeConfig['advancedConfig'] = {
   oop: {
     noDonkBet: false,
@@ -383,6 +391,40 @@ export const COACH_HU_3BP_30BB = coachingHU(17.5, 21.25);
 export const COACH_HU_3BP_60BB = coachingHU(17.5, 51.25);
 export const COACH_HU_3BP_100BB = coachingHU(17.5, 91.25);
 export const COACH_HU_3BP_200BB = coachingHU(17.5, 191.25);
+
+// Deployment-matched 200bb roots.  These deliberately retain cap=1 so the
+// solver stays tractable while matching every v55 decision slot at supported
+// nodes.  Deeper re-raise topology is a separate expansion axis.
+export const DEPLOYMENT_V55_SRP_200BB: TreeConfig = {
+  startingPot: 5,
+  effectiveStack: 197.5,
+  betSizes: DEPLOYMENT_V55_BET_SIZES,
+  raiseCapPerStreet: 1,
+  numPlayers: 2,
+};
+
+export const DEPLOYMENT_V55_3BP_200BB: TreeConfig = {
+  startingPot: 17.5,
+  effectiveStack: 191.25,
+  betSizes: DEPLOYMENT_V55_BET_SIZES,
+  raiseCapPerStreet: 1,
+  numPlayers: 2,
+};
+
+/**
+ * Deployment-grid topology with one additional re-raise per street.  Keep
+ * these as explicit registry configs (instead of a CLI-only override) so the
+ * solver metadata and compact converter reconstruct the identical tree.
+ */
+export const DEPLOYMENT_V55_SRP_CAP2_200BB: TreeConfig = {
+  ...DEPLOYMENT_V55_SRP_200BB,
+  raiseCapPerStreet: 2,
+};
+
+export const DEPLOYMENT_V55_3BP_CAP2_200BB: TreeConfig = {
+  ...DEPLOYMENT_V55_3BP_200BB,
+  raiseCapPerStreet: 2,
+};
 
 // ── 3-way SRP coaching (BTN opens, SB+BB call → pot=7.5) ──
 export const COACH_MW3_SRP_30BB = coaching3W(7.5, 27.5);
@@ -484,6 +526,11 @@ export type TreeConfigName =
   | 'coach_hu_3bp_60bb'
   | 'coach_hu_3bp_100bb'
   | 'coach_hu_3bp_200bb'
+  // Exact AlphaHoldem v55 deployment action grid, 200bb
+  | 'deployment_v55_srp_200bb'
+  | 'deployment_v55_3bp_200bb'
+  | 'deployment_v55_srp_cap2_200bb'
+  | 'deployment_v55_3bp_cap2_200bb'
   | 'coach_mw3_srp_30bb'
   | 'coach_mw3_srp_60bb'
   | 'coach_mw3_srp_100bb'
@@ -771,6 +818,38 @@ const CONFIG_REGISTRY: Record<TreeConfigName, ConfigMeta> = {
     iterations: 200000,
     buckets: 100,
   },
+  deployment_v55_srp_200bb: {
+    config: DEPLOYMENT_V55_SRP_200BB,
+    label: 'Deployment v55 HU SRP 200bb (exact 6-slot grid)',
+    outputDir: 'deployment_v55_hu_srp_200bb_financial_v2',
+    stackLabel: '200bb',
+    iterations: 200000,
+    buckets: 100,
+  },
+  deployment_v55_3bp_200bb: {
+    config: DEPLOYMENT_V55_3BP_200BB,
+    label: 'Deployment v55 HU 3BP 200bb (exact 6-slot grid)',
+    outputDir: 'deployment_v55_hu_3bp_200bb_financial_v2',
+    stackLabel: '200bb',
+    iterations: 200000,
+    buckets: 100,
+  },
+  deployment_v55_srp_cap2_200bb: {
+    config: DEPLOYMENT_V55_SRP_CAP2_200BB,
+    label: 'Deployment v55 HU SRP 200bb (exact 6-slot grid, raise cap 2)',
+    outputDir: 'deployment_v55_hu_srp_cap2_200bb_financial_v2',
+    stackLabel: '200bb',
+    iterations: 200000,
+    buckets: 100,
+  },
+  deployment_v55_3bp_cap2_200bb: {
+    config: DEPLOYMENT_V55_3BP_CAP2_200BB,
+    label: 'Deployment v55 HU 3BP 200bb (exact 6-slot grid, raise cap 2)',
+    outputDir: 'deployment_v55_hu_3bp_cap2_200bb_financial_v2',
+    stackLabel: '200bb',
+    iterations: 200000,
+    buckets: 100,
+  },
   coach_mw3_srp_30bb: {
     config: COACH_MW3_SRP_30BB,
     label: 'Coaching 3-way SRP 30bb (6 sizes)',
@@ -880,6 +959,99 @@ export function getConfigOutputDir(name: TreeConfigName): string {
 
 export function getStackLabel(name: TreeConfigName): string {
   return CONFIG_REGISTRY[name].stackLabel;
+}
+
+/**
+ * Config-specific HU preflop ranges shared by solving and data conversion.
+ * Keeping this mapping in one place prevents a 3BP solve from being converted
+ * with the default SRP ranges.
+ */
+export function getHURangeOptions(configName: TreeConfigName): HUSRPRangesOptions {
+  switch (configName) {
+    // BTN vs BB single-raised pots.
+    case 'pipeline_srp':
+    case 'pipeline_srp_v2':
+    case 'pipeline_srp_v3':
+    case 'pipeline_srp_v3_100bb':
+    case 'pipeline_srp_v3_200bb':
+    case 'pipeline_srp_100bb':
+    case 'hu_btn_bb_srp_50bb':
+    case 'hu_btn_bb_srp_100bb':
+    case 'coach_hu_srp_30bb':
+    case 'coach_hu_srp_60bb':
+    case 'coach_hu_srp_100bb':
+    case 'coach_hu_srp_200bb':
+    case 'deployment_v55_srp_200bb':
+    case 'deployment_v55_srp_cap2_200bb':
+      return {
+        ipSpot: 'BTN_unopened_open2.5x',
+        ipAction: 'raise',
+        oopSpot: 'BB_vs_BTN_facing_open2.5x',
+        oopAction: 'call',
+      };
+
+    // BTN opens, BB 3-bets, BTN calls.  Use the actual calling chart rather
+    // than the historical approximation based on BTN opening frequency.
+    case 'pipeline_3bet':
+    case 'pipeline_3bet_v2':
+    case 'pipeline_3bet_v3':
+    case 'pipeline_3bet_v3_100bb':
+    case 'pipeline_3bet_100bb':
+    case 'hu_btn_bb_3bp_50bb':
+    case 'hu_btn_bb_3bp_100bb':
+    case 'coach_hu_3bp_30bb':
+    case 'coach_hu_3bp_60bb':
+    case 'coach_hu_3bp_100bb':
+    case 'coach_hu_3bp_200bb':
+    case 'deployment_v55_3bp_200bb':
+    case 'deployment_v55_3bp_cap2_200bb':
+      return {
+        oopSpot: 'BB_vs_BTN_facing_open2.5x',
+        oopAction: 'raise',
+        ipSpot: 'BTN_vs_BB_facing_3bet',
+        ipAction: 'call',
+      };
+
+    case 'hu_co_bb_srp_100bb':
+      return {
+        ipSpot: 'CO_unopened_open2.5x',
+        ipAction: 'raise',
+        oopSpot: 'BB_vs_CO_facing_open2.5x',
+        oopAction: 'call',
+      };
+
+    case 'hu_co_bb_3bp_100bb':
+      return {
+        oopSpot: 'BB_vs_CO_facing_open2.5x',
+        oopAction: 'raise',
+        ipSpot: 'CO_vs_BB_facing_3bet',
+        ipAction: 'call',
+      };
+
+    case 'hu_utg_bb_srp_100bb':
+      return {
+        ipSpot: 'UTG_unopened_open2.5x',
+        ipAction: 'raise',
+        oopSpot: 'BB_vs_UTG_facing_open2.5x',
+        oopAction: 'call',
+      };
+
+    default:
+      return {};
+  }
+}
+
+export interface HUPreflopContext {
+  topology: 'single_raised' | 'three_bet';
+  historyShape: 'BC' | 'BBC';
+}
+
+/** Frozen public preflop context represented by a postflop-only solve root. */
+export function getHUPreflopContext(configName: TreeConfigName): HUPreflopContext {
+  if (configName.includes('_3bet') || configName.includes('_3bp_')) {
+    return { topology: 'three_bet', historyShape: 'BBC' };
+  }
+  return { topology: 'single_raised', historyShape: 'BC' };
 }
 
 // ═══════════════════════════════════════════════════════════

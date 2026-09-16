@@ -1,0 +1,258 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-online-mgda-realized-dose-audit-20260903",
+  "title": "Realized-step dose audit for online MGDA",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T06:15:47+00:00",
+  "updated_at": "2026-09-03T06:38:14+00:00",
+  "started_at": "2026-09-03T06:15:47+00:00",
+  "ended_at": "2026-09-03T06:38:14+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "If the external reversal was primarily a stateful-Adam/finite-step boundary effect, actor-only interpolation from matched control toward the alpha=1 MGDA endpoint will reveal a lower nonzero dose with reduced greedy disagreement and no consistent negative fresh payoff slope; monotone negative payoff across doses instead rejects this realized direction.",
+  "material_change": "Construct optimizer-free actor-only interpolations at alpha 0.125, 0.25, and 0.5 between the frozen matched control and alpha=1 MGDA endpoint, keeping all non-actor tensors from control. First measure direct output drift, then evaluate geometric doses on one shared untouched common-deck multi-anchor cohort.",
+  "baseline": "Alpha=1 online MGDA versus control: actor parameter-step ratio 1.2525, cosine 0.5439, output mean TV 0.006964, greedy disagreement 0.725%, and fresh pooled -5.8441 +/-4.6987 bb/100 with CI upper -1.1454.",
+  "source": "Hash-bound control 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 and MGDA treatment 2dc0e9e84d2a0e7ab91bc6a8ca7170caa4403d9b9f1d73e8784fa6d6d97744a2; no optimizer continuation is permitted from interpolated artifacts.",
+  "parent_id": "v6-integrated-online-mgda-fresh-breadth-pilot-20260903",
+  "command": "python scripts/alpha_holdem/v6_interpolate_policy_head_checkpoints.py --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --control-sha256 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --treatment-sha256 2dc0e9e84d2a0e7ab91bc6a8ca7170caa4403d9b9f1d73e8784fa6d6d97744a2 --alpha 0.125 --alpha 0.25 --alpha 0.5 --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_interpolate_policy_head_checkpoints.py --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --control-sha256 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --treatment-sha256 2dc0e9e84d2a0e7ab91bc6a8ca7170caa4403d9b9f1d73e8784fa6d6d97744a2 --alpha 0.125 --alpha 0.25 --alpha 0.5 --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:15:47+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --parent-sha256 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 --treatment research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p125.pt --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/drift_0p125 --states 20000 --seed 20262054 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:16:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --parent-sha256 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 --treatment research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p25.pt --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/drift_0p25 --states 20000 --seed 20262054 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:16:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py --parent research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --parent-sha256 43e81546b68f1c8f7b0353e6f7dfbcc7aa48853316db3ccd930cd9ddc554d251 --treatment research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p5.pt --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/drift_0p5 --states 20000 --seed 20262054 --device cuda --batch-size 1024 --source-tv-max 0.03 --greedy-disagreement-max 0.05",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:16:12+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --treatment research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p125.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 512 --seed 20262055 --device cuda --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p125",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:17:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --treatment research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p25.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 512 --seed 20262055 --device cuda --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p25",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:17:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --treatment research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p5.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 512 --seed 20262055 --device cuda --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p5",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:17:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_public_opponent_matched_eval.py --control research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/control/latest.pt --treatment research/experiments/v6-integrated-online-mgda-matched-smoke-20260903/treatment/latest.pt --anchor standard10=models/baseline/standard10/latest.pt --anchor cfr4=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/frozen/final.pt --anchor legacy_iter16=research/experiments/v6-legacy-iter16-greedy-fresh20k-20260901/frozen/final.pt --anchor legacy_mixed65k=research/experiments/v6-legacy-contract-mixed-league-65k-pilot-20260901/training/latest.pt --pairs-per-anchor 512 --seed 20262055 --device cuda --out-dir research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:17:05+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/aggregate_v6_online_mgda_dose_curve.py --dose 0.125 research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p125 --dose 0.25 research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p25 --dose 0.5 research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p5 --dose 1.0 research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_1 --prior-alpha1-eval research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/eval --prior-alpha1-audit research/experiments/v6-integrated-online-mgda-fresh-breadth-pilot-20260903/audit.json --out research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/aggregate.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:38:14+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T06:38:14+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "de7895bc3a0eda26a056ce0222cc9a52bd3a7db314e8d80369e52d2663404c4a",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-03T06:15:47+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/code.patch",
+    "patch_sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea",
+    "source_manifest": "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/source_manifest.json",
+    "source_manifest_sha256": "576d11de9a3d39a2f872d7974cadb75fb372bd5cd33a1dc956b3605083f621fa",
+    "source_files": 240
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 1079151,
+    "offline_samples": 60000,
+    "evaluation_hands": 32768,
+    "wall_time_seconds": 1347.0,
+    "inherited_environment_training_hands": 1079151,
+    "planned_new_environment_training_hands": 0,
+    "planned_evaluation_hands": 32768,
+    "environment_training_hands": 0,
+    "lineage_environment_training_hands": 1079151
+  },
+  "metrics": {
+    "alpha_0p125_delta_bb100": -3.80859375,
+    "alpha_0p25_delta_bb100": -3.515625,
+    "alpha_0p5_delta_bb100": -4.45556640625,
+    "alpha_1_delta_bb100": 0.18310546875,
+    "combined_alpha1_evaluation_hands": 40960,
+    "combined_alpha1_delta_bb100": -4.638671875,
+    "combined_alpha1_ci95_half_bb100": 4.768984903825159,
+    "combined_alpha1_ci95_upper_bb100": 0.13031302882515958,
+    "alpha_0p125_nonzero_pairs": 5,
+    "alpha_0p25_nonzero_pairs": 12,
+    "alpha_0p5_nonzero_pairs": 30,
+    "alpha_1_nonzero_pairs": 63
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/code.patch",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/manifest.json",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p125.pt",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p25.pt",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p5.pt",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p125/summary.json",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p125/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p25/summary.json",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p25/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p5/summary.json",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p5/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_1/summary.json",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_1/common_deck_pairs.jsonl.gz",
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/aggregate.json",
+    "scripts/alpha_holdem/v6_interpolate_policy_head_checkpoints.py",
+    "scripts/alpha_holdem/aggregate_v6_online_mgda_dose_curve.py"
+  ],
+  "notes": [
+    "The alpha=1 endpoint evidence is inherited but the dose cohort uses a new shared deck seed. This is an exploratory direction/dose localization, not a benchmark gate. Interpolated checkpoints are deployment-only and explicitly resume_eligible=false.",
+    "Created three hash-bound actor-only interpolation checkpoints; all four policy-head tensors are interpolated, non-actor tensors come from control, optimizer state is absent, and resume_eligible=false.",
+    "Direct output drift from control is monotone with alpha: mean TV 0.000870/0.001739/0.003474 and greedy disagreement 0.0007/0.0016/0.00345 at alpha 0.125/0.25/0.5. All three exact tensor-scope and raw drift gates pass.",
+    "One attempted alpha0.25 launch used a nonexistent legacy_iter16 path and failed during input hashing before any hand generation. It left only an empty output directory; the resolved directory was verified inside this experiment and empty, removed non-recursively, and the already-recorded exact command then completed with the original fresh seed.",
+    "All four current dose raw files hash-match summaries and join exactly on 2,048 shared pair keys/decks/control rewards. Low doses alpha0.125/0.25/0.5 were all directionally negative (-3.809,-3.516,-4.456 bb/100) with only 5/12/30 nonzero pairs. The independent alpha1 replication was +0.183 +/-14.676, but the combined 40,960-hand alpha1 estimate remained -4.639 +/-4.769; its CI upper +0.130 is explicitly not significant."
+  ],
+  "result": {
+    "summary": "A hash-bound realized-step curve evaluated actor interpolation doses 0.125, 0.25, 0.5, and 1.0 on 32,768 new shared-deck hands. All three low doses were negative, while alpha1 was noisy and slightly positive on the small replicate. Combining alpha1 with the prior larger cohort yielded -4.6387 +/-4.7690 bb/100 over 40,960 hands. All raw joins and 325 tests passed.",
+    "conclusion": "Lowering the realized MGDA direction did not reveal a positive greedy-payoff dose: the three low-dose point estimates were consistently negative and alpha1 remains negative in the combined evidence, though the combined CI narrowly includes zero. Together with the prior individually significant negative alpha1 cohort, this closes the unit-normalized online-MGDA direction. This is a direction-specific rejection, not a rejection of conflict diagnostics or insufficiently scaled ordinary long-horizon learning.",
+    "decision": "CLOSE_UNIT_NORMALIZED_ONLINE_MGDA_DIRECTION",
+    "next_step": "Return resources to the ordinary integrated replay/loss-K-best/adaptive-league family, whose two-seed 262k-to-1M pooled slope was +2.4887 +/-3.268 bb/100. Plan a geometrically larger exact-state continuation with frozen intermediate checkpoints and multi-anchor/seat/Standard10 preservation gates; do not add another gradient aggregator without a payoff-aligned objective."
+  },
+  "tags": [
+    "alpha-holdem",
+    "dose-curve",
+    "mgda",
+    "optimizer"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 10,
+    "command_count": 10
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/code.patch": {
+      "type": "file",
+      "bytes": 12837937,
+      "sha256": "cb5cd53fbcffe1f9436c5f7434cc3a2142f0623c6ebf83a9c340177d4eb795ea"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 45704,
+      "sha256": "576d11de9a3d39a2f872d7974cadb75fb372bd5cd33a1dc956b3605083f621fa"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/manifest.json": {
+      "type": "file",
+      "bytes": 2483,
+      "sha256": "fb9627eac04f1a58778b2801fa1a932f6fca4c0c0ed35e7fd59f7fdc8c8631ab"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p125.pt": {
+      "type": "file",
+      "bytes": 200018906,
+      "sha256": "0e7eabbb66bdf3226b09e3201d983a9249d9cd0b91a7b040d84abc08dcae22cc"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p25.pt": {
+      "type": "file",
+      "bytes": 200018378,
+      "sha256": "1f71a0b5c710de07c84b61d030e4956aacaf77517a37ba0ee79c8614f7328eb3"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/interpolations/alpha_0p5.pt": {
+      "type": "file",
+      "bytes": 200017850,
+      "sha256": "9da8f510d2af5eee80d24f3d86fe57be893f6f7d0f3955a2c187be5116c5e843"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p125/summary.json": {
+      "type": "file",
+      "bytes": 11157,
+      "sha256": "ba1a313734e9629ddb2f2c7a1c52b18c28201caec4c4e5ddce5401a3bb3f0f6b"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p125/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133281,
+      "sha256": "5c58eded544f1a344c9e4da7e8683ef9cffc7a8ef92db02a74ecf52de3fa0131"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p25/summary.json": {
+      "type": "file",
+      "bytes": 11155,
+      "sha256": "6a835fc478c7d4e3ca68ce0f57e53f44847e9773d5175401b0396c4e7e5b0b83"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p25/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133357,
+      "sha256": "a689b131d9c5d231a78c9037d08f700aa3fb4206e122990c3bdeadc115c43d0d"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p5/summary.json": {
+      "type": "file",
+      "bytes": 11249,
+      "sha256": "65b0af441d6742779897be8ad6607de96f11438a977d55db79cb279166aaba92"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_0p5/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133500,
+      "sha256": "9fd53ae68847c3c3b740ef6810e8e3e1737e129a79cff6c71601ed511ae592d4"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_1/summary.json": {
+      "type": "file",
+      "bytes": 11198,
+      "sha256": "e185a71b2ed7672337146ea875b974f3c93366c1ee9e8657b1a821dfcca32536"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/eval_1/common_deck_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 133800,
+      "sha256": "04ffc3f0648c6597d964269c7061ec562fe103c4cf05bc2bacfaa23df15bf3f4"
+    },
+    "research/experiments/v6-integrated-online-mgda-realized-dose-audit-20260903/aggregate.json": {
+      "type": "file",
+      "bytes": 8795,
+      "sha256": "20a1c6ac32e155c77bc9ed8fdbdab865c822055ca2a1e69da61001c6f2d3689c"
+    },
+    "scripts/alpha_holdem/v6_interpolate_policy_head_checkpoints.py": {
+      "type": "file",
+      "bytes": 5427,
+      "sha256": "626ad9da1200ad65c5ef39f6fa206244e270b1e29729052d1c74b667bde39e08"
+    },
+    "scripts/alpha_holdem/aggregate_v6_online_mgda_dose_curve.py": {
+      "type": "file",
+      "bytes": 7839,
+      "sha256": "8eb583ef7cee9b83a7b6f7b8084928b3178ae313362f5a0ffa0db2d4247c3ed8"
+    }
+  }
+}

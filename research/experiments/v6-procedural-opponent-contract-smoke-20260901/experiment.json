@@ -1,0 +1,217 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-procedural-opponent-contract-smoke-20260901",
+  "title": "Replayable procedural-opponent single-rollout smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T03:47:43+00:00",
+  "updated_at": "2026-09-01T04:01:23+00:00",
+  "started_at": "2026-09-01T03:47:43+00:00",
+  "ended_at": "2026-09-01T04:00:52+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Per-hand seeded procedural opponent styles can create an auditable non-learned opponent distribution while preserving correctly sampled PPO hero behavior and exact physical-hand accounting; a short smoke should show diverse style/action coverage, no opponent inference requests, deterministic replay, and finite optimization metrics.",
+  "material_change": "Add a single-rollout-only, fixed-seed per-hand procedural opponent contract with independent RNG, broad fold/call/raise style parameters, separate evidence metrics, and incompatibility guards for adaptive league and multi-rollout. Run unit/contract tests and a short learned-weight smoke only; no Slumbot evaluation.",
+  "baseline": "Current v6 sampled-PPO trainer with fixed learned opponents and no procedural opponent path.",
+  "source": "scripts/alpha_holdem/train_v5.py",
+  "parent_id": "raw actor-EMA endpoint 9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_procedural_opponent.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_procedural_opponent.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:47:43+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 8 --hands-per-iter 2048 --total-hands 99999999 --total-environment-hands 136649 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction 1 --opponent-assignment per-worker --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026110600 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 0 --run-id v6_procedural_opponent_contract_smoke_20260901 --run-dir research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train --out research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train/latest.pt --seed 20261106 --max-runtime-seconds 900 --resume research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:53:40+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 8 --hands-per-iter 2048 --total-hands 99999999 --total-environment-hands 136649 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --separate-preflop-head --all-policy-heads-only-training --actor-ema-decay .9 --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoint research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction 1 --opponent-assignment per-worker --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026110600 --fixed-training-deal-stream --fixed-training-deal-start-index 132553 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 0 --run-id v6_procedural_opponent_contract_smoke_r2_20260901 --run-dir research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2 --out research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2/latest.pt --seed 20261106 --max-runtime-seconds 900 --resume research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T03:57:14+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_train_v5_procedural_opponent.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_replay.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-procedural-opponent-contract-smoke-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:00:52+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-procedural-opponent-contract-smoke-20260901/audit_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:00:52+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-09-01T03:47:43+00:00 --out-json research/experiments/v6-procedural-opponent-contract-smoke-20260901/ledger_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T04:01:23+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py"
+    ],
+    "captured_at": "2026-09-01T03:47:43+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-procedural-opponent-contract-smoke-20260901/code.patch",
+    "patch_sha256": "2ab2daf1524ba08173ee38800edefeb12f6214e1008173db4d90b524c95369f7",
+    "source_manifest": "research/experiments/v6-procedural-opponent-contract-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "29513c4292631bfffa05f63a4069a30f35ee64f66c11dde9164581b69bfcc142",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4463,
+    "lineage_training_hands": 137016,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 789.0,
+    "environment_training_hands": 4463,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "procedural_opponent_hands": 4463,
+    "procedural_opponent_decisions": 16730,
+    "procedural_profiles_covered": 8,
+    "procedural_action_slots_covered": 9,
+    "relevant_tests_passed": 25,
+    "deterministic_style_replay_pass": 1,
+    "nontrainable_tensors_preserved": 1,
+    "min_hands_per_second": 174.34467810838456,
+    "max_abs_approx_kl": 1.561799893222217e-05
+  },
+  "artifacts": [
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/code.patch",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/tests.xml",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/audit.json",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/audit_smoke.py",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/execution_code/train_v5.py",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/execution_code/test_train_v5_procedural_opponent.py",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/execution_code/audit_smoke.py",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train/run_manifest.json",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train/h1_training_metrics.jsonl",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train/latest.pt",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2/run_manifest.json",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2/h1_training_metrics.jsonl",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2/latest.pt",
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/ledger_audit.json"
+  ],
+  "notes": [
+    "Preregistered as a contract and very-short smoke before implementation. Procedural opponents are general environment-side action policies, not benchmark-specific rules; heldout style evaluation is deferred until this contract passes.",
+    "Six contract tests passed before launch, including a real 50-hand worker/shared-memory test with only HERO_MODEL_ID inference requests.",
+    "r1 preserved intact: it found that pipe-only procedural metrics omitted JSONL and 86 shutdown-tail hands. Added shared cumulative procedural accounting, JSONL/checkpoint/manifest persistence, and 25 relevant passing tests before r2.",
+    "r1 completed 4,486 physical hands but exposed an evidence defect: pipe-only procedural metrics were absent from JSONL and omitted 86 shutdown-tail hands. r1 artifacts remain immutable and were not used as the passing result.",
+    "r2 shared accounting is authoritative and includes all completed worker tails. Training reward versus the procedural population is not external-strength evidence and was not used for promotion.",
+    "Terminal ledger audit: 1 record, 0 warnings."
+  ],
+  "result": {
+    "summary": "Implemented and verified replayable per-hand procedural opponent domain randomization. Corrected r2 completed 4,463 physical training hands and 16,730 procedural decisions; exact shared accounting, checkpoint/manifest/JSONL agreement, deterministic 8-profile replay, all 9 action-slot coverage, finite PPO metrics, and 25 relevant tests all passed.",
+    "conclusion": "The single-rollout procedural-opponent mechanism is technically valid, replayable, checkpoint-safe, and fast enough for a small learned-weight experiment. This smoke establishes only the data-generation contract, not poker strength; no Slumbot hands were used.",
+    "decision": "ADMIT_SMALL_MATCHED_PROCEDURAL_OPPONENT_LEARNED_WEIGHT_PILOT",
+    "next_step": "Run one small matched control-versus-procedural training pilot from the exact raw parent, evaluate both frozen endpoints on untouched heldout procedural style seeds and the existing parent-state preservation corpus, and require a clear matched advantage plus acceptable preservation before any Slumbot allocation."
+  },
+  "tags": [
+    "contract-smoke",
+    "domain-randomization",
+    "procedural-opponent",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 223335,
+      "sha256": "2ab2daf1524ba08173ee38800edefeb12f6214e1008173db4d90b524c95369f7"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 279,
+      "sha256": "29513c4292631bfffa05f63a4069a30f35ee64f66c11dde9164581b69bfcc142"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 4130,
+      "sha256": "2c271b7437d28e0846936c990b9ce3461bc85590ddb1cb960c8a645d8845ca5c"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/audit.json": {
+      "type": "file",
+      "bytes": 2732,
+      "sha256": "03ce3d38d7a42dd57d5856e2e8b2619e9adaa020526246eb060ae60f3d3c37b8"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/audit_smoke.py": {
+      "type": "file",
+      "bytes": 7563,
+      "sha256": "85284ff02c7c8fcb163e19d3266d57d81a9a4337695e7f84327f7ae8e79a832d"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/execution_code/train_v5.py": {
+      "type": "file",
+      "bytes": 442928,
+      "sha256": "0ab4ed5acd010f209e46671a2dd7ce7447280ece9b9ee43d8da1934fb9c24ba4"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/execution_code/test_train_v5_procedural_opponent.py": {
+      "type": "file",
+      "bytes": 8323,
+      "sha256": "add8e8a608e2505a0e17eb3c47764a12e9d46fbb56d393d4a7a0970d15ac72b9"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/execution_code/audit_smoke.py": {
+      "type": "file",
+      "bytes": 7563,
+      "sha256": "85284ff02c7c8fcb163e19d3266d57d81a9a4337695e7f84327f7ae8e79a832d"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train/run_manifest.json": {
+      "type": "file",
+      "bytes": 53950,
+      "sha256": "6c7be327bf82217d02c61673eb2b23d95053558ba7a7237414d36d06b14c8d7f"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 47720,
+      "sha256": "dddbeb739f0743c51f2514c396189a8ad5b7951ec496ba0a0e13388de5696f19"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train/latest.pt": {
+      "type": "file",
+      "bytes": 66957060,
+      "sha256": "010da44fdb4040ea0701279f83e7b6190bc92170b11f32063ba699912df5b536"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2/run_manifest.json": {
+      "type": "file",
+      "bytes": 56171,
+      "sha256": "720180cd5fa1c08d1af9e288d466e6dceed734b103a047b6f44e633e3b611950"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 51200,
+      "sha256": "beb3f122a0cb647ea14beac4cadf47330c61f6b19884837dae3eefce3a23b683"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/production/train_r2/latest.pt": {
+      "type": "file",
+      "bytes": 66958212,
+      "sha256": "070cdc93bac427213f220639bf146e246c341a6a5dcfd33f6c15bfa2eec086c9"
+    },
+    "research/experiments/v6-procedural-opponent-contract-smoke-20260901/ledger_audit.json": {
+      "type": "file",
+      "bytes": 230,
+      "sha256": "24e26bc3153f1c0f79e79041536a8a907b64c591dc59b902413c0c6796c5c060"
+    }
+  }
+}

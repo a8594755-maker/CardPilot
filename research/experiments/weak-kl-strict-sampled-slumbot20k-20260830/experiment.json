@@ -1,0 +1,521 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "weak-kl-strict-sampled-slumbot20k-20260830",
+  "title": "Frozen weak-KL strict sampled Slumbot20k pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T01:31:20+00:00",
+  "updated_at": "2026-08-31T01:39:36+00:00",
+  "started_at": "2026-08-31T01:31:20+00:00",
+  "ended_at": "2026-08-31T01:39:36+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The independently confirmed general weak-source-KL learned policy transfers to a positive raw native-sampled Slumbot point estimate on a fixed fresh20k, justifying a separate fresh100k test.",
+  "material_change": "Exactly same frozen weak checkpoint,8x2500fresh strict sampled hands with seeds2026091001..2026091008; no training, action rules, reselection, extension or pooling.",
+  "baseline": "Strict native-sampled Standard10 historical20k:-48.9778bb/100; old greedy-11.4275 is a different policy. Neither baseline is pooled.",
+  "source": "research/experiments/weak-source-kl-pilot-20260830/frozen/weak.pt",
+  "parent_id": "weak-source-kl-independent-confirmation-20260830",
+  "command": "python -m pytest research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_external_runner.py research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_completed_review.py -q --tb=short --junitxml=research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/prerun_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_external_runner.py research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_completed_review.py -q --tb=short --junitxml=research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:31:20+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/run_external.py research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/review_completed_pilot.py research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/finish_completed_run.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:16+00:00"
+    },
+    {
+      "command": "python research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\run_external.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:17+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 0 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091001 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\snapshot_loader_dry_run.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:17+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091001 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:20+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091002 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:25+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091003 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:30+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091004 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:34+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091005 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:38+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091006 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:44+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091007 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:48+00:00"
+    },
+    {
+      "command": "python -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt --strategy model --device cpu --hands 2500 --strict-policy-execution --policy-mode sample --temperature 1 --policy-seed 2026091008 --torch-threads 1 --torch-interop-threads 1 --result-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_result.json --hand-results-jsonl C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_hands.jsonl --dump-slumbot C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_dump.jsonl",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:32:52+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_hand_evidence.py --manifest C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\evidence_manifest.json --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\strict_hand_evidence_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:39:21+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/review_completed_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:39:32+00:00"
+    },
+    {
+      "command": "python research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/finish_completed_run.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T01:39:32+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "b4a1f91840acaec8bfc295aa8ea67caa3b3f15b04c1474b55727b7820e88e756",
+    "code_paths": [
+      "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/run_external.py",
+      "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/review_completed_pilot.py",
+      "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/finish_completed_run.py",
+      "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_external_runner.py",
+      "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_completed_review.py"
+    ],
+    "captured_at": "2026-08-31T01:31:20+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/source_manifest.json",
+    "source_manifest_sha256": "3ebd6e27cd949f3fced0c30a4008e97ac78d43d79aa6fc83bb13f7afb273f5b4",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 20000,
+    "wall_time_seconds": 496.0,
+    "slumbot_hands": 20000
+  },
+  "metrics": {
+    "prerun_tests_passed": 24,
+    "snapshot_loader_pass": 1,
+    "part01_pid": 36316,
+    "active_sessions": 0,
+    "part01_first_hand_ready": 1,
+    "part02_pid": 19620,
+    "part02_first_hand_ready": 1,
+    "part03_pid": 26432,
+    "part03_first_hand_ready": 1,
+    "part04_pid": 5276,
+    "part04_first_hand_ready": 1,
+    "part05_pid": 43108,
+    "part05_first_hand_ready": 1,
+    "part06_pid": 22884,
+    "part06_first_hand_ready": 1,
+    "part07_pid": 35584,
+    "part07_first_hand_ready": 1,
+    "part08_pid": 23324,
+    "part08_first_hand_ready": 1,
+    "pilot_complete": 1,
+    "admits_separate_fresh100k": 0,
+    "independent_review_pass": 1,
+    "raw_bb100": -55.869,
+    "raw_ci95_lower": -93.60892586333783,
+    "raw_ci95_upper": -18.12907413666217
+  },
+  "artifacts": [
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/preregistration.md",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/code.patch",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/source_manifest.json",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/prerun_tests.xml",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/run_external.py",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/review_completed_pilot.py",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/finish_completed_run.py",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_external_runner.py",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_completed_review.py",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/execution_code/code.patch",
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/execution_code/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\evidence_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\snapshot_loader_dry_run.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\run_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\strict_hand_evidence_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\pilot_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_dump.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_result.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\result_summary.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\review_completed_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\finish_completed_run.py"
+  ],
+  "notes": [
+    "Independent147456hand confirmation completed and reviewed before registration. Exact weak SHA a68ac47aad7fa943f0e784e1c14be3d742fac7390a2cd853ba6cb971b429019b. Prior zero-hand load passed with no network. Only complete valid20k point>0 admits separately preregistered fresh100k; this pilot itself cannot complete the Goal.",
+    "24synthetic tests passed; confirmation gate was checked against actual reviewed parent and all raw hashes. Independent internal primary deltas were Standard10+3.6799,free+6.5710,CFR96+64.8487bb/100; only CFR96 has positive adjusted lower bound. This supports the registered external diagnostic,not broad strength or automatic scaling. No synthetic fixtures count as poker hands.",
+    "Complete execution source and policy frozen. Exactly8x2500 planned; no automatic restart,supplement,reseed or score-based stop. All client/audit commands use this snapshot.",
+    "All8 fixed sessions finished and strict raw/model/mode/seed/dump/CI/replay audits passed. Pilot remains RUNNING for independent review/finish. No goal-completion or100k claim."
+  ],
+  "result": {
+    "summary": "Exactly20000fresh strict native-sampled weak-KL hands: -55.8690bb/100,95%CI[-93.6089,-18.1291]. All8clients exited0; strict audit and independent chip-space review passed.",
+    "conclusion": "Frozen source, raw identity/accounting, clean policy execution, observable session-independence and source hashes passed. Historical greedy and aborted parent hands excluded. This20kpilot does not meet the100kgoal.",
+    "decision": "SAMPLED_CANDIDATE_NONPOSITIVE",
+    "next_step": "Do not extend or reselect this pilot. Select the next general learned-weight experiment from the completed evidence."
+  },
+  "tags": [
+    "frozen-policy",
+    "native-sampled",
+    "strict-slumbot"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 15,
+    "command_count": 15
+  },
+  "artifact_integrity": {
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/preregistration.md": {
+      "type": "file",
+      "bytes": 4080,
+      "sha256": "4dfef182d1392f8a1cd1835b7c14b3e6f6b1522475374071fa8bed0d3a8e6062"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 1216,
+      "sha256": "3ebd6e27cd949f3fced0c30a4008e97ac78d43d79aa6fc83bb13f7afb273f5b4"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/prerun_tests.xml": {
+      "type": "file",
+      "bytes": 4645,
+      "sha256": "ccfb1b94992a9fc127d6828e24de07412392e0bb72e81bb962f128bf0f65e032"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/run_external.py": {
+      "type": "file",
+      "bytes": 17243,
+      "sha256": "03038a0cc96d0e3b66d388420326bd6cfbc8f85a783f0b97368877c8b2a249b5"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/review_completed_pilot.py": {
+      "type": "file",
+      "bytes": 9019,
+      "sha256": "99080389b9dabf68b94d0f679e58450469f00b71fd961264584436a827536dd7"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/finish_completed_run.py": {
+      "type": "file",
+      "bytes": 2913,
+      "sha256": "0d1fff2696e171cd788b4f50ac75dbb915be7e7969ea6c5e652a1b80802f9a22"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_external_runner.py": {
+      "type": "file",
+      "bytes": 4743,
+      "sha256": "ca7241252f0f28b9dcb5579e0bf1dbba327aedef32e57b4f12435e9046d97477"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/test_completed_review.py": {
+      "type": "file",
+      "bytes": 1191,
+      "sha256": "22d8e2962b48bdc4cac5e0aaef9ba5f866de566fa7eb552f2f31a3b8a0bbcaff"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/execution_code/code.patch": {
+      "type": "file",
+      "bytes": 365811,
+      "sha256": "dcf1fcedcc541e02df426691edb19e21c6a18d4c264cfaaf0d2326eaae63b57d"
+    },
+    "research/experiments/weak-kl-strict-sampled-slumbot20k-20260830/execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 12544,
+      "sha256": "9d393b7e03f564e0939e9a1ee02a1827ca07ef475eaa0eef86bebacbea014bc6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 21672,
+      "sha256": "457aefd6fbc32f0dd0c90b6d604ee2414abcce8e83ab3b7b5850b276575e88b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\frozen\\weak.pt": {
+      "type": "file",
+      "bytes": 133305012,
+      "sha256": "a68ac47aad7fa943f0e784e1c14be3d742fac7390a2cd853ba6cb971b429019b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\evidence_manifest.json": {
+      "type": "file",
+      "bytes": 4888,
+      "sha256": "535c94260f75b3459cc3f198efb1b3b57218386039fc3fb56cac9a78eb66a6b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\snapshot_loader_dry_run.json": {
+      "type": "file",
+      "bytes": 1101,
+      "sha256": "6b5abac46bd9af6b830bd895e1e01f20d70cde0d65e3813421a8bb1afa1d8607"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\run_manifest.json": {
+      "type": "file",
+      "bytes": 1588,
+      "sha256": "7fbe901ca57ea0fe552b827dfbe9f8ab0ad809aa5dcb6d1d6302ff9cad98ddac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\strict_hand_evidence_audit.json": {
+      "type": "file",
+      "bytes": 26820,
+      "sha256": "80d3bf14cc8e4a47bd323eca9da2bf06c04e667386d644128a7f2032074a31a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\pilot_analysis.json": {
+      "type": "file",
+      "bytes": 1659,
+      "sha256": "f3190067839f7d36f4c6d5be509ac863bcdbec89e8f6e1a38b62125ab26a4d68"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_dump.jsonl": {
+      "type": "file",
+      "bytes": 10462819,
+      "sha256": "8ff9c38c1a5fb1659233b03644389320b6ca74152fa5f1c8f49a6654ddc98300"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_hands.jsonl": {
+      "type": "file",
+      "bytes": 995954,
+      "sha256": "b09f38a9e514b80f1496b5c0ee8ea66b0f23c807e14c8e095315701370a8daac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_result.json": {
+      "type": "file",
+      "bytes": 1212,
+      "sha256": "54c180542517ae208eef8f66968abe4ea9e9adcef66a6230d67f6cc0fc311c61"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part01_stdout.log": {
+      "type": "file",
+      "bytes": 3426,
+      "sha256": "bc1dca328606ecf920819ef79e640ecbfc2e3aee793f7b3df61efeefcfac6557"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_dump.jsonl": {
+      "type": "file",
+      "bytes": 10861131,
+      "sha256": "39413f9f15ce77e2dcf73020188929b1624729ff237928423663fa683ce4509a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_hands.jsonl": {
+      "type": "file",
+      "bytes": 991678,
+      "sha256": "cc4cfbfee384606b67491a72b9b845b707ad60e92cf32bdc30e32524b0c57a46"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_result.json": {
+      "type": "file",
+      "bytes": 1225,
+      "sha256": "170473cc5b65577af1dcef90b6f56664054f037b8ab6add767bdaea63f76e784"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part02_stdout.log": {
+      "type": "file",
+      "bytes": 3435,
+      "sha256": "c8506723eab990b022d7717c2524bfc2e67f53dcfe479288797a7f4ec3f466ae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_dump.jsonl": {
+      "type": "file",
+      "bytes": 10644360,
+      "sha256": "f8e5f559d6cae5ba46abd6bdbffde5862a64b99b34fab0292a4e8376cfa1fd20"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_hands.jsonl": {
+      "type": "file",
+      "bytes": 997761,
+      "sha256": "794e19763e42d224f5863947c09a2d82eeba7fa38c8ba18aca56b7816e0048d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_result.json": {
+      "type": "file",
+      "bytes": 1212,
+      "sha256": "8e7bb0e686f1e0eb0705bcceec86e69fb74aa87aab32650bac06d19ed5fbb9c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part03_stdout.log": {
+      "type": "file",
+      "bytes": 3438,
+      "sha256": "cfe6e9275fbc0513ddffeaf60d3b52ebc9cb417ca78ec26a1916f78be53a3c12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_dump.jsonl": {
+      "type": "file",
+      "bytes": 10919110,
+      "sha256": "020de542431a8d31b8931c31b843dd6d0bad6af01b830280edebcc4aa019d067"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_hands.jsonl": {
+      "type": "file",
+      "bytes": 992043,
+      "sha256": "5d64bf538bea794cef4ddec9d1bcff6cc2f8a66c8daf184ec1f9a76a732172e4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_result.json": {
+      "type": "file",
+      "bytes": 1200,
+      "sha256": "83008560996d637ee1ee26b4bb991e902523df8ef6d9962e48515715c3a26519"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part04_stdout.log": {
+      "type": "file",
+      "bytes": 3433,
+      "sha256": "9e2f36f59939a6877c9cd17d0e0d5fadf6706cebe1dc62e73ac96efad0fdeef4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_dump.jsonl": {
+      "type": "file",
+      "bytes": 10537987,
+      "sha256": "94269ac8e5434054e494d962529e4dac41971bad9081849a60a5ccd7a57f3ab5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_hands.jsonl": {
+      "type": "file",
+      "bytes": 997336,
+      "sha256": "b82cfcd43846069c225514d4fa6512e388f89fc4e6aafd35ec3416ed2eb5b0ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_result.json": {
+      "type": "file",
+      "bytes": 1216,
+      "sha256": "d304b6488de694e525024411b240d06aea80e9e3fdb2d8327cd1a6746080e1fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part05_stdout.log": {
+      "type": "file",
+      "bytes": 3450,
+      "sha256": "04ad5a1bbb3f54f73dd81cc3955f89093786241d239b50ddb7ad802bf9cbc59f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_dump.jsonl": {
+      "type": "file",
+      "bytes": 10908722,
+      "sha256": "8eb9060dbbc44f25c164a7a43d0443d2150699f66e98f25da130523fc8ecb148"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_hands.jsonl": {
+      "type": "file",
+      "bytes": 997980,
+      "sha256": "b31adf25ab593dfe83be3ba00ae52f3aa8fd5980057b21954069c04f9cd21f05"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_result.json": {
+      "type": "file",
+      "bytes": 1222,
+      "sha256": "376dd0fb6a05cf89960ff1cb44bfa8840f190b9d05817eb16b9d8505b0d0e3e2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part06_stdout.log": {
+      "type": "file",
+      "bytes": 3449,
+      "sha256": "ad97ba85809ac1eec8b1f0bdd0956fe7b233b0be110aae1217ee78e753e36aac"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_dump.jsonl": {
+      "type": "file",
+      "bytes": 10569480,
+      "sha256": "a83d7cfcb1c2d893373fb8b41bba776e1dbb5d6147634d33d4a040ad1c4cf1ce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_hands.jsonl": {
+      "type": "file",
+      "bytes": 992612,
+      "sha256": "0d23e61c0476fc2c6a0ba5d24fdaa00ee8a2b0b2a03a2f0cc1f4df007dbd49f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_result.json": {
+      "type": "file",
+      "bytes": 1197,
+      "sha256": "c45dc3c99d04eb2ff8437a7c11fe0fe2a8390fa4ac0d4f65ecb4552cc3b0a965"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part07_stdout.log": {
+      "type": "file",
+      "bytes": 3419,
+      "sha256": "af1cc22a3c26f2d642752a462f12ff376036713b96796b2779cba2b2b85f2c57"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_dump.jsonl": {
+      "type": "file",
+      "bytes": 10946642,
+      "sha256": "6adfe6d30918c1e8d7210668e06f8087529794f0d4b5a3b07b60e15ba48b21b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_hands.jsonl": {
+      "type": "file",
+      "bytes": 996599,
+      "sha256": "aba112fb432b02501d06b9074c1cb2e50047c10f94c9258646b9555710f9fab5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_result.json": {
+      "type": "file",
+      "bytes": 1202,
+      "sha256": "beb48c188e90e490336ccef0b2cde5830bb2941677215860ff50f5c8f925e6b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\sessions\\part08_stdout.log": {
+      "type": "file",
+      "bytes": 3453,
+      "sha256": "50edf4be2433130e9c2446879d414092da7889763a114c49420b5c21a48eb263"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 9176,
+      "sha256": "dd630c034c48603f514c8b7d943a394add4c1bf1ece3854c07525c9588a06ba4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\result_summary.md": {
+      "type": "file",
+      "bytes": 1732,
+      "sha256": "6016b448f1dc7f9dae78211840e36bc72d24d530be7a3fd12ccd356d0e17cda2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\review_completed_pilot.py": {
+      "type": "file",
+      "bytes": 9019,
+      "sha256": "99080389b9dabf68b94d0f679e58450469f00b71fd961264584436a827536dd7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\weak-kl-strict-sampled-slumbot20k-20260830\\finish_completed_run.py": {
+      "type": "file",
+      "bytes": 2913,
+      "sha256": "0d1fff2696e171cd788b4f50ac75dbb915be7e7969ea6c5e652a1b80802f9a22"
+    }
+  }
+}

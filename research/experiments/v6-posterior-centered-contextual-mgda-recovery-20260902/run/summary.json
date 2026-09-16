@@ -1,0 +1,289 @@
+{
+  "actual_environment_training_hands": 4608,
+  "actual_learning_hands": 3072,
+  "admitted": true,
+  "artifact_sha256": {
+    "seed0_contextual_residual.pt": "963b2fe3e34802881ccf8ec5aee2115b4ee057d3f2dd53b2ed4f391011f0c1e7",
+    "seed0_evaluation_hands.jsonl.gz": "287cadda704eb8cc6dba79c16f0c1b40cedd70dc7cb508489e608200bf8bccc1",
+    "seed0_schedule.jsonl.gz": "cc17ea8a4181ee626f6930c178e1a5aba51343b580449718fdda51b28c6dceb3",
+    "seed0_training_hands.jsonl.gz": "a2b77a037d586d020f7af308ec8c12a060b70c82fceda896502edb178e2d90d3",
+    "seed1_contextual_residual.pt": "abea1ae17db51f0661d4e592270a683b49eb52a37868cb0c50b4d41897968209",
+    "seed1_evaluation_hands.jsonl.gz": "13d53bd0fe3a9c64274fe583d81c1b5e074fd982f0ef5b280a7df24ce75e110d",
+    "seed1_schedule.jsonl.gz": "9e28d396e2e79853a6eae266fecb15749d25e8c7800811f382d90a6a0cfba7fb",
+    "seed1_training_hands.jsonl.gz": "b27cf7df07939a16ce6a9182eecf928b06536e3c9df6762901aac081ad7465dc"
+  },
+  "base_sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+  "claim_scope": "BROAD_CONTEXTUAL_POLICY_MECHANISM_NOT_SLUMBOT_STRENGTH",
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py",
+    "--spec",
+    "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json",
+    "--base-checkpoint",
+    "models/baseline/standard10/latest.pt",
+    "--seed",
+    "20262610",
+    "--seeds",
+    "2",
+    "--warmup-hands",
+    "64",
+    "--learning-hands-per-group",
+    "128",
+    "--steps",
+    "32",
+    "--group-batch-size",
+    "32",
+    "--pairs-per-policy",
+    "64",
+    "--context-mode",
+    "posterior-centered",
+    "--context-classifier",
+    "research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt",
+    "--expected-context-classifier-sha256",
+    "03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07",
+    "--device",
+    "cuda",
+    "--out-dir",
+    "research/experiments/v6-posterior-centered-contextual-mgda-recovery-20260902/run"
+  ],
+  "completed_at": "2026-09-02T06:26:03.991426+00:00",
+  "context_classifier_sha256": "03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07",
+  "context_mode": "posterior-centered",
+  "decision": "ADMIT_CONTEXTUAL_RESIDUAL_GEOMETRIC_SCALE",
+  "evaluation_hands": 9216,
+  "gates": {
+    "all_active_source_agreement_at_least_95pct": true,
+    "all_active_source_partitions_at_least_90pct": true,
+    "all_conditioning_parameters_updated": true,
+    "all_geometry_positive_at_least_75pct": true,
+    "all_residual_caps_respected": true,
+    "all_zero_context_exact": true,
+    "base_file_hash_unchanged": true,
+    "base_state_unchanged": true,
+    "median_correct_context_beats_wrong_context": true,
+    "median_correct_context_delta_nonnegative": true,
+    "training_hands_exact": true
+  },
+  "holdout_policies": [
+    {
+      "label": "weak_kl_full",
+      "sha256": "ff2b9e6fe188ac89aa3ff4b632b70a195a46e8e6a73f1b94a75fcfbbf543c17e"
+    },
+    {
+      "label": "fictitious_response_phase2",
+      "sha256": "393fb9e119ba73864ee76f6732c468d3e09c1329da3625f167f53de8321eea17"
+    },
+    {
+      "label": "fictitious_average_phase2",
+      "sha256": "c60dfc881ff1b97245219b226eabb5f4c00c1a3d421f71681b63097f45bfa3ea"
+    }
+  ],
+  "schema": "cardpilot.contextual_residual_mgda_smoke.v1",
+  "seed_summaries": [
+    {
+      "checkpoint": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-posterior-centered-contextual-mgda-recovery-20260902\\run\\seed0_contextual_residual.pt",
+      "checkpoint_sha256": "963b2fe3e34802881ccf8ec5aee2115b4ee057d3f2dd53b2ed4f391011f0c1e7",
+      "conditioning_parameter_update_l2": 0.20261388673037145,
+      "evaluation": {
+        "pooled_correct_minus_base": {
+          "bb100": 6.573784722222221,
+          "ci95_half_bb100": 11.10376109942917,
+          "hands": 1152
+        },
+        "pooled_correct_minus_wrong": {
+          "bb100": 15.672743055555555,
+          "ci95_half_bb100": 17.13663654670373,
+          "hands": 1152
+        },
+        "seats": {
+          "0": {
+            "bb100": 1.3628472222222223,
+            "ci95_half_bb100": 3.06261630046213,
+            "hands": 576
+          },
+          "1": {
+            "bb100": 11.784722222222221,
+            "ci95_half_bb100": 21.996827913018972,
+            "hands": 576
+          }
+        },
+        "splits": {
+          "holdout": {
+            "correct_minus_base": {
+              "bb100": -0.6510416666666667,
+              "ci95_half_bb100": 13.310082961602083,
+              "hands": 384
+            },
+            "correct_minus_wrong": {
+              "bb100": 28.125,
+              "ci95_half_bb100": 39.59364639367795,
+              "hands": 384
+            }
+          },
+          "training": {
+            "correct_minus_base": {
+              "bb100": 10.186197916666666,
+              "ci95_half_bb100": 15.267712550741678,
+              "hands": 768
+            },
+            "correct_minus_wrong": {
+              "bb100": 9.446614583333334,
+              "ci95_half_bb100": 16.40262626878332,
+              "hands": 768
+            }
+          }
+        }
+      },
+      "evaluation_environment_hands": 4608,
+      "evaluation_evidence_sha256": "287cadda704eb8cc6dba79c16f0c1b40cedd70dc7cb508489e608200bf8bccc1",
+      "group_decision_support": {
+        "opponent00_seat0": 378,
+        "opponent00_seat1": 342,
+        "opponent01_seat0": 68,
+        "opponent01_seat1": 252,
+        "opponent02_seat0": 373,
+        "opponent02_seat1": 274,
+        "opponent03_seat0": 388,
+        "opponent03_seat1": 360,
+        "opponent04_seat0": 486,
+        "opponent04_seat1": 338,
+        "opponent05_seat0": 491,
+        "opponent05_seat1": 330
+      },
+      "learning_hands": 1536,
+      "maximum_evaluation_delta": 0.1497659683227539,
+      "positive_worst_alignment_fraction": 1.0,
+      "preservation": {
+        "active_disagreement_rate": 0.00390625,
+        "max_abs_residual_logit": 0.15293025970458984,
+        "minimum_partition_agreement": 0.9890909090909091,
+        "overall_agreement": 0.99609375,
+        "states": 2048,
+        "zero_context_exact": true
+      },
+      "schedule_sha256": "cc17ea8a4181ee626f6930c178e1a5aba51343b580449718fdda51b28c6dceb3",
+      "seed": 20262610,
+      "seed_index": 0,
+      "training_environment_hands": 2304,
+      "training_evidence_sha256": "a2b77a037d586d020f7af308ec8c12a060b70c82fceda896502edb178e2d90d3",
+      "transition_rows": 4080
+    },
+    {
+      "checkpoint": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-posterior-centered-contextual-mgda-recovery-20260902\\run\\seed1_contextual_residual.pt",
+      "checkpoint_sha256": "abea1ae17db51f0661d4e592270a683b49eb52a37868cb0c50b4d41897968209",
+      "conditioning_parameter_update_l2": 0.19060087304126044,
+      "evaluation": {
+        "pooled_correct_minus_base": {
+          "bb100": 2.235243055555556,
+          "ci95_half_bb100": 6.128740257782734,
+          "hands": 1152
+        },
+        "pooled_correct_minus_wrong": {
+          "bb100": 0.5859375,
+          "ci95_half_bb100": 6.003453199773653,
+          "hands": 1152
+        },
+        "seats": {
+          "0": {
+            "bb100": 3.342013888888889,
+            "ci95_half_bb100": 11.847550407744274,
+            "hands": 576
+          },
+          "1": {
+            "bb100": 1.128472222222222,
+            "ci95_half_bb100": 3.1615911650328026,
+            "hands": 576
+          }
+        },
+        "splits": {
+          "holdout": {
+            "correct_minus_base": {
+              "bb100": -1.953125,
+              "ci95_half_bb100": 6.87787870750785,
+              "hands": 384
+            },
+            "correct_minus_wrong": {
+              "bb100": -3.2552083333333335,
+              "ci95_half_bb100": 6.380208333333333,
+              "hands": 384
+            }
+          },
+          "training": {
+            "correct_minus_base": {
+              "bb100": 4.329427083333334,
+              "ci95_half_bb100": 8.524859250000395,
+              "hands": 768
+            },
+            "correct_minus_wrong": {
+              "bb100": 2.506510416666667,
+              "ci95_half_bb100": 8.420782938302665,
+              "hands": 768
+            }
+          }
+        }
+      },
+      "evaluation_environment_hands": 4608,
+      "evaluation_evidence_sha256": "13d53bd0fe3a9c64274fe583d81c1b5e074fd982f0ef5b280a7df24ce75e110d",
+      "group_decision_support": {
+        "opponent00_seat0": 379,
+        "opponent00_seat1": 344,
+        "opponent01_seat0": 78,
+        "opponent01_seat1": 253,
+        "opponent02_seat0": 390,
+        "opponent02_seat1": 304,
+        "opponent03_seat0": 343,
+        "opponent03_seat1": 346,
+        "opponent04_seat0": 458,
+        "opponent04_seat1": 385,
+        "opponent05_seat0": 502,
+        "opponent05_seat1": 334
+      },
+      "learning_hands": 1536,
+      "maximum_evaluation_delta": 0.06365621089935303,
+      "positive_worst_alignment_fraction": 1.0,
+      "preservation": {
+        "active_disagreement_rate": 0.0009765625,
+        "max_abs_residual_logit": 0.06549263000488281,
+        "minimum_partition_agreement": 0.991304347826087,
+        "overall_agreement": 0.9990234375,
+        "states": 2048,
+        "zero_context_exact": true
+      },
+      "schedule_sha256": "9e28d396e2e79853a6eae266fecb15749d25e8c7800811f382d90a6a0cfba7fb",
+      "seed": 20272617,
+      "seed_index": 1,
+      "training_environment_hands": 2304,
+      "training_evidence_sha256": "b27cf7df07939a16ce6a9182eecf928b06536e3c9df6762901aac081ad7465dc",
+      "transition_rows": 4116
+    }
+  ],
+  "spec_sha256": "aebc61731e50ec1256f9263de2680977a2cdd5723e78f5bd29a321f0310e207c",
+  "status": "COMPLETED",
+  "training_policies": [
+    {
+      "label": "standard10",
+      "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+    },
+    {
+      "label": "slumbot_free_anchor",
+      "sha256": "457d3babb82cb8014a2b7c378b2b5f916962565e63a44d192d5d7acd8393d6e7"
+    },
+    {
+      "label": "corrected_cfr96",
+      "sha256": "902a7049ca66c0552246d11fe482eed4df47ac5c675ddf051c34ed86dcf213a6"
+    },
+    {
+      "label": "legacy_iter16",
+      "sha256": "0b1b58a87637f620ae580754bc940ec7aca246d94762d77717c9b578aac9f290"
+    },
+    {
+      "label": "procedural_soup_iter32",
+      "sha256": "66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c"
+    },
+    {
+      "label": "diverse_league5",
+      "sha256": "52ddabe9c2f75f1242e5603778595f7e68674d8d8f5e2185170fb9515660f25a"
+    }
+  ],
+  "wall_time_seconds": 680.4846539497375
+}

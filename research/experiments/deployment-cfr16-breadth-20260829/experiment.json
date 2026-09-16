@@ -1,0 +1,108 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "deployment-cfr16-breadth-20260829",
+  "title": "Sixteen-board deployment CFR breadth scale",
+  "status": "COMPLETED",
+  "created_at": "2026-08-29T23:42:41+00:00",
+  "updated_at": "2026-08-30T02:18:47+00:00",
+  "started_at": "2026-08-29T23:42:41+00:00",
+  "ended_at": "2026-08-29T23:56:26+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "At fixed approximate solver compute and identical conservative distillation, increasing deployment-matched SRP+3BP board diversity from four deep i200 boards to sixteen i50 boards will improve unseen-board and live Slumbot generalization more than additional per-board CFR iterations.",
+  "material_change": "Solve sixteen deterministic diverse 200bb deployment-grid boards for SRP and 3BP at b8/i50, convert with the validated compact bridge, train H64 source-KL1 L2=.01 adapters with board-disjoint splits, and gate on heldout KL, 10k mirror, then fresh Slumbot.",
+  "baseline": "Four-board H64 adapter: mirror10k +2.33 bb/100 CI95 +/-0.738; fresh5060 -9.41 bb/100 CI95 [-52.94,+34.12].",
+  "source": "deployment-cfr4-adapter-pilot-20260829",
+  "parent_id": "deployment-cfr4-adapter-pilot-20260829",
+  "command": "node --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_{srp,3bp}_200bb --flops 16 --parallel --workers 4 --iterations 50 --buckets 8 --seed 20260829",
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "provenance_gap": "Historical record predates automatic patch/source-manifest capture; the exact dirty worktree cannot be reconstructed post hoc."
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 1616657,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 825.0
+  },
+  "metrics": {
+    "srp_infosets": 122317690,
+    "threebet_infosets": 18449840,
+    "validation_target_kl_epoch1": 0.19177332713475867,
+    "mirror_epoch1_bb100": -1.5380859375,
+    "mirror_epoch2_bb100": -0.69580078125,
+    "mirror_epoch3_bb100": -1.08642578125
+  },
+  "artifacts": [
+    "research/experiments/deployment-cfr16-breadth-20260829/bridge_srp16.json",
+    "research/experiments/deployment-cfr16-breadth-20260829/bridge_3bp16.json",
+    "research/experiments/deployment-cfr16-breadth-20260829/mirror4096_epoch01.json",
+    "research/experiments/deployment-cfr16-breadth-20260829/mirror4096_epoch02.json",
+    "research/experiments/deployment-cfr16-breadth-20260829/mirror4096_epoch03.json"
+  ],
+  "notes": [
+    "Post-hoc infrastructure repair refreshed verifiable wall-time and artifact-integrity fields. The exact historical dirty-worktree patch/source manifest and placeholder commands cannot be reconstructed without falsifying provenance; the record explicitly preserves that gap."
+  ],
+  "result": {
+    "summary": "Sixteen-board b8/i50 breadth produced 1.62M validated compact rows and strong heldout teacher fit, but all three adapter epochs were negative in the same 4096-pair mirror test (about -0.70 to -1.54 bb/100).",
+    "conclusion": "At this resolution, adding board breadth degrades internal play relative to the four-board i200 adapter. The prior measured i50-to-i200 strategy drift makes shallow teacher bias the leading explanation; no candidate is promoted to Slumbot.",
+    "decision": "REJECT_SHALLOW_BREADTH_TEST_DEEP8",
+    "next_step": "Build an eight-board b8/i200 teacher by reusing the four completed deep boards and solving four new diverse boards, then repeat the identical H64 conservative adapter gate. This isolates resolution from breadth without re-solving existing work."
+  },
+  "tags": [
+    "breadth",
+    "cfr",
+    "learned-policy"
+  ],
+  "commands": [
+    {
+      "command": "node --import tsx packages/cfr-solver/src/cli/solve.ts --config deployment_v55_{srp,3bp}_200bb --flops 16 --parallel --workers 4 --iterations 50 --buckets 8 --seed 20260829",
+      "exact": false,
+      "reasons": [
+        "contains_placeholder"
+      ],
+      "recorded_at": "2026-08-29T23:42:41+00:00"
+    }
+  ],
+  "reproducibility": {
+    "exact_command_available": false,
+    "all_recorded_commands_exact": false,
+    "exact_command_count": 0,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/deployment-cfr16-breadth-20260829/bridge_srp16.json": {
+      "type": "file",
+      "bytes": 5654,
+      "sha256": "ae81d9357825061402f0dd8fe3e4ae79b783ff9459639cecacce4be41ad8d5b8"
+    },
+    "research/experiments/deployment-cfr16-breadth-20260829/bridge_3bp16.json": {
+      "type": "file",
+      "bytes": 5522,
+      "sha256": "d929a826b2f6e62ad753d1b0e4a603a2286fa150c1e5d7baaba01a2b8330fe3e"
+    },
+    "research/experiments/deployment-cfr16-breadth-20260829/mirror4096_epoch01.json": {
+      "type": "file",
+      "bytes": 6284,
+      "sha256": "67e277525af7fac49cafd15c83c2fcf89be62804d6881a2dc2859713f4008876"
+    },
+    "research/experiments/deployment-cfr16-breadth-20260829/mirror4096_epoch02.json": {
+      "type": "file",
+      "bytes": 6285,
+      "sha256": "367f0b231d1817c2cd91515040952de501c396b3af7f6ec28f25dcf54b97541a"
+    },
+    "research/experiments/deployment-cfr16-breadth-20260829/mirror4096_epoch03.json": {
+      "type": "file",
+      "bytes": 6274,
+      "sha256": "34097c9b42a66f557a6a8e14bc83a3457be073b3b01799fadf663cd308a4e620"
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-physical-readiness-audit-20260901",
+  "title": "Deep CFR physical-v6 readiness audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:41:55+00:00",
+  "updated_at": "2026-09-01T14:46:17+00:00",
+  "started_at": "2026-09-01T14:41:55+00:00",
+  "ended_at": "2026-09-01T14:46:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The existing Deep CFR core may be algorithmically functional on Leduc, but its HUNL game/export wiring is not yet contract-compatible with exact 200bb physical-v6 and therefore should not receive a large training budget until explicit parity gates pass.",
+  "material_change": "Add a deterministic, no-training-hand readiness audit comparing Deep CFR game/action/export surfaces with physical-v6 and run a cheap exact tabular Leduc convergence control.",
+  "baseline": "No prior logged Deep CFR HUNL evidence; physical-v6 contract is integer-chip 200bb, no raise cap, nine fixed action slots.",
+  "source": "",
+  "parent_id": null,
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_readiness_audit.py --tabular-iterations 200 --output research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/readiness.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_readiness_audit.py --tabular-iterations 200 --output research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/readiness.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:41:55+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_readiness_audit.py --tabular-iterations 1000 --output research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/readiness_1000.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:44:08+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5d43fc724e8c04dd684a10339c540fe92db4d3ec1877c9681ee88fabc7b86e41",
+    "code_paths": [
+      "scripts/deep_cfr",
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T14:41:55+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/source_manifest.json",
+    "source_manifest_sha256": "8759d16a82310fa560d739abd578511872740ed746f8aadf4de96342dbce3033",
+    "source_files": 111
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 262.0,
+    "environment_training_hands": 0
+  },
+  "metrics": {
+    "tabular_iterations": 200,
+    "tabular_iterations_extended": 1000,
+    "tabular_leduc_final_mbb_per_game": 26.11121639631228,
+    "physical_contract_gates_passed": 0,
+    "physical_contract_gates_total": 5
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/readiness.json",
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/readiness_1000.json",
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/analysis.md"
+  ],
+  "notes": [
+    "Readiness audit only; do not train HUNL if any physical contract gate fails.",
+    "The preregistered 200-iteration tabular control ended at 165.3158 mbb/game after a nonmonotone 100-to-200 segment; extend the no-HUNL-hand control to 1000 iterations to distinguish insufficient small-game budget from a broken regret core.",
+    "The first direct launch exposed a repository-root import bootstrap omission before the audit ran; the same preregistered command succeeded after adding only SCRIPTS_ROOT to sys.path. No poker hands or partial result artifact were produced by the failed launch.",
+    "readiness.json sha256=e388a57366ed759dc7a8cf046a7e9ff1033f23c4d344377e3b1ec5987d776af8; readiness_1000.json sha256=c8b3e470bc361fe2335eefc4b5bdaebf48ebee29e1913ddec1ab55bd1a2d0721; alpha_holdem suite 204 passed."
+  ],
+  "result": {
+    "summary": "Exact audit generated zero HUNL training/evaluation hands. Tabular Leduc converged to 26.1112 mbb/game at 1000 iterations, but all five physical-HUNL gates failed: trainer and CLI omit full_200bb, initial action slots differ, postflop re-raises are blocked, and nine-action checkpoints cannot load into the hardcoded six-action exporter.",
+    "conclusion": "The regret core is viable enough to justify an exact-v6 adapter experiment, but the existing HUNL trainer cannot train or export the target physical-v6 game without silently changing the game or failing on shapes.",
+    "decision": "REJECT_EXISTING_DEEP_CFR_HUNL_AS_PHYSICAL_V6_TRAINER",
+    "next_step": "Implement and parity-test a minimal external-sampling traversal adapter directly over ChipState and policy_contract_v6.action_table; require exact transition/action/payoff gates plus a tiny bounded traversal smoke before any larger neural regret training."
+  },
+  "tags": [
+    "deep-cfr",
+    "readiness",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 20215,
+      "sha256": "8759d16a82310fa560d739abd578511872740ed746f8aadf4de96342dbce3033"
+    },
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/readiness.json": {
+      "type": "file",
+      "bytes": 3925,
+      "sha256": "e388a57366ed759dc7a8cf046a7e9ff1033f23c4d344377e3b1ec5987d776af8"
+    },
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/readiness_1000.json": {
+      "type": "file",
+      "bytes": 4135,
+      "sha256": "c8b3e470bc361fe2335eefc4b5bdaebf48ebee29e1913ddec1ab55bd1a2d0721"
+    },
+    "research/experiments/v6-deep-cfr-physical-readiness-audit-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1971,
+      "sha256": "e2a2d821e29a4bbb247e8e23ad31a45e87e40ea0ab32c23c9d57bce0cbfa4ea8"
+    }
+  }
+}

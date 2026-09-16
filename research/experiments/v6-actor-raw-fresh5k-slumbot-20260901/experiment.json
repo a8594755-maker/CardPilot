@@ -1,0 +1,502 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-actor-raw-fresh5k-slumbot-20260901",
+  "title": "Raw terminal actor fresh5k Slumbot transfer gate",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T00:59:16+00:00",
+  "updated_at": "2026-09-01T01:06:17+00:00",
+  "started_at": "2026-09-01T00:59:16+00:00",
+  "ended_at": "2026-09-01T01:06:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The raw terminal actor's large untouched-anchor gain transfers to fresh strict-sampled Slumbot play strongly enough to justify a separate 20k confirmation.",
+  "material_change": "Freeze raw actor SHA 9fd38ad3 and run eight independent immutable journaled 625-hand Slumbot sessions with full replay/evidence audit.",
+  "baseline": "Legacy Standard10 historical greedy fresh20k -11.4275 bb/100 CI [-28.7124,5.8574]; strict sampled -48.9778. This test uses strict sampled to match the learned trajectory and current v6 contract.",
+  "source": "research/experiments/v6-actor-ema-terminal-smoke-20260831/frozen/raw.pt sha256=9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4",
+  "parent_id": "v6-actor-ema-terminal-smoke-20260831",
+  "command": "python research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T00:59:16+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:20+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104401 --session-id v6_actor_raw_fresh5k_20260901_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104402 --session-id v6_actor_raw_fresh5k_20260901_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104403 --session-id v6_actor_raw_fresh5k_20260901_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104404 --session-id v6_actor_raw_fresh5k_20260901_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104405 --session-id v6_actor_raw_fresh5k_20260901_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104406 --session-id v6_actor_raw_fresh5k_20260901_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104407 --session-id v6_actor_raw_fresh5k_20260901_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:23+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104408 --session-id v6_actor_raw_fresh5k_20260901_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:01:23+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:04:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:06:02+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901"
+    ],
+    "captured_at": "2026-09-01T00:59:17+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/source_manifest.json",
+    "source_manifest_sha256": "fac342f49df0ce250d316b1a9120c4d78c143902886ccdb835040b28739cc62a",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 5000,
+    "wall_time_seconds": 421.0,
+    "slumbot_hands": 5000
+  },
+  "metrics": {
+    "wall_time_seconds": 270.875,
+    "bb_per_100": -79.2126,
+    "raw_ci95_low": -151.73764408189317,
+    "raw_ci95_high": -6.687555918106838,
+    "session_t7_ci95_low": -158.21245839578955,
+    "session_t7_ci95_high": -0.21274160421043575,
+    "positive_sessions": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/preregistration.md",
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/code.patch",
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\session_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\pilot_stats.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\run_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s01_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s02_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s03_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s04_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s05_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s06_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s07_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s08_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\test_pilot.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\pilot_stats.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\review_finish.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\run_pilot.cpython-312.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08\\hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08\\journal.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08\\summary.json",
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/completed_analysis.json",
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/reviewed_analysis.json",
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/result_summary.md",
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/combined_audit.json"
+  ],
+  "notes": [
+    "Preregistered before orchestration. Fixed 8x625; no retries or autoextension."
+  ],
+  "result": {
+    "summary": "The frozen raw terminal actor completed eight fixed fresh625 strict-sampled sessions. All 5000 durable hands and sampled decisions passed model/runtime/terminal/token audits and independent raw recomputation.",
+    "conclusion": "External transfer failed decisively despite the large internal five-anchor gain: -79.2126 bb/100 with both raw-hand and session-t7 95% upper bounds below zero, and only 1/8 positive sessions. Do not spend a fresh20k cohort or expand the same self-play recipe. The result strengthens evidence that learned-anchor internal evaluation is poorly aligned with Slumbot generalization.",
+    "decision": "FRESH5K_TRANSFER_GATE_NOT_PASSED",
+    "next_step": "Run a zero-network, read-only state/action-distribution diagnostic comparing the frozen raw actor against the near-zero historical Standard10 greedy reference on preserved fresh Slumbot decision states, partitioned by street/seat/legal mask. Use it to identify whether execution mode or specific learned distribution drift explains transfer failure before any further training or external hands."
+  },
+  "tags": [
+    "slumbot",
+    "transfer",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 1647,
+      "sha256": "0e10fa9896eeef7ff8b26312f56bedd2c45c3b57ec22460dc12d5671b85dc4e8"
+    },
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 523,
+      "sha256": "fac342f49df0ce250d316b1a9120c4d78c143902886ccdb835040b28739cc62a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1316,
+      "sha256": "ff83946204b99f5b61a9dc6fa054ffffb61b480b61ff895b3be69d266a9a800d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2069,
+      "sha256": "5fdb1f70abcff54837be05ccbe3835a31284bf95382566363f0b8021a33e16fd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 2593,
+      "sha256": "688985dd27ccc5b7644724d747bdbe98f7f5123acac3f5f53917ffb2ad28770f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 691,
+      "sha256": "3f61eae0cfa7ecb632a653d8e78e6acaaacf2e692b59a6d89955e54f95221979"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\session_commands.json": {
+      "type": "file",
+      "bytes": 5915,
+      "sha256": "e3ba269bcae98f794a386e8490b7ddc65cd804db3d1bf567ff623c25b87e502e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8141,
+      "sha256": "0bbe000826be73f3d5696f08f22e1910fb32221564583ed2f01e90194185de90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 948,
+      "sha256": "72c0e32dd5064a3d81cf1b6b4f8b9b9919c0cbb73575e6260e445109db3f4e55"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\execution.json": {
+      "type": "file",
+      "bytes": 7233,
+      "sha256": "2ff6044c525eeabe24869d1cb6dd2948d829acb8cca65f244c4134d67239ceb6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\pilot_stats.py": {
+      "type": "file",
+      "bytes": 1511,
+      "sha256": "bb7c9620463682e83d94430e777ad7f2e192f5f3916d587817afea09c4dd2873"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\preregistration.md": {
+      "type": "file",
+      "bytes": 1647,
+      "sha256": "0e10fa9896eeef7ff8b26312f56bedd2c45c3b57ec22460dc12d5671b85dc4e8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\review_finish.py": {
+      "type": "file",
+      "bytes": 3677,
+      "sha256": "8eeaccf378d17ba1431c93d124c9f3a33f3fda851fcdf8ed917b4106a6a61876"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\run_pilot.py": {
+      "type": "file",
+      "bytes": 11257,
+      "sha256": "a62fda9e80c2203521a04de8a4c5b6d428565c1d84682438ebd45c678a83c4cd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s01_stdout.log": {
+      "type": "file",
+      "bytes": 5558,
+      "sha256": "53d57fe2ab0052e4100ee24b8a6ee68027fa6be08f3fb0255eb7d917579767c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s02_stdout.log": {
+      "type": "file",
+      "bytes": 5556,
+      "sha256": "6b2b4b458a7836ca6766c0ead472e8c095f786ab2a0dd34e3ee467c4bde7b98a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s03_stdout.log": {
+      "type": "file",
+      "bytes": 5557,
+      "sha256": "665f3ca0c6cf0353694f80a9a3965e0e508082b57a09c262063ad8e7b4c66a90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s04_stdout.log": {
+      "type": "file",
+      "bytes": 5558,
+      "sha256": "c6c37676056088dd28144dbeb204853145a17437c9e5f8e7e733f196ba25fd0b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s05_stdout.log": {
+      "type": "file",
+      "bytes": 5559,
+      "sha256": "204dcc0a5e543ed758feebbc45daf284c9186bc5a0994f8281e22d4f3eca974f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s06_stdout.log": {
+      "type": "file",
+      "bytes": 5560,
+      "sha256": "2048cd1a9b684d84322cb3734a5a1fdb0c653c9ab59c05ff6691acc79da706fa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s07_stdout.log": {
+      "type": "file",
+      "bytes": 5559,
+      "sha256": "3fac3dc18de46e4fd359f05fd0848a21763479631ee2ac17cea8baa9ec29ee5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\s08_stdout.log": {
+      "type": "file",
+      "bytes": 5555,
+      "sha256": "5449ff97b590d0ca9bf6244e440c5641541da6706dccf9b97325b47ff4826ae0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\test_pilot.py": {
+      "type": "file",
+      "bytes": 1099,
+      "sha256": "2a516e9ac8a252f2cbdd2732bdff8032994800af7b36e1baa43bcbf2fa036624"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\pilot_stats.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 2884,
+      "sha256": "a42362816c253e4bf87c2174eb3498034630b1a22312f45e2f1744b7e56a681f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\review_finish.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 6509,
+      "sha256": "25efd1bca7f342842a7440d699fb4a46c7b23050777845f75f1cb126dbab4b95"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\run_pilot.cpython-312.pyc": {
+      "type": "file",
+      "bytes": 19686,
+      "sha256": "7a1a478bd3c4f8a1c3f21189b59733f2e77224e719a58178b5ff844697c4892f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\__pycache__\\test_pilot.cpython-312-pytest-8.0.2.pyc": {
+      "type": "file",
+      "bytes": 5467,
+      "sha256": "98c2903331bc7fef48f0049e63e7ffde23b8629fcfb90e795e89adbbb6df8b12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2250728,
+      "sha256": "e4a249d843a82ec8e3f16b3f55208b8e0ab29cb9239280d036ea98f5860bf911"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4523967,
+      "sha256": "4b0b6c21074aab37d16082ea5e3395494cc9ed3c71b5ff5f36528f4b3378b8ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s01\\summary.json": {
+      "type": "file",
+      "bytes": 5444,
+      "sha256": "203dc15ecee398a1653cd5d852f450b7f25e48d16eb25cc1d4a0b932d42237a5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2203376,
+      "sha256": "ed535bf094e093532cdd72d96628387c99ab951a67f21e9d29fc96d3ce571f9d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4406794,
+      "sha256": "0629c855c490ab3573d3d8adc442ba93388a381d374048d1377a6df0762780b3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s02\\summary.json": {
+      "type": "file",
+      "bytes": 5442,
+      "sha256": "72da4569bb5bbf6f12e8a29b7627c6fe940efc94b7d41eacc134fe4a08493504"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2226810,
+      "sha256": "60fcf5cffd561a45ddde18df9cafbe3978cae11b735f42658405096f59e727ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4468814,
+      "sha256": "009b4a126e8e3f49e0f5dc0cc94d7ae2abd414d65edb55f543eac81e64890a8e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s03\\summary.json": {
+      "type": "file",
+      "bytes": 5443,
+      "sha256": "c6c6fdef3c25ef9aac018fa56530167657ee47790e06e788158b3ab7aac5fdce"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2274041,
+      "sha256": "ed729e77748683b1d7634559127e4b45cf2e990a757880ff9de40c9f83ec805b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4585899,
+      "sha256": "5d13769ae9fd88844791156bc0034d22857c597161b1f773351ca985b881f3f0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s04\\summary.json": {
+      "type": "file",
+      "bytes": 5444,
+      "sha256": "5631d0c75bcd01f6f54179623db2dd5d876d68c8c3cdc34cb1b12103604155aa"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2249203,
+      "sha256": "43fc4c6c13edb648463062c0575728c70fde2fe48d13e8831bb3b8cc0a771313"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4519914,
+      "sha256": "b183c1cad790222b88397a16d4b92bc9d49ea94f2726450960a1cbc495117c09"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s05\\summary.json": {
+      "type": "file",
+      "bytes": 5445,
+      "sha256": "1573c51b87e65948648ed5d072231f80dfb76f5c693094da9e76f834f0d19565"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2227969,
+      "sha256": "9f2693e50338f5e0cd33dd004d656f44b75b7a1349a85297f84c360a7ee1a779"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4464572,
+      "sha256": "6fa1bb5331b435ee976e0d55b2251e7d9f4cd0a767789d7e45ffe8d965fc5559"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s06\\summary.json": {
+      "type": "file",
+      "bytes": 5446,
+      "sha256": "a039182ff2db31e3a9aa1cb693b8985285d77006cf09735460ad4a1d0ed50753"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2247308,
+      "sha256": "6cdb1408af18546ac448f444477f230098a96617938554a69cfa7f6be0c9f175"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4513265,
+      "sha256": "8a9b01dc9b8b3dcd67b3ec123c6d1a94b5c4da235858629c1a7815420612b05d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s07\\summary.json": {
+      "type": "file",
+      "bytes": 5445,
+      "sha256": "26990bec3a0613d0db3e2e3487a1e9e1f29e3594059ea2a63ca19c277b66c54d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08\\hands.jsonl": {
+      "type": "file",
+      "bytes": 2226126,
+      "sha256": "eaa5ca9e24693a363ca65e72e673b798f972a2c0d7c9dccfe6d37890700e23bf"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08\\journal.jsonl": {
+      "type": "file",
+      "bytes": 4463248,
+      "sha256": "1d68384270d2678e35d4de9ee78459b64824065795cbb81a6ca31dbb26289578"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-fresh5k-slumbot-20260901\\sessions\\s08\\summary.json": {
+      "type": "file",
+      "bytes": 5441,
+      "sha256": "b60ec2f802b66f58a76d6a9fb43b15e8f6bbdae1fe902518a50622ae7e893bb5"
+    },
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/completed_analysis.json": {
+      "type": "file",
+      "bytes": 948,
+      "sha256": "72c0e32dd5064a3d81cf1b6b4f8b9b9919c0cbb73575e6260e445109db3f4e55"
+    },
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 902,
+      "sha256": "0a539eeae8be96ac61771bbb43e28cebe8c7739dc0a09f9768a9a498479a0f9a"
+    },
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 378,
+      "sha256": "c30fceb3837f07ba83b8cfa13d51388d1c9a746d7e9ee43d2187df9a3bfbacea"
+    },
+    "research/experiments/v6-actor-raw-fresh5k-slumbot-20260901/combined_audit.json": {
+      "type": "file",
+      "bytes": 8141,
+      "sha256": "0bbe000826be73f3d5696f08f22e1910fb32221564583ed2f01e90194185de90"
+    }
+  }
+}

@@ -1,0 +1,787 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "physical-budget-1m-learning-curve-20260830",
+  "title": "Measured one-million physical-hand all-heads learning curve",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T19:57:58+00:00",
+  "updated_at": "2026-08-30T21:41:01+00:00",
+  "started_at": "2026-08-30T19:57:58+00:00",
+  "ended_at": "2026-08-30T21:40:27+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Repeated short all-heads pilots may not expose a slow sample-budget learning curve; an uninterrupted1048576 measured physical-hand run can test longer-horizon general improvement without changing architecture or relaxing source regularization.",
+  "material_change": "Increase uninterrupted physical sample horizon with unchanged all-heads PPO/sourceKL1/lr3e-5, new seed20260892, complete physical accounting, and prespecified early/mid/final frozen assessments.",
+  "baseline": "models/baseline/standard10/latest.pt",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "ppo-gradient-budget-diagnostic-20260830",
+  "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/run_training.py",
+  "commands": [
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/run_training.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:57:58+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/physical-budget-1m-learning-curve-20260830/run_training.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:59:34+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 1048576 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026089200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 32 --run-id physical_budget_1m_20260830 --run-dir research\\experiments\\physical-budget-1m-learning-curve-20260830\\production --out research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\latest.pt --seed 20260892 --max-runtime-seconds 14400 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T19:59:35+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research\\experiments\\physical-budget-1m-learning-curve-20260830\\production --expected-target-hands 99999999 --expected-target-environment-hands 1048576 --expected-final-iteration 211 --expected-pool-size 3 --expected-archive-every 32 --expected-normalization global --out research\\experiments\\physical-budget-1m-learning-curve-20260830\\production_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:16:59+00:00"
+    },
+    {
+      "command": "python research\\experiments\\physical-budget-1m-learning-curve-20260830\\run_evaluation.py --wait-for-pid 10740",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:17:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --candidate-label physical_1m_source --policy-mode greedy_argmax_both_sides --pairs 2048 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:17:13+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\early.pt --candidate-label physical_1m_early --policy-mode greedy_argmax_both_sides --pairs 2048 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:19:06+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:21:04+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\mid.pt --candidate-label physical_1m_mid --policy-mode greedy_argmax_both_sides --pairs 2048 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:21:05+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:23:04+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\final.pt --candidate-label physical_1m_final --policy-mode greedy_argmax_both_sides --pairs 2048 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:23:04+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:24:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --candidate-label physical_1m_source --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:24:58+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\early.pt --candidate-label physical_1m_early --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:28:33+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:32:14+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\mid.pt --candidate-label physical_1m_mid --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:32:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:35:55+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\v5_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\frozen\\final.pt --candidate-label physical_1m_final --policy-mode sampled_both_sides --pairs 4096 --starting-stack 200 --seed 20260893 --include-pair-outcomes --device cuda --priority below-normal --out-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final.json --out-md C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final.md --execution-json C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_execution.json --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor slumbot_free=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:35:56+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\source_files\\scripts\\alpha_holdem\\paired_mirror_treatment_delta.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.json --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final.json --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_delta.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:39:29+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/physical-budget-1m-learning-curve-20260830/merge_deferred_record_updates.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/physical-budget-1m-learning-curve-20260830/analyze_completed_run.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/physical-budget-1m-learning-curve-20260830/test_completed_analysis.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/physical-budget-1m-learning-curve-20260830/test_evaluation_runner.py scripts/alpha_holdem/test_sampled_mirror_eval.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/physical-budget-1m-learning-curve-20260830/run_evaluation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/physical-budget-1m-learning-curve-20260830/test_evaluation_runner.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py --checkpoint research/experiments/physical-budget-1m-learning-curve-20260830/production/checkpoints/checkpoint_iter000032_hands000000131826.pt --out research/experiments/physical-budget-1m-learning-curve-20260830/iter32_prefix_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py --checkpoint research/experiments/physical-budget-1m-learning-curve-20260830/production/checkpoints/checkpoint_iter000064_hands000000263623.pt --out research/experiments/physical-budget-1m-learning-curve-20260830/iter64_prefix_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py --checkpoint research/experiments/physical-budget-1m-learning-curve-20260830/production/checkpoints/checkpoint_iter000096_hands000000395382.pt --out research/experiments/physical-budget-1m-learning-curve-20260830/iter96_prefix_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py --checkpoint research/experiments/physical-budget-1m-learning-curve-20260830/production/checkpoints/checkpoint_iter000128_hands000000527075.pt --out research/experiments/physical-budget-1m-learning-curve-20260830/iter128_prefix_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py --checkpoint research/experiments/physical-budget-1m-learning-curve-20260830/production/checkpoints/checkpoint_iter000160_hands000000658721.pt --out research/experiments/physical-budget-1m-learning-curve-20260830/iter160_prefix_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py --checkpoint research/experiments/physical-budget-1m-learning-curve-20260830/production/checkpoints/checkpoint_iter000192_hands000000790588.pt --out research/experiments/physical-budget-1m-learning-curve-20260830/iter192_prefix_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/analyze_completed_run.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    },
+    {
+      "command": "python research/experiments/physical-budget-1m-learning-curve-20260830/merge_deferred_record_updates.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T21:40:26+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "48b4ed7cb33dcfadfc467f338b0ca08eef1b054440919436a88cb3d380b5516c",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py",
+      "scripts/alpha_holdem/v5_mirror_eval.py",
+      "scripts/alpha_holdem/paired_mirror_treatment_delta.py"
+    ],
+    "captured_at": "2026-08-30T19:57:58+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/physical-budget-1m-learning-curve-20260830/code.patch",
+    "patch_sha256": "ece206c1ccc4ffd2616fff3868785c098c10b7530d3764ad325292824b55c225",
+    "source_manifest": "research/experiments/physical-budget-1m-learning-curve-20260830/source_manifest.json",
+    "source_manifest_sha256": "9cba021cab914329486db081793a9a66993fba394be19805fab13806ef202379",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 1049891,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 147456,
+    "wall_time_seconds": 6149.0
+  },
+  "metrics": {
+    "planned_physical_hands": 1048576,
+    "training_seed": 20260892,
+    "worker_seed_base": 2026089200,
+    "discovery_seed": 20260893,
+    "training_pid": 10056,
+    "training_complete": 1,
+    "latest_iteration": 211,
+    "legacy_marker_hands": 868858,
+    "training_exit_code": 0,
+    "session_audit_pass": 1,
+    "evaluation_started": 1,
+    "discovery_matrix_complete": 1,
+    "completed_analysis_tests_passed": 10,
+    "evaluation_preparation_tests_passed": 22,
+    "iter32_prefix_audit_pass": 1,
+    "iter32_physical_hands": 157842,
+    "iter32_frozen_tensors_unchanged": 76,
+    "iter32_optimizer_step": 924,
+    "iter64_prefix_audit_pass": 1,
+    "iter64_physical_hands": 314614,
+    "iter64_frozen_tensors_unchanged": 76,
+    "iter64_optimizer_step": 1840,
+    "iter32_hash_unchanged_at_iter64_audit": 1,
+    "iter96_prefix_audit_pass": 1,
+    "iter96_physical_hands": 476194,
+    "iter96_frozen_tensors_unchanged": 76,
+    "iter96_optimizer_step": 2756,
+    "iter32_iter64_hashes_unchanged_at_iter96_audit": 1,
+    "iter128_prefix_audit_pass": 1,
+    "iter128_physical_hands": 634937,
+    "iter128_frozen_tensors_unchanged": 76,
+    "iter128_optimizer_step": 3666,
+    "prior_archive_hashes_unchanged_at_iter128_audit": 1,
+    "iter160_prefix_audit_pass": 1,
+    "iter160_physical_hands": 795852,
+    "iter160_frozen_tensors_unchanged": 76,
+    "iter160_optimizer_step": 4574,
+    "prior_archive_hashes_unchanged_at_iter160_audit": 1,
+    "iter192_prefix_audit_pass": 1,
+    "iter192_physical_hands": 953932,
+    "iter192_frozen_tensors_unchanged": 76,
+    "iter192_optimizer_step": 5510,
+    "prior_archive_hashes_unchanged_at_iter192_audit": 1,
+    "independent_analysis_pass": 1,
+    "deferred_updates_applied": 1,
+    "final_sampled_confirmation_admission": 1,
+    "final_greedy_confirmation_admission": 0,
+    "final_sampled_standard10_delta_bb100": 0.5481738281249995,
+    "final_sampled_slumbot_free_delta_bb100": 0.5144042968749988,
+    "final_sampled_cfr96_delta_bb100": 17.13626533203125
+  },
+  "artifacts": [
+    "research/experiments/physical-budget-1m-learning-curve-20260830/code.patch",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/source_manifest.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/run_training.py",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/execution_code/code.patch",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/execution_code/source_manifest.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\execution_code\\source_files",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\training_process_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\latest.pt",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\run_manifest.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\h1_training_metrics.jsonl",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\opponent_assignments.jsonl",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\latest_train.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production_audit.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\copy_manifest.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/evaluation_code/code.patch",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/evaluation_code/source_manifest.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\checkpoint_selection.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_delta.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_delta.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_delta.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_delta.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_delta.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final.md",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_execution.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_stdout.log",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_delta.json",
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix_summary.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/analyze_completed_run.py",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/test_completed_analysis.py",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/run_evaluation.py",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/test_evaluation_runner.py",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/evaluation_preparation.md",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/primary_source_scale_review.md",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter32_prefix_audit.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter64_prefix_audit.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter96_prefix_audit.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter128_prefix_audit.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter160_prefix_audit.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter192_prefix_audit.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/deferred_record_updates.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/merge_deferred_record_updates.py",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/completed_analysis.json",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/result_summary.md",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/early.pt",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt",
+    "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/mid.pt"
+  ],
+  "notes": [
+    "Bounded sample-scale hypothesis test, not promotion or paper-scale admission. Current internal learning curves and Slumbot evidence do not establish improvement. Do not reuse old markers as physical work. Exact source and fixed anchor hashes must remain unchanged. No replay, mirrored rewards, Action-Q, teacher rules or new training-scope changes. Fresh local Adam/counter reset from original Standard10; no completed experiment is resumed or rewritten.",
+    "Archive every32 PPO updates plus final latest. Select earliest archive with physical count>=262144, earliest>=524288, and final endpoint by budget only, never by reward. Discovery uses seed20260893, three anchors, greedy2048 pairs and sampled4096 pairs for each checkpoint and matched Standard10 control. Final endpoint is primary. Internal candidate admission requires positive matched delta on all three anchors and >=one positive95percent lower bound in a mode; this only admits independent confirmation, not a significance claim. Any earlier-only gain requires separately preregistered independent confirmation. No Slumbot or further environment-scale expansion without reproducible general evidence.",
+    "Hardware recheck: RTX4070 12GB, about793GB disk free, no residual train_v5/evaluation process. Bounded endpoint1048576 physical hands with14,400s safety guard. Launcher updates same RUNNING record counters after each persisted iteration, retains raw process stdout, never auto-restarts, and does not finish record before frozen evaluation.",
+    "Immutable pre-run snapshot contains all local alpha_holdem Python modules plus logger and launcher, including untracked files; full-byte copy hashes verified.",
+    "Training complete at measured physical endpoint. Record remains RUNNING pending preregistered frozen early/mid/final multi-anchor evaluation; do not infer strength from reward.",
+    "Original wrapper has terminated, completed physical endpoint and session audit PASS. Frozen budget-only selection; no concurrent record writer remains. Evaluator executes immutable snapshot including deep_cfr dependencies.",
+    "Prespecified greedy2048/sample4096 pairs x3 anchors x4 checkpoints completed. Analyze primary final endpoint and full learning curve before record finish; admission alone is not a general strength claim.",
+    "Evaluation preparation and first immutable archive audit occurred without changing live trainer modules/config or preregistered evaluation rules. New helper initially used an incorrect assignment-key name and failed before producing audit output; changed helper to the actual applies_to_iteration schema and reran successfully. No training process failed or restarted.",
+    "Read-only primary literature context retained: current mini-batch/source-KL/head-only setup is not a faithful paper replication. Optional external benchmark requires approved API key; no request or service action was attempted and it is not an active dependency.",
+    "Merged deferred test/provenance/prefix-audit evidence after original writers exited. Queued commands were only recorded, not rerun. Final legacy marker metric synchronized to immutable final checkpoint868858; actual physical accounting1049891 remains unchanged.",
+    "Final scalar metrics synchronized directly to completed_analysis.json after detecting a manually transcribed Standard10 scalar mismatch. Raw evidence, independent analysis, CI, and the decision were unchanged."
+  ],
+  "result": {
+    "summary": "Completed1049891 measured physical training hands and147456 frozen internal evaluation hands. Independent raw CI/hash audit PASS. Final sampled endpoint meets exploratory confirmation admission; greedy does not.",
+    "conclusion": "Final sampled paired deltas are approximately+0.548,+0.514,+17.136 bb/100 across Standard10,slumbot_free,CFR96; only CFR96 has positive95percent lower bound. Mid also admitted, but primary-final precedence fixes final for confirmation. The curve is not monotonically improving and is not Slumbot evidence.",
+    "decision": "FINAL_ENDPOINT_ADMITS_INDEPENDENT_CONFIRMATION",
+    "next_step": "Run one separately preregistered independent sampled confirmation of frozen final versus original Standard10 control: seed20260894,8192 mirrored pairs per each of3 unchanged anchors,98304 total evaluation hands. No new training,checkpoint reselection,or discovery/confirmation pooling. Only after independent evidence decide external evaluation or mechanism diagnostics."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 33,
+    "command_count": 33
+  },
+  "artifact_integrity": {
+    "research/experiments/physical-budget-1m-learning-curve-20260830/code.patch": {
+      "type": "file",
+      "bytes": 261818,
+      "sha256": "ece206c1ccc4ffd2616fff3868785c098c10b7530d3764ad325292824b55c225"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 1014,
+      "sha256": "9cba021cab914329486db081793a9a66993fba394be19805fab13806ef202379"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/run_training.py": {
+      "type": "file",
+      "bytes": 7620,
+      "sha256": "4cfb4d57af29ebd337e189b1aec30ecd381b8bc14487838513c1cf8f148b7b3c"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/execution_code/code.patch": {
+      "type": "file",
+      "bytes": 351007,
+      "sha256": "1c3f41f5bb0e90c19d1969fd1efbfe8bec9cdc6c04fccaf97811809b9d0a263b"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 9646,
+      "sha256": "820a88b80e486ea6b3a0d742f191a12892a2bde05c8e2832c0bb390ac959f27b"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\execution_code\\source_files": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\training_process_stdout.log": {
+      "type": "file",
+      "bytes": 119087,
+      "sha256": "49c8f359267e0ac6b1c2c7a08795191daba95d06ff38ea66407b0b3a4a9f742f"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\latest.pt": {
+      "type": "file",
+      "bytes": 133304820,
+      "sha256": "ddab8c71090a78346bbd9b2b425fd3676a2d6c1cd30e649fa95aab1ff06fa7a3"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\run_manifest.json": {
+      "type": "file",
+      "bytes": 56729,
+      "sha256": "94880930522558e99ac4ada31513b4ecef59c344ff7c66a49a2c3a7805649865"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 5387669,
+      "sha256": "d4ddfab89ca433a17a724dcb6d1e4648d7cce5a9c3c69c3d3adb55526ce0012f"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 546614,
+      "sha256": "4b14220a0eec7fa14975b86d2582cf5cbeb850cb62c093366205f26df8cde7c7"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production\\latest_train.log": {
+      "type": "file",
+      "bytes": 92778,
+      "sha256": "2547775859e9ae3691687b8d6e2b88c8109ba7a362e62fed75eb6d2e227668b1"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\production_audit.json": {
+      "type": "file",
+      "bytes": 6784,
+      "sha256": "a4c38bdfd325eea33d80c8b02ddb27c8be38d78278622b9946e9ebf35aae5e1c"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\evaluation_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 17899,
+      "sha256": "7aefcde6aa8229bf45acbfe7d248b1007efd43f94db411b085260a1b8e63f225"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/evaluation_code/code.patch": {
+      "type": "file",
+      "bytes": 351007,
+      "sha256": "1c3f41f5bb0e90c19d1969fd1efbfe8bec9cdc6c04fccaf97811809b9d0a263b"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/evaluation_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 10364,
+      "sha256": "769512c36f6056de0c8b753ef2faef720d5de29c264684f85ae1a8a205c58896"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\checkpoint_selection.json": {
+      "type": "file",
+      "bytes": 4202,
+      "sha256": "4c54f0d920d04fa9071b9f4e3632d2507887689227a7d37764fbec5cc1b44375"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.json": {
+      "type": "file",
+      "bytes": 335409,
+      "sha256": "7a1df9ab09a79dcd68175740e26f784973a6c160e2ecda509742ad9bd16ad099"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source.md": {
+      "type": "file",
+      "bytes": 1515,
+      "sha256": "f6371d1a1918d7fc4242a2de6ba1479acd49cfbcf6dde5439a8243a20a69d577"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source_execution.json": {
+      "type": "file",
+      "bytes": 2149,
+      "sha256": "402ae4932a2b06c5905ecc17af4b6caf59f195b357699a6c8cbe61fc5c7a2a4b"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_source_stdout.log": {
+      "type": "file",
+      "bytes": 335409,
+      "sha256": "7a1df9ab09a79dcd68175740e26f784973a6c160e2ecda509742ad9bd16ad099"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early.json": {
+      "type": "file",
+      "bytes": 335851,
+      "sha256": "9e199a79d0b2ad56e951a70a4ae3dd5a5c434dedc4578279f2f7698da4eea6d1"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early.md": {
+      "type": "file",
+      "bytes": 1556,
+      "sha256": "fadad28f47411faca7c3ef88af3ecc0151e0a4fe9c5fb7521ece2ff41ad13ade"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_execution.json": {
+      "type": "file",
+      "bytes": 2189,
+      "sha256": "d564a95dc1081707c8e239a9cb2cf1a57f96308a3d3bc7f6e3dc4747d94fc7be"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_stdout.log": {
+      "type": "file",
+      "bytes": 335851,
+      "sha256": "9e199a79d0b2ad56e951a70a4ae3dd5a5c434dedc4578279f2f7698da4eea6d1"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_early_delta.json": {
+      "type": "file",
+      "bytes": 4970,
+      "sha256": "1162f76b4bd93b71ffa30dbbae23a448b8be483134f6576bd132f0797ff394e4"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid.json": {
+      "type": "file",
+      "bytes": 335517,
+      "sha256": "5c962c910461e1163d036498cf7fcf2d451a6fc8880227abc9774e3ab5600d37"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid.md": {
+      "type": "file",
+      "bytes": 1553,
+      "sha256": "daccdc4aeedaaa7206d1e5c58a603bdb714fb2b7af58e1c6d6b7210e6776f663"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_execution.json": {
+      "type": "file",
+      "bytes": 2178,
+      "sha256": "c94eb8423878f04758a564c9a75037e456008d507b2b325a147311560e44ef44"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_stdout.log": {
+      "type": "file",
+      "bytes": 335517,
+      "sha256": "5c962c910461e1163d036498cf7fcf2d451a6fc8880227abc9774e3ab5600d37"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_mid_delta.json": {
+      "type": "file",
+      "bytes": 4964,
+      "sha256": "6c7be35b613a810b3d7c0fffbc20408ca30b07c1efdf5925a9806f48e7f4d8d8"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final.json": {
+      "type": "file",
+      "bytes": 335531,
+      "sha256": "7efe1f8567cc586fc83ecf2999ee215c446176188bf01869530498f29c28f0de"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final.md": {
+      "type": "file",
+      "bytes": 1558,
+      "sha256": "c0a9b71216b4693c13f50e5b441d9201eb3a6d5e543d4253182a8dad1a59db29"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_execution.json": {
+      "type": "file",
+      "bytes": 2189,
+      "sha256": "3dcb4847e642dcfa0eacdb31526e6e5a85fe99418420660b8bc3acdcd8bd6f11"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_stdout.log": {
+      "type": "file",
+      "bytes": 335531,
+      "sha256": "7efe1f8567cc586fc83ecf2999ee215c446176188bf01869530498f29c28f0de"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\greedy_final_delta.json": {
+      "type": "file",
+      "bytes": 4953,
+      "sha256": "2506fe57965c41553adcac09a4a16e496443daf932d3475cb18af77bb6c2a670"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.json": {
+      "type": "file",
+      "bytes": 656215,
+      "sha256": "43ae181765965cf767eb91186120c650b2203d87fe13ba26660746f130cac298"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source.md": {
+      "type": "file",
+      "bytes": 1513,
+      "sha256": "858fe89e12eb9ab37a9cd70f8cbf4940c565555fd7fda25f2fe0f197cd8085a2"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source_execution.json": {
+      "type": "file",
+      "bytes": 2146,
+      "sha256": "bcc3d6367533d150fafc2e9216bbd103e2047bd21cff2679ae6e334aaa6c8ce8"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_source_stdout.log": {
+      "type": "file",
+      "bytes": 656215,
+      "sha256": "43ae181765965cf767eb91186120c650b2203d87fe13ba26660746f130cac298"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early.json": {
+      "type": "file",
+      "bytes": 657209,
+      "sha256": "bba078e921847939378977de87580b95feb7338525b4dc58b1033b7dcc62272f"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early.md": {
+      "type": "file",
+      "bytes": 1555,
+      "sha256": "851719c20a8593e09fb8a097eb21ce74ca1194338ff47382a05db57223689721"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_execution.json": {
+      "type": "file",
+      "bytes": 2185,
+      "sha256": "f863320eccfa5c61ed6c5add9738d329aeda7d7071efe97f3ed69f1a5f7e7ebb"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_stdout.log": {
+      "type": "file",
+      "bytes": 657209,
+      "sha256": "bba078e921847939378977de87580b95feb7338525b4dc58b1033b7dcc62272f"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_early_delta.json": {
+      "type": "file",
+      "bytes": 5005,
+      "sha256": "2638b1ec74df5c3313445799894932e78138d13724d4b1a3afca1c3b7c753b0f"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid.json": {
+      "type": "file",
+      "bytes": 657235,
+      "sha256": "d4af1fa32f50225d84dae2847fa44c50db037cbd2933e3f0739829450cb253d1"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid.md": {
+      "type": "file",
+      "bytes": 1552,
+      "sha256": "a3c3404772e1240d89d33f3f914a1cab497ebb1ca86235b90f2bd5d6bf73f1d9"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_execution.json": {
+      "type": "file",
+      "bytes": 2175,
+      "sha256": "db85c772864d4bf31bfb57a74b33041c817469851da3357c33bab20164321e41"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_stdout.log": {
+      "type": "file",
+      "bytes": 657235,
+      "sha256": "d4af1fa32f50225d84dae2847fa44c50db037cbd2933e3f0739829450cb253d1"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_mid_delta.json": {
+      "type": "file",
+      "bytes": 5010,
+      "sha256": "1989b3ceed5ad58b1e3ea13abaf547f0e822cbbb19be1bea95b3227f7f6054c1"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final.json": {
+      "type": "file",
+      "bytes": 657081,
+      "sha256": "40410407fe8b6f32a6918ab2340b6526a53f1e7f13c3200a967459068cf4b0a9"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final.md": {
+      "type": "file",
+      "bytes": 1556,
+      "sha256": "cef2e29e04fafbeaf3335beac82199870f1c9b543817ac911af58452da8495b0"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_execution.json": {
+      "type": "file",
+      "bytes": 2185,
+      "sha256": "897259a6d86f63d6cf826eeae98ae58f7b4dc012a39c64306b8b0074a09f4452"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_stdout.log": {
+      "type": "file",
+      "bytes": 657081,
+      "sha256": "40410407fe8b6f32a6918ab2340b6526a53f1e7f13c3200a967459068cf4b0a9"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix\\sampled_final_delta.json": {
+      "type": "file",
+      "bytes": 5018,
+      "sha256": "7a6de205363cbbffe365076be6f87a2b7d26a1885e3406744c71c10f0bb4b39b"
+    },
+    "research\\experiments\\physical-budget-1m-learning-curve-20260830\\matrix_summary.json": {
+      "type": "file",
+      "bytes": 4089,
+      "sha256": "2410e52cffa6dc850100460646c8f2c9e4346b3c95564b029036271ad6246d05"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/analyze_completed_run.py": {
+      "type": "file",
+      "bytes": 12177,
+      "sha256": "989b5f2f726a48fee18c4a4ed30dbed1f832ae347d7b33332e3da8326e4aa62d"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/test_completed_analysis.py": {
+      "type": "file",
+      "bytes": 2504,
+      "sha256": "2c709605997a4d256641d501d655d4beb30dca6ecafa0626b29fa634d78e957a"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/run_evaluation.py": {
+      "type": "file",
+      "bytes": 16416,
+      "sha256": "92734a6f421ab6cbedef2704bc17597b2b7fbdaddea83213ad50c3a56ce3c7eb"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/test_evaluation_runner.py": {
+      "type": "file",
+      "bytes": 3408,
+      "sha256": "bda8d11980b4c94cbce27bcec9c4502b6e7048106e36ea049ed3dac8bacabe9e"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/evaluation_preparation.md": {
+      "type": "file",
+      "bytes": 2266,
+      "sha256": "11150306892dc0e3c545fe069d9c1a1b1aa598d2779316a9558fc9b01455cb59"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/primary_source_scale_review.md": {
+      "type": "file",
+      "bytes": 4390,
+      "sha256": "ad0bc26fecca3a7af49c9344173aa62dd62165862eecda8479a05de1c4906f59"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/audit_archive_prefix.py": {
+      "type": "file",
+      "bytes": 4975,
+      "sha256": "7342dc7a99db4a31be5b8ece114a0b09b3d50392da9b9b888ef4ae24a5e6c92f"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter32_prefix_audit.json": {
+      "type": "file",
+      "bytes": 1219,
+      "sha256": "44ab4b43a18d586ab0649c21a11021db2cd1213fdb59e9c327760ab1b05d4cf3"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter64_prefix_audit.json": {
+      "type": "file",
+      "bytes": 1220,
+      "sha256": "2684075e0a364bea33455c90f871cf6266290b7239646399e1780530d37fca36"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter96_prefix_audit.json": {
+      "type": "file",
+      "bytes": 1220,
+      "sha256": "00c049b59b659b34a81a878142461c4b0e740000094246dca4f8ca4a9475ac09"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter128_prefix_audit.json": {
+      "type": "file",
+      "bytes": 1223,
+      "sha256": "37dc81f0fa6ff6bcbbcc345d0ecbe6b87f1f7754ef74ae4aab23846dcc8a9eaa"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter160_prefix_audit.json": {
+      "type": "file",
+      "bytes": 1223,
+      "sha256": "200da7dc033eafa2b07bcad6b53115b727797d2196bb9a120eb80cf68035a4d8"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/iter192_prefix_audit.json": {
+      "type": "file",
+      "bytes": 1223,
+      "sha256": "419ecebf7e3bf606a203638d23fee89d05cfc3e2e272d2b5060c0faa7842996f"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/deferred_record_updates.json": {
+      "type": "file",
+      "bytes": 6230,
+      "sha256": "02dc365a6d9fc72884527cd2195e023b40a663f7ab44f32551d0f6cbd2626f4a"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/merge_deferred_record_updates.py": {
+      "type": "file",
+      "bytes": 3211,
+      "sha256": "29b1569f3aca844bfdd5cf7c8231ff1f8f7fa2e355079f09639ac3e9195b448f"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/completed_analysis.json": {
+      "type": "file",
+      "bytes": 9270,
+      "sha256": "5edab4625f535cacd3ba89d8ad8e81ee698101379f04d8338c05e68853c17c8c"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/result_summary.md": {
+      "type": "file",
+      "bytes": 3508,
+      "sha256": "21a28de549818d0ac4302bb7cedc8bce067b10f445c09683a2dde11ee55d27b4"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/early.pt": {
+      "type": "file",
+      "bytes": 133323958,
+      "sha256": "ab4b57411f9e8b3eea4994b9d2c321f2dc4f68c687e0f7d9604220123404f2b4"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/final.pt": {
+      "type": "file",
+      "bytes": 133304820,
+      "sha256": "ddab8c71090a78346bbd9b2b425fd3676a2d6c1cd30e649fa95aab1ff06fa7a3"
+    },
+    "research/experiments/physical-budget-1m-learning-curve-20260830/frozen/mid.pt": {
+      "type": "file",
+      "bytes": 133323958,
+      "sha256": "cc3ea3a3838fcbbeaae490e5244196650a1c5197d98aeb5b5289a07f92bd0ad4"
+    }
+  }
+}

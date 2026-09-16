@@ -1,0 +1,137 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-deep-cfr-optimizer-dose-control-20260901",
+  "title": "Exact-v6 neural regret optimizer dose control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T14:55:28+00:00",
+  "updated_at": "2026-09-01T14:58:51+00:00",
+  "started_at": "2026-09-01T14:55:28+00:00",
+  "ended_at": "2026-09-01T14:58:51+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The zero-argmax-movement smoke was optimizer-underfit: on one frozen first-iteration exact-v6 target corpus, a larger warm optimization dose will materially reduce held-out masked Huber loss and flip at least 5% of held-out greedy actions from the identical passive initialization.",
+  "material_change": "Collect and serialize eight passive-source root traversals, freeze an 80/20 per-seat split, and train matched 32/128/512-step arms from identical weights and sample-order seeds; select the lowest dose passing held-out loss and movement gates.",
+  "baseline": "The 32-step iterative smoke ended at losses 190.28/133.91, mean TV near 0.08, and zero greedy argmax flips.",
+  "source": "v6-deep-cfr-neural-regret-smoke-20260901",
+  "parent_id": "v6-deep-cfr-neural-regret-smoke-20260901",
+  "command": "python scripts/alpha_holdem/v6_deep_cfr_optimizer_dose.py --root-traversals-per-player 4 --steps 32 128 512 --batch-size 256 --seed 60903 --output-dir research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_deep_cfr_optimizer_dose.py --root-traversals-per-player 4 --steps 32 128 512 --batch-size 256 --seed 60903 --output-dir research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T14:55:28+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "586ac0f5f6aaae6ab892bd5f5a80db2fc0a6ede732c6c41ccf03cf9566de69fa",
+    "code_paths": [
+      "scripts/alpha_holdem",
+      "scripts/deep_cfr"
+    ],
+    "captured_at": "2026-09-01T14:55:28+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/source_manifest.json",
+    "source_manifest_sha256": "69610eaeeb0421873a122b0c2792656f03f2c7d58440bca8c8be53cec528d923",
+    "source_files": 118
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 203.0,
+    "planned_environment_training_hands": 8,
+    "planned_evaluation_hands": 0,
+    "environment_training_hands": 8,
+    "root_traversals": 8,
+    "decision_nodes": 24008,
+    "terminal_rollouts": 18676
+  },
+  "metrics": {
+    "selected_optimizer_steps": 128,
+    "heldout_loss_reduction_p0": 0.35234418505459975,
+    "heldout_loss_reduction_p1": 0.334742323852823,
+    "argmax_movement_p0": 0.250936329588015,
+    "argmax_movement_p1": 0.4794007490636704
+  },
+  "artifacts": [
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/code.patch",
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/source_manifest.json",
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/summary.json",
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/frozen_corpus.npz",
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/initial_passive.pt",
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/arm_steps128.pt",
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/analysis.md"
+  ],
+  "notes": [
+    "No policy-return evaluation is used for arm selection. Frozen corpus hashes and per-arm checkpoints are required.",
+    "Before corpus generation, post-close audit identified the baseline smoke's all-zero hidden initialization as a confound. This control retains seeded random hidden features and zeroes only final output projections plus slot1 bias, preserving exact passive initial actions while restoring state-dependent gradients. No corpus or arm had run before this amendment.",
+    "summary sha256=454d7d50a70dc81889c831c0740ca5a7e6d3501d639358b348d113550ed2c2fd; corpus sha256=b5d0fa94b22486befdca81510f6ffbd951b7fcda69ecc6e998884f776e64dc47; selected arm sha256=1b100e3a601d1a43325807d00e3ab9943510c903b5f89bd2e0120b481e59674c; alpha_holdem suite 213 passed."
+  ],
+  "result": {
+    "summary": "A frozen 2,672-target exact-v6 corpus isolated optimizer dose. The live-feature 32-step arm moved argmaxes but reduced held-out loss only about 6.6%; 128 steps reduced both seats by 35.2%/33.5% and passed all gates; 512 fit further, so the lowest-passing rule selected 128.",
+    "conclusion": "First-iteration exact-v6 regret targets are learnable when the passive initializer retains live random hidden features. The prior zero-movement smoke was confounded by full-network zeroing and too little optimization.",
+    "decision": "ADMIT_SELECTED_OPTIMIZER_DOSE",
+    "next_step": "Run a small optimizer/buffer-resumable iterative exact-v6 pilot at 128 steps, freeze every iteration, track node growth and held-out target curves, and use one untouched multi-anchor deck panel to determine whether learning improves rather than merely fits."
+  },
+  "tags": [
+    "deep-cfr",
+    "matched-control",
+    "optimizer",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 1,
+    "command_count": 1
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 21500,
+      "sha256": "69610eaeeb0421873a122b0c2792656f03f2c7d58440bca8c8be53cec528d923"
+    },
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 6661,
+      "sha256": "454d7d50a70dc81889c831c0740ca5a7e6d3501d639358b348d113550ed2c2fd"
+    },
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/frozen_corpus.npz": {
+      "type": "file",
+      "bytes": 46590,
+      "sha256": "b5d0fa94b22486befdca81510f6ffbd951b7fcda69ecc6e998884f776e64dc47"
+    },
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/initial_passive.pt": {
+      "type": "file",
+      "bytes": 978238,
+      "sha256": "1ee054391742ff0f821b524379f59aa522e03516a93b83b5aeeac927847be3ac"
+    },
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/run/arm_steps128.pt": {
+      "type": "file",
+      "bytes": 978362,
+      "sha256": "1b100e3a601d1a43325807d00e3ab9943510c903b5f89bd2e0120b481e59674c"
+    },
+    "research/experiments/v6-deep-cfr-optimizer-dose-control-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1556,
+      "sha256": "d9f1ba46691f4d848cce393f9651185e5998d074a9eaaafd8d7688d2e6b11492"
+    }
+  }
+}

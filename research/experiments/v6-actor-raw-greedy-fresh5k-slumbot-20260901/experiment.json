@@ -1,0 +1,510 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-actor-raw-greedy-fresh5k-slumbot-20260901",
+  "title": "Same-checkpoint generic-greedy fresh5k Slumbot control",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T01:10:16+00:00",
+  "updated_at": "2026-09-01T01:22:11+00:00",
+  "started_at": "2026-09-01T01:10:16+00:00",
+  "ended_at": "2026-09-01T01:22:11+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Generic legal-logit argmax execution recovers enough strength from the same raw actor to outperform its strict-sampled pilot and justify a separate greedy fresh20k confirmation.",
+  "material_change": "Add audited generic greedy support to v6 learned-only execution and run eight fixed fresh625 sessions on the exact raw checkpoint.",
+  "baseline": "Same checkpoint strict-sampled fresh5k -79.2126 bb/100 CI [-151.7376,-6.6876]; Standard10 historical greedy -11.4275 versus sampled -48.9778.",
+  "source": "raw SHA 9fd38ad3; parent sampled cohort and offline state-distribution diagnostic",
+  "parent_id": "v6-slumbot-state-distribution-diagnostic-20260901",
+  "command": "python research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:10:16+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:15:45+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104501 --session-id v6_actor_raw_greedy_fresh5k_20260901_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s01 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:20+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104502 --session-id v6_actor_raw_greedy_fresh5k_20260901_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s02 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104503 --session-id v6_actor_raw_greedy_fresh5k_20260901_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s03 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104504 --session-id v6_actor_raw_greedy_fresh5k_20260901_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s04 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104505 --session-id v6_actor_raw_greedy_fresh5k_20260901_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s05 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:21+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104506 --session-id v6_actor_raw_greedy_fresh5k_20260901_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s06 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104507 --session-id v6_actor_raw_greedy_fresh5k_20260901_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s07 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --hands 625 --seed 2026104508 --session-id v6_actor_raw_greedy_fresh5k_20260901_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s08 --device cpu --policy-mode greedy",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:16:22+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\prepared_runtime\\scripts\\alpha_holdem\\audit_slumbot_v6_session.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:19:01+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T01:21:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T01:10:16+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/code.patch",
+    "patch_sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91",
+    "source_manifest": "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/source_manifest.json",
+    "source_manifest_sha256": "45828d9d2a094b79d6e24cea217562e5fd7a52e44849677b20b0c5223a319f12",
+    "source_files": 68
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 5000,
+    "wall_time_seconds": 715.0,
+    "slumbot_hands": 5000
+  },
+  "metrics": {
+    "wall_time_seconds": 302.531,
+    "bb_per_100": -9.4188,
+    "raw_ci95_low": -75.04235647708292,
+    "raw_ci95_high": 56.20475647708292,
+    "session_t7_ci95_low": -80.91575717164076,
+    "session_t7_ci95_high": 62.07815717164076,
+    "positive_sessions": 3,
+    "point_delta_vs_sampled": 69.7938
+  },
+  "artifacts": [
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/preregistration.md",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/code.patch",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\session_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\completed_analysis.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/runtime_origin.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/frozen/final.pt",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/tests.xml",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/session_commands.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/combined_audit.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/completed_analysis.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/reviewed_analysis.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/result_summary.md",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution_code/source_manifest.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution_code/code.patch",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution_code/copy_manifest.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/prepared_runtime/scripts/alpha_holdem/execution_v6.py",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/prepared_runtime/scripts/alpha_holdem/play_slumbot_v6_journaled.py",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/prepared_runtime/scripts/alpha_holdem/audit_slumbot_v6_session.py",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s01_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s01/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s01/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s01/summary.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s02_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s02/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s02/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s02/summary.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s03_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s03/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s03/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s03/summary.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s04_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s04/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s04/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s04/summary.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s05_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s05/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s05/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s05/summary.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s06_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s06/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s06/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s06/summary.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s07_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s07/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s07/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s07/summary.json",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s08_stdout.log",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s08/journal.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s08/hands.jsonl",
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s08/summary.json"
+  ],
+  "notes": [
+    "Preregistered before generic execution/audit implementation; live launch gated on tests.",
+    "Terminal artifact-registration command exceeded Windows command length after all sessions/audit/analysis completed. Evidence preserved; no rerun. Recovery uses the same raw artifacts."
+  ],
+  "result": {
+    "summary": "The same frozen raw actor completed eight fixed fresh625 generic-greedy sessions. All 5000 hands passed captured-runtime, learned-logit argmax, terminal, server-counter, token-chain, and independent raw evidence review. Terminal ledger artifact registration was recovered in batches after a Windows command-length error; no session reran.",
+    "conclusion": "Generic greedy execution improved the same checkpoint point estimate by 69.7938 bb/100 versus its separate sampled pilot and reached -9.4188 bb/100, close to historical Standard10 greedy. However the preregistered gate failed because the point remained negative and only 3/8 sessions were positive; uncertainty is large and neither CI excludes zero. Greedy is the correct current deployment direction, but this policy is not admitted to 20k or qualification.",
+    "decision": "FRESH5K_TRANSFER_GATE_NOT_PASSED",
+    "next_step": "Keep generic greedy as the deployment contract. Train a matched low-entropy actor-head treatment from Standard10 to test whether removing stochastic-entropy pressure sharpens learned action margins without imitation; gate first on untouched anchors and preserved Slumbot-state entropy/TV, then spend fresh hands only if it improves both mechanism and internal reward."
+  },
+  "tags": [
+    "greedy",
+    "slumbot",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 12,
+    "command_count": 12
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 2031,
+      "sha256": "d938eaa9efba20486f868c883f648c8a703dff6dc573f2347c990333ad0859cf"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12742975,
+      "sha256": "9bbc28a88178edcd037a334caa1da5a0e17c743345bff9e3800233b691693e91"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 12505,
+      "sha256": "45828d9d2a094b79d6e24cea217562e5fd7a52e44849677b20b0c5223a319f12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1573,
+      "sha256": "14a7d1489e189ef06548ea8e70ec99591be6b67a8251f68a1a6c40e434af7471"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2579,
+      "sha256": "2913e129da70bdfd978bf08e22d397d65474cfcecbfe9fb48d37fd5cdf8f747e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 2834,
+      "sha256": "cd169b4078308458dec59cab2865f40705c6bbe0879f0060d404eb96a591f735"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 3896,
+      "sha256": "045481b0f93c6686f639c8812a53ada069b5ac0f6aff8c2da40ce636105b0413"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\session_commands.json": {
+      "type": "file",
+      "bytes": 6387,
+      "sha256": "22243a7adf74b69aff653d12d70d4a6767ddac5110b74d7284a910a1db3c16ca"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8248,
+      "sha256": "605a2c817c21cd4725e511128dcdb32bfb953aa3320eee456ba92f974c936fe7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-actor-raw-greedy-fresh5k-slumbot-20260901\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 1026,
+      "sha256": "783c1a9f8c7d68238434d22ff2681b071da339b9b1f5cd5a66e0746a55c32fba"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution.json": {
+      "type": "file",
+      "bytes": 7744,
+      "sha256": "0c5b9d694a67df58bb4c79197332b8d86da21b5c6271e7d7b46d7c422f205307"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/runtime_origin.json": {
+      "type": "file",
+      "bytes": 2834,
+      "sha256": "cd169b4078308458dec59cab2865f40705c6bbe0879f0060d404eb96a591f735"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/frozen/final.pt": {
+      "type": "file",
+      "bytes": 199404388,
+      "sha256": "9fd38ad30ba25f46a80d2a103b55bb5a64affb7979a2fa47504cc187d38a2bf4"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 3896,
+      "sha256": "045481b0f93c6686f639c8812a53ada069b5ac0f6aff8c2da40ce636105b0413"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/session_commands.json": {
+      "type": "file",
+      "bytes": 6387,
+      "sha256": "22243a7adf74b69aff653d12d70d4a6767ddac5110b74d7284a910a1db3c16ca"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/combined_audit.json": {
+      "type": "file",
+      "bytes": 8248,
+      "sha256": "605a2c817c21cd4725e511128dcdb32bfb953aa3320eee456ba92f974c936fe7"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/completed_analysis.json": {
+      "type": "file",
+      "bytes": 1026,
+      "sha256": "783c1a9f8c7d68238434d22ff2681b071da339b9b1f5cd5a66e0746a55c32fba"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 980,
+      "sha256": "3fe8885956a1942dc745d055034dcf4d34f77ccd1ee349b45080e77a617c6452"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 431,
+      "sha256": "9dbf0c75e0880bc685991bf30b74d4c653ebb6757e4da26a9cd0a1979ae039f4"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution_code/source_manifest.json": {
+      "type": "file",
+      "bytes": 1573,
+      "sha256": "14a7d1489e189ef06548ea8e70ec99591be6b67a8251f68a1a6c40e434af7471"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution_code/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/execution_code/copy_manifest.json": {
+      "type": "file",
+      "bytes": 2579,
+      "sha256": "2913e129da70bdfd978bf08e22d397d65474cfcecbfe9fb48d37fd5cdf8f747e"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/prepared_runtime/scripts/alpha_holdem/execution_v6.py": {
+      "type": "file",
+      "bytes": 3473,
+      "sha256": "28c13c4ae6c8ccbde821c322d951f7a8e61f41e4e6dffd345f1c6bf5d1aefa25"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/prepared_runtime/scripts/alpha_holdem/play_slumbot_v6_journaled.py": {
+      "type": "file",
+      "bytes": 12210,
+      "sha256": "0cd7f92cf8e88aac06d3cec92935b33b30d9aef1c46661fdf0c5902c5b641be8"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/prepared_runtime/scripts/alpha_holdem/audit_slumbot_v6_session.py": {
+      "type": "file",
+      "bytes": 17069,
+      "sha256": "70c84a63cf8bc3c6b96161b9ed6cb7dd8520f093f5bd66b36102a9d97689eb1b"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s01_stdout.log": {
+      "type": "file",
+      "bytes": 5594,
+      "sha256": "d2a8ae42644a6d5ee98de91b269d46f83aa649ed202c4747a433af5e640d7a91"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s01/journal.jsonl": {
+      "type": "file",
+      "bytes": 4412067,
+      "sha256": "738c5d3201ed3ef84401673ed348a464f25a6c7b37adb17a00df84876283f4f1"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s01/hands.jsonl": {
+      "type": "file",
+      "bytes": 2250507,
+      "sha256": "c06288cd007127032787f149d9a3eebfe344a0c3185d018ec1a5a2256d4404bf"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s01/summary.json": {
+      "type": "file",
+      "bytes": 5478,
+      "sha256": "13d65c16b56c67b66f3a9030963614ede842278e31a62685f3f47d34e30cc1a0"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s02_stdout.log": {
+      "type": "file",
+      "bytes": 5593,
+      "sha256": "b4ccba80a24aaba92d619b7e37f1b5adca703d1a4a6377e1b93aed0a76cd9204"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s02/journal.jsonl": {
+      "type": "file",
+      "bytes": 4574667,
+      "sha256": "6d9f63e154725a44013f0fd16a760547686ee9507c3dee48b6947e164ff6dddd"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s02/hands.jsonl": {
+      "type": "file",
+      "bytes": 2317722,
+      "sha256": "c62e84bc97088731097a8a1abaf72210b75214a583f9d69466bfe59509d69e70"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s02/summary.json": {
+      "type": "file",
+      "bytes": 5477,
+      "sha256": "31f6398d99c1b1754bb9f0e3c7f509fd8808a366ad6fb969ba300d57b7b86148"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s03_stdout.log": {
+      "type": "file",
+      "bytes": 5596,
+      "sha256": "eee00e2e23e2e38e3f50450bf307e19ba72e5432b634903527379b08f496d943"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s03/journal.jsonl": {
+      "type": "file",
+      "bytes": 4616386,
+      "sha256": "607b75286087438406e4f5638c34770562112366f6fa6073e8156a3841ed5fd1"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s03/hands.jsonl": {
+      "type": "file",
+      "bytes": 2334642,
+      "sha256": "78e11d827532463c469fba2123b7feaa24daaaebeea479a2ba3458d87e48f52b"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s03/summary.json": {
+      "type": "file",
+      "bytes": 5480,
+      "sha256": "0e7ed6206f86314725a54effb3f39e162c6525a05e84670169f5cd881aed612c"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s04_stdout.log": {
+      "type": "file",
+      "bytes": 5594,
+      "sha256": "09f9cf76bad1149ac7db74820706b7a8b7c8a1ce570bd97b2fd923eb072767fc"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s04/journal.jsonl": {
+      "type": "file",
+      "bytes": 4557079,
+      "sha256": "32c084a26226009dcab758a2b6bb6b307b86935e2ceb73bec23ac093acf9b4c7"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s04/hands.jsonl": {
+      "type": "file",
+      "bytes": 2309455,
+      "sha256": "abe4a640716f61ad6b78e9a65d5b9b4d0c538d14dda072fa882095aadc8b2456"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s04/summary.json": {
+      "type": "file",
+      "bytes": 5478,
+      "sha256": "c9c742c3fecb35af0d31ba812d21009d921480e5c5533112e0b135d45c1aa2c2"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s05_stdout.log": {
+      "type": "file",
+      "bytes": 5594,
+      "sha256": "74963f902b9c1fbad72b47a473e55ca0f5169ce651ff0abbef89dd21f967494c"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s05/journal.jsonl": {
+      "type": "file",
+      "bytes": 4649440,
+      "sha256": "5c15fcfe02cfdb0bc7df55f4976dbae89ae7b184e828940b4b9345f76b00e05c"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s05/hands.jsonl": {
+      "type": "file",
+      "bytes": 2347061,
+      "sha256": "2e8f0901b78ece0d7fc20e4b1eee87ae282c07ec4a4e41c9d2b3e0a649444e95"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s05/summary.json": {
+      "type": "file",
+      "bytes": 5478,
+      "sha256": "2cae2729b6518738ff88c930a993e73e4d8a3d7d711e67a712e594a88ad9c1d9"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s06_stdout.log": {
+      "type": "file",
+      "bytes": 5593,
+      "sha256": "c07d291cbafad8bce7bb229193630594de0d59b6630b33d316c6f7270b6bc236"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s06/journal.jsonl": {
+      "type": "file",
+      "bytes": 4447775,
+      "sha256": "18c3e7c80563a5c1c7dd6fb2fbee1217af638483cb7c05d72286ec7d65eee60c"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s06/hands.jsonl": {
+      "type": "file",
+      "bytes": 2265129,
+      "sha256": "d442aa2f9fa9a08f4e751f0acc0671a5fdb18a117b3167dd538feb8d72ad0aee"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s06/summary.json": {
+      "type": "file",
+      "bytes": 5477,
+      "sha256": "dfd9a50e0c3ad9e709a98c2ed4fa0a1cfe9384fd332b84488c0885cd4834ec71"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s07_stdout.log": {
+      "type": "file",
+      "bytes": 5593,
+      "sha256": "64f063299556c32fbfef51a19b2f99806b41589003c2a8f888bca68702a51116"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s07/journal.jsonl": {
+      "type": "file",
+      "bytes": 4592008,
+      "sha256": "8d3fc043bef7203565fe5dd30be18c5cb31657d29bc8f139ea1ed9c3b86fb08f"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s07/hands.jsonl": {
+      "type": "file",
+      "bytes": 2324188,
+      "sha256": "fe45cf5366e2aaa5316521df8e60688e14e58059c64000b098d2941e857cc088"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s07/summary.json": {
+      "type": "file",
+      "bytes": 5477,
+      "sha256": "cd4ca493edda0eb26bbc0a2c410b506a475b52be4e9d755c65c604e268b655b8"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/s08_stdout.log": {
+      "type": "file",
+      "bytes": 5595,
+      "sha256": "54bf97709b7352862a0219a7957e4aaeb5e33ea4ae53a8293450755a9560f2ce"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s08/journal.jsonl": {
+      "type": "file",
+      "bytes": 4503188,
+      "sha256": "933af6838665afcda54aeb7e9c3d6ce359ca253bb0ed3732fc7159b4cad12624"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s08/hands.jsonl": {
+      "type": "file",
+      "bytes": 2288340,
+      "sha256": "2b0bcad28ed4288ba9889b4e2af732021905de9fabafe23834e3ed16589bd67b"
+    },
+    "research/experiments/v6-actor-raw-greedy-fresh5k-slumbot-20260901/sessions/s08/summary.json": {
+      "type": "file",
+      "bytes": 5479,
+      "sha256": "90924ab9d8495704013b42048cd9588e4cf06753c8f917575450b82fea53ae26"
+    }
+  }
+}

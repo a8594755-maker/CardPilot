@@ -1,0 +1,404 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "alpha-replay-buffer-pilot-20260830",
+  "title": "Hand-block off-policy replay pilot",
+  "status": "COMPLETED",
+  "created_at": "2026-08-30T06:35:46+00:00",
+  "updated_at": "2026-08-30T12:11:26+00:00",
+  "started_at": "2026-08-30T06:35:46+00:00",
+  "ended_at": "2026-08-30T12:11:26+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "A short replay buffer of complete poker trajectories will improve sample efficiency and robust anchor performance versus fresh-only PPO because it restores AlphaHoldem's replayed-experience training while preserving correct behavior-policy ratios and GAE boundaries.",
+  "material_change": "Add default-off complete-hand replay retention and deterministic sampling to train_v5.py; validate trajectory boundaries, run a matched short A/B from Standard10, and promote only on untouched multi-anchor evidence.",
+  "baseline": "Adaptive all-policy-heads fresh-only PPO: iter32 Standard10 +0.073 bb/100, Slumbot-free +26.44, CFR +2.43; full-network fresh-only PPO degraded source robustness.",
+  "source": "AlphaHoldem AAAI 2022 Sections Effective Learning with Trinal-Clip PPO and K-Best Self-Play; local EXP-003 history reviewed and not reopened.",
+  "parent_id": null,
+  "command": "python -m pytest scripts/alpha_holdem/test_train_v5_replay.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_train_v5_replay.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T06:35:46+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 256 --total-hands 768 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 256 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/alpha-replay-buffer-pilot-20260830/smoke/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026087100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id alpha_replay_smoke_20260830 --run-dir research/experiments/alpha-replay-buffer-pilot-20260830/smoke --out research/experiments/alpha-replay-buffer-pilot-20260830/smoke/latest.pt --seed 20260871 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T06:39:26+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 4 --hands-per-iter 256 --total-hands 256 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 256 --entropy-coef 0.005 --entropy-floor 0.05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 4 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/alpha-replay-buffer-pilot-20260830/smoke_control/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026087100 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id alpha_replay_smoke_control_20260830 --run-dir research/experiments/alpha-replay-buffer-pilot-20260830/smoke_control --out research/experiments/alpha-replay-buffer-pilot-20260830/smoke_control/latest.pt --seed 20260871 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T06:40:32+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/alpha-replay-buffer-pilot-20260830/production/opponent_assignments.jsonl --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id alpha_replay_all_heads_262k_20260830 --run-dir research/experiments/alpha-replay-buffer-pilot-20260830/production --out research/experiments/alpha-replay-buffer-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume models/baseline/standard10/latest.pt --allow-resume --reset-optimizer --reset-hand-counter",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T06:41:52+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem/test_train_v5_replay.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T11:42:15+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/validate_train_v5_replay_resume.py --checkpoint research/experiments/alpha-replay-buffer-pilot-20260830/production/latest.pt --manifest research/experiments/alpha-replay-buffer-pilot-20260830/production/run_manifest.json --metrics research/experiments/alpha-replay-buffer-pilot-20260830/production/h1_training_metrics.jsonl --assignments research/experiments/alpha-replay-buffer-pilot-20260830/production/opponent_assignments.jsonl --source-policy-reference models/baseline/standard10/latest.pt --deal-start-index 65794 --out research/experiments/alpha-replay-buffer-pilot-20260830/replay_resume_preflight_iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T11:42:15+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 262144 --starting-stack 200 --env-version v55preflopv2v4obs --norm-layer gn --lr 0.00003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --acknowledge-ephemeral-ppo-replay-resume --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file research/experiments/alpha-replay-buffer-pilot-20260830/production/opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode single --worker-seed-base 2026085200 --fixed-training-deal-stream --fixed-training-deal-start-index 65794 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 16 --run-id alpha_replay_all_heads_262k_20260830 --run-dir research/experiments/alpha-replay-buffer-pilot-20260830/production --out research/experiments/alpha-replay-buffer-pilot-20260830/production/latest.pt --seed 20260852 --max-runtime-seconds 7200 --resume research/experiments/alpha-replay-buffer-pilot-20260830/production/latest.pt --allow-resume --no-reset-optimizer",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T11:42:40+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_replay_session.py --run-dir research/experiments/alpha-replay-buffer-pilot-20260830/production --expected-target-hands 262144 --expected-final-iteration 64 --expected-recovery-iteration 16 --out research/experiments/alpha-replay-buffer-pilot-20260830/production_session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:01:37+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065794.pt --candidate-label replay_iter16 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16.json --out-md research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16.md --execution-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:01:58+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter16.json --treatment research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16.json --out research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter16.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:03:15+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131673.pt --candidate-label replay_iter32 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32.json --out-md research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32.md --execution-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:03:27+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter32.json --treatment research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32.json --out research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter32.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:04:53+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197539.pt --candidate-label replay_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --candidate-greedy --anchor-greedy --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.json --out-md research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.md --execution-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:06:20+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197539.pt --candidate-label replay_iter48 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.json --out-md research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.md --execution-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:06:38+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter48.json --treatment research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.json --out research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter48.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:08:02+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v5_mirror_eval.py --candidate research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263363.pt --candidate-label replay_iter64 --anchor standard10=models/baseline/standard10/latest.pt --anchor slumbot_free=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt --anchor corrected_cfr96=C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --pairs 1024 --starting-stack 200 --include-pair-outcomes --seed 20260853 --device cuda --priority below-normal --out-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64.json --out-md research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64.md --execution-json research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64_execution.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:08:22+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/paired_mirror_treatment_delta.py --control research/experiments/adaptive-league-all-heads-pilot-20260830/curve/iter64.json --treatment research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64.json --out research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter64.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-30T12:09:54+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8bd5a35bfa7f18bfa5d37d05dc6acd761f6d8614695d2b4601e7e8b33686a972",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-08-30T06:35:46+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/alpha-replay-buffer-pilot-20260830/code.patch",
+    "patch_sha256": "26cfb8ecdccd05e7a56e2979af5f8e17e39213d5cc8d8738bf67248bfff96653",
+    "source_manifest": "research/experiments/alpha-replay-buffer-pilot-20260830/source_manifest.json",
+    "source_manifest_sha256": "135c3f8ef5617b12bd751b6bfc444249ff069e48e56c4f558f285e4319124011",
+    "source_files": 29
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 263363,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 24576,
+    "wall_time_seconds": 20140.0,
+    "smoke_environment_hands": 883
+  },
+  "metrics": {
+    "smoke_max_ratio": 1.11,
+    "smoke_max_reference_kl": 0.0002,
+    "resume_checkpoint_iteration": 16,
+    "resume_checkpoint_hands": 65794,
+    "resume_optimizer_step": 640,
+    "production_final_iteration": 64,
+    "production_actual_hands": 263363,
+    "production_max_reference_kl": 0.0017379533499479296,
+    "production_max_abs_approx_kl": 0.0003492108546197415,
+    "production_kl_early_stops": 0,
+    "production_max_importance_ratio": 1.31,
+    "cumulative_replay_rows": 434938,
+    "paired_delta_positive_rows": 5,
+    "paired_delta_total_rows": 12,
+    "paired_delta_mean_bb100": -0.8167724609375001,
+    "paired_delta_median_bb100": -0.16308593750000017
+  },
+  "artifacts": [
+    "research/experiments/alpha-replay-buffer-pilot-20260830/code.patch",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/source_manifest.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/smoke/latest.pt",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/smoke/h1_training_metrics.jsonl",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/smoke/opponent_assignments.jsonl",
+    "scripts/alpha_holdem/test_train_v5_replay.py",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/replay_resume_preflight_iter16.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production_session_audit.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16.md",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16_execution.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter16.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32.md",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32_execution.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter32.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.md",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48_execution.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter48.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64.md",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64_execution.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter64.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/latest.pt",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/run_manifest.json",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/h1_training_metrics.jsonl",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/opponent_assignments.jsonl",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/latest_train.log",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065794.pt",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131673.pt",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197539.pt",
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263363.pt"
+  ],
+  "notes": [
+    "Implementation unit tests and py_compile PASS; smoke preregistered for three updates with replay ratio 0.5 and two-iteration retention.",
+    "Smoke PASS: replay rows 0,481,577 across iterations 1-3; full-hand validation passed, ratios max <=1.11, no KL stop, checkpoint metadata and raw accounting intact.",
+    "Matched production treatment reuses the retained fresh-only control's model/worker seeds, deal construction, opponent ensemble, 64-update target and LR schedule; only complete-hand replay buffer=2 and old:fresh row ratio=0.5 are added. Asynchronous threshold overshoot prevents a byte-paired claim.",
+    "User-authorized continuation from the safe iter16 boundary. Preflight PASS: latest.pt SHA256 40bdfbcde72484662b78b6952b9732cd6236c30acc26f31d9a005c2170af5677 has iteration16, 65,794 actual hands, intact Adam state at step640, and adaptive-league state. Seventeen assignment rows replay exactly from the original seed and recorded adaptive weights; pending iteration17 assignment is reused without rewriting evidence.",
+    "Recovery limitation: the legacy iter16 checkpoint predates complete-hand replay/RNG serialization and worker deal-cursor serialization. Model, optimizer, hand counter, iteration, Standard10 source-KL anchor, and adaptive league remain continuous. The first resumed update explicitly cold-starts PPO replay; cumulative replay accounting continues from 102,288 rows. fixed deal index starts at 65,794 for every worker, which is strictly beyond every possible prior per-worker cursor and therefore prevents deck overlap. New checkpoints serialize replay entries/RNG for subsequent recovery.",
+    "Exact lossless model/optimizer/hand-count continuation command recorded before launch; only recovery-only flags differ from the preregistered production command.",
+    "Production continuation reached the preregistered endpoint cleanly: iteration64, 263,363 actual environment hands. Running terminal session/evidence audit before any endpoint evaluation.",
+    "Terminal production session audit PASS; launching untouched matched multi-anchor curve evaluation at iter16.",
+    "Starting preregistered matched fresh-only multi-anchor evaluation for replay checkpoint iter48 (197,539 actual training hands); same anchors, seed 20260853, 1,024 mirrored pairs per anchor as untouched control.",
+    "The first iter48 launch exited before evaluation because v5_mirror_eval greediness is fixed by POLICY_MODE and exposes no --candidate-greedy/--anchor-greedy flags. Corrected directly rerunnable command follows; no evaluation evidence or output was produced by the rejected invocation.",
+    "Completed iter48 matched fresh-only evaluation and paired treatment-minus-control delta calculation; 6,144 new internal evaluation hands, reused for paired delta.",
+    "Starting final preregistered matched fresh-only multi-anchor evaluation for replay checkpoint iter64 (263,363 actual training hands); same untouched anchors/control, seed 20260853, 1,024 mirrored pairs per anchor.",
+    "Completed all four preregistered matched fresh-only checkpoints: 4 checkpoints x 3 anchors x 2,048 hands = 24,576 new internal evaluation hands. Paired delta reuses exactly these outcomes and is not double-counted.",
+    "Terminal health/accounting: 263,363 actual environment hands; 434,938 replay rows; zero KL early stops; max reference KL 0.001738, max abs approximate KL 0.000349, max importance ratio 1.31. Across 12 paired checkpoint-anchor rows only 5 point estimates favored replay; unweighted mean -0.817 and median -0.163 bb/100. The mean is dominated by noisy iter32 CFR96, but even excluding interpretation of that outlier there is no monotonic or all-anchor positive curve."
+  ],
+  "result": {
+    "summary": "Recovered the interrupted replay pilot without resetting optimizer, hand counter, assignment RNG, or deal stream; completed 263,363 actual environment hands and 24,576 preregistered matched fresh-only internal evaluation hands across four checkpoints and three anchors.",
+    "conclusion": "The run was numerically stable and the resumed evidence chain passed terminal audit, but the treatment did not improve robust anchor performance over matched fresh-only PPO: only 5 of 12 paired rows were positive, no checkpoint was positive on all anchors, every paired CI crossed zero, and the curve was non-monotonic. The legacy iter16 checkpoint did not serialize replay trajectories or global RNG, so iter17 necessarily cold-started replay; this limitation is explicit, while assignment RNG, pending iter17 assignments, optimizer state, cumulative hand count, and non-overlapping deal index were restored. Checkpoints after recovery serialize replay and RNG state.",
+    "decision": "REJECT_REPLAY_SCALE_NO_ROBUST_GAIN",
+    "next_step": "Do not scale this replay ratio/buffer treatment. Use the restored resume infrastructure, but redirect the next bounded experiment to a true learned-policy historical-opponent league/K-best mechanism with explicit checkpoint diversity and matched fresh-only controls; promote only on consistent multi-anchor lower-tail evidence."
+  },
+  "tags": [
+    "learned-weights",
+    "replay-buffer",
+    "self-play"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 17,
+    "command_count": 17
+  },
+  "artifact_integrity": {
+    "research/experiments/alpha-replay-buffer-pilot-20260830/code.patch": {
+      "type": "file",
+      "bytes": 12561875,
+      "sha256": "26cfb8ecdccd05e7a56e2979af5f8e17e39213d5cc8d8738bf67248bfff96653"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/source_manifest.json": {
+      "type": "file",
+      "bytes": 5304,
+      "sha256": "135c3f8ef5617b12bd751b6bfc444249ff069e48e56c4f558f285e4319124011"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/smoke/latest.pt": {
+      "type": "file",
+      "bytes": 133299188,
+      "sha256": "5fa8fcbf7b476994294206aec1faffccdf28d1f05cc6a0bc310b454028aeb622"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/smoke/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 64381,
+      "sha256": "7d25182f04826edca8b19358b03fcc0cd0da6d6ef649e9884589652522272311"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/smoke/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 4048,
+      "sha256": "d750498e9e4c0222b35bbeecdd1630acdd6a6e9cb3bf6f0b9397ccba424b6d69"
+    },
+    "scripts/alpha_holdem/test_train_v5_replay.py": {
+      "type": "file",
+      "bytes": 6055,
+      "sha256": "104ba5dec35cfcc8be87f826ee6b8dc84034a492823af67f822aff7fadac26e4"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/replay_resume_preflight_iter16.json": {
+      "type": "file",
+      "bytes": 2185,
+      "sha256": "4d8d45d0389d99c043c08c358e450e7c18a531ce092282a83fcb85ede50cdfbc"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production_session_audit.json": {
+      "type": "file",
+      "bytes": 2928,
+      "sha256": "73056cb723bf8a1a82f4a48ff49df93ed53e3a518fe95d1c48f078d86af352ec"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16.json": {
+      "type": "file",
+      "bytes": 173017,
+      "sha256": "b1d8cc8ab69f591b6077b1a0acf68c857294a720462d983d4edbfc23bf30c142"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16.md": {
+      "type": "file",
+      "bytes": 1565,
+      "sha256": "2da14f700d87bc7d6aec3b63ffb77cc1e01e4c805b70ee24667f5e0fa2c6c8b3"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter16_execution.json": {
+      "type": "file",
+      "bytes": 1821,
+      "sha256": "0118caf2ac7319d2fabfc6414d3e3b3eca4a13a6968fbe8516a29135b01ab9b9"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter16.json": {
+      "type": "file",
+      "bytes": 4937,
+      "sha256": "99ee0e62274d8d62e51baf5d9caf35ea81997bb1de8d79607529d85befbcf6c3"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32.json": {
+      "type": "file",
+      "bytes": 173061,
+      "sha256": "8f7457e087db02f1f6005f3b769cee65d45b55bb3dcd98394e667171701a0f82"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32.md": {
+      "type": "file",
+      "bytes": 1565,
+      "sha256": "192c73db62d26189c079d8ddd59ea2303135b18a6e0e3f47d633990fe90e7de9"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter32_execution.json": {
+      "type": "file",
+      "bytes": 1821,
+      "sha256": "4bfc1fb4402ff3102a3a99a78718807f45d7f6703efdb24ad31be11f78a1837d"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter32.json": {
+      "type": "file",
+      "bytes": 4918,
+      "sha256": "a02d85718f580b46dead03487c1320415595f067c686b7d6b69ac53a29ecd194"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.json": {
+      "type": "file",
+      "bytes": 173067,
+      "sha256": "93c9210c1197b84da2f91d8dcde0d4b5921416940c3305cb329c213ce04709b4"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48.md": {
+      "type": "file",
+      "bytes": 1565,
+      "sha256": "ae2287a474c5aec5ea53e6dbd8d0b65f8114250b88ba9177d2626758abfbb6dc"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter48_execution.json": {
+      "type": "file",
+      "bytes": 1821,
+      "sha256": "cca9967a81f335919d2c327275c77b61617ef87383d08746a582178ecb414681"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter48.json": {
+      "type": "file",
+      "bytes": 4937,
+      "sha256": "3ce4dab423f74ee268255fe812a7a1c7e5fb57d6df553cbe081e8f0be578bfbd"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64.json": {
+      "type": "file",
+      "bytes": 173134,
+      "sha256": "5be9301cc36a66877ec4e31f7ed59fdee6c7fc7550628b0d876708adf46c1d0b"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64.md": {
+      "type": "file",
+      "bytes": 1565,
+      "sha256": "f382dcf5669ac20b4fc335fd1d4f14db7cbabdf98df162e69f859f72decdaf9b"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/curve/iter64_execution.json": {
+      "type": "file",
+      "bytes": 1821,
+      "sha256": "43c4c562ae9dd782ea5b3f9db28eb2e11e79e5a7bbacb9ef5709dc31e26fd614"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/paired_delta/iter64.json": {
+      "type": "file",
+      "bytes": 4937,
+      "sha256": "63b09427d83779cd1e09f4e271e827281758a824f9fbb5dedc16b94a80dc1803"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/latest.pt": {
+      "type": "file",
+      "bytes": 236315636,
+      "sha256": "2e3533004f1676610a5d33ce07b7e873ac71988175deed14315d0ad63ffe9f14"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/run_manifest.json": {
+      "type": "file",
+      "bytes": 54166,
+      "sha256": "7510a4c00fbcdb87ec404a915fe39bdd0225edeac30de4a5f9cc287a4cc0c83e"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 1548274,
+      "sha256": "e5a3553f6d3ddb13f5754bf970ffa6207bb4c8cb28e784715069f37ab539e92e"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 160938,
+      "sha256": "489ff6dc1a4790222db7da679491d25d1a184279b8ac57e618d15040e05f1dad"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/latest_train.log": {
+      "type": "file",
+      "bytes": 28617,
+      "sha256": "e1655ec2eca94ed343ec0faecc5ec48329f464c1ecd53617a36cb2b2ec46538e"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000016_hands000000065794.pt": {
+      "type": "file",
+      "bytes": 133318390,
+      "sha256": "14832d8532e7fb634b88e050d1d3541c8b3a7e3da150b46a9525b1b7ad49b1b4"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000032_hands000000131673.pt": {
+      "type": "file",
+      "bytes": 236445558,
+      "sha256": "4cb36386b04064d9b934f2bb6a6d322db71b271f318690ab43da3d97209d1e64"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000048_hands000000197539.pt": {
+      "type": "file",
+      "bytes": 239963318,
+      "sha256": "916c2e8d0dd429b1624ed2afe40f1ce7be28c088374b786507f56278ddfa2ef3"
+    },
+    "research/experiments/alpha-replay-buffer-pilot-20260830/production/checkpoints/checkpoint_iter000064_hands000000263363.pt": {
+      "type": "file",
+      "bytes": 236334838,
+      "sha256": "a7663814bf9dad39e75e9d90b4f4f9a2bbb7e3216baddc9f802d8e30f02aec45"
+    }
+  }
+}

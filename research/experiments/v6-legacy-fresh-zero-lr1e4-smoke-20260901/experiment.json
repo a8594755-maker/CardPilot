@@ -1,0 +1,222 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-fresh-zero-lr1e4-smoke-20260901",
+  "title": "Matched fresh-zero LR1e-4 trust-region smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T13:17:07+00:00",
+  "updated_at": "2026-09-01T13:27:17+00:00",
+  "started_at": "2026-09-01T13:17:07+00:00",
+  "ended_at": "2026-09-01T13:27:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Reducing the per-minibatch learning rate from3e-4 to1e-4 while retaining epoch-boundary KL stopping will prevent one-epoch policy jumps, preserve fresh-zero learning, and keep untouched Standard10 transfer nonnegative.",
+  "material_change": "Repeat the matched 32768-physical-hand fresh-zero exact-v6 ELO KL-stop smoke with identical configuration and seeds, changing only LR from3e-4 to1e-4.",
+  "baseline": "v6-legacy-fresh-zero-kl-stop-smoke-20260901",
+  "source": "deterministic random initialization; expected state sha afcf8f7406cf4159e76f6c21ca5e83d7d59665559e7eb2a0a3937750e3cb1665",
+  "parent_id": "v6-legacy-fresh-zero-kl-stop-smoke-20260901",
+  "command": "python -m pytest scripts/alpha_holdem -q",
+  "commands": [
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:17:07+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 32768 --starting-stack 200 --env-version v6legacyv4obs --norm-layer bn --lr .0001 --ppo-epochs 4 --ppo-target-kl .01 --mini-batch-size 1024 --pool-strategy elo-kbest --k-best 3 --elo-seed-initial-policy --elo-tournament-pairs 64 --elo-k-factor 32 --elo-tournament-seed 2026120101 --elo-tournament-provenance-file research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/elo_tournaments.jsonl --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120100 --fixed-training-deal-stream --critic-contract critic_v1 --value-coef .5 --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 2 --run-id v6_legacy_fresh_zero_lr1e4_smoke_20260901 --run-dir research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training --out research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/latest.pt --seed 20261201 --max-runtime-seconds 1800 --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:17:40+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_elo_session.py --run-dir research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training --expected-target-hands 32768 --expected-target-environment-hands 32768 --expected-final-iteration 8 --expected-initial-pool-size 1 --expected-final-pool-size 3 --expected-snapshot-every 2 --expected-tournament-pairs 64 --out research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:20:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/final.pt --anchor research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/init.pt --pairs 4096 --seed 20261202 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/eval/final_vs_init",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:20:56+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_contract_mirror_eval.py --candidate research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/final.pt --anchor models/baseline/standard10/latest.pt --pairs 4096 --seed 20261203 --observation-style legacy_v4 --device cuda --out-dir research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/eval/final_vs_standard10",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:20:56+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/analyze_results.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T13:27:17+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "3dcdd5dc506d9921bd18f07c7f612c1a196596ba6f18dd04d42431ad2f698081",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/policy_contract_v6.py",
+      "scripts/alpha_holdem/v6_elo_eval.py",
+      "scripts/alpha_holdem/v6_contract_mirror_eval.py",
+      "scripts/alpha_holdem/audit_train_v5_elo_session.py",
+      "scripts/alpha_holdem/test_train_v5_elo_pool.py",
+      "scripts/alpha_holdem/test_v6_elo_eval.py",
+      "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/preregistration.md"
+    ],
+    "captured_at": "2026-09-01T13:17:07+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/code.patch",
+    "patch_sha256": "37832cde276b5b187b975c78a40fd99afd37977340e38da48ef79ad8b4a03273",
+    "source_manifest": "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "9c300d37fe9713d0229ac8ab77ae05e5f62089244084e9da98ac38550fb37424",
+    "source_files": 8
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 34665,
+    "lineage_training_hands": 34665,
+    "offline_samples": 0,
+    "evaluation_hands": 18432,
+    "wall_time_seconds": 610.0
+  },
+  "metrics": {
+    "implementation_gate_pass": 1,
+    "alpha_holdem_tests_passed": 189,
+    "session_audit_pass": 1,
+    "initial_model_state_match": 1,
+    "max_approx_kl": 0.1844926247229943,
+    "max_clip_fraction": 0.5062638796292819,
+    "scale_gate_passed": 0,
+    "final_vs_init_bb100": 10391.13232421875,
+    "final_vs_standard10_bb100": -372.4964599609375,
+    "paired_final_minus_init_standard10_bb100": -429.1912841796874,
+    "paired_init_delta_ci95_upper": -349.5557155809285,
+    "paired_lr1e4_minus_klstop_bb100": -532.88623046875,
+    "paired_lr1e4_klstop_ci95_upper": -363.7666348221834
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/preregistration.md",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/code.patch",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/session_audit.json",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/init.pt",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/final.pt",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/latest.pt",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/run_manifest.json",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/h1_training_metrics.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/opponent_assignments.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/elo_tournaments.jsonl",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/eval/final_vs_init",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/eval/final_vs_standard10",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/analyze_results.py",
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/analysis.json"
+  ],
+  "notes": [
+    "Full regression189/189 passed. Single-variable LR treatment authorized.",
+    "Terminal session audit PASS at34,665 physical hands; shared init state bit-exact; frozen artifacts created before evaluation.",
+    "Post-analysis full regression remained189/189 passed. Shared init evidence was reused only after bit-exact verification. No Slumbot hands."
+  ],
+  "result": {
+    "summary": "Completed the audited matched LR1e-4 fresh-zero exact-v6 ELO smoke with34,665 physical hands and18,432 new evaluation hands; smaller steps controlled KL but produced the strongest self-family exploit and decisively worse untouched-opponent transfer.",
+    "conclusion": "LR1e-4 reduced max KL to0.1845, yet max clip0.506 missed the mechanism gate. More importantly, final beat init by+10391bb/100 but lost to Standard10 at-372.50bb/100 with a wholly negative CI; paired transfer versus shared init was-429.19, CI95[-508.83,-349.56], and it was significantly worse than both prior final policies. Pure historical self-play from zero is rapidly non-transitive at local scale; optimizer stabilization alone does not supply opponent diversity.",
+    "decision": "REJECT_PURE_FRESH_ZERO_HISTORICAL_LEAGUE",
+    "next_step": "Stop pure fresh-zero self-history scaling. Test a fresh-zero full-network exact-v6 dynamic ELO curriculum seeded with the mature Standard10 strategy plus the exact initial actor, without source KL/imitation. Use LR3e-4 KL-stop (the best transfer arm) and require gains on multiple untouched nontraining anchors, not Standard10 alone."
+  },
+  "tags": [
+    "fresh-zero",
+    "learned-weights",
+    "selfplay",
+    "trust-region",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/preregistration.md": {
+      "type": "file",
+      "bytes": 3226,
+      "sha256": "13efcb897e742c3580ba140b91ae7669e5168cb39a9b2b693253958ca51dba89"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 265624,
+      "sha256": "37832cde276b5b187b975c78a40fd99afd37977340e38da48ef79ad8b4a03273"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 1566,
+      "sha256": "9c300d37fe9713d0229ac8ab77ae05e5f62089244084e9da98ac38550fb37424"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/session_audit.json": {
+      "type": "file",
+      "bytes": 3827,
+      "sha256": "fab2ec16bb7df914d70459ebdc8bf0ccd0d340c72ab217ce42c0c0920d9db607"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/init.pt": {
+      "type": "file",
+      "bytes": 65363378,
+      "sha256": "f7e003d22d434db136ade69bcd23265399121c37eaaf6caffed582372fa05e20"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/frozen/final.pt": {
+      "type": "file",
+      "bytes": 196064454,
+      "sha256": "4e7cd3ca0887ef7ccc9e5fbbff8c3875e60cb3697a7f5466507ad204f6e5aa02"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/latest.pt": {
+      "type": "file",
+      "bytes": 196064454,
+      "sha256": "4e7cd3ca0887ef7ccc9e5fbbff8c3875e60cb3697a7f5466507ad204f6e5aa02"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/run_manifest.json": {
+      "type": "file",
+      "bytes": 187997,
+      "sha256": "c5b3728556958268728226fb2235c2526bb708776265228471672b8824775507"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 230157,
+      "sha256": "e2b2494ba5c5bc0ed645945c12bdb3f991b0599f02970f222478e597aa6bf37b"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 19329,
+      "sha256": "2583518535d51c6ef0430f0fb138903b0d08d86e9271b864bed5a39f555d417e"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/training/elo_tournaments.jsonl": {
+      "type": "file",
+      "bytes": 12335,
+      "sha256": "63446fbdf7faa757b244edc53881717456eea83435772f3cd69e2ae3cc6ddbf2"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/eval/final_vs_init": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/eval/final_vs_standard10": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/analyze_results.py": {
+      "type": "file",
+      "bytes": 5576,
+      "sha256": "bff77e38b987e732990b04c1fafead9f1ae5de7d70c0f9dae27b7f0194f1479c"
+    },
+    "research/experiments/v6-legacy-fresh-zero-lr1e4-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1835,
+      "sha256": "3b81d9a7e3c9fc70c90f0412f0c4b364ce80e0ba8b87bd616206e67a520276b6"
+    }
+  }
+}

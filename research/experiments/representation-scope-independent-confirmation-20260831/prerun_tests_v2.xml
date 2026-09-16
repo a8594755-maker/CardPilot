@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="15" time="1.731" timestamp="2026-08-31T01:16:53.660615" hostname="Louis"><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_valid_cell_and_independent_stream" time="0.001" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[seed]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[count]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[missing]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[nan]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[bool]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[anchor]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[digest]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[execution]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[ood]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_corrupted_evidence_rejected[ci]" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_adjusted_gate_and_source_guard" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_parent_checkpoint_identities_are_fixed" time="0.000" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_four_anchor_replication_gate_contract" time="0.001" /><testcase classname="research.experiments.representation-scope-independent-confirmation-20260831.test_confirmation" name="test_actual_paired_tool_schema_with_synthetic_raw_evidence" time="0.178"><failure message="ValueError: Paired output anchor count/order mismatch">tmp_path = WindowsPath('C:/Users/a8594/AppData/Local/Temp/pytest-of-a8594/pytest-91/test_actual_paired_tool_schema0')
+
+    def test_actual_paired_tool_schema_with_synthetic_raw_evidence(tmp_path):
+        control, _ = doc('heads', point=0.)
+        treatment, _ = doc('full', point=.01)
+        first, second, output = [tmp_path/name for name in ['heads.json', 'full.json', 'paired.json']]
+        first.write_text(json.dumps(control))
+        second.write_text(json.dumps(treatment))
+        subprocess.run([sys.executable, str(run.ROOT/'scripts/alpha_holdem/paired_mirror_treatment_delta.py'),
+            '--control', str(first), '--treatment', str(second), '--out', str(output)], check=True, capture_output=True)
+        stored = json.loads(output.read_text())
+        rows = run.compare(control, treatment)
+        assert 'control' in stored and 'heads' not in stored
+&gt;       run.validate_paired_output(stored, run.sha(first), run.sha(second), rows)
+
+research\experiments\representation-scope-independent-confirmation-20260831\test_confirmation.py:106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+stored = {'alignment': {'action_rng_schema': 'sha256_seed_pair_physical_seat_decision_v1', 'pairs': 4, 'policy_mode': 'sampled_...cf0da56ace72f1ce6369be0077905e94ab57632ad522487247e6d5855d119'}, 'created_at': '2026-08-31T05:16:55.365193+00:00', ...}
+control_hash = '235cf0da56ace72f1ce6369be0077905e94ab57632ad522487247e6d5855d119'
+treatment_hash = 'd022092d5f886afeed439701a5c3bad6f4e0336c15ce90c7610bda64465c6e8f'
+rows = [{'anchor': 'standard10', 'bonferroni_lower': 1.0, 'bonferroni_upper': 1.0, 'ci95_half_width': 0.0, ...}, {'anchor': '...: 0.0, ...}, {'anchor': 'heldout_weak', 'bonferroni_lower': 1.0, 'bonferroni_upper': 1.0, 'ci95_half_width': 0.0, ...}]
+
+    def validate_paired_output(stored, control_hash, treatment_hash, rows):
+        # control/treatment are the external tool's schema keys, not policy labels.
+        if (stored['control']['sha256'] != control_hash
+                or stored['treatment']['sha256'] != treatment_hash):
+            raise ValueError('Paired analysis input hash mismatch')
+        if [row['anchor'] for row in stored['anchors']] != NAMES:
+&gt;           raise ValueError('Paired output anchor count/order mismatch')
+E           ValueError: Paired output anchor count/order mismatch
+
+research\experiments\representation-scope-independent-confirmation-20260831\run_confirmation.py:133: ValueError</failure></testcase></testsuite></testsuites>

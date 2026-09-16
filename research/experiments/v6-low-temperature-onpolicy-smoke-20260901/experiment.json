@@ -1,0 +1,227 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-low-temperature-onpolicy-smoke-20260901",
+  "title": "Low-temperature deployment-aligned on-policy PPO smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T06:00:04+00:00",
+  "updated_at": "2026-09-01T06:08:36+00:00",
+  "started_at": "2026-09-01T06:00:04+00:00",
+  "ended_at": "2026-09-01T06:08:36+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Using the same sharpened stochastic policy for hero behavior and PPO likelihoods will move training state visitation and action credit closer to the substantially stronger greedy execution contract while retaining stochastic exploration and exact on-policy ratios.",
+  "material_change": "Add default1 hero policy temperature to train_v5 inference and trinal PPO. For hero sample mode, both behavior log-probabilities and PPO current/reference distributions divide legal logits by the same positive temperature; opponents, raw stored weights, legal masking, critic, deployment greedy argmax, and default behavior remain unchanged. Unit-test T1 equivalence, behavior log-probability, and low-temperature concentration, then run one matched T0.5 smoke reusing the audited T1 control.",
+  "baseline": "Standard10 greedy fresh20k -11.4275 versus sampled T1 -48.9778; two local argmax objectives were stable but nonpositive. Counterfactual Action-Q and single-teacher imitation routes have negative external/generalization evidence.",
+  "source": "Standard10 initialization and fixed learned-opponent adaptive league; prior source-KL-only T1 control SHA d806394b reused without rerun.",
+  "parent_id": "v6-source-greedy-margin-preservation-smoke-20260901",
+  "command": "python -m pytest -q scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+  "commands": [
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:00:04+00:00"
+    },
+    {
+      "command": "python -m py_compile scripts/alpha_holdem/train_mp3_hybrid_h1.py scripts/alpha_holdem/train_v5.py scripts/alpha_holdem/test_hero_policy_temperature.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:01:46+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:01:46+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --hero-policy-temperature .5 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints models/baseline/standard10/latest.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/slumbot_free_anchor_position10m.pt C:/Users/a8594/CardPilot_legacy_20260829/selected_assets/opponents/corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction .25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema .9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability .05 --opponent-assignment-provenance-file research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026111400 --fixed-training-deal-stream --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_low_temperature_treatment_20260901 --run-dir research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment --out research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/latest.pt --seed 20261114 --max-runtime-seconds 900 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:02:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 3 --expected-archive-every 1 --expected-normalization global --out research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:05:02+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_hero_policy_temperature.py scripts/alpha_holdem/test_ppo_gradient_update_equivalence.py scripts/alpha_holdem/test_environment_hand_accounting.py scripts/alpha_holdem/test_train_v5_dynamic_pool.py --junitxml=research/experiments/v6-low-temperature-onpolicy-smoke-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:05:05+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-low-temperature-onpolicy-smoke-20260901/run_eval.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:05:08+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-low-temperature-onpolicy-smoke-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T06:08:18+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "786dec2733d7343a3ba332bf89556017d69e040e04a591912456fbd45abd90e2",
+    "code_paths": [
+      "scripts/alpha_holdem/train_v5.py",
+      "scripts/alpha_holdem/train_mp3_hybrid_h1.py"
+    ],
+    "captured_at": "2026-09-01T06:00:04+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/code.patch",
+    "patch_sha256": "5e82cab04404a78bb9e0f263c0d4279b816f45c7ec494030b6d7753f43a178ad",
+    "source_manifest": "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "a6fd41d2697ad5e56c07bb2fcffc924102209677fd80774999062f6d0733919f",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 6144,
+    "wall_time_seconds": 512.0,
+    "environment_training_hands": 10705,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "pooled_treatment_minus_control_bb100": 3.5179036458333335,
+    "pooled_paired_ci95_lower_bb100": -17.253190856803997,
+    "pooled_paired_ci95_upper_bb100": 24.28899814847066,
+    "positive_anchors": 2,
+    "reused_control_evaluation_hands": 6144
+  },
+  "artifacts": [
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/code.patch",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/source_manifest.json",
+    "scripts/alpha_holdem/test_hero_policy_temperature.py",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/latest.pt",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/run_manifest.json",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/h1_training_metrics.jsonl",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/opponent_assignments.jsonl",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/session_audit.json",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/eval",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/tests.xml",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/execution_code",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/run_eval.py",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/audit_review.py",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/analysis.json",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/reviewed_analysis.json",
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/result_summary.md"
+  ],
+  "notes": [
+    "T0.5 is a preregistered bounded mechanism smoke, not a claim that Standard10 sampled evidence transfers monotonically with temperature. Control artifacts and raw common-deck pairs are reused read-only. No Slumbot at smoke stage.",
+    "Reusing audited T1 source-KL control SHA d806394b... and its raw common-deck evaluation. Starting only T0.5 treatment with identical source, seed, fixed deal stream, adaptive league, optimizer, and physical target.",
+    "T0.5 completed2 updates at10705 physical hands; entropy0.1785/0.1906 versus T1 about0.42, final ref KL0.000290, no KL stop. Session audit PASS. Starting only new treatment common-deck eval against prior raw T1 control."
+  ],
+  "result": {
+    "summary": "Reused the audited T1 control, trained one matched T0.5 treatment for10,705 new physical hands, and evaluated6,144 new common-deck greedy hands. Audit and17 tests passed. Pooled treatment-control was +3.518 bb/100,95%CI[-17.253,24.289], with2/3 positive anchors.",
+    "conclusion": "Using a matched low-temperature behavior and PPO distribution is mechanically valid and produced the first positive cross-anchor direction among three deployment-alignment smokes. The estimate is imprecise and Standard10 point direction remains mildly negative, so this is evidence for a larger matched internal learning-curve pilot only, not Slumbot.",
+    "decision": "ADMIT_MATCHED_65K_LOW_TEMPERATURE_PILOT",
+    "next_step": "Run a matched approximately65k-physical-hands-per-arm corrected-v6 T1 versus T0.5 pilot with archived checkpoints and untouched larger common-deck multi-anchor evaluation. Preserve the current smoke artifacts and do not allocate Slumbot unless the larger gate confirms broad positive direction."
+  },
+  "tags": [
+    "deployment-alignment",
+    "ppo",
+    "temperature",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 8,
+    "command_count": 8
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 322975,
+      "sha256": "5e82cab04404a78bb9e0f263c0d4279b816f45c7ec494030b6d7753f43a178ad"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 459,
+      "sha256": "a6fd41d2697ad5e56c07bb2fcffc924102209677fd80774999062f6d0733919f"
+    },
+    "scripts/alpha_holdem/test_hero_policy_temperature.py": {
+      "type": "file",
+      "bytes": 3142,
+      "sha256": "012cbd3620390ba29fcc634cbc0e1fae86ea56a63efff338f2e7b1fa0fc2fda8"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/latest.pt": {
+      "type": "file",
+      "bytes": 133306996,
+      "sha256": "895bb8d090eff2533d3dfd65244d8ac0ed8a7f29521e22ef778610c4edc26753"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/run_manifest.json": {
+      "type": "file",
+      "bytes": 58812,
+      "sha256": "6e6dc50a56c1a14f0d23af9d8ba71653471a631dc6c06bc0e45e28c26433f2aa"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 52490,
+      "sha256": "834f2a6a166e9217239316d2fd8a5602dae8f47c9706414e69e39d06720f10f9"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/opponent_assignments.jsonl": {
+      "type": "file",
+      "bytes": 5128,
+      "sha256": "667a567417f7000982afffac210990f1896370e568829c0b5d4e1d0f057d19ec"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 5282,
+      "sha256": "90fe23c552668f2b12134a32b17603762a7a49e4bac98187c89640d99e97b5bf"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/eval": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 2893,
+      "sha256": "0dd46b6c07beb5c2eba7473f2cec5b3220d89129baf9ee4022c436e515a48db0"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/execution_code": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/run_eval.py": {
+      "type": "file",
+      "bytes": 689,
+      "sha256": "a9fe3bf587ff38583dd7eeaa4f0ca40b1ba2a12956c87408e72b003e52879075"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/audit_review.py": {
+      "type": "file",
+      "bytes": 6132,
+      "sha256": "605fa531c12b8435e05a5e36fcf3277d6171457408a02ee04e045ca54b7e9b4a"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 1467,
+      "sha256": "2e228529f782bde1ff870513192844b1c09bc8f16e6f77fac49d6642c6daa7fe"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 1462,
+      "sha256": "32854a1587a1b1334e7ff5682acf98e6a894f8ed7a0ec76f63c2d5c28d6ac846"
+    },
+    "research/experiments/v6-low-temperature-onpolicy-smoke-20260901/result_summary.md": {
+      "type": "file",
+      "bytes": 233,
+      "sha256": "4fc8761c142443758fb62da85ee7eebd4915f70dc2a029c1701c3c782d9546b5"
+    }
+  }
+}

@@ -1,0 +1,489 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-family-allocation-two-seed-geometric-20260907",
+  "title": "Matched family allocation two-seed geometric trial",
+  "status": "COMPLETED",
+  "created_at": "2026-09-07T22:42:04+00:00",
+  "updated_at": "2026-09-08T03:12:48+00:00",
+  "started_at": "2026-09-07T22:42:04+00:00",
+  "ended_at": "2026-09-08T03:12:48+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Preserving original-family conditional sampling mass while retaining added-family training may improve preservation without eliminating adaptation; test distribution allocation alone.",
+  "material_change": "Both capacity9, flat versus stratified0.50/0.25/0.25, seeds1/3 original qualified roots,262144 then1048576 extra physical hands; eight-anchor grouped fixed evaluation, no Slumbot.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-family-stratified-qualification-20260907",
+  "command": "python -B research/experiments/v6-family-allocation-two-seed-geometric-20260907/test_contract.py",
+  "commands": [
+    {
+      "command": "python -B research/experiments/v6-family-allocation-two-seed-geometric-20260907/test_contract.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:42:04+00:00"
+    },
+    {
+      "command": "python -B research/experiments/v6-family-allocation-two-seed-geometric-20260907/qualify.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:43:30+00:00"
+    },
+    {
+      "command": "python -B -u research/experiments/v6-family-allocation-two-seed-geometric-20260907/run_trial.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:44:06+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u research/experiments/v6-family-allocation-two-seed-geometric-20260907/run_trial.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:44:12+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 14957279 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed1_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:44:17+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 14957279 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\derived\\seed1_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T22:55:09+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 14956644 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\derived\\seed3_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T23:05:55+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 14956644 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed3_recent_stage2\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T23:15:47+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed1_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267011 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed1_control_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T23:25:08+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed1_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267011 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed1_expanded_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T23:34:01+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed3_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267031 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed3_control_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T23:42:57+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed3_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267031 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed3_expanded_stage1",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-07T23:52:05+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 15743076 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T00:01:08+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 15743076 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300300 --fixed-training-deal-stream --fixed-training-deal-start-index 39300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed3_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\latest.pt --seed 20263003 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T00:26:35+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-stratified-qualification-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 15743711 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T00:51:48+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -u C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-opponent-execution-mixture-two-seed-geometric-20260907\\train_candidate.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 15743711 --starting-stack 200 --env-version v6legacyv4obs --norm-layer gn --lr 0.0003 --ppo-epochs 2 --ppo-target-kl 0.01 --policy-advantage-clip 3 --source-policy-kl-coef 1 --source-policy-kl-direction current_to_reference --source-policy-reference-checkpoint C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --separate-preflop-head --mini-batch-size 16384 --entropy-coef 0.005 --entropy-floor 0.05 --ppo-replay-buffer-iterations 2 --ppo-replay-ratio 0.5 --k-best 9 --pool-strategy anchor-latest --initial-opponent-checkpoints C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\slumbot_free_anchor_position10m.pt C:\\Users\\a8594\\CardPilot_legacy_20260829\\selected_assets\\opponents\\corrected_cfr96_anchor10.pt --hero-policy-mode sample --self-play-fraction 0.25 --opponent-assignment per-group --opponent-groups 8 --adaptive-opponent-league --adaptive-league-ema 0.9 --adaptive-league-temperature-bb 2 --adaptive-league-min-probability 0.05 --opponent-assignment-provenance-file C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\opponent_assignments.jsonl --resume-assignment-state-from-provenance --rollout-mode multi --rollout-envs-per-worker 8 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026300100 --fixed-training-deal-stream --fixed-training-deal-start-index 37300000 --managed-deal-attempts --deal-attempt-registry C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\attempt_registry --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 2 --save-interval 1 --archive-checkpoint-every 64 --run-id v6_nashpg_static_seed1_20260903 --run-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2 --out C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --seed 20263001 --max-runtime-seconds 7200 --resume C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\latest.pt --allow-resume --no-reset-optimizer --preserve-resumed-optimizer-lr --validate-stream --source-policy-reference-refresh-updates 0 --preflop-trunk-gradient --opponent-greedy-mixture 0.0",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T01:16:30+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed1_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267012 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed1_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T01:43:22+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed1_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267012 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed1_expanded_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T01:59:58+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed3_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267032 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed3_control_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T02:18:04+00:00"
+    },
+    {
+      "command": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B -u C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v6_public_opponent_matched_eval.py --control C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-expanded-family-worker-smoke-20260907\\derived\\seed3_recent_stage2\\latest.pt --treatment C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\latest.pt --anchor standard10=C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt --anchor cfr4=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --anchor legacy_iter16=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-iter16-greedy-fresh20k-20260901\\frozen\\final.pt --anchor legacy_mixed65k=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-legacy-contract-mixed-league-65k-pilot-20260901\\training\\latest.pt --anchor moving_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-control-20260904\\moving256_stage2\\latest.pt --anchor moving_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-phase-held-reference-seed3-replication-20260905\\moving256_stage2\\latest.pt --anchor half_lr_s1=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed1_half_stage2\\latest.pt --anchor half_lr_s3=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-full-step-size-1m-continuation-20260905\\seed3_half_stage2\\latest.pt --pairs-per-anchor 1024 --seed 20267032 --device cuda --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\eval_seed3_expanded_stage2",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T02:45:42+00:00"
+    },
+    {
+      "command": "python -B -u research/experiments/v6-family-allocation-two-seed-geometric-20260907/post_analysis/terminal_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:06:16+00:00"
+    },
+    {
+      "command": "python -B -m pytest research/experiments/v6-preflop-actor-trunk-two-seed-geometric-20260906/post_analysis/test_review.py research/experiments/v6-family-allocation-two-seed-geometric-20260907/test_contract.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-08T03:09:56+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "47cb6f08e505b42975873d0d45311ea57be077409037d00d0f95c16761ac079b",
+    "code_paths": [
+      "research/experiments/v6-family-allocation-two-seed-geometric-20260907"
+    ],
+    "captured_at": "2026-09-07T22:42:04+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-family-allocation-two-seed-geometric-20260907/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-family-allocation-two-seed-geometric-20260907/source_manifest.json",
+    "source_manifest_sha256": "9eafc8386b23a4baba8e5fdb3536274509bed8359650d969d59b0dfb9fcbb364",
+    "source_files": 4
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 262144,
+    "wall_time_seconds": 16244.0,
+    "training_hands": 4201398,
+    "transition_hands": 3742904,
+    "final_qualification_hands": 0,
+    "replay_rows": 6619379,
+    "no_decision_hands": 456521,
+    "residual_worker_tail_hands": 1973
+  },
+  "metrics": {
+    "contract_tests_passed": 4,
+    "controller_phase": "FIXED_1M_COMPLETE_RESEARCH_REVIEW",
+    "training_wall_seconds": 8382.95364219998,
+    "controller_wall_seconds": 15504.763306200039,
+    "terminal_review_passed": true,
+    "original_adaptation_anchor_reports_valid": false,
+    "corrected_stage2_continuation_gate_valid": true
+  },
+  "artifacts": [
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/protocol.md",
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/code.patch",
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/source_manifest.json",
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/qualify.py",
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/qualification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\ownership.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\input_contract.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_expanded_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_control_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_expanded_stage1\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\stage1_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\verification.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\initial_resume_gate.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_expanded_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_control_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_expanded_stage2\\command.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\stage2_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\controller_result.json",
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/post_analysis/terminal_review.py",
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/post_terminal_review.json",
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/post_analysis/conclusion.md"
+  ],
+  "notes": [
+    "Four controller contract tests passed: equal capacity9, original-root source selection, stage2 cumulative dose/resume, fixed order/new seed set. Training not launched: require source/parent hash preflight, prior-deck overlap scan and namespace inventory before controller qualification. Legacy arm label expanded denotes stratified allocation, not different capacity.",
+    "Preflight passed: both paired nine-slot roots differ only allocation weights, counters3116 and14695135/14694500 preserved, raw prefixes equal, future32768 unique evaluation decks checked against retained corpus, historical attempt namespaces inventoried. Launching preregistered single-owner paired training and grouped evaluation; no automatic retries or Slumbot.",
+    "All fixed training and evaluation jobs exited; independent terminal-only review now checks actual resumed model/Adam/replay, assignment RNG, capacity9 both arms, family masses, raw paired CI, deterministic eval decks and prior overlap. No new poker hands.",
+    "Terminal reviewer first invocation exited before checkpoint review: helper imports bound workspace checkpoint I/O before frozen wrapper installation. Fixed reviewer import ordering only; no training/eval rerun, no output report existed, original inputs unchanged.",
+    "Independent terminal review detected actual frozen summary defect: summarize_rows hardcodes preservation ANCHORS, so adaptation by_anchor buckets are zero-sample legacy labels and adaptation broad-collapse gate was ineffective. Original reports preserved. Pooled/seat values to be verified independently; corrected actual-anchor statistics and retrospective gate will be appended, not silently overwritten."
+  ],
+  "result": {
+    "summary": "Fixed allocation trial complete:4201398 physical training and262144 internal evaluation hands; independent terminal review passed with preserved/corrected adaptation anchor-summary defect.",
+    "conclusion": "No replicated treatment benefit:stage2 preservation stratified-minus-flat S1 -2.496 CI[-20.441,15.448],S3 -17.267[-33.720,-0.815];adaptation S1+30.890[2.350,59.430],S3-13.922[-31.315,3.471]. Pooled and seat statistics independently agree. Legacy hardcoded anchor names invalidated adaptation by-anchor reports and their original gates; corrected actual-anchor severe-collapse gates remain false. Negative Seed3 contrast is versus control,not a proven own-root regression.",
+    "decision": "Do not promote stratified allocation or automatically expand4M/Slumbot. Preserve original reports with explicit correction; completed experiment is not goal success.",
+    "next_step": "Qualify isolated fail-closed arbitrary-anchor reporting and bound historical impact with zero new poker hands; then prioritize own-root replicated learning and proxy/external calibration over further allocation tuning."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 22,
+    "command_count": 22
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/protocol.md": {
+      "type": "file",
+      "bytes": 2378,
+      "sha256": "f4ed21b81b5f9c4bbe002220a714eab2b5bc04c0bbc8563e885efd3ef1c98fd2"
+    },
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/source_manifest.json": {
+      "type": "file",
+      "bytes": 976,
+      "sha256": "9eafc8386b23a4baba8e5fdb3536274509bed8359650d969d59b0dfb9fcbb364"
+    },
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/qualify.py": {
+      "type": "file",
+      "bytes": 4283,
+      "sha256": "5096828070db76f3fd5ca63d415328b32213d96901aa545c6aadd0357c9c9a70"
+    },
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/qualification.json": {
+      "type": "file",
+      "bytes": 96608,
+      "sha256": "e08f380ef55fb1991d4deb72347378181ec5267e6b2b28e9d9074a009e4c7b4a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\ownership.json": {
+      "type": "file",
+      "bytes": 330,
+      "sha256": "8b1b6ee0b007cbe9f0acdece1dd6c7c343822afb2baac2064863d62a0e8106fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\input_contract.json": {
+      "type": "file",
+      "bytes": 61258,
+      "sha256": "b54cc2b982de2b3dec8b84b1674e8cb0603cc3a4e918b51be06b4e35581ed34b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3605,
+      "sha256": "57d84a330944b6d30b6d8cf855e42737d4a60523eec64b9e4bfc05dcfdcec6f8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1174655,
+      "sha256": "ce2b6019ee208eeb67831602f925ebd2ab8fbf35d450a9a55ef30d9d3ddd047f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "13306e445e4362d9cd583acc666a49c129462c96bf3a47a79041dc871844f47f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3597,
+      "sha256": "f290f80e702ebd548b3c0e8f71818800ea8301a4d389cdc9ec24b687e5791f75"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1138212,
+      "sha256": "1e44e322b3eb7f612d6f66ee2ab0c105f6e5c1e8297974fbe4b16d0ab0c9aa5e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "848a3586e54b8f5fa6b051abbdfc2dcbfc08d62381d9bb411d6686b333a5d86c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3597,
+      "sha256": "2e9a7f6314363deb20f37143e7cba6fad99a34b50c1beb0639aa4cf85526bda2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1136493,
+      "sha256": "09f50a82fe5f24d87d3113d22ee8c0c92e9d36636b8b061a1745406295ca7387"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "a355c4c68b926a480a8744640eff7947976ea8755248ab50b5ee6f131a6072f2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 3605,
+      "sha256": "e2bc11547fb47da4b492e9f50aa9474ae2644e261213bba621fe8c16fb5861b6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\verification.json": {
+      "type": "file",
+      "bytes": 1177568,
+      "sha256": "aebe22c354b77e7248ffa6b005a376029daa9faf602008d16bb06f081cc3c983"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage1\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "f322a48f30c1303ab398e7f3dc82f1d8080f6145c778e87d8a63eb1a64a7aa74"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1939,
+      "sha256": "ea6c1ea3c0a78b422599516b6f1499833351b68e666eca26a5107d8387382ba3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_expanded_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1941,
+      "sha256": "022656516dfc4dc4d7a6fd1e7104a710cb11747c9eae104106bcfc3340bfdc6d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_control_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1939,
+      "sha256": "703ca9e83f3382db78ec5d16981e71b94fd0fd2d593932f208e84ae7ab71152c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_expanded_stage1\\command.json": {
+      "type": "file",
+      "bytes": 1941,
+      "sha256": "2025ec5877c67f0d910438bbceb5f78fd794279828a8edda166fac809714c119"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\stage1_analysis.json": {
+      "type": "file",
+      "bytes": 26425,
+      "sha256": "2e93b780a7c17458545aebbb544d22c43ba39a40545535e9589546117a2544b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3605,
+      "sha256": "9e36f43289fadd3ea9fdf4d909fceb68c4707c353568ee989594ab928f4e5f8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3514946,
+      "sha256": "95c87a974c748ff9c40dceef08c9092664956e31b9ca1d1c28dd5129d72f7b5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_control_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "64b9a95364e295ea3031ab64b8caa84b25f090f6ad66768a1aa88d886623925d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3595,
+      "sha256": "20f4217f668fa05f84ac486eeebb68df875e69188f6f33aeb87866a4c5d1e6ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3302818,
+      "sha256": "d7fe777d86ad56b23940b5046c9f3c7dd5f8c06868ee1297131f0462d5cca5af"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed3_expanded_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "03f9701fe9485560637cc8a41082ebdef9500803af976b1ba34edfde07729dc6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3595,
+      "sha256": "3e8522069686f466616f26e9185957dd016e9a83d4bbd60c19407236acee68b5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3386263,
+      "sha256": "b911fa36871ddc5169836f2d5ff1d1a1ed1a020cd5279cf241b3a344c9a29a20"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_expanded_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "06164c7567fef1c4e4ea670369a2da009cd4be4bf0e46f9b76a4b0188769f0d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 3605,
+      "sha256": "f1118795b2c58ba6c47e8f2cda80af25206c6d18ef52ef45f704fd71326024a9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\verification.json": {
+      "type": "file",
+      "bytes": 3474153,
+      "sha256": "0d852347612d4936c2004d696e9b3c93e38861a7b831740c0340000ed86f52e9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\seed1_control_stage2\\initial_resume_gate.json": {
+      "type": "file",
+      "bytes": 840,
+      "sha256": "d31bcce17c5dfe4e1c545034c9cbff6c00053ca7a9dd7f5fe17bea4a2977e506"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1939,
+      "sha256": "f1a449a12220c6dce10e85552fda76c8b9334f9c0fe0eeb3d5fac19ec8dfa979"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed1_expanded_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1941,
+      "sha256": "ae07f4b5613c2ab1078ec88178ca9d5ce3cd6786d2286749ec7f0af9f7266414"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_control_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1939,
+      "sha256": "c9b9233cc695b309b8f9c5924f9a436d3ff4b7ac689b85609cd1dad4e6364991"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\job_eval_seed3_expanded_stage2\\command.json": {
+      "type": "file",
+      "bytes": 1941,
+      "sha256": "af855c6f3fd9771f820cb6bc43bfca690ce54235425b2ce9d181799001e9fc23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\stage2_analysis.json": {
+      "type": "file",
+      "bytes": 26387,
+      "sha256": "50cb2259d55f3f1bff286569d882a4e3d52537dcd2d7e1399cb0cc2faf484303"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-family-allocation-two-seed-geometric-20260907\\controller_result.json": {
+      "type": "file",
+      "bytes": 20419786,
+      "sha256": "b2a855c31f3c9978780d9c7db59ccd06229cf258887ed236af7c1bde91556ca9"
+    },
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/post_analysis/terminal_review.py": {
+      "type": "file",
+      "bytes": 17038,
+      "sha256": "6373c03f22625e46966822e8345acca1b5e0b3b1f8bb7d1308257b8b69a4bbac"
+    },
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/post_terminal_review.json": {
+      "type": "file",
+      "bytes": 252051,
+      "sha256": "050996c2a862354524e31b16cb9463a77de7fc53cf7136c2461dccf90d1af2d8"
+    },
+    "research/experiments/v6-family-allocation-two-seed-geometric-20260907/post_analysis/conclusion.md": {
+      "type": "file",
+      "bytes": 3267,
+      "sha256": "efeebf6ba243df7f723eac066fcaf2fca7c9ed7a385f1d20b9e8feca61a70675"
+    }
+  }
+}

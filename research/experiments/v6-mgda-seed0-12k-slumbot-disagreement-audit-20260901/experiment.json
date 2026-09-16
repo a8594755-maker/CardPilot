@@ -1,0 +1,142 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901",
+  "title": "MGDA seed0 12k Slumbot-state disagreement audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T18:57:39+00:00",
+  "updated_at": "2026-09-01T19:01:23+00:00",
+  "started_at": "2026-09-01T18:57:39+00:00",
+  "ended_at": "2026-09-01T19:01:23+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The fresh5k external loss is concentrated in a small, identifiable subset of residual-induced action disagreements from frozen Standard10, especially in seat0, rather than reflecting uniform degradation across the live state distribution.",
+  "material_change": "Replay frozen Standard10 on every one of the 14,975 untouched MGDA Slumbot decision states, compare greedy actions and physical action distributions to the exact deployed dual-contract policy, and stratify disagreements by seat, street, action transition, and observed hand outcome without collecting new hands or updating weights.",
+  "baseline": "Frozen MGDA seed0 12k fresh5k scored -54.53 bb/100 CI [-92.619,-16.441], seat0 -84.046 and seat1 -24.920. Its outcome-blind source panel disagreement was 3.5482% at 12k.",
+  "source": "research/experiments/v6-mgda-seed0-12k-dual-greedy-fresh5k-20260901/sessions",
+  "parent_id": "v6-mgda-seed0-12k-dual-greedy-fresh5k-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_slumbot_disagreement_audit.py --base-checkpoint models/baseline/standard10/latest.pt --deployment-checkpoint research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/dual_contract_seed0_12k_deployment.pt --session-root research/experiments/v6-mgda-seed0-12k-dual-greedy-fresh5k-20260901/sessions --out-dir research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_slumbot_disagreement_audit.py --base-checkpoint models/baseline/standard10/latest.pt --deployment-checkpoint research/experiments/v6-mgda-dual-contract-deployment-feasibility-20260901/run/dual_contract_seed0_12k_deployment.pt --session-root research/experiments/v6-mgda-seed0-12k-dual-greedy-fresh5k-20260901/sessions --out-dir research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:57:39+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:01:23+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1f2a10cb78cfe214934ea4316fa818348d103139162618feb01e76d9d6771d6f",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T18:57:39+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/source_manifest.json",
+    "source_manifest_sha256": "4bebf71a1eea1d4319db2b2eaa793b674f5abff38b737c2f73665a95baa1e112",
+    "source_files": 142
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 12288,
+    "offline_samples": 14975,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 224.0,
+    "slumbot_hands": 0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "reused_slumbot_hands": 5000,
+    "decision_rows": 14975,
+    "disagreements": 579,
+    "disagreement_rate": 0.0386644407345576,
+    "hands_with_disagreement": 549,
+    "hand_disagreement_rate": 0.1098,
+    "disagreement_hand_bb_per_100": -187.1584699453552,
+    "disagreement_hand_ci95_low_bb_per_100": -355.26164512863556,
+    "disagreement_hand_ci95_high_bb_per_100": -19.055294762074823,
+    "agreement_hand_bb_per_100": -38.17119748371153,
+    "disagreement_hand_loss_fraction": 0.19276819923371646,
+    "negative_supported_seat_street_strata": 6,
+    "mean_tv": 0.027230793298986467,
+    "mean_kl_candidate_to_base": 0.003720897341244913,
+    "tests_passed": 240
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/code.patch",
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/run/summary.json",
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/run/decision_comparisons.jsonl.gz",
+    "scripts/alpha_holdem/v6_dual_contract_slumbot_disagreement_audit.py",
+    "scripts/alpha_holdem/test_v6_dual_contract_slumbot_disagreement_audit.py"
+  ],
+  "notes": [
+    "This reuses all 5,000 prior hands and is not a new evaluation. A live disagreement rate above 5.5482% (panel rate plus 2 points) is a preservation-distribution warning. Call loss concentration localized only if disagreement hands contribute at least 60% of total negative reward while disagreements remain at most 10%; broad proxy failure requires negative disagreement-associated means in at least three supported seat/street strata. Outcome correlations are descriptive, not counterfactual causal estimates.",
+    "Top residual transitions were call->raise b600 (137/579), call->fold (104/579), and check->raise b200 (103/579). These are descriptive correlations on candidate-induced states and are not authorized benchmark-specific action rules."
+  ],
+  "result": {
+    "summary": "All 14,975 decisions from the prior 5,000 untouched Slumbot hands replayed exactly under deployment SHA 78a23886 and base SHA 91b0c587. MGDA disagreed with Standard10 on 579 decisions (3.866%) across 549 hands. Disagreement hands averaged -187.158 bb/100 CI[-355.262,-19.055], but held only 19.277% of total negative reward; live disagreement did not exceed the panel-plus-2pp threshold. Six supported seat/street strata had negative disagreement-associated point estimates. Full suite: 240 passed.",
+    "conclusion": "The external failure is not explained by catastrophic distribution-dependent preservation drift or one concentrated action bug. Sparse residual changes are associated with very poor outcomes across broad contexts, while most raw losses occur on agreement hands. This rejects the use of the positive internal MGDA curve as a sufficient external promotion proxy; it does not reject MGDA common-descent geometry or prove counterfactual action values.",
+    "decision": "REJECT_INTERNAL_MGDA_SLOPE_AS_SUFFICIENT_EXTERNAL_PROXY",
+    "next_step": "Run a frozen seed0 8k external dose control under the identical dual-contract greedy journal. Comparing the 8k parent with the already frozen 12k result is the highest-information test of whether the final 4k MGDA continuation specifically reversed external performance or whether the residual route already lacked Slumbot transfer at 8k. Keep the test small and interpret independent-sample uncertainty explicitly."
+  },
+  "tags": [
+    "diagnostic",
+    "dual-contract",
+    "external-alignment",
+    "slumbot-state"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 26602,
+      "sha256": "4bebf71a1eea1d4319db2b2eaa793b674f5abff38b737c2f73665a95baa1e112"
+    },
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 8481,
+      "sha256": "244537e3293ca880646a0007f0796f779cc147f88ef5549fe2b5f882f6a5898c"
+    },
+    "research/experiments/v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901/run/decision_comparisons.jsonl.gz": {
+      "type": "file",
+      "bytes": 462654,
+      "sha256": "87babf81774becc57f91092169fed071c30782283f5018dcfa098e7ea8eee851"
+    },
+    "scripts/alpha_holdem/v6_dual_contract_slumbot_disagreement_audit.py": {
+      "type": "file",
+      "bytes": 10893,
+      "sha256": "097da3ea8ac53558f21f0b7ca8ff7f4c621c4197ddaf2cf775ceeaaeca5f8438"
+    },
+    "scripts/alpha_holdem/test_v6_dual_contract_slumbot_disagreement_audit.py": {
+      "type": "file",
+      "bytes": 544,
+      "sha256": "747886f7d0afa19a736b5f228f6b8771b670c1dbb71504b8c1ad011e31402caf"
+    }
+  }
+}

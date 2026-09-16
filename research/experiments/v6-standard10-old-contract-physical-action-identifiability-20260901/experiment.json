@@ -1,0 +1,138 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-standard10-old-contract-physical-action-identifiability-20260901",
+  "title": "Standard10 old-contract physical-action identifiability",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T10:09:54+00:00",
+  "updated_at": "2026-09-01T10:15:26+00:00",
+  "started_at": "2026-09-01T10:09:54+00:00",
+  "ended_at": "2026-09-01T10:15:26+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "On general simulated 200bb v6 states, exact Standard10 old-contract greedy actions can be reconstructed and mapped to legal v6 physical actions with at least 99 percent state parity, at least 99 percent action mappability, and bounded sizing error; if not, no learned bridge should be trained. This is an execution-contract diagnostic, not Slumbot imitation, and prior single-teacher fresh20k -18.5025 remains negative evidence.",
+  "material_change": "Generate deterministic general-policy v6 trajectories with no Slumbot outcomes, reconstruct each live decision under the frozen Standard10 v4/preflop_pot_fraction_v2 contract, map its chosen physical action to the nearest legal v6 action, and compare against the same weights rebound to v6. No environment training hands and no network calls.",
+  "baseline": "Historical Standard10 old-contract greedy fresh20k -11.4275 bb/100 CI[-28.7124,5.8574]; exact v6 rebound greedy fresh5k -96.6832 bb/100. Single imitation-teacher fresh20k -18.5025 is explicitly non-supportive.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "research/experiments/v6-rebound-standard10-greedy-fresh5k-slumbot-20260901/frozen/final.pt",
+  "command": "python research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/run_diagnostic.py --states 50000 --seed 2026090107 --device cpu",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/run_diagnostic.py --states 50000 --seed 2026090107 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:09:54+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/audit_evidence.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T10:15:26+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e4ed1c179f84f8f3e9abe1c1651ef8afffd9ecea6113ee26c243e98abcaedd12",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T10:09:54+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/code.patch",
+    "patch_sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9",
+    "source_manifest": "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/source_manifest.json",
+    "source_manifest_sha256": "29be33b6e9db7fa51c01ea7ae2d0fbfac3fd6da46755978069fac52c24adb0e8",
+    "source_files": 74
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 332.0,
+    "environment_training_hands": 0,
+    "slumbot_hands": 0,
+    "target_states": 50000,
+    "evaluated_states": 50000
+  },
+  "metrics": {
+    "state_parity_gate": 0.99,
+    "action_mappability_gate": 0.99,
+    "state_parity": 1.0,
+    "action_mappability": 1.0,
+    "exact_legal_action_rate": 1.0,
+    "overall_greedy_agreement": 0.86742,
+    "preflop_greedy_agreement": 0.6104,
+    "flop_greedy_agreement": 0.9472,
+    "turn_greedy_agreement": 0.94016,
+    "river_greedy_agreement": 0.97192,
+    "p95_sizing_error_postcall_pot": 0.0
+  },
+  "artifacts": [
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/code.patch",
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/source_manifest.json",
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/analysis.json",
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/raw_states.jsonl.gz",
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/artifact_manifest.json",
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/evidence_audit.json"
+  ],
+  "notes": [
+    "Outcome-blind preregistration. If state reconstruction or physical-action mapping fails its gate, finish without training. Do not infer strength from agreement alone."
+  ],
+  "result": {
+    "summary": "Deterministic four-street 50,000-state general v6 simulation established exact old-parser state parity, 100% old-action legal mappability, and zero physical sizing error. The same learned tensors nevertheless agreed on only 86.742% of greedy actions after v6 rebinding, dominated by preflop agreement of 61.04%; postflop agreement was 94.02%-97.19%. Independent raw-row/hash audit passed.",
+    "conclusion": "The historical Standard10 clue is identifiable and execution-contract-specific: physical rules and action tables are not the source of the loss; v4-versus-v6 observation semantics, especially preflop action-history encoding, materially change decisions from identical learned weights. This does not prove strength and does not overturn the negative -18.5025 imitation-teacher result.",
+    "decision": "ADMIT_GENERIC_LEGACY_OBSERVATION_BRIDGE_PARITY_GATE_ONLY",
+    "next_step": "Implement a generic frozen inference bridge that reconstructs the audited v4 observation from v6 ChipState and verify exact parity against the old deployment path on deterministic states. Only if exact should it receive one small fresh greedy Slumbot calibration; do not train an imitation policy first."
+  },
+  "tags": [
+    "execution-contract",
+    "outcome-blind",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12795324,
+      "sha256": "48733f477d67d7c9ae69649358d6ee62ba1c0bb5b6a513335dfd1f672ba1bab9"
+    },
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13653,
+      "sha256": "29be33b6e9db7fa51c01ea7ae2d0fbfac3fd6da46755978069fac52c24adb0e8"
+    },
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/analysis.json": {
+      "type": "file",
+      "bytes": 4830,
+      "sha256": "6a54e88fea124d60a6bc5d5372656490c6e737c81cd1ab41f00fc51cd97389cf"
+    },
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/raw_states.jsonl.gz": {
+      "type": "file",
+      "bytes": 4729704,
+      "sha256": "4f58fd6fcb803956ed5588c918ad631bc61ac6686ebb7c17a24d124ab5d8b02a"
+    },
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/artifact_manifest.json": {
+      "type": "file",
+      "bytes": 219,
+      "sha256": "80e77f2931d642a6f1cd624f7796db76f63a107733075ad7e0e587a707882d80"
+    },
+    "research/experiments/v6-standard10-old-contract-physical-action-identifiability-20260901/evidence_audit.json": {
+      "type": "file",
+      "bytes": 2026,
+      "sha256": "45eb7c769a0713c47609b951b1b3b8c97e81c9b50935b695a75083999e94bf68"
+    }
+  }
+}

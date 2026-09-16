@@ -1,0 +1,438 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-historical-average-distillation-20260831",
+  "title": "Historical behavior average distillation",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T16:08:06+00:00",
+  "updated_at": "2026-08-31T16:55:00+00:00",
+  "started_at": "2026-08-31T16:08:06+00:00",
+  "ended_at": "2026-08-31T16:41:09+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Test a compact learned historical policy mixture before independent strength evaluation.",
+  "material_change": "Freeze17 milestone teachers and collect262144native training hands plus8192supervised validation hands for12fixed epochs.",
+  "baseline": "Completed control25 trajectory and corrected-v6 source anchor0",
+  "source": "Heinrich and Silver2016 NFSP historical behavior averaging motivation",
+  "parent_id": "v6-selfplay-transfer-fresh40k-slumbot-20260831",
+  "command": "python -m pytest research/experiments/v6-historical-average-distillation-20260831/test_temporal_average.py -q",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/v6-historical-average-distillation-20260831/test_temporal_average.py -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T16:08:06+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-historical-average-distillation-20260831/run_distillation.py research/experiments/v6-historical-average-distillation-20260831/review_finish.py research/experiments/v6-historical-average-distillation-20260831/temporal_average.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T16:10:39+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-historical-average-distillation-20260831/run_distillation.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T16:10:39+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\test_temporal_average.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T16:10:50+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-historical-average-distillation-20260831/check_startup.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T16:14:05+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-historical-average-distillation-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T16:41:05+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-historical-average-distillation-20260831/preregistration.md",
+      "research/experiments/v6-historical-average-distillation-20260831/temporal_average.py",
+      "research/experiments/v6-historical-average-distillation-20260831/test_temporal_average.py",
+      "research/experiments/v6-historical-average-distillation-20260831/run_distillation.py",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T16:08:06+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-historical-average-distillation-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-historical-average-distillation-20260831/source_manifest.json",
+    "source_manifest_sha256": "bcf7b6c2b5ffa14bc7dd61f9f46d2e3ee62f919db496184dd7d83bea1fb6ccac",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 262144,
+    "lineage_training_hands": 0,
+    "offline_samples": 262144,
+    "evaluation_hands": 8192,
+    "wall_time_seconds": 1983.0,
+    "slumbot_hands": 0,
+    "supervised_validation_hands": 8192,
+    "startup_model_replay_queries": 489,
+    "readiness_policy_state_queries": 3264,
+    "generated_training_decisions": 1892904,
+    "supervised_validation_decisions": 59167,
+    "strength_evaluation_hands": 0
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-historical-average-distillation-20260831/code.patch",
+    "research/experiments/v6-historical-average-distillation-20260831/source_manifest.json",
+    "research/experiments/v6-historical-average-distillation-20260831/preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher00.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher01.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher02.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher03.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher04.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher05.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher06.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher07.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher08.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher09.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher10.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher11.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher12.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher13.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher14.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher15.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher16.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\batch_qualification.json",
+    "research/experiments/v6-historical-average-distillation-20260831/check_startup.py",
+    "research/experiments/v6-historical-average-distillation-20260831/startup_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\reservoir.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\training_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_hands.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\check_startup.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\collection_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\fit_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\fit_progress.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\latest.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\run_distillation.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\startup_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\startup_review.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\temporal_average.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\test_temporal_average.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\training_metrics.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_epoch01_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_epoch04_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_epoch12_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_hand_ce_improvement.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_source_ce.npy",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Preflight15unit tests passed with zero new hands. Collector selects actual checkpoint physical counters rather than legacy filename markers. Whole-episode average inspired by NFSP sections2.3/3 https://arxiv.org/html/1603.01121v2 is not full NFSP or a convergence claim. No live AlphaHoldem workload remains from fixed40k.",
+    "Bounded startup review reads only immutable first64already-generated training hands on CPU. Zero new hands, no collector/model mutation. Added reviewer is separately hashed and does not change any active captured source.",
+    "Early immutable64-hand prefix audit PASS:489canonical CPU model replays,0selected-action disagreements,maximum probability deviation1.2742e-6,all teacher/deck/uniform/terminal checks pass;0new validation hands and active collector untouched.",
+    "Fixed data collection complete:262144new native training hands and8192disjoint supervised validation hands.1892904training decision rows generated,262144retained by Algorithm-R reservoir;59167validation decisions. Full trace/reservoir audit now running before any student optimizer updates.",
+    "Learning-curve interpretation after fixed completion: validation CE was0.809614(epoch1),0.803911(epoch4),0.813672(epoch12), while training CE fell0.888583 to0.792664 to0.776850. Late training loss improvement did not improve heldout fit; this does not justify blindly adding supervised epochs. Epoch12 remains the preregistered frozen candidate with no earlier-epoch rescue. This fit observation is not external strength evidence."
+  ],
+  "result": {
+    "summary": "Historical average learned-policy fit completed262144training-data hands and8192supervised validation hands: ADMIT_SEPARATE_STRENGTH_DIAGNOSTIC.",
+    "conclusion": "Historical behavior fit only. No new best-response learning, equilibrium guarantee or measured strength gain.",
+    "decision": "ADMIT_SEPARATE_STRENGTH_DIAGNOSTIC",
+    "next_step": "Freeze epoch12 for separate internal diagnostic/deployment parity and20k external pilot; no100k yet."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 6,
+    "command_count": 6
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-historical-average-distillation-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-historical-average-distillation-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1154,
+      "sha256": "bcf7b6c2b5ffa14bc7dd61f9f46d2e3ee62f919db496184dd7d83bea1fb6ccac"
+    },
+    "research/experiments/v6-historical-average-distillation-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 5428,
+      "sha256": "85381193b72a0c21b4647928639cb1e0aace8e9ec92c8c8ecc9c26269ff4e1a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 14078,
+      "sha256": "798b21ddb61ed22f5203bb12a05234d007e790e9915ffcc427a8b819e5e78ae2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 369322,
+      "sha256": "d5bc6e1f51144202ff5837536f0d7660f424fb9b48271ca5bc7dc071d04acbae"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 24005,
+      "sha256": "3b83eeb2f0a2927dc156d1474f3f52819e7a2c4f1f82f88e5565a17990f2b687"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 2848,
+      "sha256": "14e68a6736d70f33305de9039e366e8dbe007f301b2f461ddd8447d45e15481b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 10900,
+      "sha256": "f8d1b89f570ed178f4eb8d2ac701153e761f30f7304c5d738e153fc2aa003c9a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher00.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher01.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "c3ad1cc5ede7c31af5ff770c534a85279e27342a3656b41ea8a7cee0be496590"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher02.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "8292b45e35dcdbd89ffd84f32d54b25afb6f15e3cc80e3931d2a67c9e45b2bb5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher03.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "e5149f46253ac5c979d6ca5c718ceb5b65b149a425cef8922a7bd7f99299b289"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher04.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "2b200e0c6632fee0dfd9f00fe6d29e10a643a67b304d2ff1cd26debd49600e15"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher05.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "1190ccf129e33a0f0af0812c14f6658920f40cd1efe3b158143445c01b685e0b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher06.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "d965072fa359f30c9161c40e9da0798e36104a52021608c482da40831d69ee91"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher07.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "6d91901581acf906c00eb313c3edaaf6c5f324169ac23664dcbc0a448a4f692e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher08.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "fafe2f37348b99814886910c896cc88d0241a1d0b1670b8d7c9199e9fcefab91"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher09.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "fdf0f9cf6a677735bd72177af19583c538f136fa209bcb9e30d594cab3c29de4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher10.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "84b731c809dff3804d45b7b6e465d9ebbb41c95bd5c112e665ac6c29a3d875d5"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher11.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "8e913217b8b41b823e03fda2916a5dcf60cfd1f724b78f95078af3fcc10886fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher12.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "b28f3864f6fea0b0deb747705ac02bf3fbcd77524ec3946e9119beeef11d1ada"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher13.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "3985ffc803fd713919ac8051f7ad969a1a29054c2880d8069c605ac69faa4262"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher14.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "e23287fa9e6b836d244ad087a4a2c39907321630a2cc30cf2eb96bb5a7b2f7a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher15.pt": {
+      "type": "file",
+      "bytes": 198593774,
+      "sha256": "7bd3ac75e9058040c5367b0066fa34de207f3fac815c86d74367f99dd16a9f5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\teachers\\teacher16.pt": {
+      "type": "file",
+      "bytes": 198567368,
+      "sha256": "a3f4f21eb7a0eb0e6bcaeb4929f06951ed1ac0bd74c0afd1920f5320e386d553"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\batch_qualification.json": {
+      "type": "file",
+      "bytes": 2950,
+      "sha256": "14cf2045a22815ee1cd382c5b29e03838394845e1563847cdf787846297983bf"
+    },
+    "research/experiments/v6-historical-average-distillation-20260831/check_startup.py": {
+      "type": "file",
+      "bytes": 3648,
+      "sha256": "89a889ef8d853f030dc6706991d6cd1b5962ef162a31733a3a4a67dddbd45108"
+    },
+    "research/experiments/v6-historical-average-distillation-20260831/startup_review.json": {
+      "type": "file",
+      "bytes": 427,
+      "sha256": "8360a8c63b128864cb035c2e691cb800a5f717d8b2b0c2e9e7a157badab765e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\reservoir.pt": {
+      "type": "file",
+      "bytes": 902611240,
+      "sha256": "526dd1cbe6cdb66d5ea16e347b39640b032f17984bb2d86ad92681f019afb8fc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\training_hands.jsonl": {
+      "type": "file",
+      "bytes": 793840697,
+      "sha256": "c9409318834c1e16ce9756756828b2b5dd3b1c2deca987214b126bcffb3bf3ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_hands.jsonl": {
+      "type": "file",
+      "bytes": 24799271,
+      "sha256": "4f3764652d0d72bdde921d04c757af93c827db3cf29a46f42e15f64e447ec35b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\check_startup.py": {
+      "type": "file",
+      "bytes": 3648,
+      "sha256": "89a889ef8d853f030dc6706991d6cd1b5962ef162a31733a3a4a67dddbd45108"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\collection_audit.json": {
+      "type": "file",
+      "bytes": 675,
+      "sha256": "9ed327207dd83c9460d2e44a6d2da3a66615fa023316b3bd4b5ed92c8c6795b8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 4293,
+      "sha256": "362d1392aa6d818890443333146879362824e5af20fba9413639186dcdda7ef7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 559,
+      "sha256": "cd869ee1631719f55e6c65a156651773081d46174a9069fdfca8db09961ba0bb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\fit_analysis.json": {
+      "type": "file",
+      "bytes": 3764,
+      "sha256": "ae7fd81a5630c92e9461c5085dfbc3fabcbada18552ec7a21a48b95ea4ff0fb2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\fit_progress.json": {
+      "type": "file",
+      "bytes": 72,
+      "sha256": "6ef10bdfd9070efe8c3df0ae5165f5d346c0a9b0b3e032fbe49cae4cb3b8a37b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\latest.pt": {
+      "type": "file",
+      "bytes": 98356678,
+      "sha256": "cd7ce2b27cf3a86e96141432c92c6f92a3eb923dce519d1f1128af5acbb2364b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 5428,
+      "sha256": "85381193b72a0c21b4647928639cb1e0aace8e9ec92c8c8ecc9c26269ff4e1a8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 8310,
+      "sha256": "fc35c73d16fc879875dfd85320aea15082d895833506d6832af2cfb55d321a07"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\run_distillation.py": {
+      "type": "file",
+      "bytes": 20730,
+      "sha256": "c46e3aae8e15e63cd26b55f0af92fbc84d896fa5148171895da71aceca8a435f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\startup_audit.json": {
+      "type": "file",
+      "bytes": 227,
+      "sha256": "1dd65a4b3d6aba4ae531150c1dabddbdc349e07d30c88178da74d757f6aa9da0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\startup_review.json": {
+      "type": "file",
+      "bytes": 427,
+      "sha256": "8360a8c63b128864cb035c2e691cb800a5f717d8b2b0c2e9e7a157badab765e6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\temporal_average.py": {
+      "type": "file",
+      "bytes": 12267,
+      "sha256": "836ad2770bd1ec725c57cf53757c26bb81ea813f72bb506e0ca71759e3c2b0db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\test_temporal_average.py": {
+      "type": "file",
+      "bytes": 5289,
+      "sha256": "554a92993d344bcf57122f442be258288a5752904862b5fca078b2548ccbf57a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 420553,
+      "sha256": "00145f843c708112c9422b5575837c1e49c78bef0f1677a7f806b240ec6d9e8c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_epoch01_ce.npy": {
+      "type": "file",
+      "bytes": 473464,
+      "sha256": "5322a0d5656256bfa317d9c9227c4d76ac572117e0fca17cfa800798ab9e67fb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_epoch04_ce.npy": {
+      "type": "file",
+      "bytes": 473464,
+      "sha256": "db066a9837aa3016162fb7257bea87e3a588b28f99ad9ae2fe1902aa779c7f45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_epoch12_ce.npy": {
+      "type": "file",
+      "bytes": 473464,
+      "sha256": "7f884324914e7f60fd3762fe048cc6c3c163c2e8a6a4d807d24d026404556a2b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_hand_ce_improvement.npy": {
+      "type": "file",
+      "bytes": 65664,
+      "sha256": "28d1c5f26cd3d2b9137d3d31ec8a892f72eea31e012b32eaa84e696026490033"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\validation_source_ce.npy": {
+      "type": "file",
+      "bytes": 473464,
+      "sha256": "15daa6ee793c55b65fad167b9e1386ecde85933067141c0be19f877ad016d06e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 4260,
+      "sha256": "7efa65636572a3bd8446ab98573287a1f7834eb5507930dc6e86c45f22614a45"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-historical-average-distillation-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 585,
+      "sha256": "2bc90fb3d49f6efdc5a05ffd8307ca8aba4473904f70f4cefd0c03dea24ead4b"
+    }
+  }
+}

@@ -28,7 +28,7 @@ interface BuildState {
   history: string; // encoded action history
   raiseCount: number; // raises on this street
   isFirstAction: boolean; // first action on this street
-  facingBet: number; // bet the current player must respond to (0 if none)
+  facingBet: number; // additional amount the current player must call (0 if none)
 }
 
 /**
@@ -281,7 +281,11 @@ function applyAction(config: TreeConfig, state: BuildState, action: Action): Gam
   const isRaise = state.facingBet > 0;
 
   // Opponent now faces the bet
-  const facingAmount = betAmount - state.facingBet; // additional chips opponent must put in
+  // The raiser first calls the old outstanding amount, so only the raise-over
+  // portion is outstanding for the opponent.  Storing the whole additional
+  // contribution here makes the next call overpay and corrupts every later
+  // pot/stack state.
+  const facingAmount = betAmount - state.facingBet;
 
   return buildNode(config, {
     street: state.street,
@@ -291,7 +295,7 @@ function applyAction(config: TreeConfig, state: BuildState, action: Action): Gam
     history: newHistory,
     raiseCount: state.raiseCount + (isRaise ? 1 : 0),
     isFirstAction: false,
-    facingBet: facingAmount > 0 ? betAmount : state.facingBet,
+    facingBet: Math.max(facingAmount, 0),
   });
 }
 

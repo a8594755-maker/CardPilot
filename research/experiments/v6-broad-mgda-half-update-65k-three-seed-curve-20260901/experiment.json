@@ -1,0 +1,173 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-broad-mgda-half-update-65k-three-seed-curve-20260901",
+  "title": "Broad MGDA half-update three-seed 65k replication",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T22:55:52+00:00",
+  "updated_at": "2026-09-02T02:49:24+00:00",
+  "started_at": "2026-09-01T22:55:52+00:00",
+  "ended_at": "2026-09-02T02:49:24+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Halving MGDA optimizer steps from 64 to 32 per 8,192 environment hands will move the 65,536-hand endpoint to the prior curve's preservation-safe 32k-equivalent optimizer dose while benefiting from twice the on-policy environment diversity, yielding positive 16k-to-65k holdout slopes in at least two of three seeds without source-boundary failure.",
+  "material_change": "Repeat the exact six-train/three-holdout mixed-contract three-seed 65,536-hand protocol with the same seeds, chunk size, residual cap, group batch, frozen identities, evaluation doses/decks, and 512 pairs per holdout. Change only steps-per-chunk from 64 to 32. Preserve restart-safe chunk evidence and compare the resulting 65k endpoint to both its own 16k curve and the prior 64-step run's 32k optimizer-dose boundary.",
+  "baseline": "The 64-step run had all-positive MGDA geometry but 32k-to-65k slopes negative in 3/3 seeds, cap saturation at 24k-32k, and a seed2 source failure. Its 32k dose passed all source/breadth gates with 2/3 positive 16k-to-32k slopes and median holdout/seat deltas +31.05/+26.86.",
+  "source": "research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json",
+  "parent_id": "v6-broad-mgda-dose-boundary-audit-20260901",
+  "command": "python scripts/alpha_holdem/v6_broad_mgda_curve.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20261640 --seeds 3 --hands-per-chunk 8192 --chunks 8 --steps-per-chunk 32 --group-batch-size 128 --evaluation-chunk 2 --evaluation-chunk 4 --evaluation-chunk 8 --pairs-per-holdout 512 --device cuda --out-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_broad_mgda_curve.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20261640 --seeds 3 --hands-per-chunk 8192 --chunks 8 --steps-per-chunk 32 --group-batch-size 128 --evaluation-chunk 2 --evaluation-chunk 4 --evaluation-chunk 8 --pairs-per-holdout 512 --device cuda --out-dir research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T22:55:52+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T02:49:24+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "38aa6a6f9ad659e21ddb4abc17974102a741114547906031070221a57dbddafb",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T22:55:52+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/source_manifest.json",
+    "source_manifest_sha256": "d49eee3af411a106eb9307804c8eab09b7f82aee369fd4e59a54effec148552c",
+    "source_files": 154
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 196608,
+    "lineage_training_hands": 65536,
+    "offline_samples": 12288,
+    "evaluation_hands": 55296,
+    "wall_time_seconds": 14012.0,
+    "planned_environment_training_hands": 196608,
+    "planned_evaluation_hands": 55296
+  },
+  "metrics": {
+    "transition_rows": 518298,
+    "mgda_positive_geometry_steps": 768,
+    "mgda_total_steps": 768,
+    "positive_seed_slopes": 1,
+    "required_positive_seed_slopes": 2,
+    "seed0_16k_to_65k_slope_bb100": 57.11,
+    "seed1_16k_to_65k_slope_bb100": -18.34,
+    "seed2_16k_to_65k_slope_bb100": -12.59,
+    "median_final_seed_holdout_delta_bb100": 0.9765625,
+    "median_final_seed_seat_delta_bb100": 4.39876302083333,
+    "seed0_source_agreement": 0.970947265625,
+    "seed1_source_agreement": 0.95361328125,
+    "seed2_source_agreement": 0.96337890625,
+    "minimum_source_partition_agreement": 0.928057553956835,
+    "maximum_observed_residual_logit": 0.249681830406189,
+    "matched_256step_positive_seed_differences": 2,
+    "matched_256step_median_paired_difference_bb100": 1.76204427083333,
+    "full_suite_tests_passed": 249
+  },
+  "artifacts": [
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/code.patch",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/source_manifest.json",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/summary.json",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/run_manifest.json",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/seed0_chunk008_hands000065536.pt",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/seed1_chunk008_hands000065536.pt",
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/seed2_chunk008_hands000065536.pt",
+    "scripts/alpha_holdem/v6_broad_mgda_curve.py",
+    "scripts/alpha_holdem/test_v6_broad_mgda_curve.py"
+  ],
+  "notes": [
+    "Admission to 262,144 hands/seed requires all integrity/mechanism gates, >=2/3 positive 16k-to-65k slopes, nonnegative median final seed-holdout and seed-seat deltas, all three source agreements >=95%, and every partition >=90%. The prior 32k optimizer-dose result is a fixed comparator, not a checkpoint-selection pool.",
+    "Matched 256-step comparison against the fixed prior full-dose 32k endpoint gave half-minus-full pooled deltas +7.05, -52.53, and +1.76 bb/100; two of three are positive, but seed1 is materially adverse and the half-dose endpoint median pooled delta is -10.91 versus +41.63 for full-dose 32k."
+  ],
+  "result": {
+    "summary": "The exact preregistered half-update replication completed three independent 65,536-hand seeds (196,608 actual environment hands), 55,296 untouched paired holdout trajectories, and 12,288 source-panel queries. All 768 MGDA updates had positive worst-group geometry and every integrity, breadth, and Standard10 preservation gate passed. Final seed-holdout and seed-seat medians were +0.98 and +4.40 bb/100, but 16k-to-65k slopes were +57.11, -18.34, and -12.59, so only one of three seeds was positive. All 249 tests passed.",
+    "conclusion": "Halving updates repaired the source-preservation failure but did not make the 65k learning direction reproducible: the preregistered two-of-three positive-slope gate failed. This is specific dose-response evidence against scaling the current half-update broad-MGDA recipe, not evidence that 65k hands should solve Slumbot or that long-horizon learned-policy training in general is futile.",
+    "decision": "HOLD_HALF_UPDATE_BROAD_MGDA_SCALE",
+    "next_step": "Run a compact read-only matched-dose evidence audit to quantify paired half65k versus full32k behavior and identify whether seed heterogeneity is attributable to opponent/seat partitions. Then choose a materially different scalable learned-weight training intervention rather than increasing this failed half-update recipe."
+  },
+  "tags": [
+    "geometric-curve",
+    "mgda",
+    "multi-seed",
+    "optimizer-dose"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 28911,
+      "sha256": "d49eee3af411a106eb9307804c8eab09b7f82aee369fd4e59a54effec148552c"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 38462,
+      "sha256": "7695e032c0609a7eb1fa1c7b98c6f8c0aadf212e74eb91d45f38e316b3caceb5"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/evaluation_pairs.jsonl.gz": {
+      "type": "file",
+      "bytes": 940951,
+      "sha256": "ba34835ce16371fb822aa51f456aff15cd7c61d691f3dc40838473e1a78af8e9"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/run_manifest.json": {
+      "type": "file",
+      "bytes": 589,
+      "sha256": "de79a115ea405cdb828b618fa648b66a2d757357624f0909895080e44e65cdf8"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/seed0_chunk008_hands000065536.pt": {
+      "type": "file",
+      "bytes": 1397290,
+      "sha256": "49030908871c6521a73b2d8f95846b95bc7eeb3d84833bfa413e0d1130f84ea7"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/seed1_chunk008_hands000065536.pt": {
+      "type": "file",
+      "bytes": 1397290,
+      "sha256": "4edcb52be25a50a2a4fcf3a00f9613a8178b293e8be6cc99d2d1a14198455c56"
+    },
+    "research/experiments/v6-broad-mgda-half-update-65k-three-seed-curve-20260901/run/seed2_chunk008_hands000065536.pt": {
+      "type": "file",
+      "bytes": 1397290,
+      "sha256": "aebed0b013485e13715fc4ad6bc04cf7ee82c78ba1d680e2c30a9f819a7bd956"
+    },
+    "scripts/alpha_holdem/v6_broad_mgda_curve.py": {
+      "type": "file",
+      "bytes": 31471,
+      "sha256": "704fe701dafc2e77652bf3a7ca35c21fc2d8a4c1381f74e0bb80757e9c1e607c"
+    },
+    "scripts/alpha_holdem/test_v6_broad_mgda_curve.py": {
+      "type": "file",
+      "bytes": 1600,
+      "sha256": "8d0592d42a2d058efeac270896af434c195514a4032313824463aa4529b6f6f5"
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "by_street": {
+    "0": {
+      "greedy_disagreement_rate": 0.006,
+      "greedy_disagreements": 30,
+      "max_tv": 0.2737136483192444,
+      "mean_tv": 0.0050991921674738636,
+      "p95_tv": 0.012740359688177707,
+      "states": 5000
+    },
+    "1": {
+      "greedy_disagreement_rate": 0.0046,
+      "greedy_disagreements": 23,
+      "max_tv": 0.20853057503700256,
+      "mean_tv": 0.00640546844196831,
+      "p95_tv": 0.021581169962883007,
+      "states": 5000
+    },
+    "2": {
+      "greedy_disagreement_rate": 0.007,
+      "greedy_disagreements": 35,
+      "max_tv": 0.18086865544319153,
+      "mean_tv": 0.009720275509633121,
+      "p95_tv": 0.035181360691785825,
+      "states": 5000
+    },
+    "3": {
+      "greedy_disagreement_rate": 0.017,
+      "greedy_disagreements": 85,
+      "max_tv": 0.22248327732086182,
+      "mean_tv": 0.0164383338788301,
+      "p95_tv": 0.06795118264853955,
+      "states": 5000
+    }
+  },
+  "checkpoint_metadata_expected": {
+    "action_space_version": "9slot_preflop_pot_fraction_v2_bridge_v1",
+    "chips_per_bb": 100,
+    "env_version": "v6legacyv4obs",
+    "model_obs_version": "v4",
+    "obs_version": "v4",
+    "observation_bridge_contract": "hunl_v6_physical_legacy_v4_observation_bridge_v1",
+    "policy_contract": "hunl_v6_pot_fraction_chips_history_v1",
+    "raise_action_mapping": "preflop_pot_fraction_v2",
+    "rules_version": "hunl_integer_chips_v1",
+    "starting_stack_bb": 200
+  },
+  "checkpoint_metadata_mismatches": {},
+  "command": [
+    "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "scripts/alpha_holdem/v6_legacy_bridge_drift_audit.py",
+    "--parent",
+    "models/baseline/standard10/latest.pt",
+    "--parent-sha256",
+    "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428",
+    "--treatment",
+    "research/experiments/v6-static-current-kl-4m-scale-20260904/seed1/latest.pt",
+    "--out-dir",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed1",
+    "--states",
+    "20000",
+    "--seed",
+    "20263291",
+    "--device",
+    "cuda",
+    "--batch-size",
+    "1024",
+    "--source-tv-max",
+    "1",
+    "--greedy-disagreement-max",
+    "1"
+  ],
+  "created_at": "2026-09-05T00:20:33.239376+00:00",
+  "design": {
+    "greedy_disagreement_max": 1.0,
+    "outcome_blind": true,
+    "seed": 20263291,
+    "source_tv_max": 1.0,
+    "states": 20000,
+    "street_quotas": [
+      5000,
+      5000,
+      5000,
+      5000
+    ]
+  },
+  "environment_training_hands": 4197976,
+  "offline_samples": 20000,
+  "overall": {
+    "greedy_disagreement_rate": 0.00865,
+    "greedy_disagreements": 173,
+    "max_tv": 0.2737136483192444,
+    "mean_tv": 0.009415817499476349,
+    "p95_tv": 0.03454216606914997,
+    "states": 20000
+  },
+  "parent": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\baseline\\standard10\\latest.pt",
+    "sha256": "91b0c587a5a76e9a8f38217e0b304136ef298118a99b69cc743899fc4b16e428"
+  },
+  "raw_path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\drift_seed1\\drift_raw.jsonl.gz",
+  "raw_sha256": "2e58ecac220023ea1705d72ee83401ed20bba19c1d8697e79005d50a6e210c98",
+  "schema": "cardpilot.v6_legacy_bridge_drift_audit.v1",
+  "slumbot_hands": 0,
+  "status": "PASS",
+  "tensor_scope": {
+    "changed_tensor_count": 10,
+    "changed_tensors": [
+      "policy_head.bias",
+      "policy_head.weight",
+      "preflop_policy_head.bias",
+      "preflop_policy_head.weight",
+      "value_head.0.bias",
+      "value_head.0.weight",
+      "value_head.2.bias",
+      "value_head.2.weight",
+      "value_head.4.bias",
+      "value_head.4.weight"
+    ],
+    "disallowed_changed_tensors": [],
+    "extra_tensors": [],
+    "missing_tensors": [],
+    "parent_tensor_count": 86,
+    "shape_mismatches": [],
+    "status": "PASS",
+    "treatment_tensor_count": 86,
+    "unchanged_tensor_count": 76
+  },
+  "training_marker_hands": 3632466,
+  "treatment": {
+    "path": "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-static-current-kl-4m-scale-20260904\\seed1\\latest.pt",
+    "sha256": "7ea4d74d0fcf881c75c4c99bdc0cbe84f82a55001ba277c01aafec6dc5a98f3f"
+  },
+  "wall_time_seconds": 4.1093339920043945
+}

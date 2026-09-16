@@ -1,0 +1,194 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-legacy-risk-scaled-release-smoke-20260901",
+  "title": "Risk-scaled source-margin release matched smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T12:37:54+00:00",
+  "updated_at": "2026-09-01T12:41:17+00:00",
+  "started_at": "2026-09-01T12:37:54+00:00",
+  "ended_at": "2026-09-01T12:41:17+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The 65k high-risk preservation failure is caused in part by a fixed normalized-advantage release threshold that disproportionately releases high-pot rows; scaling that threshold by the public risk weight should reduce high-risk boundary erosion while retaining some strong-evidence release.",
+  "material_change": "Add a default-off option that multiplies source-greedy release advantage by the existing public pot/effective-stack risk weight. Compare matched 8k control and treatment arms with risk max weight 4 in both; only treatment enables risk-scaled release.",
+  "baseline": "The prior matched 8k risk-weight smoke improved >=30bb drift, but the 69,236-hand scale run falsified that improvement: versus prior unweighted iter16, >=30bb TV increased by 0.00757, disagreement by 1.04 percentage points, and margin deficit by 0.00495. Fixed release advantage 1 remained unchanged across risk strata.",
+  "source": "models/baseline/standard10/latest.pt",
+  "parent_id": "v6-legacy-risk-weighted-mixed-league-65k-pilot-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 2048 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --source-greedy-margin-coef .1 --source-greedy-margin-max .1 --source-greedy-margin-release-advantage 1 --source-greedy-risk-max-weight 4 --source-greedy-risk-full-pot-fraction .15 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --k-best 4 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120300 --fixed-training-deal-stream --fixed-training-deal-start-index 14000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 4 --save-interval 1 --archive-checkpoint-every 2 --run-id v6_legacy_risk_scaled_release_control_20260901 --run-dir research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control --out research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/latest.pt --seed 20261203 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 2048 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --source-greedy-margin-coef .1 --source-greedy-margin-max .1 --source-greedy-margin-release-advantage 1 --source-greedy-risk-max-weight 4 --source-greedy-risk-full-pot-fraction .15 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --k-best 4 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120300 --fixed-training-deal-stream --fixed-training-deal-start-index 14000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 4 --save-interval 1 --archive-checkpoint-every 2 --run-id v6_legacy_risk_scaled_release_control_20260901 --run-dir research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control --out research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/latest.pt --seed 20261203 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:37:54+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 2048 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6legacyv4obs --v6-rebind-legacy-weights --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint models/baseline/standard10/latest.pt --source-greedy-margin-coef .1 --source-greedy-margin-max .1 --source-greedy-margin-release-advantage 1 --source-greedy-risk-max-weight 4 --source-greedy-risk-full-pot-fraction .15 --source-greedy-risk-scale-release --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --k-best 4 --initial-opponent-checkpoints models/baseline/standard10/latest.pt --hero-policy-mode sample --self-play-fraction .25 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026120300 --fixed-training-deal-stream --fixed-training-deal-start-index 14000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 4 --save-interval 1 --archive-checkpoint-every 2 --run-id v6_legacy_risk_scaled_release_treatment_20260901 --run-dir research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment --out research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/latest.pt --seed 20261203 --max-runtime-seconds 600 --resume models/baseline/standard10/latest.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:38:56+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/audit_smoke.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:40:18+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/evaluate_source_drift.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T12:40:18+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8d2c324af911558f2475eaede281f252d61f9df50b25e0ef083da10aac14ff2b",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T12:37:54+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/code.patch",
+    "patch_sha256": "ddb2989c37d80d2f056682b8b54240d70c2a6b94f7571eba1d8f41856a74a9a8",
+    "source_manifest": "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "8df681f472991878830cd163164ddbcacc2a19224ee288c721e3b9cfdb5b68a9",
+    "source_files": 77
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 17828,
+    "lineage_training_hands": 17828,
+    "offline_samples": 150000,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 203.0,
+    "target_environment_hands_per_arm": 8192,
+    "arms": 2,
+    "slumbot_hands": 0,
+    "control_environment_hands": 8906,
+    "control_transition_hands": 8213,
+    "treatment_environment_hands": 8922,
+    "treatment_transition_hands": 8300,
+    "environment_training_hands": 17828
+  },
+  "metrics": {
+    "risk_max_weight": 4,
+    "release_advantage": 1,
+    "control_released_rows": 558,
+    "treatment_released_rows": 190,
+    "high_risk_tv_delta": 1.813599025381377e-05,
+    "high_risk_disagreement_delta": 8.872327211427557e-05,
+    "high_risk_margin_deficit_delta": 4.124858979905533e-05,
+    "overall_tv_delta": -0.0012070782597558881,
+    "session_audit_pass": 1
+  },
+  "artifacts": [
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/code.patch",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/latest.pt",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/run_manifest.json",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/h1_training_metrics.jsonl",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/latest.pt",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/run_manifest.json",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/h1_training_metrics.jsonl",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/audit_smoke.py",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/evaluate_source_drift.py",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/session_audit.json",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/source_drift_analysis.json",
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/source_drift_raw.jsonl.gz"
+  ],
+  "notes": [
+    "Mechanism gate: treatment must retain nonzero released rows, reduce released-row count relative to control, pass tensor/session audits, and improve all three common-state >=30bb metrics (TV, greedy disagreement, source-margin deficit) without >10% aggregate TV regression. No internal strength panel or Slumbot in this smoke."
+  ],
+  "result": {
+    "summary": "Both matched-config 8k arms completed and audited. Risk-scaled release reduced released rows from 558 to 190 without eliminating release and improved aggregate source drift, but it failed every preregistered >=30bb mechanism metric.",
+    "conclusion": "The implementation behaves as designed, yet scaling the release threshold is not a useful high-leverage preservation intervention under this training distribution: treatment-minus-control >=30bb TV was +0.0000181, disagreement +0.0000887, and margin deficit +0.0000412, all slightly adverse with intervals crossing zero. The mechanism is rejected for scaling; the aggregate improvement does not override the direct high-risk gate.",
+    "decision": "REJECT_RISK_SCALED_RELEASE_STOP_LOCAL_PRESERVATION_PATCHES",
+    "next_step": "Stop iterating on source-margin preservation variants. Reassess accumulated opponent-league, Action-Q/counterfactual, and external-transfer evidence, then choose a qualitatively different learned-weight route with more direct policy-improvement signal; do not repeat an internal-only promotion chain known to mispredict Slumbot."
+  },
+  "tags": [
+    "learned-weights",
+    "ppo",
+    "preservation",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 4,
+    "command_count": 4
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12803163,
+      "sha256": "ddb2989c37d80d2f056682b8b54240d70c2a6b94f7571eba1d8f41856a74a9a8"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 14230,
+      "sha256": "8df681f472991878830cd163164ddbcacc2a19224ee288c721e3b9cfdb5b68a9"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/latest.pt": {
+      "type": "file",
+      "bytes": 99993678,
+      "sha256": "91d00f124f4b67a7ace2c39e982635aecce9937704124946b78afcd0a48201bb"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/run_manifest.json": {
+      "type": "file",
+      "bytes": 57096,
+      "sha256": "3e53bc7ca2ae2b1132f4df55315b0cc521f4ea0fa9bfd2ddcbbfd09135e2425d"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/control/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 107865,
+      "sha256": "77b8432800316af66bfff4102ea4425dc707efdacca5ed3bc78c79c4fcc13a1d"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/latest.pt": {
+      "type": "file",
+      "bytes": 99993678,
+      "sha256": "97cffff1faa3f28c1ef383f8548ab75669af7e4a2c73be78707851cab33c6278"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/run_manifest.json": {
+      "type": "file",
+      "bytes": 56988,
+      "sha256": "500fe53792a01db34d80ca90893ff1ab2f67789c999a864e0656ff58688ab37b"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/treatment/h1_training_metrics.jsonl": {
+      "type": "file",
+      "bytes": 107440,
+      "sha256": "6b788cf6c2549915cd449f8c7984488c9dcfa56e21456e4c11d13897f4e2dcbf"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/audit_smoke.py": {
+      "type": "file",
+      "bytes": 2649,
+      "sha256": "11d60ed3fd9548707d2f838bade166636c323f7115b99c6b173928fc4a021688"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/evaluate_source_drift.py": {
+      "type": "file",
+      "bytes": 826,
+      "sha256": "aa61286ed4f53ba41fcf9c70fed359d03e8268b8d59823fbf6cba8b8db7c4efc"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/session_audit.json": {
+      "type": "file",
+      "bytes": 6589,
+      "sha256": "0f2550863c5e1de220c5602bfcfc06ae36a66d7a0bfda36cff5208c97768e245"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/source_drift_analysis.json": {
+      "type": "file",
+      "bytes": 10298,
+      "sha256": "9cc53cda60b494ce15df8d4aa029b77efe8cf546e5db417d94e03c99ec38aaa3"
+    },
+    "research/experiments/v6-legacy-risk-scaled-release-smoke-20260901/source_drift_raw.jsonl.gz": {
+      "type": "file",
+      "bytes": 1533632,
+      "sha256": "e0933723216ae6404889c28237281bd465c26392444a382ed4cea6b2f51bda6f"
+    }
+  }
+}

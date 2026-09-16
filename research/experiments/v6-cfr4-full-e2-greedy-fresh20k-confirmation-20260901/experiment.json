@@ -1,0 +1,320 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901",
+  "title": "Corrected four-board CFR adapter fresh20k confirmation",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T03:48:34+00:00",
+  "updated_at": "2026-09-02T04:12:00+00:00",
+  "started_at": "2026-09-02T03:48:34+00:00",
+  "ended_at": "2026-09-02T04:12:00+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact frozen corrected full-sharded four-board epoch2 adapter, which passed a 10k internal paired gate and was near break-even over only 4,999 external hands, will retain a positive fresh20k point estimate under the current journaled legacy-v4 greedy bridge, justifying a separate fresh100k qualification.",
+  "material_change": "Evaluate only frozen SHA256 571a9c413834247c80b63a797548689ea745878c060f265876d00bddcc3ff2db in eight new independent 2,500-hand Slumbot sessions using strict greedy legacy-v4 bridge execution. Freeze a byte-identical copy, snapshot runtime, audit all raw hands/journals/actions/tokens/terminal states and session independence. Do not train, select a checkpoint, retry an incomplete cohort, pool the prior 4,999 hands, or change the action policy.",
+  "baseline": "The same checkpoint had internal +1.4486 bb/100 with paired 95% lower bound +0.8912 over 10,000 pairs and fresh4,999 -9.4359 bb/100 CI[-51.3721,+32.5003]. Current journaled Standard10 legacy-bridge fresh20k is -24.5683; historical greedy Standard10 is -11.4275.",
+  "source": "research/experiments/sharded-cfr4-teacher-recovery-20260830/adapter_cfr4_full_h64_skl1_l2p01_epoch02.pt",
+  "parent_id": "sharded-cfr4-teacher-recovery-20260830",
+  "command": "python research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/run_pilot.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/run_pilot.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:48:34+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\test_pilot.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:08+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180001 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s01 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s01 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:09+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180002 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s02 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s02 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180003 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s03 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s03 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180004 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s04 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s04 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180005 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s05 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s05 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:11+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180006 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s06 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s06 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:11+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180007 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s07 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s07 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\prepared_runtime\\scripts\\alpha_holdem\\play_slumbot_v6_journaled.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --hands 2500 --seed 2026180008 --session-id v6_cfr4_full_e2_greedy_fresh20k_20260901_s08 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s08 --device cpu --policy-mode greedy --observation-bridge legacy-v4",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T03:50:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\audit_bridge_cli.py --model C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s01 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s02 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s03 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s04 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s05 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s06 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s07 --session-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\sessions\\s08",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:00:17+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/slumbot_ci_from_hands.py \"research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/sessions/s*/hands.jsonl\" --baseline-bb100 -11.4275 --baseline-hands-min 20000 --out-json research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/independent_raw_ci.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:11:40+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/make_independence_dumps.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:11:40+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_slumbot_session_independence.py --dump \"research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/independence_dumps/*_dump.jsonl\" --out-json research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/session_independence_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:11:41+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/test_pilot.py -q --junitxml=research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/tests_final.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:11:41+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T04:11:41+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "6cd30c30e4fa1d04d8b99395a33c59dd68b9799ca89979caf7b1df97ce71a854",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-02T03:48:34+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/source_manifest.json",
+    "source_manifest_sha256": "630597d1dcdb7319689cb53428bbfd211a5b878bcaa69b740eec14798a5e5e78",
+    "source_files": 159
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 10283876,
+    "offline_samples": 0,
+    "evaluation_hands": 20000,
+    "wall_time_seconds": 1406.0,
+    "slumbot_hands": 20000,
+    "planned_evaluation_hands": 20000,
+    "planned_slumbot_hands": 20000,
+    "qualification_hands": 0,
+    "sessions": 8
+  },
+  "metrics": {
+    "bb_per_100": -26.9335,
+    "raw_hand_se": 8.516812538953683,
+    "raw_ci95_lower": -43.626452576349216,
+    "raw_ci95_upper": -10.240547423650781,
+    "session_t7_ci95_lower": -51.241586706009116,
+    "session_t7_ci95_upper": -2.6254132939908814,
+    "positive_sessions": 1,
+    "combined_audit_pass": true,
+    "token_chains_disjoint": true,
+    "session_independence_pass": true,
+    "frozen_sha_verified": true,
+    "supports_fresh100k": false,
+    "goal_achieved": false
+  },
+  "artifacts": [
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/code.patch",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\runtime_origin.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\session_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\combined_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\completed_analysis.json",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/sessions",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/independence_dumps",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/independent_raw_ci.json",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/session_independence_audit.json",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/execution.json",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/tests_final.xml",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/make_independence_dumps.py",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/run_pilot.py",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/pilot_stats.py",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/test_pilot.py",
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/audit_bridge_cli.py"
+  ],
+  "notes": [
+    "Allocation to a separate fresh100k requires this unpooled 20k point estimate >0, raw CI upper >0, at least four of eight equal sessions positive, complete combined audit, disjoint token chains, and exact frozen SHA. A nonpositive point closes this checkpoint; the old 4,999 hands are contextual only.",
+    "All 20,000 raw hands completed before the runner hit Windows WinError 206 while attempting one oversized final artifact-registration command. The evaluation itself was complete and exit-zero in all eight children; artifacts were subsequently registered in bounded batches without rerunning hands."
+  ],
+  "result": {
+    "summary": "The exact frozen corrected four-board CFR epoch2 adapter completed eight untouched 2,500-hand sessions (20,000 total) at -26.9335 bb/100; raw-hand 95% CI [-43.6265,-10.2405], session-t7 95% CI [-51.2416,-2.6254], and only 1/8 session means was positive. Both combined journal/token audit and observable-deal session-independence audit passed.",
+    "conclusion": "The earlier 4,999-hand near-zero estimate was sampling noise for this frozen checkpoint: the unpooled fresh20k result is significantly below zero and slightly below the matched current Standard10 bridge control. This is checkpoint-level external-transfer rejection after 10,283,876 lineage training hands, not evidence that all CFR-derived or long-horizon learning is impossible.",
+    "decision": "REJECT_CFR4_E2_FROZEN_CHECKPOINT_NO_FRESH100K",
+    "next_step": "Do not allocate fresh100k to this checkpoint. Return to learned-policy research and choose a direction using geometric learning-curve slope, multi-seed and seat/opponent breadth, Standard10 preservation, and proxy/external alignment; scale promising mechanisms rather than treating small-budget non-wins alone as disproof."
+  },
+  "tags": [
+    "cfr-teacher",
+    "external-evaluation",
+    "fresh20k",
+    "greedy"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 16,
+    "command_count": 16
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 29869,
+      "sha256": "630597d1dcdb7319689cb53428bbfd211a5b878bcaa69b740eec14798a5e5e78"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1169,
+      "sha256": "2d1cab9c1ba83fb0d682b7c822389306968016dd7e8314a0d7dc2af9e072c6ea"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1916,
+      "sha256": "6f341a4e22ef427cbd29dc1cc2e87e357eda2eed2267d033d440e14b785abd0f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\runtime_origin.json": {
+      "type": "file",
+      "bytes": 6669,
+      "sha256": "1408bc9186be202f28059c4e5a406e86be5ad3faa402893a86a1aff385169cbe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 197183228,
+      "sha256": "571a9c413834247c80b63a797548689ea745878c060f265876d00bddcc3ff2db"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\tests.xml": {
+      "type": "file",
+      "bytes": 720,
+      "sha256": "283cb75333af74889e4ec526a03c12b1dd293524993309890ed5e579e7d47087"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\session_commands.json": {
+      "type": "file",
+      "bytes": 7035,
+      "sha256": "6e6f23418e8a9eb686784a90d6207eaa2ecd1b8852fd80f67208cc1445426845"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\combined_audit.json": {
+      "type": "file",
+      "bytes": 8626,
+      "sha256": "1d0255a0e4feaf580d8dbc360015b74a0c617f17daf0545c86ff5197d497b4a0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 1307,
+      "sha256": "e744ca7f2f9d6323a4771fdc212ea97ff866bcefe963b023c4949f606f982571"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/sessions": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/independence_dumps": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/independent_raw_ci.json": {
+      "type": "file",
+      "bytes": 2029,
+      "sha256": "734eec5bda7fd6b6445025a8485308436cde478613cba83d4b4cbdf7179f9753"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/session_independence_audit.json": {
+      "type": "file",
+      "bytes": 18281,
+      "sha256": "ec23182caaf3f7a16efd0066f39ac82a4b37bbcaa63049aa368f2216cbce7420"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/execution.json": {
+      "type": "file",
+      "bytes": 8427,
+      "sha256": "ca9765094329f2fd7f748d05199240c55fd1174d1149bcaad04efaf920c305f8"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/tests_final.xml": {
+      "type": "file",
+      "bytes": 720,
+      "sha256": "8dd1758d61f37937036e9b9a94fbf3a2b13b896b96f1f1baaf7efbdff7efeba9"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/make_independence_dumps.py": {
+      "type": "file",
+      "bytes": 1909,
+      "sha256": "4936655a5a2d4c1405192e1e653028a33c348453df7b95c8c233c71eb6375768"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/run_pilot.py": {
+      "type": "file",
+      "bytes": 3416,
+      "sha256": "9510085ede5ded9a290f589338e77450672fbe4ddf002c522e10a3d1583a85fc"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/pilot_stats.py": {
+      "type": "file",
+      "bytes": 2169,
+      "sha256": "a99c8782ba0f0ec75c12e0443366f4b94d121d6055fe51b5943680edce8c3c8e"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/test_pilot.py": {
+      "type": "file",
+      "bytes": 1146,
+      "sha256": "3e36dd79415cdd43150fd2a7d7d2e5e3e002c29babda5d14703257a0ef1275f0"
+    },
+    "research/experiments/v6-cfr4-full-e2-greedy-fresh20k-confirmation-20260901/audit_bridge_cli.py": {
+      "type": "file",
+      "bytes": 396,
+      "sha256": "ab594b16e455db73186aec64a7a92845617baf035ace6a708d540ce364ec2669"
+    }
+  }
+}

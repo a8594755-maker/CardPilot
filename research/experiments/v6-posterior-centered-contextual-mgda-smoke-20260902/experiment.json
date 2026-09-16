@@ -1,0 +1,135 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-posterior-centered-contextual-mgda-smoke-20260902",
+  "title": "Posterior-centered contextual residual MGDA smoke",
+  "status": "FAILED",
+  "created_at": "2026-09-02T06:03:35+00:00",
+  "updated_at": "2026-09-02T06:13:18+00:00",
+  "started_at": "2026-09-02T06:03:35+00:00",
+  "ended_at": "2026-09-02T06:13:18+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Replacing the generic-dominated raw interaction with a frozen calibrated six-style posterior and zero-mean learned head mixture will produce reproducible context-dependent policy behavior: both seeds retain the preservation/geometry contracts, conditioning heads update, and the median correct-context policy both remains nonnegative versus Standard10 and beats cyclically mismatched context.",
+  "material_change": "Use the exact hash-frozen admitted 64-hand L2=1/temperature=1.1892 classifier. The trainable residual is a posterior-weighted mixture of six state-conditioned policy heads after subtracting the uniform posterior, structurally forbidding a shared generic delta; zero context and uniform posterior remain exact Standard10. Repeat the parent's two-seed 4,608 training-hand and 9,216 three-arm evaluation budget on new seeds.",
+  "baseline": "The raw-interaction parent had contextual/generic logit ratios 16.0% and 8.25%, under 0.1% context action disagreement, and exactly zero correct-vs-wrong reward difference despite stable MGDA updates.",
+  "source": "research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt",
+  "parent_id": "v6-contextual-residual-frozen-sensitivity-audit-20260902",
+  "command": "python scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20262410 --seeds 2 --warmup-hands 64 --learning-hands-per-group 128 --steps 32 --group-batch-size 64 --pairs-per-policy 64 --context-mode posterior-centered --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-context-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --device cuda --out-dir research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py --spec research/experiments/v6-broad-league-domain-feasibility-20260901/domain_spec_recovery.json --base-checkpoint models/baseline/standard10/latest.pt --seed 20262410 --seeds 2 --warmup-hands 64 --learning-hands-per-group 128 --steps 32 --group-batch-size 64 --pairs-per-policy 64 --context-mode posterior-centered --context-classifier research/experiments/v6-opponent-session-context-regularization-control-20260902/run/regularized_context_classifiers.pt --expected-context-classifier-sha256 03edaed6b61d6859311f2dfe89e78278d51f9333161f5091aa1746dc51b4ba07 --device cuda --out-dir research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:03:35+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:13:18+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e5df1771148dc349295a5a608328296baa3ef92856dfba42cd1abb824f475aad",
+    "code_paths": [
+      "scripts/alpha_holdem/contextual_residual_v6.py",
+      "scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py"
+    ],
+    "captured_at": "2026-09-02T06:03:36+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/source_manifest.json",
+    "source_manifest_sha256": "1d9ae76bb45e0ea0e3d7c82c66fd1f09db64e731a5aca93c615aa4122ad24935",
+    "source_files": 2
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 4608,
+    "lineage_training_hands": 12288,
+    "offline_samples": 0,
+    "evaluation_hands": 4608,
+    "wall_time_seconds": 583.0,
+    "planned_training_hands": 4608,
+    "planned_evaluation_hands": 9216,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "seed0_pooled_delta_bb100": 3.1145833333333335,
+    "seed0_correct_minus_wrong_bb100": 19.567708333333332,
+    "seed0_active_source_agreement": 0.99658203125,
+    "completed_seeds": 1,
+    "planned_seeds": 2,
+    "tests_passed": 278
+  },
+  "artifacts": [
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/code.patch",
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/source_manifest.json",
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/run",
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/tests.xml",
+    "scripts/alpha_holdem/contextual_residual_v6.py",
+    "scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py"
+  ],
+  "notes": [
+    "This is an architecture-mechanism control at small scale. A clear failure to produce context-dependent actions rejects this formulation; noisy absolute reward alone will not be treated as asymptotic evidence.",
+    "Seed0 completed and its checkpoint plus raw training/evaluation/schedule evidence are preserved. Seed1 generated 2,304 environment training hands but failed before update because at least one opponent-seat group had fewer than 64 hero-decision rows; its in-memory rows were not persisted by the pre-recovery trainer. No artifact was overwritten.",
+    "Seed0's +3.115 bb/100 versus base and +19.568 bb/100 correct-versus-wrong are promising mechanism evidence only. They are not accepted as a two-seed result and will not be used for strength promotion."
+  ],
+  "result": {
+    "summary": "The posterior-centered architecture completed seed0 with genuine context dependence and 99.66% Standard10 agreement, then the run stopped safely at seed1's pre-update support gate. Only one of two seeds is complete, so the experiment is failed for infrastructure rather than scientific rejection.",
+    "conclusion": "The zero-mean posterior head design repaired the parent's inactive-context symptom in seed0, but the planned two-seed test is incomplete. A brittle without-replacement group batch of 64 exceeded one seed's collected hero-decision support; the correct response is a fresh matched recovery with a lower fixed batch and earlier evidence persistence.",
+    "decision": "REPAIR_GROUP_SUPPORT_AND_RERUN_POSTERIOR_CONTEXT",
+    "next_step": "Persist each seed's raw training evidence before optimization, report exact per-group supports, and rerun two wholly new seeds with fixed group_batch_size=32 while preserving all other budgets and gates."
+  },
+  "tags": [
+    "learned-policy",
+    "mgda",
+    "multiseed",
+    "opponent-posterior",
+    "standard10-preservation"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 484,
+      "sha256": "1d9ae76bb45e0ea0e3d7c82c66fd1f09db64e731a5aca93c615aa4122ad24935"
+    },
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-posterior-centered-contextual-mgda-smoke-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 42110,
+      "sha256": "61c65d4edddabdb24ca4a9323906f40abb277eb3a1fc121b0f22fa866da47d1f"
+    },
+    "scripts/alpha_holdem/contextual_residual_v6.py": {
+      "type": "file",
+      "bytes": 8217,
+      "sha256": "93de585ce04f28d211dccb92cf0b6044bff1dc932b9c3cf16a8c65bee9b48e68"
+    },
+    "scripts/alpha_holdem/v6_contextual_residual_mgda_smoke.py": {
+      "type": "file",
+      "bytes": 25298,
+      "sha256": "63ebeef453f7475481ab1314782163b9ba386a063b2ab704e3738bea631fa2f0"
+    }
+  }
+}

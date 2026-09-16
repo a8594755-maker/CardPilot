@@ -1,0 +1,210 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-contextual-preflop-prior-mechanism-smoke-20260901",
+  "title": "Matched contextual preflop action-prior mechanism smoke",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T09:00:03+00:00",
+  "updated_at": "2026-09-01T09:09:42+00:00",
+  "started_at": "2026-09-01T09:00:03+00:00",
+  "ended_at": "2026-09-01T09:09:42+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Small public-state SB-open and BB-facing-open class priors can counter the current-v6 source policy preflop aggression collapse while preserving postflop behavior and the source execution contract better than an otherwise identical zero-prior continuation.",
+  "material_change": "Run matched two-iteration continuations from the frozen current-v6 soup with fresh optimizer/counters, identical duplicate-soup plus 50% procedural rollouts, source KL 0.1, seeds/deals and assignment schedule. Treatment alone enables coefficient 0.01 contextual priors at SB first action and BB facing one aggressive open.",
+  "baseline": "Frozen source soup current-v6 greedy fresh20k is -41.8162 bb/100. Its Slumbot corpus exposes severe preflop aggression; an otherwise identical 65k mixed-curriculum continuation scored -107.0664 fresh5k. Context-specific priors have no prior experiment evidence.",
+  "source": "Frozen source/reference SHA256 66c2254d96e36710c1b326d17026099e6ccabdec70d8e2333cfbef26a63c4a6c; prior targets SB 0.15/0.20/0.63/0.02 and BB-vs-open 0.25/0.55/0.18/0.02, renormalized over legal classes.",
+  "parent_id": "v6-soup-mixed-control-greedy-fresh5k-slumbot-20260901",
+  "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112500 --fixed-training-deal-stream --fixed-training-deal-start-index 6000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_contextual_preflop_prior_control_20260901 --run-dir research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control --out research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/latest.pt --seed 20261125 --max-runtime-seconds 900 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+  "commands": [
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112500 --fixed-training-deal-stream --fixed-training-deal-start-index 6000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_contextual_preflop_prior_control_20260901 --run-dir research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control --out research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/latest.pt --seed 20261125 --max-runtime-seconds 900 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:00:03+00:00"
+    },
+    {
+      "command": "python -u scripts/alpha_holdem/train_v5.py --device cuda --workers 12 --hands-per-iter 4096 --total-hands 99999999 --total-environment-hands 8192 --starting-stack 200 --env-version v6 --norm-layer gn --lr .00003 --ppo-epochs 2 --ppo-target-kl .01 --policy-advantage-clip 3 --source-policy-kl-coef .1 --source-policy-reference-checkpoint research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --preflop-sb-open-action-prior-coef .01 --preflop-bb-vs-open-action-prior-coef .01 --separate-preflop-head --all-policy-heads-only-training --mini-batch-size 1024 --entropy-coef .005 --entropy-floor .05 --pool-strategy latest --fixed-opponent-checkpoints research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --hero-policy-mode sample --self-play-fraction 0 --procedural-opponent-fraction .5 --opponent-assignment per-group --opponent-groups 8 --opponent-assignment-provenance-file research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment/opponent_assignments.jsonl --rollout-mode single --rollout-envs-per-worker 1 --inference-min-batch-slots 0 --inference-batch-deadline-us 700 --worker-seed-base 2026112500 --fixed-training-deal-stream --fixed-training-deal-start-index 6000000 --critic-contract critic_v2 --h1-effective-stack-divisor 200 --h1-critic-init-seed 2026071102 --value-coef 1 --autonomous-critic-v2-continue --snapshot-every 999999 --save-interval 1 --archive-checkpoint-every 1 --run-id v6_contextual_preflop_prior_treatment_20260901 --run-dir research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment --out research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment/latest.pt --seed 20261125 --max-runtime-seconds 900 --resume research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --allow-resume --reset-hand-counter --reset-optimizer --validate-stream",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:02:09+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 4 --expected-archive-every 1 --expected-normalization global --workspace . --out research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:06:49+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/audit_train_v5_fixed_pool_session.py --run-dir research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment --expected-target-hands 99999999 --expected-target-environment-hands 8192 --expected-final-iteration 2 --expected-pool-size 4 --expected-archive-every 1 --expected-normalization global --workspace . --out research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment/session_audit.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:06:49+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem/test_preflop_context_action_priors.py --junitxml=research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/context_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:06:49+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/evaluate_mechanism.py --parent research/experiments/v6-procedural-iter32-soup-preservation-20260901/frozen/treatment.pt --control research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/latest.pt --treatment research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment/latest.pt --out-dir research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/mechanism --device cuda",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:06:59+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/audit_review.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:09:42+00:00"
+    },
+    {
+      "command": "python -m pytest -q scripts/alpha_holdem --junitxml=research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T09:09:42+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e4ed1c179f84f8f3e9abe1c1651ef8afffd9ecea6113ee26c243e98abcaedd12",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T09:00:03+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/code.patch",
+    "patch_sha256": "b992cac7fcfb5a0fa7a0da3c3e9e1c8da26a17430baecb1751a249921ac2cf26",
+    "source_manifest": "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/source_manifest.json",
+    "source_manifest_sha256": "72e1b9461b2b3521a72103b16c6502d8474940f8a2e3630fa5a3d3933619124a",
+    "source_files": 74
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 17542,
+    "lineage_training_hands": 0,
+    "offline_samples": 60671,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 579.0,
+    "slumbot_hands": 0,
+    "environment_training_hands": 17542
+  },
+  "metrics": {
+    "control_physical_hands": 8775,
+    "control_transition_hands": 8260,
+    "control_final_iteration": 2,
+    "control_max_reference_kl": 0.0012383357932170232,
+    "control_kl_stops": 0,
+    "treatment_physical_hands": 8767,
+    "treatment_transition_hands": 8261,
+    "treatment_max_reference_kl": 0.0017133014897505441,
+    "sb_control_greedy_raise_frequency": 0.9983,
+    "sb_treatment_greedy_raise_frequency": 0.9938,
+    "bb_control_greedy_raise_frequency": 0.9498443060498221,
+    "bb_treatment_greedy_raise_frequency": 0.8980204626334519,
+    "treatment_parent_overall_tv": 0.01718095301762021,
+    "treatment_parent_overall_disagreement": 0.016103245372583275,
+    "postflop_treatment_control_tv": 0.020312480648784544
+  },
+  "artifacts": [
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/code.patch",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/source_manifest.json",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/session_audit.json",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment/session_audit.json",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/context_tests.xml",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/evaluate_mechanism.py",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/mechanism/summary.json",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/mechanism/state_metrics.jsonl",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/audit_review.py",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/terminal_review.json",
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/tests.xml"
+  ],
+  "notes": [
+    "Preregistered health gate: both arms reach the same iteration/physical threshold, exact source hash, fresh optimizer/counters, identical local-index opponent assignments, only allowed policy/value tensors change, finite contextual-prior metrics and zero KL stops.",
+    "Mechanism gate is outcome-blind on the frozen source Slumbot state corpus: treatment must reduce excessive contextual greedy raise mass/frequency versus matched control, keep postflop treatment-minus-control mean TV within 0.005, and keep overall source-parent TV/disagreement at or below 0.02. No Slumbot performance test from this smoke.",
+    "Matched control reached iter2 with 8,775 physical/8,260 transition hands, fresh optimizer, max displayed source KL 0.0012 and zero KL stops.",
+    "Both fixed-pool session audits PASS; optimizer steps are matched at 60 and both assignment chains contain exactly two verified rows.",
+    "Independent terminal review PASS: checkpoint hashes, both session audits, exact normalized assignment schedules, 60,671 raw rows and aggregates, tensor scope, and failed mechanism gate were recomputed. Full alpha_holdem suite: 174 passed."
+  ],
+  "result": {
+    "summary": "Matched 8k-per-arm smoke completed 17,542 physical hands. Context priors reduced SB greedy raise frequency from 99.83% to 99.38% and BB-vs-open from 94.98% to 89.80%; overall treatment-parent TV/disagreement stayed 0.01718/0.01610, but postflop treatment-control TV was 0.02031 versus the preregistered 0.005 ceiling.",
+    "conclusion": "The contextual prior is a real and directionally useful preflop gradient signal, especially for BB defense, but all-policy-head PPO changes the postflop head enough that the preregistered isolation gate fails. This endpoint is not eligible for scaling or Slumbot evaluation.",
+    "decision": "DO_NOT_SCALE_ALL_HEAD_CONTEXT_PRIOR_ISOLATION_GATE_FAILED",
+    "next_step": "Implement and unit-test a preflop-head-only training mode that freezes the postflop policy head and shared trunk, then repeat the matched 8k mechanism smoke. Admit a larger pilot only if postflop execution is exactly preserved while contextual raise collapse improves."
+  },
+  "tags": [
+    "action-prior",
+    "matched-smoke",
+    "preflop",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 8,
+    "command_count": 8
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12793830,
+      "sha256": "b992cac7fcfb5a0fa7a0da3c3e9e1c8da26a17430baecb1751a249921ac2cf26"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 13653,
+      "sha256": "72e1b9461b2b3521a72103b16c6502d8474940f8a2e3630fa5a3d3933619124a"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/control/session_audit.json": {
+      "type": "file",
+      "bytes": 5691,
+      "sha256": "d1258b60b80ad8d4e5c47fff6eb51716c1228a2dafcebe51df54cbd2c0c11971"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/treatment/session_audit.json": {
+      "type": "file",
+      "bytes": 5697,
+      "sha256": "3a00d9b78fcf9ea776c628fa15b5bbc083b9a44bad7b86fc9cba402791cc16d2"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/context_tests.xml": {
+      "type": "file",
+      "bytes": 543,
+      "sha256": "4241521ae72a97509e58042f9d2fda8fd4143b86335592fef361f2add537a0f4"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/evaluate_mechanism.py": {
+      "type": "file",
+      "bytes": 10563,
+      "sha256": "7dac60a5f3db34e2585c73806a816f5483a8e660f7bb92710b8cc7dddbef3b49"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/mechanism/summary.json": {
+      "type": "file",
+      "bytes": 10348,
+      "sha256": "828c535aa070d4ae462d816a89f5728dbb11659118efaf7ac9f942000495bf3b"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/mechanism/state_metrics.jsonl": {
+      "type": "file",
+      "bytes": 34457152,
+      "sha256": "a381e1ffada6f9fd55abcedffc42fce8b60a6548f2c0cb28c2a63f32fe62fcbc"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/audit_review.py": {
+      "type": "file",
+      "bytes": 6870,
+      "sha256": "1c00c19cfbe512e99fcb7d0b44f6752d477f2e3c0e79e53a93e72e4562098725"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/terminal_review.json": {
+      "type": "file",
+      "bytes": 1637,
+      "sha256": "58e19cd3bef972ee8a97b8bc577bc91f560ccc958d1cdd51bac9c9ff4ee2d25f"
+    },
+    "research/experiments/v6-contextual-preflop-prior-mechanism-smoke-20260901/tests.xml": {
+      "type": "file",
+      "bytes": 26095,
+      "sha256": "d100bcf68ec0f79decf580a6042a81600828b6a538d8ff31711f01c4a8aab4a9"
+    }
+  }
+}

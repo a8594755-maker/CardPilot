@@ -1,0 +1,175 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-physical1m-deployment-parity-20260831",
+  "title": "Frozen physical1m final offline deployment parity",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T13:43:41+00:00",
+  "updated_at": "2026-08-31T13:45:59+00:00",
+  "started_at": "2026-08-31T13:43:41+00:00",
+  "ended_at": "2026-08-31T13:45:15+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact final has identical native and journaled-client inference on all4202preserved exogenous states.",
+  "material_change": "No training or strength evaluation; replay fixed old512synthetic trajectories and compare8404final-weight inference calls with network blocked.",
+  "baseline": "",
+  "source": "",
+  "parent_id": "v6-physical1m-learning-curve-20260831",
+  "command": "python research/experiments/v6-physical1m-deployment-parity-20260831/run_parity.py",
+  "commands": [
+    {
+      "command": "python research/experiments/v6-physical1m-deployment-parity-20260831/run_parity.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:43:41+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\test_parity.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:43:44+00:00"
+    },
+    {
+      "command": "python research/experiment_log.py audit --since 2026-08-31T13:35:00+00:00 --out-json research/experiments/v6-physical1m-deployment-parity-20260831/post_finish_audit.json --fail-on-warning",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T13:45:59+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-physical1m-deployment-parity-20260831/run_parity.py",
+      "research/experiments/v6-physical1m-deployment-parity-20260831/parity_contract.py",
+      "research/experiments/v6-physical1m-deployment-parity-20260831/test_parity.py",
+      "research/experiments/v6-physical1m-deployment-parity-20260831/preregistration.md",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T13:43:41+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-physical1m-deployment-parity-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-physical1m-deployment-parity-20260831/source_manifest.json",
+    "source_manifest_sha256": "bd942d289d6bd4721e823b2291c3b9a11120044b20383a0c896cab2d0556923a",
+    "source_files": 5
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 94.0,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "replayed_validation_trajectories": 512,
+    "states_checked": 4202,
+    "model_queries": 8404
+  },
+  "artifacts": [
+    "research/experiments/v6-physical1m-deployment-parity-20260831/preregistration.md",
+    "research/experiments/v6-physical1m-deployment-parity-20260831/code.patch",
+    "research/experiments/v6-physical1m-deployment-parity-20260831/source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\frozen\\final.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\parity.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\result_summary.md",
+    "research/experiments/v6-physical1m-deployment-parity-20260831/post_finish_audit.json"
+  ],
+  "notes": [
+    "Outcome-blind candidate-specific offline deployment check during unchanged independent confirmation; no partial scores, no model changes or live admission.",
+    "Post-finish independent raw check found4202contiguous unique state rows, all parity flags true, matching saved raw SHA256 and correct zero strength-hand accounting. Parity process exited0; no model-query rerun. Recent two experiment records audit clean."
+  ],
+  "result": {
+    "summary": "Exact final-weight native/public inference parity passed4202preserved synthetic states with8404model calls and zero new strength hands.",
+    "conclusion": "Candidate-specific fixed-corpus deployment parity passed; active confirmation evidence unchanged and no live compatibility/strength claim.",
+    "decision": "FROZEN_FINAL_OFFLINE_DEPLOYMENT_PARITY_PASS",
+    "next_step": "Finish the existing independent confirmation; only its passing gate can admit a separately registered live pilot."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 3,
+    "command_count": 3
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-physical1m-deployment-parity-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 2391,
+      "sha256": "dada4b87519203bb23421bb24502bc19195f21fa7eaae4a2a1734d6efbd4af3f"
+    },
+    "research/experiments/v6-physical1m-deployment-parity-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-physical1m-deployment-parity-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1124,
+      "sha256": "bd942d289d6bd4721e823b2291c3b9a11120044b20383a0c896cab2d0556923a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1124,
+      "sha256": "fb45afb83631a7f06971ff8637a4bc12f0068f46f30e5d5c14d7d5631c1e4532"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 1757,
+      "sha256": "e428baa54eea17c0775b295c3ead5c3915e993818d0e4c12629b64d220251c2a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\tests.xml": {
+      "type": "file",
+      "bytes": 2264,
+      "sha256": "a2c36c4233b1363f9defbe10cd53aa5479b5180d3a01908a99a2fa4e39bf2498"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\frozen\\final.pt": {
+      "type": "file",
+      "bytes": 198567304,
+      "sha256": "bc4f62257a474ad438cd574d4c59b28ea009060749f0fb86e3e97c46120d0172"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 4965,
+      "sha256": "6908789a134bc5f9e50e601bb48fcd27bb03fa732143f62e1a13450c6ee5b76c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\analysis.json": {
+      "type": "file",
+      "bytes": 1208,
+      "sha256": "e4c5b27baa56d4a8953a9e4bf61a308f9e845cffef4df210cf68fca6ab523f19"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\parity.jsonl": {
+      "type": "file",
+      "bytes": 3464493,
+      "sha256": "ff449e1179ed4870b955f83f9616b91c394315294202e7a968ba08e1d41222a2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-physical1m-deployment-parity-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 541,
+      "sha256": "41eb65a001f303077cc36b3db9e64de02ae79c88b8d29d6347522285208018b9"
+    },
+    "research/experiments/v6-physical1m-deployment-parity-20260831/post_finish_audit.json": {
+      "type": "file",
+      "bytes": 321,
+      "sha256": "841563f163977cb8885de74909894f99686bce0f90a3837326a7cd543f56a8ba"
+    }
+  }
+}

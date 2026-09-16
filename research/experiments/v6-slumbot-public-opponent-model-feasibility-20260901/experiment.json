@@ -1,0 +1,143 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-slumbot-public-opponent-model-feasibility-20260901",
+  "title": "Session-disjoint Slumbot public opponent-model feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T16:01:36+00:00",
+  "updated_at": "2026-09-01T16:04:47+00:00",
+  "started_at": "2026-09-01T16:01:36+00:00",
+  "ended_at": "2026-09-01T16:04:47+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Audited historical Slumbot action histories contain a session-stable, public-state-conditioned action distribution that can be learned substantially better than frequency baselines and later used only as one opponent in a diverse league, without imitating Slumbot into the hero policy.",
+  "material_change": "Reconstruct bot decision states from the frozen Standard10 bridge fresh20k terminal histories, mask bot private cards, quantify exact/nearest physical-v6 action abstraction error, train a small public-state action model on sessions s01-s06, and evaluate untouched sessions s07-s08 against a street-frequency baseline.",
+  "baseline": "The historical single Slumbot-imitation hero policy was still -18.5025 bb/100 and is a negative control. This experiment trains no hero and uses no hand outcomes as labels.",
+  "source": "research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions",
+  "parent_id": "v6-standard10-residual-training-scale-control-20260901",
+  "command": "python scripts/alpha_holdem/v6_slumbot_opponent_model_feasibility.py --sessions-dir research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions --train-sessions s01 s02 s03 s04 s05 s06 --validation-sessions s07 s08 --epochs 20 --seed 60914 --output-dir research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_slumbot_opponent_model_feasibility.py --sessions-dir research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions --train-sessions s01 s02 s03 s04 s05 s06 --validation-sessions s07 s08 --epochs 20 --seed 60914 --output-dir research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:01:36+00:00"
+    },
+    {
+      "command": "python scripts/alpha_holdem/v6_slumbot_opponent_model_feasibility.py --sessions-dir research/experiments/v6-standard10-legacy-bridge-greedy-fresh20k-20260901/sessions --train-sessions s01 s02 s03 s04 s05 s06 --validation-sessions s07 s08 --epochs 20 --seed 60914 --output-dir research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T16:04:09+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "70928862d81057a56f053a256c13e5fbec5c3f5167e6835b25d491dede491aa5",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T16:01:37+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/code.patch",
+    "patch_sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1",
+    "source_manifest": "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/source_manifest.json",
+    "source_manifest_sha256": "b833578b89a2bcf2a634e3bdebdc18629d8e1c068030791f995d14b4916c6eee",
+    "source_files": 109
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 191.0,
+    "environment_training_hands": 0,
+    "planned_offline_source_hands": 20000,
+    "planned_evaluation_hands": 0,
+    "offline_source_hands": 20000,
+    "offline_supervised_samples": 58338,
+    "train_samples": 43729,
+    "validation_samples": 14609
+  },
+  "metrics": {
+    "exact_action_fraction": 0.9985943981624327,
+    "within_0_10_pot_fraction": 0.9990057938222086,
+    "baseline_validation_nll": 1.0488204735941271,
+    "learned_validation_nll": 0.6919169425964355,
+    "relative_nll_improvement": 0.3402903928587937,
+    "accuracy_point_improvement": 0.1486070401713102
+  },
+  "artifacts": [
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/code.patch",
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/source_manifest.json",
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run/summary.json",
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/summary.json",
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt",
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/dataset.npz",
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/analysis.md"
+  ],
+  "notes": [
+    "No outcome labels, bot private-card features, hero updates, environment rollouts, or Slumbot network calls. Model is an opponent-distribution feasibility artifact only.",
+    "Initial run preserved in run/: 14 all-in showdown histories ended with one to three runout separators after ChipState was already terminal, causing the strict parser gate to reject them. Recovery permits only separators after terminal; action extraction semantics and split remain unchanged."
+  ],
+  "result": {
+    "summary": "Recovered all 20,000 audited hands into 58,338 public-state bot-action samples with zero replay failures; 99.8594% actions exactly matched physical-v6 slots and 99.9006% were within0.10 pot. On session-disjoint s07-s08, the learned model reduced NLL 34.03% and improved accuracy 14.86 points over a street-frequency baseline.",
+    "conclusion": "Historical Slumbot behavior is predictable from public state without private-card or outcome leakage and is compatible with the physical-v6 abstraction. This admits an opponent-only contract smoke, not hero imitation or a strength claim.",
+    "decision": "ADMIT_PUBLIC_OPPONENT_MODEL_CONTRACT_SMOKE",
+    "next_step": "Integrate the frozen public model as one bounded member of a diverse fixed opponent league, verify legal stochastic action sampling and replay, and run only a short matched hero learned-weight smoke before any larger training or fresh Slumbot evaluation."
+  },
+  "tags": [
+    "offline",
+    "opponent-model",
+    "slumbot-history",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12806221,
+      "sha256": "f6191352bd204aea7b23d1c2a54df30928a50c658aa136b2e55ebf95eac632f1"
+    },
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 20255,
+      "sha256": "b833578b89a2bcf2a634e3bdebdc18629d8e1c068030791f995d14b4916c6eee"
+    },
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 6747,
+      "sha256": "4d3249d20bb4589819977788c4a823528777d954388780bb5401710e43ef4281"
+    },
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/summary.json": {
+      "type": "file",
+      "bytes": 5124,
+      "sha256": "68d790ddb62d19b15fbe9692303e6a28e4080121588841d6d580851334884f47"
+    },
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/public_opponent_model.pt": {
+      "type": "file",
+      "bytes": 104660,
+      "sha256": "a3e796e54b54711bf9cc3143b09387efc5ba8180b6d0e92a9de313e20c66d1ee"
+    },
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/run_recovery/dataset.npz": {
+      "type": "file",
+      "bytes": 496938,
+      "sha256": "286db461d4243664a8fa6f059b6e2e8e81aa3f43790be1844b9a614d28d57098"
+    },
+    "research/experiments/v6-slumbot-public-opponent-model-feasibility-20260901/analysis.md": {
+      "type": "file",
+      "bytes": 1646,
+      "sha256": "482a52d1f67fa1efd355b240fe709aeffe7de63a5f6a5ea8ce6382304bb6d2ec"
+    }
+  }
+}

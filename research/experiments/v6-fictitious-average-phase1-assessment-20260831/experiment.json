@@ -1,0 +1,851 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-fictitious-average-phase1-assessment-20260831",
+  "title": "Fixed phase1 average strategic assessment",
+  "status": "COMPLETED",
+  "created_at": "2026-08-31T18:14:14+00:00",
+  "updated_at": "2026-08-31T18:34:10+00:00",
+  "started_at": "2026-08-31T18:16:37+00:00",
+  "ended_at": "2026-08-31T18:34:10+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Half-half whole-hand learned averaging hedges the response exploiting its prior and restores targeted anchor1-2 performance.",
+  "material_change": "Conditional fixed epoch4 parity plus three candidates against seven frozen opponents; fixed172032new internal hands; paired family2 primary gates and family7 mixture calibration.",
+  "baseline": "Frozen prior CD7 and learned response58ef; no legacy Slumbot baseline delta.",
+  "source": "research/experiments/v6-fictitious-average-phase1-20260831",
+  "parent_id": "v6-fictitious-average-phase1-20260831",
+  "command": "python -m pytest research/experiments/v6-fictitious-average-phase1-assessment-20260831/test_assessment.py -q --junitxml=research/experiments/v6-fictitious-average-phase1-assessment-20260831/preparation_tests.xml",
+  "commands": [
+    {
+      "command": "python -m pytest research/experiments/v6-fictitious-average-phase1-assessment-20260831/test_assessment.py -q --junitxml=research/experiments/v6-fictitious-average-phase1-assessment-20260831/preparation_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:14:14+00:00"
+    },
+    {
+      "command": "python -m py_compile research/experiments/v6-fictitious-average-phase1-assessment-20260831/run_assessment.py research/experiments/v6-fictitious-average-phase1-assessment-20260831/assessment_contract.py research/experiments/v6-fictitious-average-phase1-assessment-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:14:27+00:00"
+    },
+    {
+      "command": "python -m pytest research/experiments/v6-fictitious-average-phase1-assessment-20260831/test_assessment.py -q --junitxml=research/experiments/v6-fictitious-average-phase1-assessment-20260831/admission_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:16:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-fictitious-average-phase1-assessment-20260831/run_assessment.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:16:37+00:00"
+    },
+    {
+      "command": "python -m pytest C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\test_assessment.py -q --junitxml=C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prerun_tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:16:41+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_prior --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:07+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_response --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:07+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor0 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:08+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor1 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:08+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor2 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:09+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor3 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:09+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor4 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_prior --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:10+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_response --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:11+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor0 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:11+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor1 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor2 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:12+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor3 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:13+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor4 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:13+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_prior --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:14+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_response --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:14+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor0.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor0 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor1.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor1 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:15+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor2.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor2 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor3.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor3 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:16+00:00"
+    },
+    {
+      "command": "python C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-source-live-readiness-20260831\\execution_code\\source_files\\scripts\\alpha_holdem\\v6_mirror_eval.py --candidate C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt --anchor C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor4.pt --pairs 4096 --seed 20261016 --out-dir C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor4 --device cpu",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:17:17+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-fictitious-average-phase1-assessment-20260831/check_startup.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:19:21+00:00"
+    },
+    {
+      "command": "python research/experiments/v6-fictitious-average-phase1-assessment-20260831/review_finish.py",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-08-31T18:34:10+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "cafa3e497b1353332e8066bf60848f894e97f3bf59f7dd5b000dd036a23f8155",
+    "code_paths": [
+      "research/experiments/v6-fictitious-average-phase1-assessment-20260831",
+      "research/experiment_log.py"
+    ],
+    "captured_at": "2026-08-31T18:14:14+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-fictitious-average-phase1-assessment-20260831/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-fictitious-average-phase1-assessment-20260831/source_manifest.json",
+    "source_manifest_sha256": "0a9b6e2520f5e8453600e02a2f89f54b49fb1d06a92255e02be6595aaeaccc47",
+    "source_files": 7
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 172032,
+    "wall_time_seconds": 1053.0,
+    "slumbot_hands": 0,
+    "parity_model_queries": 8404
+  },
+  "metrics": {},
+  "artifacts": [
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/preregistration.md",
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/code.patch",
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/source_manifest.json",
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/preparation_tests.xml",
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/admission_tests.xml",
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/admission_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution_code\\source_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution_code\\code.patch",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution_code\\copy_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\input_manifest.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor0.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor1.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor2.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor3.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor4.pt",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prerun_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\parity_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\parity.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation_commands.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\check_startup.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\startup_review.json",
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/startup_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\admission_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\admission_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\assessment_contract.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\completed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\preparation_tests.xml",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\preregistration.md",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_prior_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_response_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_prior_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_response_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\review_finish.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\run_assessment.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\startup_record_audit.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor0_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor1_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor2_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor3_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor4_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_prior_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_response_stdout.log",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\test_assessment.py",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_prior\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_response\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_prior\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_response\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor0\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor1\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor2\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor3\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor4\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_prior\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_response\\summary.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_prior\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_response\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_prior\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_response\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor0\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor1\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor2\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor3\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor4\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_prior\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_response\\pairs.jsonl",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\reviewed_analysis.json",
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\result_summary.md"
+  ],
+  "notes": [
+    "Prepared while parent fitting runs; do not execute until exact epoch4 and independently completed parent review hashes are frozen. No changes to active parent captured files.",
+    "Preparation32tests PASS and1 intentionally skipped real-parent admission while hashes unset. No model queries or new hands in preparation.",
+    "Parent completed PASS; exact epoch04 a73dd73af04e990bdff9892ba2b3eeebf96ded26ba6d4f099597feb262329d38 and reviewed_analysis564368350a6a5a8c8ee69618f7f2af917978417cdbcbf23b143e025ddf885602 now frozen. Fixed allocation unchanged. Added covariance regression and independent raw-command review.",
+    "34admission tests passed including actual completed parent and source/copy hash verification. Two latest records audit zero warnings.",
+    "Read-only startup check PASS.21commands frozen, eightmodel hashes and parent/source snapshots intact; no interim returns inspected.",
+    "After startup,2recent records audit0warnings. Parent fit262144data+8192validation completed and preserved. No prior PPO, collection or evaluation hands recounted."
+  ],
+  "result": {
+    "summary": "Fixed phase1 average strategic assessment completed172032internal hands: ADMIT_NEXT_RESPONSE_PHASE.",
+    "conclusion": "Paired hedge and retention diagnostics determine response-phase allocation, not general strength or external transfer.",
+    "decision": "ADMIT_NEXT_RESPONSE_PHASE",
+    "next_step": "Preregister next response-to-average phase; preserve all teachers."
+  },
+  "tags": [],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 28,
+    "command_count": 28
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/preregistration.md": {
+      "type": "file",
+      "bytes": 4687,
+      "sha256": "35ad3f3498a1c35d6a645001bfdabebcbaf54139609583c2084b0071aa3caf5d"
+    },
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/source_manifest.json": {
+      "type": "file",
+      "bytes": 1601,
+      "sha256": "0a9b6e2520f5e8453600e02a2f89f54b49fb1d06a92255e02be6595aaeaccc47"
+    },
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/preparation_tests.xml": {
+      "type": "file",
+      "bytes": 6112,
+      "sha256": "baa505aaab510948dd44a80b32495c98bc780c5c9d26c41655d66f87525f4d78"
+    },
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/admission_tests.xml": {
+      "type": "file",
+      "bytes": 5971,
+      "sha256": "7e250cd6f5a0dcbd6075b23d6a8795f7e002fd4087a71eb4bdb919c77addeb24"
+    },
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/admission_record_audit.json": {
+      "type": "file",
+      "bytes": 319,
+      "sha256": "cab711d695f0ac0533d84bd40310d6d95bb69a137d3d2536ea472f32a9b126d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution_code\\source_manifest.json": {
+      "type": "file",
+      "bytes": 1389,
+      "sha256": "e3884569e307e3761070b7ac55ecaab789d512f017452a2c7caddae7ccdb3e7b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution_code\\code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution_code\\copy_manifest.json": {
+      "type": "file",
+      "bytes": 2281,
+      "sha256": "a9b1540c1b5cece4597b6bf55a7094dda6f49fb537c3a50e97a7d4d00daf4b12"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\input_manifest.json": {
+      "type": "file",
+      "bytes": 4881,
+      "sha256": "069365cb1672e3d3944216d5aba24d59845302cec67b960b4221c8974ce86e7a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\student.pt": {
+      "type": "file",
+      "bytes": 98356678,
+      "sha256": "a73dd73af04e990bdff9892ba2b3eeebf96ded26ba6d4f099597feb262329d38"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\prior.pt": {
+      "type": "file",
+      "bytes": 98356678,
+      "sha256": "cd7ce2b27cf3a86e96141432c92c6f92a3eb923dce519d1f1128af5acbb2364b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\response.pt": {
+      "type": "file",
+      "bytes": 132199012,
+      "sha256": "58ef62e875ce8ad1ecf518a1a65c8f54ba711b3bc1ea1a3ab3a00ed1e1a3540d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor0.pt": {
+      "type": "file",
+      "bytes": 33057620,
+      "sha256": "944f5f6625e29c2d2562cc457206aafcf840ef0c7edd6accbd372e1362dd57b2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor1.pt": {
+      "type": "file",
+      "bytes": 33605052,
+      "sha256": "d942236f1272664576daed3eb624cc2ee3647ad952a47eeb0f4a5185b5679e90"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor2.pt": {
+      "type": "file",
+      "bytes": 32811348,
+      "sha256": "c2c8171a3c06e6b2fca2012b4e693246881586c1e2a1831c0d66935713bca577"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor3.pt": {
+      "type": "file",
+      "bytes": 33060820,
+      "sha256": "fe127b5d025316dc7f604522cb9ea38ef6b1910013cebb254157f384f6ed0e23"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\frozen\\anchor4.pt": {
+      "type": "file",
+      "bytes": 33060884,
+      "sha256": "7dfb45baee263353e7fd375062b068747c2795b7042480e410693fa4d28541b9"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prerun_tests.xml": {
+      "type": "file",
+      "bytes": 5971,
+      "sha256": "d639463569bc678bcc9611031f20744acaed664b4aa6aeaebd8e48ce4d281145"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\parity_analysis.json": {
+      "type": "file",
+      "bytes": 4539,
+      "sha256": "ebaa9e39baea0cc0976e276dbf3982737c79c3da8682e5293ff5c7db0e6bb3d8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\parity.jsonl": {
+      "type": "file",
+      "bytes": 3353963,
+      "sha256": "c3be09ca327e0aebd3f967bc89fb319a7f6a687def0040f4ced5a71267c80388"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation_commands.json": {
+      "type": "file",
+      "bytes": 18579,
+      "sha256": "d7ed08884cf98f3ab18c972ab882d01e9c4335a93d03d86968e2319c46632f0e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\check_startup.py": {
+      "type": "file",
+      "bytes": 3259,
+      "sha256": "b72c21f9ce9df8f58aa273a6fd99656fc00e5012ded8770b97dcb5cdf2ae2efe"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\startup_review.json": {
+      "type": "file",
+      "bytes": 864,
+      "sha256": "5c4b7a9f3706765e8798ac902c4c4ed1031379f040fe8dc135b4a21119568451"
+    },
+    "research/experiments/v6-fictitious-average-phase1-assessment-20260831/startup_record_audit.json": {
+      "type": "file",
+      "bytes": 319,
+      "sha256": "1b51474523c11ec3c98fc4da4f130444dd8cff90ee65c3bc4d5d020eb408fe50"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\admission_record_audit.json": {
+      "type": "file",
+      "bytes": 319,
+      "sha256": "cab711d695f0ac0533d84bd40310d6d95bb69a137d3d2536ea472f32a9b126d6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\admission_tests.xml": {
+      "type": "file",
+      "bytes": 5971,
+      "sha256": "7e250cd6f5a0dcbd6075b23d6a8795f7e002fd4087a71eb4bdb919c77addeb24"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\assessment_contract.py": {
+      "type": "file",
+      "bytes": 4720,
+      "sha256": "89912b7fb37d60cfc52c11ea7e5ead3a5c5792ccaba3a7a2e52bfdb7049263a7"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\completed_analysis.json": {
+      "type": "file",
+      "bytes": 14349,
+      "sha256": "ebb12cec948320419a083a8f3f7b152be1d01ddc30451830e75b7195bc18782c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\execution.json": {
+      "type": "file",
+      "bytes": 21442,
+      "sha256": "69b8eeb2fe36825a54bef22ad97e964a2a931d9d568bd87719e62598f831ab3b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\preparation_tests.xml": {
+      "type": "file",
+      "bytes": 6112,
+      "sha256": "baa505aaab510948dd44a80b32495c98bc780c5c9d26c41655d66f87525f4d78"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\preregistration.md": {
+      "type": "file",
+      "bytes": 4687,
+      "sha256": "35ad3f3498a1c35d6a645001bfdabebcbaf54139609583c2084b0071aa3caf5d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1726,
+      "sha256": "bb2d29f6871ac938b35355e6feea4d12070a9477ec8d60f5d1c5300da3fbf214"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1730,
+      "sha256": "bd166f766d80f0f01dd7221da424bcf1cdeefd3147215e1f52622fc9db54020f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1730,
+      "sha256": "ff00f163dae30b3bc270c2d2f2c62b8e8d61aacf9b927450b67811e351ac8d5b"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1731,
+      "sha256": "cb040d6ce2ff732fe36d55e950237b631d9276416ab935380035355e2856ec72"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1722,
+      "sha256": "3b4151a37975c5af8b8afe98ba174931d8a1ddb78c221dc7e346198bc746866d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_prior_stdout.log": {
+      "type": "file",
+      "bytes": 1683,
+      "sha256": "0c43e0cf344d90fd8a01b72058f46121ba5048ee96c4ceb199f8fa2e62c9a1d4"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\prior_vs_response_stdout.log": {
+      "type": "file",
+      "bytes": 1735,
+      "sha256": "1a5eff20b63d0d060b29a7e8dcbfa9c09abbda24d501aea35ad5984718ad6366"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "9b976587d2b6af742e16586d66de6bbd1bfadba5d775a9ce3c2c368e63714c62"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1738,
+      "sha256": "f12303e9e589bb9b0dac4d098b0f5951e8b6cca21d19f394a868864d986a9e0c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "9e98b0b652172170105e48795a7acecf398411b68b2b330a565d46ffabf8a368"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1736,
+      "sha256": "b354c247fb144e8f95e2105fe851a68357b4b318f3a9409738761002434b23c8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1735,
+      "sha256": "7e323d8035bd1f0083d9540fdbdfeca1b3576e84993fab79cb351a2af78f5a03"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_prior_stdout.log": {
+      "type": "file",
+      "bytes": 1732,
+      "sha256": "9b7a8b40f01f0745d1b2ef3795137fab7849368ccc2763f6432f3975de0a43fb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\response_vs_response_stdout.log": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "48ef7255d17335e7398e408cdd5ab8bb191e59a8f8ecf7f6e0352c7e84425ec2"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\review_finish.py": {
+      "type": "file",
+      "bytes": 9737,
+      "sha256": "2a0ff05a429ab23d02ffbf92f308915706cc9e3fa6391ab9742e87a87a3e7b97"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\run_assessment.py": {
+      "type": "file",
+      "bytes": 18902,
+      "sha256": "92cbd2f5a70d56171f7fecc7028fa57385cdc7ab4766c63b3b25b817e0399598"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\startup_record_audit.json": {
+      "type": "file",
+      "bytes": 319,
+      "sha256": "1b51474523c11ec3c98fc4da4f130444dd8cff90ee65c3bc4d5d020eb408fe50"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor0_stdout.log": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "b9b86beff57228cd1c6c4304c3c2b5bd7aad6925cfcf0efb194b0616e5a5cb17"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor1_stdout.log": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "1b43ede16e2b10d84dfe6d78638ed7b9effb9456a22f644b983cf5447a5035bc"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor2_stdout.log": {
+      "type": "file",
+      "bytes": 1736,
+      "sha256": "066db9e20286f1f6ac22d282e8465a2914db4674472d11b87ab29fea914aabd8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor3_stdout.log": {
+      "type": "file",
+      "bytes": 1733,
+      "sha256": "5fa4ea4e4d85f7be1d83c386181fe9e2337738f8a62695097808d8aeea6f0d26"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_anchor4_stdout.log": {
+      "type": "file",
+      "bytes": 1734,
+      "sha256": "3b942d550750168ce22359a76d3f1d6480144e4dbcf8d66e8703204f4ad7f3ed"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_prior_stdout.log": {
+      "type": "file",
+      "bytes": 1728,
+      "sha256": "92f639e538a4d77237e73e96d6f46eedfd603df7dd07b2d7787354e5baa95dab"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\student_vs_response_stdout.log": {
+      "type": "file",
+      "bytes": 1739,
+      "sha256": "10a481dca926f53f0496519dbdbf705a0f1d2350f5725853cfc3754bead4999a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\test_assessment.py": {
+      "type": "file",
+      "bytes": 6490,
+      "sha256": "827285ff41885b14ab0e82eb219f0598bdadf02d464fe374aca4cdf0d32319f3"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1683,
+      "sha256": "99f4f81f1286fd4be6bc43d89e2e14f83d5971d94ddf96b41040c80bdcece2b0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1687,
+      "sha256": "ecb715792714853fdc92b0b4a750f686ab14968aaf5da7589ce869e48889cc7a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1687,
+      "sha256": "30b99fdf134518ebc8bac2ab50083c33c11366dc4004c5a81ecd2cacf3e48ebb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1688,
+      "sha256": "29188a1de5edfa7ffa1564ebdfe9dff29b09ea7ddd2b1b276a9607bb7d1cf942"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1679,
+      "sha256": "1a5d084323ccd33408cc19278bccd6c26f82e50d398e28504447d99f2eee14af"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_prior\\summary.json": {
+      "type": "file",
+      "bytes": 1640,
+      "sha256": "de1542c6dae91237c258490f33dbba13ccf581e8753af2b097b71c068dcaf509"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_response\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "8b3e80d01f42d2de60a24080f81a72351f6f1934adef8228d6cba02cf4fb1664"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "0779722a8e3db0568d8dc14f842416a5245637da0b8eb09baae065cee8d4ea5a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1695,
+      "sha256": "a7dd481977a457f18a248df6bf18bf135517a24967e136abb53e433f2b42ffdb"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "d5c505b3b23cb22e4e37e8e7c1c842d4236cdf244367d6f0346d3a871ad9bf3e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1693,
+      "sha256": "c81a6d1b274d7f4f99479609559574f292f04bfd59c0999f6fe0cc9c80c10193"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1692,
+      "sha256": "ef3a7c508a9cbaf1b9c577e81f589f902c8008946f7b985ed779c881b240f53d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_prior\\summary.json": {
+      "type": "file",
+      "bytes": 1689,
+      "sha256": "5835ee2560c2a73d4c13a923c0e4371b82a3263815b0fe244c601c3754caa821"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_response\\summary.json": {
+      "type": "file",
+      "bytes": 1652,
+      "sha256": "1bdb78da98ca958bcd48a0e8151d26c87e84fd534a7c50b21d21ab8aa92f555c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor0\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "debf182ab30f46f49481ae2872a2b9c08e1c0d14dd4ae7a7691d70133386f738"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor1\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "2a896df440cec80b37d670d4052893f1f34c45765862d2f5cc6c7d387aa74f73"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor2\\summary.json": {
+      "type": "file",
+      "bytes": 1693,
+      "sha256": "af2e4ae82a473836051c3d53accf1523a489deaf819591cd857ee767948fc070"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor3\\summary.json": {
+      "type": "file",
+      "bytes": 1690,
+      "sha256": "3819c2b263a0f9b8fe2c464bc6afb3ce74a12d294dd0211996d83ab8354740d0"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor4\\summary.json": {
+      "type": "file",
+      "bytes": 1691,
+      "sha256": "300be09b594e4fd4588fde3aecef606c39f340243067ab4b5b1e90313ed90f0d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_prior\\summary.json": {
+      "type": "file",
+      "bytes": 1685,
+      "sha256": "5fe8ebeab22ee4fe616dadb21add9fddd0f9e14cb2e657df88bd074a79bd347a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_response\\summary.json": {
+      "type": "file",
+      "bytes": 1696,
+      "sha256": "638b26025a03cb8a0740b5a4bc04c44678135782ec1d59eaec51a7b0901bda66"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145651,
+      "sha256": "855dbca1f8e1a5b7184a6847ed980e4b1d8e9bd567721f31ce4e60c45dd54625"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139007,
+      "sha256": "e1590e569d19885286af19aab99506421a57a133c96cf034a6a043fa85513665"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145069,
+      "sha256": "b733d406af1ca8bf5b7b929c2d94649e4c3c6bc527d502bfbd4af6d8ff7de767"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147578,
+      "sha256": "fecac204d4c3e231d2ec74137854e7597d5eeb9a40188f362f404208a3f0d62e"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147801,
+      "sha256": "db3a4872f6631e4ad436b6ee6789f34c36015d57e2f709f4a395d14e37fa9568"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_prior\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1144929,
+      "sha256": "5ebd2054d1a971413fef84acdcfa59293edcc87db514fb8bcef498a7fabd5b9d"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\prior_vs_response\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150398,
+      "sha256": "6f33c14881ac22be74bd6bf274e9bd1a3b5d8904eac076dd4b69f3befac6d81c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148091,
+      "sha256": "e914a9da7991f020c173f914ac6c38db48d0dddad3244e63000b731daf184572"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1139731,
+      "sha256": "58ac97e1e1f8d443b378aed3d4a1e68f446f220e736fca3acb1babb59835cca6"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148137,
+      "sha256": "3f70ab9c73b9f1262c3124b61c2c4ec6793bd7c58a9d5264d1db0136078b3261"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1150122,
+      "sha256": "5fb9886a0adef6ca4cecd8deceb29d77d976b333e92e1f8fb63c50792a8fbb07"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1149912,
+      "sha256": "b9278f8bd7212c4fc0a95a19b8a723a3dbc2621293c516d884df01fa57f19e59"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_prior\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1147669,
+      "sha256": "7a611c1f45901de98b1c4d32b92eced6901a9a75d56a479ebbc9bcb279a014ff"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\response_vs_response\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1154603,
+      "sha256": "1b703261ff1f3670ada29bca2f1bc6139459b8974c3bd8a2700bfcdd74de39ef"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor0\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146270,
+      "sha256": "e6e3f332acbeb25c95073f534a1a18bc4be2444d21b706199edf6cc4e1d8f3e8"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor1\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1138726,
+      "sha256": "97568a44a5c848497d17ae89c6568d05e789b7dcff44d730dd181b4042f39783"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor2\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1146205,
+      "sha256": "8d8189c9b08541307ab381d728c26f12743d9f9c079e566b2935b1d121bb531a"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor3\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148265,
+      "sha256": "254ea798879a7722ce0ffa91938cbdf4e33c8dc48f41d2553799677615f26812"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_anchor4\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1148348,
+      "sha256": "bd47edf0d815286ac2216854af60bcf213de089b8e3983d36384fd335bf2368f"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_prior\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1145831,
+      "sha256": "b8878237578d830aca1fb98cb8f87251632001b939c2c959006813922cdf602c"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\evaluation\\student_vs_response\\pairs.jsonl": {
+      "type": "file",
+      "bytes": 1151358,
+      "sha256": "c601d0ce4cec9eef7e9199410dab337b6c5d92206f458abbd126457086f66d14"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\reviewed_analysis.json": {
+      "type": "file",
+      "bytes": 8968,
+      "sha256": "644231eb6cefb426ab7ed366dce92d743e4bb18ec9e2816f35ffd847d89930bd"
+    },
+    "C:\\Users\\a8594\\CardPilot\\research\\experiments\\v6-fictitious-average-phase1-assessment-20260831\\result_summary.md": {
+      "type": "file",
+      "bytes": 910,
+      "sha256": "6c5c20ca06e3e95508ee9add3a5f64504c16417919960ad5bc0f940142b62bf9"
+    }
+  }
+}

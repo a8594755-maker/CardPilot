@@ -1,0 +1,162 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-seed0-8k-dual-deployment-feasibility-20260901",
+  "title": "MGDA seed0 8k dual-contract frozen deployment feasibility",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T19:02:04+00:00",
+  "updated_at": "2026-09-01T19:04:13+00:00",
+  "started_at": "2026-09-01T19:02:04+00:00",
+  "ended_at": "2026-09-01T19:04:13+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The exact seed0 8k MGDA parent can be bundled and deployed with bit-exact logits/actions under the same two-artifact journal/replay contract used by its 12k child, enabling an unbiased external dose control.",
+  "material_change": "Build a self-contained deployment bundle from the architecture-complete seed0 8k residual, verify 4,096 reachable-state greedy/sampled/logit parity, two mock journal sessions, independent replay, and base identity without external Slumbot hands.",
+  "baseline": "Seed0 12k deployment passed all contract gates but scored -54.53 bb/100 fresh5k. The exact 8k parent SHA is de70dd34 and contains hidden=128, cap=0.25, and base SHA 91b0c587.",
+  "source": "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt",
+  "parent_id": "v6-mgda-seed0-12k-slumbot-disagreement-audit-20260901",
+  "command": "python scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --residual-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt --out-dir research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run --bundle-name dual_contract_seed0_8k_deployment.pt",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py --base-checkpoint models/baseline/standard10/latest.pt --residual-checkpoint research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/seed0_treatment_8192.pt --out-dir research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run --bundle-name dual_contract_seed0_8k_deployment.pt",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:02:04+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T19:04:13+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "5a066079f9ba5ab3b2a86422e70336231f07139cd891f3b432479fcdafa1502b",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T19:02:04+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/source_manifest.json",
+    "source_manifest_sha256": "3936c8c75fdd52cb017389ce1f69f62e57e0e0a0174fba97e34a62d633ab211f",
+    "source_files": 144
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 8192,
+    "offline_samples": 4096,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 129.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "reachable_states": 4096,
+    "greedy_action_matches": 4096,
+    "sampled_action_matches": 4096,
+    "max_abs_logit_error": 0,
+    "offline_protocol_hands": 8,
+    "offline_decision_replays": 29,
+    "tests_passed": 240
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/code.patch",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/dual_contract_seed0_8k_deployment.pt",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_1/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_1/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_1/summary.json",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_2/journal.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_2/hands.jsonl",
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_2/summary.json",
+    "scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py"
+  ],
+  "notes": [
+    "No external hands. Admission requires bit-exact source/bundle parity and the same frozen base/bundle journal and replay gates as the 12k deployment."
+  ],
+  "result": {
+    "summary": "The exact seed0 8k source SHA de70dd34 was bundled as deployment SHA 7a81e5c3 with base SHA 91b0c587. Across 4,096 reachable states, logits were bit-exact and greedy/sampled actions matched 4,096/4,096. Two mock sessions produced eight protocol hands and 29 independently replayed decisions with disjoint token chains. Full suite: 240 passed.",
+    "conclusion": "The seed0 8k parent is valid for the same frozen dual-contract external execution as its 12k child. Its architecture was already self-contained, and no weights or behavior changed during bundling. This remains deployment evidence only.",
+    "decision": "ADMIT_8K_EXTERNAL_DOSE_CONTROL",
+    "next_step": "Preregister eight fresh 625-hand greedy journaled Slumbot sessions for the exact 8k bundle. Compare its raw result with the already completed 12k fresh5k using independent-sample uncertainty; use this only to diagnose external dose direction, not to claim a matched causal difference."
+  },
+  "tags": [
+    "deployment",
+    "dose-control",
+    "dual-contract",
+    "replay"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 27011,
+      "sha256": "3936c8c75fdd52cb017389ce1f69f62e57e0e0a0174fba97e34a62d633ab211f"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 5575,
+      "sha256": "8020b7d177dd8ca9361744211de914107911ab841cb288543eda48d0b97adf67"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/dual_contract_seed0_8k_deployment.pt": {
+      "type": "file",
+      "bytes": 463524,
+      "sha256": "7a81e5c31b06ad4840a2d21345abb711e54c039f99f269da75d98595abba62fb"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_1/journal.jsonl": {
+      "type": "file",
+      "bytes": 51950,
+      "sha256": "78b9d531777c8a4271010f14c1032dab865ccb012684037b71a55a89134062f4"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_1/hands.jsonl": {
+      "type": "file",
+      "bytes": 27331,
+      "sha256": "dd901eb5590490f7a8404e2aa3bd51ee2651e139d23b362005d794d3bf04bef9"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_1/summary.json": {
+      "type": "file",
+      "bytes": 5332,
+      "sha256": "6eb62721a06f791aa26e9820b079698309e95467fb728a98145a587ef5480c30"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_2/journal.jsonl": {
+      "type": "file",
+      "bytes": 44392,
+      "sha256": "013f69a91ea722d1106d38a823747010552306d4db4fdbe7415c178fa85c6573"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_2/hands.jsonl": {
+      "type": "file",
+      "bytes": 23177,
+      "sha256": "afb72d9e3e3ad7ff69b8a60bb0776cd81e8d122a7cd2b778163444caa1848b7a"
+    },
+    "research/experiments/v6-mgda-seed0-8k-dual-deployment-feasibility-20260901/run/mock_session_2/summary.json": {
+      "type": "file",
+      "bytes": 5333,
+      "sha256": "a2a8aa79754d1d407767d18f6e6b3422d66c0ce85389ee087d2648aa218a5a9a"
+    },
+    "scripts/alpha_holdem/v6_dual_contract_deployment_feasibility.py": {
+      "type": "file",
+      "bytes": 11278,
+      "sha256": "f47b0c83dcf69d3b9d29ed37c0d0fd614a2362137d96c1269f4d068d6f10bb6a"
+    }
+  }
+}

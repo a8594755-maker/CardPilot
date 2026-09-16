@@ -1,0 +1,134 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-contextual-residual-frozen-sensitivity-audit-20260902",
+  "title": "Frozen contextual residual logit-sensitivity audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-02T05:59:12+00:00",
+  "updated_at": "2026-09-02T06:01:33+00:00",
+  "started_at": "2026-09-02T05:59:12+00:00",
+  "ended_at": "2026-09-02T06:01:33+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The two stable but greedy-inactive contextual checkpoints may contain opponent-conditioned sub-argmax logit signal. Across 2,048 balanced states and twelve distinct saved 64-hand contexts per seed, mean contextual logit RMS should exceed 1e-4 and at least 10% of generic residual RMS; if so, a controlled dose increase is informative even if current greedy actions are invariant.",
+  "material_change": "Without generating hands or updating weights, hash-verify both frozen checkpoints and raw training evidence, recover each group's final saved context, and query every state under all twelve contexts. Decompose generic versus contextual residual RMS, action disagreement, base-margin crossing slack, and street-seat partitions.",
+  "baseline": "The parent smoke updated both context encoders and changed 0.195% of active-context Standard10 actions, but correct versus cyclically mismatched context produced exactly identical greedy rewards in both seeds.",
+  "source": "research/experiments/v6-contextual-residual-mgda-smoke-20260902/run",
+  "parent_id": "v6-contextual-residual-mgda-smoke-20260902",
+  "command": "python scripts/alpha_holdem/v6_contextual_residual_sensitivity_audit.py --base-checkpoint models/baseline/standard10/latest.pt --checkpoint research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed0_contextual_residual.pt --checkpoint research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed1_contextual_residual.pt --training-evidence research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed0_training_hands.jsonl.gz --training-evidence research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed1_training_hands.jsonl.gz --expected-checkpoint-sha256 a1f4ffa131744d1770999e30789879211834c2476a8720d91ec068bfa370002a --expected-checkpoint-sha256 ee4c6322e4f3250b02696d341707fc4d80924bc89be0651d61770699df90b98c --expected-evidence-sha256 d1db6ba7c6bd68432d0f472fc71a873fa84ef5ff78ccad1a43c87605ae56622c --expected-evidence-sha256 3e39a9e0e28b79cfbb4face888df5d0bbf36eaeb429c427d5ff6d8075ebbd34b --states 2048 --seed 20262310 --device cuda --out-dir research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_contextual_residual_sensitivity_audit.py --base-checkpoint models/baseline/standard10/latest.pt --checkpoint research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed0_contextual_residual.pt --checkpoint research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed1_contextual_residual.pt --training-evidence research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed0_training_hands.jsonl.gz --training-evidence research/experiments/v6-contextual-residual-mgda-smoke-20260902/run/seed1_training_hands.jsonl.gz --expected-checkpoint-sha256 a1f4ffa131744d1770999e30789879211834c2476a8720d91ec068bfa370002a --expected-checkpoint-sha256 ee4c6322e4f3250b02696d341707fc4d80924bc89be0651d61770699df90b98c --expected-evidence-sha256 d1db6ba7c6bd68432d0f472fc71a873fa84ef5ff78ccad1a43c87605ae56622c --expected-evidence-sha256 3e39a9e0e28b79cfbb4face888df5d0bbf36eaeb429c427d5ff6d8075ebbd34b --states 2048 --seed 20262310 --device cuda --out-dir research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T05:59:12+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q --junitxml=research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/tests.xml",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-02T06:01:33+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "e5df1771148dc349295a5a608328296baa3ef92856dfba42cd1abb824f475aad",
+    "code_paths": [
+      "scripts/alpha_holdem/v6_contextual_residual_sensitivity_audit.py"
+    ],
+    "captured_at": "2026-09-02T05:59:12+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/source_manifest.json",
+    "source_manifest_sha256": "3ecab4ee433479c3e1d0b70a0c85d8e854c62761ae01fe8ff9724d9693efbff2",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 7680,
+    "offline_samples": 49152,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 141.0,
+    "planned_training_hands": 0,
+    "planned_evaluation_hands": 0,
+    "planned_slumbot_hands": 0
+  },
+  "metrics": {
+    "seed0_contextual_logit_rms": 0.0009842176673788019,
+    "seed1_contextual_logit_rms": 0.0006046177754779427,
+    "seed0_contextual_to_generic_ratio": 0.15991071248860383,
+    "seed1_contextual_to_generic_ratio": 0.08251116929440126,
+    "seed0_context_action_disagreement_rate": 0.00048828125,
+    "seed1_context_action_disagreement_rate": 0.0009765625,
+    "tests_passed": 276,
+    "actionable_subargmax_signal": false
+  },
+  "artifacts": [
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/code.patch",
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/source_manifest.json",
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/run",
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/tests.xml",
+    "scripts/alpha_holdem/v6_contextual_residual_sensitivity_audit.py",
+    "scripts/alpha_holdem/test_v6_contextual_residual_sensitivity_audit.py"
+  ],
+  "notes": [
+    "This audit selects no checkpoint and touches no policy weights. Its purpose is to distinguish a clear inactive-conditioning mechanism from a sub-argmax signal that may rationally merit geometric dose scaling.",
+    "All 49,152 state-context queries were frozen and outcome-blind. The twelve final group contexts per seed were recovered from hash-verified raw learning-hand evidence and were mutually distinct."
+  ],
+  "result": {
+    "summary": "Across 2,048 balanced states and twelve saved contexts per checkpoint, contextual logit RMS was nonzero but small: 0.000984/0.000605 versus generic RMS 0.00615/0.00733. Context-to-generic ratios were 16.0% and 8.25%, greedy context disagreement only 0.049% and 0.098%, and margin crossing below 0.2%.",
+    "conclusion": "The raw multiplicative architecture learns mostly a generic residual and only weak, non-replicated conditional variation. Blindly scaling its current recipe is not supported. This is a mechanism-level architecture/objective diagnosis, independent of the small run's absolute reward.",
+    "decision": "REVISE_CONTEXT_ARCHITECTURE_TO_REMOVE_GENERIC_DOMINANCE",
+    "next_step": "Use the admitted calibrated 64-hand classifier as a frozen six-style posterior and train a zero-mean posterior-centered bank of learned policy heads, which structurally forbids a generic residual while retaining exact Standard10 at zero context; rerun a matched two-seed mechanism smoke."
+  },
+  "tags": [
+    "audit",
+    "context-sensitivity",
+    "frozen-policy",
+    "zero-new-hands"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/source_manifest.json": {
+      "type": "file",
+      "bytes": 309,
+      "sha256": "3ecab4ee433479c3e1d0b70a0c85d8e854c62761ae01fe8ff9724d9693efbff2"
+    },
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/run": {
+      "type": "directory",
+      "sha256": null
+    },
+    "research/experiments/v6-contextual-residual-frozen-sensitivity-audit-20260902/tests.xml": {
+      "type": "file",
+      "bytes": 41790,
+      "sha256": "206d6b5df3a6fa57c327922413fac9a3114cc0bbb584a513f7fe000ab1c5503c"
+    },
+    "scripts/alpha_holdem/v6_contextual_residual_sensitivity_audit.py": {
+      "type": "file",
+      "bytes": 9922,
+      "sha256": "117b672f3d7f92f962e374e923ba7dd2964ff42a3751951ac5527dc93515ef38"
+    },
+    "scripts/alpha_holdem/test_v6_contextual_residual_sensitivity_audit.py": {
+      "type": "file",
+      "bytes": 928,
+      "sha256": "34c1060f2c0992a69af1fe8dc5b1211e4e93737dddc2eb371d66f6083d8fccb3"
+    }
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-integrated-greedy-boundary-audit-20260903",
+  "title": "Integrated Standard10 greedy-boundary missing-objective audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-03T05:23:36+00:00",
+  "updated_at": "2026-09-03T05:24:41+00:00",
+  "started_at": "2026-09-03T05:23:36+00:00",
+  "ended_at": "2026-09-03T05:24:41+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "The seven-objective reward-plus-forward-KL direction and its selected 5e-5 updates systematically worsen the Standard10 greedy-margin boundary in both independent 1M lineages, explaining mixed fresh greedy breadth; adding the release-aware greedy boundary as an eighth normalized objective yields a strict common descent direction.",
+  "material_change": "No new hands or updates. Reconstruct the immutable 12,288-hand cohort, compute the existing release-aware Standard10 greedy-margin loss/gradient with max margin 0.1 and release advantage 1.0, audit parent/control/treatment boundary changes, and solve the eight-objective minimum-norm geometry in both lineages.",
+  "baseline": "v6-integrated-seven-objective-fresh-evaluation-20260903",
+  "source": "v6-integrated-standard10-seat-gradient-conflict-audit-20260903",
+  "parent_id": "v6-integrated-seven-objective-fresh-evaluation-20260903",
+  "command": "python scripts/alpha_holdem/audit_v6_integrated_greedy_boundary.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --control seed1=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/control.pt --control seed2=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed2/control.pt --treatment seed1=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/treatment.pt --treatment seed2=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed2/treatment.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --max-margin 0.1 --release-advantage 1.0 --device cuda --out research/experiments/v6-integrated-greedy-boundary-audit-20260903/analysis.json",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/audit_v6_integrated_greedy_boundary.py --candidate seed1=research/experiments/v6-integrated-alphaholdem-seed1-1m-deep-control-20260902/seed1/latest.pt --candidate seed2=research/experiments/v6-integrated-alphaholdem-seed2-1m-replication-20260902/seed2/latest.pt --control seed1=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/control.pt --control seed2=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed2/control.pt --treatment seed1=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed1/treatment.pt --treatment seed2=research/experiments/v6-integrated-seven-objective-dose-boundary-20260903/dose_5e-5/seed2/treatment.pt --source models/baseline/standard10/latest.pt --audit-run research/experiments/v6-integrated-standard10-seat-gradient-conflict-audit-20260903/run --max-margin 0.1 --release-advantage 1.0 --device cuda --out research/experiments/v6-integrated-greedy-boundary-audit-20260903/analysis.json",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:23:36+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-03T05:24:41+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "8b94b2af525029e38742932c39c68cee5c5b19efcf1d9337f611020ed9dd581b",
+    "code_paths": [
+      "scripts/alpha_holdem/audit_v6_integrated_greedy_boundary.py"
+    ],
+    "captured_at": "2026-09-03T05:23:36+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-integrated-greedy-boundary-audit-20260903/code.patch",
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_manifest": "research/experiments/v6-integrated-greedy-boundary-audit-20260903/source_manifest.json",
+    "source_manifest_sha256": "9bf2ae71ce74f856c683a929349f33bd9de32bafd16d4048c137bc64971eba3d",
+    "source_files": 1
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 0,
+    "offline_samples": 0,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 65.0,
+    "new_environment_training_hands": 0,
+    "reused_offline_samples": 12288,
+    "slumbot_hands": 0
+  },
+  "metrics": {
+    "max_margin": 0.1,
+    "release_advantage": 1.0,
+    "objectives": 8,
+    "seed1_seven_vs_boundary_cosine": 0.09417177150053116,
+    "seed2_seven_vs_boundary_cosine": 0.07719118354761899,
+    "seed1_source_kl_vs_boundary_cosine": 0.8634641412821089,
+    "seed2_source_kl_vs_boundary_cosine": 0.9469883551266055,
+    "seed1_treatment_boundary_loss_delta": 0.00011853070463985205,
+    "seed2_treatment_boundary_loss_delta": 1.7370213754475117e-05,
+    "tests_passed": 319
+  },
+  "artifacts": [
+    "research/experiments/v6-integrated-greedy-boundary-audit-20260903/code.patch",
+    "research/experiments/v6-integrated-greedy-boundary-audit-20260903/source_manifest.json",
+    "research/experiments/v6-integrated-greedy-boundary-audit-20260903/analysis.json"
+  ],
+  "notes": [
+    "Preregistered admission requires nonzero boundary gradients, negative seven-direction/boundary cosine, observed seven-treatment boundary loss increase, and a valid positive-worst-alignment eight-objective solution in both lineages. Failure of any replication gate rejects this specific missing-objective explanation.",
+    "No policy updates, new hands, or Slumbot calls. The specific boundary-aware route is closed by replicated mechanism evidence, not by early external score."
+  ],
+  "result": {
+    "summary": "The release-aware Standard10 greedy-boundary gradient was nonzero and an eight-objective common descent direction existed, but the preregistered missing-objective mechanism failed: the existing seven-objective direction aligned positively with the boundary in both lineages (+0.094/+0.077), and source KL aligned very strongly (+0.863/+0.947). The finite 5e-5 treatment nevertheless increased boundary loss in both.",
+    "conclusion": "Greedy-boundary degradation at the selected dose is another nonlinear finite-step crossing, not evidence that forward KL points in the wrong direction or that an eighth boundary objective is missing. Do not add a boundary-specific loss based on this result. The Standard10 greedy-vs-sampled clue remains relevant to evaluation contracts, but it does not justify this intervention.",
+    "decision": "REJECT_GREEDY_BOUNDARY_AS_REPLICATED_MISSING_OBJECTIVE",
+    "next_step": "Return to the long-horizon learned-policy objective. Implement a minimal on-policy conflict diagnostic that preserves opponent identity in transitions and measures per-minibatch common-descent feasibility across fixed anchors, dynamic snapshots, self-play, and source KL before changing the optimizer. Use a short contract smoke to establish metadata/replay correctness; do not scale or call Slumbot until online geometry is known."
+  },
+  "tags": [
+    "execution-contract",
+    "gradient-conflict",
+    "greedy-boundary",
+    "standard10",
+    "v6"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-integrated-greedy-boundary-audit-20260903/code.patch": {
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "research/experiments/v6-integrated-greedy-boundary-audit-20260903/source_manifest.json": {
+      "type": "file",
+      "bytes": 304,
+      "sha256": "9bf2ae71ce74f856c683a929349f33bd9de32bafd16d4048c137bc64971eba3d"
+    },
+    "research/experiments/v6-integrated-greedy-boundary-audit-20260903/analysis.json": {
+      "type": "file",
+      "bytes": 8671,
+      "sha256": "0b1e9a4e8430e03b344fadc7ca928b266f102ecbd921e59dac451c9228ee7c88"
+    }
+  }
+}

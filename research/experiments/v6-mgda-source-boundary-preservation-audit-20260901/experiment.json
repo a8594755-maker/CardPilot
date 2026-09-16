@@ -1,0 +1,125 @@
+{
+  "schema": "cardpilot.experiment.v1",
+  "id": "v6-mgda-source-boundary-preservation-audit-20260901",
+  "title": "MGDA source-boundary preservation audit",
+  "status": "COMPLETED",
+  "created_at": "2026-09-01T18:03:50+00:00",
+  "updated_at": "2026-09-01T18:06:57+00:00",
+  "started_at": "2026-09-01T18:03:50+00:00",
+  "ended_at": "2026-09-01T18:06:57+00:00",
+  "benchmark": "A frozen learned policy plays at least 100,000 fresh 200bb HUNL Slumbot hands, scores above 0 bb/100, and has a 95% confidence-interval lower bound above 0.",
+  "hypothesis": "Despite a small negative relative Standard10 delta at 8k, MGDA treatment preserves the frozen Standard10 greedy boundary at least as well as ordinary control across a balanced outcome-blind state panel, and its 4k-to-8k drift does not accelerate.",
+  "material_change": "Build a deterministic 6,144-state panel from action prefixes only, balanced across seed, dose, source arm, opponent, and seat. Replay frozen 4k/8k control and MGDA checkpoints alongside Standard10; measure legal-action greedy agreement, KL, residual magnitude, and partitioned drift. Ignore rewards/payoffs entirely; no environment hands or policy updates.",
+  "baseline": "Fresh curve: MGDA geometry 128/128 positive, both 8k seeds pooled positive, paired slope +9.515; relative Standard10 -2.173 and seat1 -0.724 held scale, while absolute treatment versus Standard10 remained +19.165 bb/100 internally.",
+  "source": "research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run/training_hands.jsonl.gz and eight frozen checkpoints",
+  "parent_id": "v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901",
+  "command": "python scripts/alpha_holdem/v6_mgda_source_boundary_audit.py --base-checkpoint models/baseline/standard10/latest.pt --run-dir research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run --states-per-stratum 128 --device cuda --out-dir research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run",
+  "commands": [
+    {
+      "command": "python scripts/alpha_holdem/v6_mgda_source_boundary_audit.py --base-checkpoint models/baseline/standard10/latest.pt --run-dir research/experiments/v6-dual-contract-mgda-fresh-8k-two-seed-curve-20260901/run --states-per-stratum 128 --device cuda --out-dir research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:03:50+00:00"
+    },
+    {
+      "command": "python -m pytest scripts/alpha_holdem -q",
+      "exact": true,
+      "reasons": [],
+      "recorded_at": "2026-09-01T18:06:57+00:00"
+    }
+  ],
+  "code": {
+    "commit": "9ba1c65bc4b732d01168b1f12db8a498c0ff0b24",
+    "branch": "fix/trainer-correctness",
+    "dirty": true,
+    "status_sha256": "1854fc904b0fdfa0b7d26b2bf3b56569a93a89e8f67afb0033586977cf83b1a7",
+    "code_paths": [
+      "scripts/alpha_holdem"
+    ],
+    "captured_at": "2026-09-01T18:03:50+00:00",
+    "provenance_complete": true,
+    "patch": "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/code.patch",
+    "patch_sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0",
+    "source_manifest": "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/source_manifest.json",
+    "source_manifest_sha256": "72b28e13fc786cf04eefb6b5b4141b555184d38a3b8469f270bc41b4cf829667",
+    "source_files": 129
+  },
+  "runtime": {
+    "cwd": "C:\\Users\\a8594\\CardPilot",
+    "host": "Louis",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10"
+  },
+  "accounting": {
+    "new_training_hands": 0,
+    "lineage_training_hands": 8192,
+    "offline_samples": 6144,
+    "evaluation_hands": 0,
+    "wall_time_seconds": 187.0,
+    "planned_environment_training_hands": 0,
+    "planned_evaluation_hands": 0
+  },
+  "metrics": {
+    "panel_states": 6144,
+    "seed0_treatment_8k_greedy_agreement": 0.9832357168197632,
+    "seed1_treatment_8k_greedy_agreement": 0.9847005605697632,
+    "seed0_treatment_control_agreement_delta": -0.00146484375,
+    "seed1_treatment_control_agreement_delta": 0.006673216819763184,
+    "seed0_treatment_control_kl_ratio": 1.437942420926221,
+    "seed1_treatment_control_kl_ratio": 0.6996151101477271,
+    "seed0_treatment_disagreement_growth": 0.008626282215118408,
+    "seed0_control_disagreement_growth": -0.0027669668197631836,
+    "worst_treatment_partition_disagreement": 0.029296875,
+    "tests_passed": 232
+  },
+  "artifacts": [
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/code.patch",
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/source_manifest.json",
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/summary.json",
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz"
+  ],
+  "notes": [
+    "Resume geometric training only if each 8k treatment has >=95% Standard10 greedy agreement, is no more than 1 percentage point below its paired control, treatment disagreement growth from 4k to 8k is no more than control growth plus 1 point, treatment mean KL is no more than 1.25x control at 8k, no opponent-seat treatment partition exceeds 10% disagreement, all source/checkpoint hashes match, and no reward field is accessed. These are preservation gates, not strength claims.",
+    "Audit code never accessed reward_bb or terminal outcome fields. It selected 128 action-prefix states from each of 48 seed/dose/source-arm/opponent/seat strata; minimum source support was 335. All eight checkpoint hashes and the source training SHA matched."
+  ],
+  "result": {
+    "summary": "On 6,144 balanced outcome-blind states, both 8k MGDA checkpoints retained 98.32-98.47% Standard10 greedy agreement and every treatment partition stayed below 2.93% disagreement. Seed1 MGDA was more preserving than control. Seed0 MGDA was only 0.146 percentage points lower in agreement, but its KL was 1.438x control and its disagreement growth exceeded control growth by 1.139 points, narrowly failing preregistered relative gates.",
+    "conclusion": "There is no catastrophic source-boundary erosion: absolute agreement is above 98% and residual caps/hashes are intact. However the seed0 relative KL/growth defect is reproducible enough to respect the HOLD. The next intervention should target this exact mechanism rather than discard the favorable fresh learning slope or relax the gate post hoc.",
+    "decision": "PRESERVATION_AUDIT_HOLDS_SCALE_ON_SEED0_RELATIVE_DRIFT",
+    "next_step": "Test a matched 8k-to-12k continuation from each frozen MGDA checkpoint in which treatment adds Standard10 KL as a seventh unit-normalized MGDA objective while control continues six reward objectives. Use identical first-continuation trajectories per pair and require both preservation improvement and cross-anchor reward breadth before any larger scale."
+  },
+  "tags": [
+    "audit",
+    "mgda",
+    "outcome-blind",
+    "preservation"
+  ],
+  "reproducibility": {
+    "exact_command_available": true,
+    "all_recorded_commands_exact": true,
+    "exact_command_count": 2,
+    "command_count": 2
+  },
+  "artifact_integrity": {
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/code.patch": {
+      "type": "file",
+      "bytes": 12816316,
+      "sha256": "281f7ec0f7915c700d8d61b4d0a1ed25a3c5a5342ff9adf06f053defed225dc0"
+    },
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/source_manifest.json": {
+      "type": "file",
+      "bytes": 24100,
+      "sha256": "72b28e13fc786cf04eefb6b5b4141b555184d38a3b8469f270bc41b4cf829667"
+    },
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/summary.json": {
+      "type": "file",
+      "bytes": 32932,
+      "sha256": "06b2f8b2e2a1b525cfb5717b774cacf0944ba43b27056a285b6ab24aaf9d6057"
+    },
+    "research/experiments/v6-mgda-source-boundary-preservation-audit-20260901/run/state_panel.jsonl.gz": {
+      "type": "file",
+      "bytes": 337102,
+      "sha256": "dbad566fb59e25105a3073f0df4514e7c903338b2658cd17fe86a9ac4947e385"
+    }
+  }
+}
